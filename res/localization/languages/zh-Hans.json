@@ -1,6 +1,12 @@
 // SPDX-FileCopyrightText: 2023 C. J. Howard
 // SPDX-License-Identifier: CC-BY-SA-4.0
 {
+	"tag":"zh-Hans",
 	"name":"简体中文",
-	"direction":"ltr"
+	"direction":"ltr",
+	
+	"font_serif":"noto-serif-sc-regular.woff",
+	"font_sans_serif":"noto-sans-sc-regular.woff",
+	"font_monospace":"iosevka-regular.woff",
+	"font_dyslexia":null
 }

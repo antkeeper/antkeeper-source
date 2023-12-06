@@ -54,13 +54,18 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 
 void load_fonts(::game& ctx)
 {
+	const auto& language = (*ctx.languages)[ctx.language_tag];
+	
 	// Load dyslexia-friendly typeface (if enabled)
 	bool dyslexia_font_loaded = false;
 	if (ctx.dyslexia_font)
 	{
-		const auto dyslexia_font_path = get_string(ctx, "font_dyslexia");
-		ctx.typefaces["dyslexia"] = ctx.resource_manager->load<type::typeface>(dyslexia_font_path);
-		dyslexia_font_loaded = true;
+		const auto& dyslexia_font_path = language["font_dyslexia"];
+		if (!dyslexia_font_path.is_null())
+		{
+			ctx.typefaces["dyslexia"] = ctx.resource_manager->load<type::typeface>(dyslexia_font_path);
+			dyslexia_font_loaded = true;
+		}
 	}
 	
 	// Load typefaces
@@ -74,9 +79,9 @@ void load_fonts(::game& ctx)
 	else
 	{
 		// Load standard typefaces
-		const auto serif_font_path = get_string(ctx, "font_serif");
-		const auto sans_serif_font_path = get_string(ctx, "font_sans_serif");
-		const auto monospace_font_path = get_string(ctx, "font_monospace");
+		const auto serif_font_path = language["font_serif"];
+		const auto sans_serif_font_path = language["font_sans_serif"];
+		const auto monospace_font_path = language["font_monospace"];
 		
 		ctx.typefaces["serif"] = ctx.resource_manager->load<type::typeface>(serif_font_path);
 		ctx.typefaces["sans_serif"] = ctx.resource_manager->load<type::typeface>(sans_serif_font_path);

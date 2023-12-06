@@ -4,3 +4,4 @@
 bin
 build
 res/data
+.~lock*

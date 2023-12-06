@@ -101,7 +101,7 @@ game::game(int argc, const char* const* argv)
 	setup_window();
 	setup_audio();
 	setup_input();
-	load_strings();
+	load_language();
 	setup_rendering();
 	setup_scenes();
 	setup_animation();
@@ -608,21 +608,24 @@ void game::setup_input()
 	*/
 }
 
-void game::load_strings()
+void game::load_language()
 {
-	debug::log_trace("Loading strings...");
+	debug::log_trace("Loading language...");
 	
-	// Default strings settings
+	// Default language tag setting
 	language_tag = "en";
 	
-	// Read strings settings
+	// Read language tag setting
 	read_or_write_setting(*this, "language_tag", language_tag);
 	
-	// Load string map
-	string_map = resource_manager->load<i18n::string_map>(std::format("localization/strings.{}.json", language_tag));
-	
-	// Log language info
+	// Log language tag
 	debug::log_info("Language tag: {}", language_tag);
+	
+	// Load languages
+	languages = resource_manager->load<json>("localization/languages.json");
+	
+	// Load language string map
+	string_map = resource_manager->load<i18n::string_map>(std::format("localization/strings.{}.json", language_tag));
 	
 	// Change window title
 	const std::string window_title = get_string(*this, "window_title");
@@ -631,7 +634,7 @@ void game::load_strings()
 	// Update window title setting
 	(*settings)["window_title"] = window_title;
 	
-	debug::log_trace("Loaded strings");
+	debug::log_trace("Loaded language");
 }
 
 void game::setup_rendering()

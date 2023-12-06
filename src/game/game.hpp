@@ -27,6 +27,7 @@
 #include <engine/type/bitmap-font.hpp>
 #include <engine/type/typeface.hpp>
 #include <engine/utility/dict.hpp>
+#include <engine/utility/json.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/utility/state-machine.hpp>
 #include <engine/utility/frame-scheduler.hpp>
@@ -164,6 +165,7 @@ public:
 	bool gamepad_active;
 	
 	// Localization and internationalization
+	std::shared_ptr<json> languages;
 	std::string language_tag;
 	std::shared_ptr<i18n::string_map> string_map;
 	
@@ -418,7 +420,7 @@ private:
 	void load_settings();
 	void setup_window();
 	void setup_input();
-	void load_strings();
+	void load_language();
 	void setup_rendering();
 	void setup_audio();
 	void setup_scenes();

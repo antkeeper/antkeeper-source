@@ -1,15 +1,5 @@
 key,context,en,zh-Hans,zh-Hant
 ,,,,
-language_name_english,English name of the language.,English,Chinese (Simplified),Chinese (Traditional)
-language_name_native,Native name of the language.,English,简体中文,繁體中文
-language_tag,IETF language tag of the language.,en,zh-Hans,zh-Hant
-language_direction,"Text direction of the language (“ltr” for left-to-right, or “rtl” for right-to-left).",ltr,ltr,ltr
-,,,,
-font_serif,Filename of a serif font which supports the target language.,castoro-regular.woff,noto-serif-sc-regular.woff,noto-serif-tc-regular.woff
-font_sans_serif,Filename of a sans-serif font which supports the target language.,noto-sans-regular.woff,noto-sans-sc-regular.woff,noto-sans-tc-regular.woff
-font_monospace,Filename of a monospace font which supports the Basic Latin unicode block (U+0000-007f).,iosevka-regular.woff,iosevka-regular.woff,iosevka-regular.woff
-font_dyslexia,Filename of a dyslexia-friendly font which supports the target language (if any).,open-dyslexic-3-regular.woff,,
-,,,,
 window_title,Text displayed in the title of the game window.,Antkeeper,Antkeeper,Antkeeper
 ,,,,
 title_antkeeper,Title screen text displaying the title of the game.,Antkeeper,Antkeeper,Antkeeper

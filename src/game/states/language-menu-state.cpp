@@ -21,24 +21,8 @@ language_menu_state::language_menu_state(::game& ctx):
 {
 	debug::log_trace("Entering language menu state...");
 	
-	// Load language manifest
-	language_manifest = ctx.resource_manager->load<json>("localization/languages.json");
-	if (!language_manifest)
-	{
-		throw std::runtime_error("Failed to load language manifest");
-	}
-	
-	// Determine index of current language
-	for (language_it = language_manifest->begin(); language_it != language_manifest->end(); ++language_it)
-	{
-		if (ctx.language_tag == language_it.key())
-		{
-			break;
-		}
-	}
-	
-	// Check if language was found
-	if (language_it == language_manifest->end())
+	// Get iterator to current language
+	if (language_it = ctx.languages->find(ctx.language_tag); language_it == ctx.languages->end())
 	{
 		throw std::runtime_error("Language not found");
 	}
@@ -72,10 +56,10 @@ language_menu_state::language_menu_state(::game& ctx):
 		// Load language strings
 		ctx.string_map = ctx.resource_manager->load<i18n::string_map>(std::format("localization/strings.{}.json", ctx.language_tag));
 		
-		// Update language settings
+		// Update language tag settings
 		(*ctx.settings)["language_tag"] = ctx.language_tag;
 		
-		// Log language change
+		// Log language tag
 		debug::log_info("Language tag: {}", ctx.language_tag);
 		
 		// Reload fonts
@@ -93,22 +77,22 @@ language_menu_state::language_menu_state(::game& ctx):
 	// Construct menu item callbacks
 	auto next_language_callback = [this, &ctx, change_language]()
 	{
-		if (++language_it; language_it == language_manifest->end())
+		if (++language_it; language_it == ctx.languages->end())
 		{
-			language_it = language_manifest->begin();
+			language_it = ctx.languages->begin();
 		}
 		
 		change_language();
 	};
 	auto previous_language_callback = [this, &ctx, change_language]()
 	{
-		if (language_it != language_manifest->begin())
+		if (language_it != ctx.languages->begin())
 		{
 			--language_it;
 		}
 		else
 		{
-			language_it = language_manifest->end();
+			language_it = ctx.languages->end();
 			--language_it;
 		}
 		
@@ -181,6 +165,6 @@ void language_menu_state::update_text_content()
 	auto [back_name, back_value] = ctx.menu_item_texts[1];
 	
 	language_name->set_content(get_string(ctx, "language_menu_language"));
-	language_value->set_content(get_string(ctx, "language_name_native"));
+	language_value->set_content((*ctx.languages)[ctx.language_tag]["name"]);
 	back_name->set_content(get_string(ctx, "back"));
 }
