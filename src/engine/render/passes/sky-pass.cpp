@@ -14,10 +14,10 @@
 #include <engine/render/model.hpp>
 #include <engine/render/material.hpp>
 #include <engine/scene/camera.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/color/color.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/physics/orbit/orbit.hpp>
 #include <engine/physics/light/photometry.hpp>
 #include <bit>

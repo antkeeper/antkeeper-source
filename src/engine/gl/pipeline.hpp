@@ -97,7 +97,7 @@ public:
 	 * @param first_viewport Index of the first viewport to set.
 	 * @param viewports Sequence of viewports.
 	 *
-	 * @except std::out_of_range Viewport index out of range.
+	 * @exception std::out_of_range Viewport index out of range.
 	 *
 	 * @warning Currently only a single viewport is supported.
 	 */
@@ -109,7 +109,7 @@ public:
 	 * @param first_scissor Index of the first scissor region to set.
 	 * @param scissors Sequence of scissor regions.
 	 *
-	 * @except std::out_of_range Scissor region index out of range.
+	 * @exception std::out_of_range Scissor region index out of range.
 	 *
 	 * @warning Currently only a single scissor region is supported.
 	 */

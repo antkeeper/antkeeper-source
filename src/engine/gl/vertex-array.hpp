@@ -21,7 +21,7 @@ public:
 	 *
 	 * @param attributes Vertex input attributes.
 	 *
-	 * @except std::invalid_argument Vertex input attribute has unsupported format.
+	 * @exception std::invalid_argument Vertex input attribute has unsupported format.
 	 */
 	/// @{
 	explicit vertex_array(std::span<const vertex_input_attribute> attributes);

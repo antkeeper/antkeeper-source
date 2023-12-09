@@ -86,7 +86,7 @@ public:
 	/**
 	 * Sets the scale of the object.
 	 *
-	 * @params scale Object scale.
+	 * @param scale Object scale.
 	 */
 	/// @{
 	inline void set_scale(const vector_type& scale)

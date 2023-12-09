@@ -5,7 +5,7 @@
 #define ANTKEEPER_PHYSICS_ORBIT_ELEMENTS_HPP
 
 #include <engine/math/vector.hpp>
-#include <engine/math/numbers.hpp>
+#include <engine/math/constants.hpp>
 #include <cmath>
 
 namespace physics {

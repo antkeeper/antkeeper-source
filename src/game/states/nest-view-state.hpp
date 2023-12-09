@@ -12,7 +12,7 @@
 #include <engine/input/mouse-events.hpp>
 #include <engine/geom/primitives/ray.hpp>
 #include <engine/geom/primitives/plane.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/scene/light-probe.hpp>
 #include <engine/geom/bvh/bvh.hpp>
 #include <engine/geom/brep/brep-mesh.hpp>

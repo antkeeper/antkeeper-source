@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_PHYSICS_SPRING_HPP
 #define ANTKEEPER_PHYSICS_SPRING_HPP
 
-#include <engine/math/numbers.hpp>
+#include <engine/math/constants.hpp>
 #include <engine/physics/frequency.hpp>
 
 namespace physics {

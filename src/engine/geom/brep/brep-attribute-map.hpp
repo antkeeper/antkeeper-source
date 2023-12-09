@@ -290,7 +290,7 @@ public:
 	 *
 	 * @return Reference to the attribute with the given name.
 	 *
-	 * @except std::out_of_range B-rep attribute not found.
+	 * @exception std::out_of_range B-rep attribute not found.
 	 */
 	/// @{
 	template <class T>

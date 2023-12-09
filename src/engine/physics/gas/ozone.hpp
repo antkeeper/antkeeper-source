@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_PHYSICS_GAS_OZONE_HPP
 #define ANTKEEPER_PHYSICS_GAS_OZONE_HPP
 
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 
 namespace physics {
 namespace gas {

@@ -5,7 +5,7 @@
 #define ANTKEEPER_GAME_AUTOFOCUS_COMPONENT_HPP
 
 #include <engine/math/vector.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/physics/spring.hpp>
 
 /**

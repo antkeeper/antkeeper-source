@@ -4,7 +4,7 @@
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/render/model.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include "game/components/atmosphere-component.hpp"
 #include "game/components/behavior-component.hpp"
 #include "game/components/diffuse-reflector-component.hpp"

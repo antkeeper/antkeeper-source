@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_PHYSICS_TIME_UTC_HPP
 #define ANTKEEPER_PHYSICS_TIME_UTC_HPP
 
-#include <engine/math/numbers.hpp>
+#include <engine/math/constants.hpp>
 
 namespace physics {
 namespace time {

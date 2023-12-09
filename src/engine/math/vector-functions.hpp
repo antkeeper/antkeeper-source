@@ -4,7 +4,8 @@
 #ifndef ANTKEEPER_MATH_VECTOR_FUNCTIONS_HPP
 #define ANTKEEPER_MATH_VECTOR_FUNCTIONS_HPP
 
-#include <engine/math/vector-type.hpp>
+#include <engine/math/vector-types.hpp>
+#include <engine/math/functions.hpp>
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
@@ -24,6 +25,7 @@
 // import <utility>;
 
 namespace math {
+namespace functions {
 
 /**
  * Returns the absolute values of each element.
@@ -1156,6 +1158,11 @@ inline constexpr vector<T, N> trunc(const vector<T, N>& x)
 {
 	return trunc(x, std::make_index_sequence<N>{});
 }
+
+} // namespace functions
+
+// Bring math::functions into math namespace
+using namespace functions;
 
 } // namespace math
 

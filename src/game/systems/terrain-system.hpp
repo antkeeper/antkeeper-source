@@ -36,9 +36,9 @@ public:
 	 *
 	 * @return Entity ID of the generated terrain grid.
 	 *
-	 * @except std::invalid_argument Failed to generate terrain from null heightmap.
-	 * @except std::runtime_error Heightmap size less than 2x2.
-	 * @except std::runtime_error Heightmap subdivision failed.
+	 * @exception std::invalid_argument Failed to generate terrain from null heightmap.
+	 * @exception std::runtime_error Heightmap size less than 2x2.
+	 * @exception std::runtime_error Heightmap subdivision failed.
 	 */
 	entity::id generate(std::shared_ptr<gl::image_2d> heightmap, const math::uvec2& subdivisions, const math::transform<float>& transform, std::shared_ptr<render::material> material);
 

@@ -15,4 +15,7 @@
 // export import hash.make_uint;
 // export import hash.pcg;
 
+/// Hash functions.
+namespace hash {}
+
 #endif // ANTKEEPER_HASH_HPP

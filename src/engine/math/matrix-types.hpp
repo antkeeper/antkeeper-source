@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2023 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef ANTKEEPER_MATH_MATRIX_TYPE_HPP
-#define ANTKEEPER_MATH_MATRIX_TYPE_HPP
+#ifndef ANTKEEPER_MATH_MATRIX_TYPES_HPP
+#define ANTKEEPER_MATH_MATRIX_TYPES_HPP
 
 #include <engine/math/vector.hpp>
 #include <format>
@@ -18,6 +18,7 @@
 // import <utility>;
 
 namespace math {
+namespace types {
 
 /**
  * *n* by *m* column-major matrix.
@@ -385,9 +386,6 @@ struct matrix
 	}
 };
 
-/// Matrix types.
-namespace matrix_types {
-
 /**
  * *n* by *m* matrix.
  *
@@ -482,13 +480,10 @@ using dmat3 = dmat3x3;
 using dmat4 = dmat4x4;
 /// @}
 
-} // namespace matrix_types
+} // namespace types
 
-// Bring matrix types into math namespace
-using namespace matrix_types;
-
-// Bring matrix types into math::types namespace
-namespace types { using namespace matrix_types; }
+// Bring math::types into math namespace
+using namespace types;
 
 } // namespace math
 
@@ -556,4 +551,4 @@ namespace std
 static_assert(std::is_standard_layout_v<math::fmat3>);
 static_assert(std::is_trivial_v<math::fmat3>);
 
-#endif // ANTKEEPER_MATH_MATRIX_TYPE_HPP
+#endif // ANTKEEPER_MATH_MATRIX_TYPES_HPP

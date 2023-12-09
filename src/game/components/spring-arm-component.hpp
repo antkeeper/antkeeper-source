@@ -7,7 +7,7 @@
 #include <engine/entity/id.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/math/quaternion.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/physics/spring.hpp>
 
 /**

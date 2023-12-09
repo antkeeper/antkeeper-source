@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/animation/locomotion/step.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <cmath>
 
 float step::phase(float t) const noexcept

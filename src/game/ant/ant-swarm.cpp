@@ -11,7 +11,7 @@
 #include "game/components/ant-caste-component.hpp"
 #include <engine/resources/resource-manager.hpp>
 #include <engine/math/quaternion.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/scene/static-mesh.hpp>
 #include <engine/config.hpp>
 #include <cmath>

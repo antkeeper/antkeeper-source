@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_PHYSICS_LIGHT_PHOTOMETRY_HPP
 #define ANTKEEPER_PHYSICS_LIGHT_PHOTOMETRY_HPP
 
-#include <engine/math/numbers.hpp>
+#include <engine/math/constants.hpp>
 #include <engine/math/quadrature.hpp>
 
 namespace physics {

@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_MATH_MATRIX_HPP
 #define ANTKEEPER_MATH_MATRIX_HPP
 
-#include <engine/math/matrix-type.hpp>
+#include <engine/math/matrix-types.hpp>
 #include <engine/math/matrix-constants.hpp>
 #include <engine/math/matrix-functions.hpp>
 

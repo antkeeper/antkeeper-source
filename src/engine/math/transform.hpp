@@ -14,6 +14,7 @@
 // import math.quaternion;
 
 namespace math {
+namespace types {
 
 /**
  * SRT transformation.
@@ -93,9 +94,28 @@ struct transform
 	}
 };
 
+} // namespace types
+
+// Bring math::types into math namespace
+using namespace types;
+
+namespace constants {
+
+/// @name Transform constants
+/// @{
+
 /// Identity transform.
 template <class T>
 inline constexpr transform<T> identity<transform<T>> = {zero<vec3<T>>, identity<quat<T>>, one<vec3<T>>};
+
+/// @}
+
+} // namespace constants
+
+// Bring math::constants into math namespace
+using namespace constants;
+
+namespace functions {
 
 /**
  * Calculates the inverse of a transform.
@@ -166,6 +186,11 @@ inline constexpr vector<T, 3> mul(const vector<T, 3>& v, const transform<T>& t) 
 {
 	return mul(inverse(t), v);
 }
+
+} // namespace functions
+
+// Bring math::functions into math namespace
+using namespace functions;
 
 } // namespace math
 

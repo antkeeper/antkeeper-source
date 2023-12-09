@@ -40,7 +40,7 @@
 #include "game/strings.hpp"
 #include <engine/utility/state-machine.hpp>
 #include <engine/config.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/physics/light/exposure.hpp>
 #include <engine/color/color.hpp>
 #include <engine/input/mouse.hpp>

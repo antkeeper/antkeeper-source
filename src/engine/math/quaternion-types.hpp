@@ -1,23 +1,24 @@
 // SPDX-FileCopyrightText: 2023 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef ANTKEEPER_MATH_QUATERNION_TYPE_HPP
-#define ANTKEEPER_MATH_QUATERNION_TYPE_HPP
+#ifndef ANTKEEPER_MATH_QUATERNION_TYPES_HPP
+#define ANTKEEPER_MATH_QUATERNION_TYPES_HPP
 
-#include <engine/math/numbers.hpp>
+#include <engine/math/constants.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/math/matrix.hpp>
 #include <format>
 #include <type_traits>
 
 // export module math.quaternion:type;
-// import math.numbers;
+// import math.constants;
 // import math.vector;
 // import math.matrix;
 // import <format>;
 // import <type_traits>;
 
 namespace math {
+namespace types {
 
 /**
  * Quaternion composed of a real scalar part and imaginary vector part.
@@ -264,9 +265,6 @@ template <std::size_t I, class T>
 }
 /// @}
 
-/// Quaternion types.
-namespace quaternion_types {
-
 /**
  * Quaternion composed of a real scalar part and imaginary vector part.
  *
@@ -281,13 +279,10 @@ using fquat = quat<float>;
 /// Quaternion with double-precision floating-point scalars.
 using dquat = quat<double>;
 
-} // namespace quaternion_types
+} // namespace types
 
-// Bring quaternion types into math::types namespace
-namespace types { using namespace math::quaternion_types; }
-
-// Bring quaternion types into math namespace
-using namespace quaternion_types;
+// Bring math::types into math namespace
+using namespace types;
 
 } // namespace math
 
@@ -349,4 +344,4 @@ namespace std
     };
 }
 
-#endif // ANTKEEPER_MATH_QUATERNION_TYPE_HPP
+#endif // ANTKEEPER_MATH_QUATERNION_TYPES_HPP

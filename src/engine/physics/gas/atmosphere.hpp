@@ -5,7 +5,7 @@
 #define ANTKEEPER_PHYSICS_GAS_ATMOSPHERE_HPP
 
 #include <engine/physics/constants.hpp>
-#include <engine/math/numbers.hpp>
+#include <engine/math/constants.hpp>
 #include <algorithm>
 #include <cmath>
 

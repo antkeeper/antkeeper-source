@@ -4,9 +4,9 @@
 #ifndef ANTKEEPER_MATH_QUATERNION_FUNCTIONS_HPP
 #define ANTKEEPER_MATH_QUATERNION_FUNCTIONS_HPP
 
-#include <engine/math/quaternion-type.hpp>
+#include <engine/math/quaternion-types.hpp>
 #include <engine/math/quaternion-constants.hpp>
-#include <engine/math/numbers.hpp>
+#include <engine/math/constants.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/math/matrix.hpp>
 #include <array>
@@ -16,7 +16,7 @@
 // export module math.quaternion:functions;
 // import :type;
 // import :constants;
-// import math.numbers;
+// import math.constants;
 // import math.vector;
 // import math.matrix;
 // import <array>;
@@ -24,6 +24,7 @@
 // import <utility>;
 
 namespace math {
+namespace functions {
 
 /**
  * Adds two quaternions.
@@ -646,6 +647,11 @@ quaternion<T> quaternion_cast(const mat3<T>& m)
 		}
 	}
 }
+
+} // namespace functions
+
+// Bring math::functions into math namespace
+using namespace functions;
 
 } // namespace math
 

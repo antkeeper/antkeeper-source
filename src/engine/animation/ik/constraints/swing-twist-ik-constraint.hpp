@@ -5,7 +5,7 @@
 #define ANTKEEPER_ANIMATION_SWING_TWIST_IK_CONSTRAINT_HPP
 
 #include <engine/animation/ik/ik-constraint.hpp>
-#include <engine/math/numbers.hpp>
+#include <engine/math/constants.hpp>
 
 /**
  * IK constraint with cone-limited swing and angle-limited twist.

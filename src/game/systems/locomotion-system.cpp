@@ -10,8 +10,8 @@
 #include <engine/entity/id.hpp>
 #include <engine/animation/skeleton.hpp>
 #include <engine/debug/log.hpp>
-#include <engine/math/common.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/ai/navmesh.hpp>
 #include <algorithm>
 #include <execution>

@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GEOM_SOLID_ANGLE_HPP
 #define ANTKEEPER_GEOM_SOLID_ANGLE_HPP
 
-#include <engine/math/numbers.hpp>
+#include <engine/math/constants.hpp>
 #include <cmath>
 
 namespace geom {

@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_MATH_MATRIX_FUNCTIONS_HPP
 #define ANTKEEPER_MATH_MATRIX_FUNCTIONS_HPP
 
-#include <engine/math/matrix-type.hpp>
+#include <engine/math/matrix-types.hpp>
 #include <engine/math/vector.hpp>
 #include <cstddef>
 #include <iterator>
@@ -22,6 +22,7 @@
 // import <utility>;
 
 namespace math {
+namespace functions {
 
 /**
  * Adds two matrices.
@@ -799,6 +800,11 @@ constexpr matrix<T, M, N> transpose(const matrix<T, N, M>& m) noexcept
 {
 	return transpose(m, std::make_index_sequence<M>{});
 }
+
+} // namespace functions
+
+// Bring math::functions into math namespace
+using namespace functions;
 
 } // namespace math
 

@@ -35,7 +35,7 @@
 #ifndef ANTKEEPER_EASE_HPP
 #define ANTKEEPER_EASE_HPP
 
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <cmath>
 
 /**

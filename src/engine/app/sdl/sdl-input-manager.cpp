@@ -5,7 +5,7 @@
 #include <engine/input/application-events.hpp>
 #include <engine/input/input-update-event.hpp>
 #include <engine/debug/log.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <SDL2/SDL.h>
 #include <stdexcept>
 

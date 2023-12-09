@@ -41,8 +41,8 @@ public:
 	 * @param format Format of the image data.
 	 * @param data Buffer into which image data will be read.
 	 *
-	 * @except std::out_of_range Image read operation mip level out of range.
-	 * @except std::invalid_argument Image read operation used unsupported format.
+	 * @exception std::out_of_range Image read operation mip level out of range.
+	 * @exception std::invalid_argument Image read operation used unsupported format.
 	 */
 	void read
 	(
@@ -70,9 +70,9 @@ public:
 	 * @param format Format of the image data.
 	 * @param data Image data to write.
 	 *
-	 * @except std::out_of_range Image write operation mip level out of range.
-	 * @except std::invalid_argument Image write operation used unsupported format.
-	 * @except std::out_of_range Image write operation exceeded image bounds.
+	 * @exception std::out_of_range Image write operation mip level out of range.
+	 * @exception std::invalid_argument Image write operation used unsupported format.
+	 * @exception std::out_of_range Image write operation exceeded image bounds.
 	 */
 	void write
 	(
@@ -197,17 +197,17 @@ protected:
 	 * @param array_layers Number of layers in the image.
 	 * @param flags Image flags.
 	 *
-	 * @except std::invalid_argument Image constructed with unsupported format.
-	 * @except std::invalid_argument Image dimensions must be nonzero.
-	 * @except std::invalid_argument Image mip levels must be nonzero.
-	 * @except std::out_of_range Image mip levels exceed `1 + log2(max(width, height, depth))`.
-	 * @except std::invalid_argument Image array layers must be nonzero.
-	 * @except std::invalid_argument 1D image must have a height and depth of `1`.
-	 * @except std::invalid_argument 2D image must have a depth of `1`.
-	 * @except std::invalid_argument 3D image arrays not supported.
-	 * @except std::invalid_argument Cube compatible image must be 2D.
-	 * @except std::invalid_argument Cube compatible image width and height must be equal.
-	 * @except std::invalid_argument Cube compatible image array layers must be a multiple of 6.
+	 * @exception std::invalid_argument Image constructed with unsupported format.
+	 * @exception std::invalid_argument Image dimensions must be nonzero.
+	 * @exception std::invalid_argument Image mip levels must be nonzero.
+	 * @exception std::out_of_range Image mip levels exceed `1 + log2(max(width, height, depth))`.
+	 * @exception std::invalid_argument Image array layers must be nonzero.
+	 * @exception std::invalid_argument 1D image must have a height and depth of `1`.
+	 * @exception std::invalid_argument 2D image must have a depth of `1`.
+	 * @exception std::invalid_argument 3D image arrays not supported.
+	 * @exception std::invalid_argument Cube compatible image must be 2D.
+	 * @exception std::invalid_argument Cube compatible image width and height must be equal.
+	 * @exception std::invalid_argument Cube compatible image array layers must be a multiple of 6.
 	 */
 	image
 	(

@@ -5,7 +5,7 @@
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/render/vertex-attribute-location.hpp>
-#include <engine/math/numbers.hpp>
+#include <engine/math/constants.hpp>
 #include <engine/hash/fnv1a.hpp>
 #include <bit>
 #include <cstdint>

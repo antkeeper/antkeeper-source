@@ -6,7 +6,7 @@
 
 #include <engine/animation/ik/ik-constraint.hpp>
 #include <engine/math/euler-angles.hpp>
-#include <engine/math/numbers.hpp>
+#include <engine/math/constants.hpp>
 
 /**
  * Euler angle IK constraint.

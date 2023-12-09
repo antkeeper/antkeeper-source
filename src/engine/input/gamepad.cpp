@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/input/gamepad.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <algorithm>
 #include <type_traits>
 #include <cmath>

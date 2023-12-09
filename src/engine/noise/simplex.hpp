@@ -7,7 +7,7 @@
 #include <engine/hash/make-uint.hpp>
 #include <engine/hash/pcg.hpp>
 #include <engine/math/vector.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <algorithm>
 
 // export module noise.simplex;

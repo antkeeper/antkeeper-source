@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_MATH_VECTOR_HPP
 #define ANTKEEPER_MATH_VECTOR_HPP
 
-#include <engine/math/vector-type.hpp>
+#include <engine/math/vector-types.hpp>
 #include <engine/math/vector-constants.hpp>
 #include <engine/math/vector-functions.hpp>
 

@@ -3,7 +3,7 @@
 
 #include "game/ant/ant-skeleton.hpp"
 #include "game/ant/ant-bone-set.hpp"
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/math/euler-angles.hpp>
 
 namespace {

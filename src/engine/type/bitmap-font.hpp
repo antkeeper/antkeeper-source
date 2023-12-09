@@ -65,8 +65,8 @@ public:
 	 * @param resize Automatically resize the font bitmap to contain all glyphs. Bitmap size will start at the closest power of two to the largest glyph, then its dimensions will increase to the next power of two until its large enough that all glyphs can be contained.
 	 * @return `true` if all glyphs were successfully packed, `false` otherwise.
 	 *
-	 * @except std::runtime_error Glyph bitmap format doesn't match font bitmap format.
-	 * @except std::runtime_error Not enough space in font bitmap to pack glyph.
+	 * @exception std::runtime_error Glyph bitmap format doesn't match font bitmap format.
+	 * @exception std::runtime_error Not enough space in font bitmap to pack glyph.
 	 */
 	bool pack(bool resize = true);
 	
@@ -80,7 +80,7 @@ public:
 	/**
 	 * @copydoc font::get_glyph_metrics(char32_t) const
 	 *
-	 * @except std::invalid_argument Cannot fetch metrics of unknown bitmap glyph
+	 * @exception std::invalid_argument Cannot fetch metrics of unknown bitmap glyph
 	 */
 	virtual const glyph_metrics& get_glyph_metrics(char32_t code) const;
 	

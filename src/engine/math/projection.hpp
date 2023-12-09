@@ -4,12 +4,14 @@
 #ifndef ANTKEEPER_MATH_PROJECTION_HPP
 #define ANTKEEPER_MATH_PROJECTION_HPP
 
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/constants.hpp>
 #include <engine/math/matrix.hpp>
 #include <tuple>
 
 // export module math.projection;
-// import math.common;
+// import math.functions;
+// import math.constants;
 // import math.matrix;
 // import <tuple>;
 

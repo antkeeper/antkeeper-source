@@ -13,7 +13,7 @@
 #include <engine/scene/collection.hpp>
 #include <engine/scene/light.hpp>
 #include <engine/geom/primitives/view-frustum.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/math/matrix.hpp>
 #include <engine/math/quaternion.hpp>

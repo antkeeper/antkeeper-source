@@ -9,7 +9,7 @@
 #include <engine/geom/primitives/ray.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/render/compositor.hpp>
-#include <engine/math/numbers.hpp>
+#include <engine/math/constants.hpp>
 
 namespace scene {
 

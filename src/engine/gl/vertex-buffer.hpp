@@ -23,7 +23,7 @@ public:
 	 * @param size Buffer size, in bytes.
 	 * @param data Buffer data. If empty, buffer data will not be set.
 	 *
-	 * @except std::out_of_range Vertex buffer construct operation exceeded data bounds.
+	 * @exception std::out_of_range Vertex buffer construct operation exceeded data bounds.
 	 */
 	/// @{
 	vertex_buffer(buffer_usage usage, std::size_t size, std::span<const std::byte> data = {});
@@ -79,7 +79,7 @@ public:
 	 * @param size New buffer size, in bytes.
 	 * @param data New buffer data. If empty, buffer data will not be updated.
 	 *
-	 * @except std::out_of_range Vertex buffer resize operation exceeded data bounds.
+	 * @exception std::out_of_range Vertex buffer resize operation exceeded data bounds.
 	 */
 	/// @{
 	void repurpose(buffer_usage usage, std::size_t size, std::span<const std::byte> data = {});
@@ -101,7 +101,7 @@ public:
 	 * @param size New buffer size, in bytes.
 	 * @param data New buffer data. If empty, buffer data will not be updated.
 	 *
-	 * @except std::out_of_range Vertex buffer resize operation exceeded data bounds.
+	 * @exception std::out_of_range Vertex buffer resize operation exceeded data bounds.
 	 */
 	/// @{
 	inline void resize(std::size_t size, std::span<const std::byte> data = {})
@@ -121,7 +121,7 @@ public:
 	 * @param offset Offset into the buffer's data, in bytes, where writing will begin.
 	 * @param data Data to write into the buffer.
 	 *
-	 * @except std::out_of_range Vertex buffer write operation exceeded buffer bounds.
+	 * @exception std::out_of_range Vertex buffer write operation exceeded buffer bounds.
 	 */
 	/// @{
 	void write(std::size_t offset, std::span<const std::byte> data);
@@ -138,7 +138,7 @@ public:
 	 * @param offset Offset into the buffer's data, in bytes, where reading will begin.
 	 * @param data Data buffer where the read bytes will be stored.
 	 *
-	 * @except std::out_of_range Vertex buffer read operation exceeded buffer bounds.
+	 * @exception std::out_of_range Vertex buffer read operation exceeded buffer bounds.
 	 */
 	/// @{
 	void read(std::size_t offset, std::span<std::byte> data) const;
@@ -157,8 +157,8 @@ public:
 	 * @param read_offset Offset into the read buffer's data, in bytes, where reading will begin.
 	 * @param write_offset Offset into the this buffer's data, in bytes, where writing will begin.
 	 *
-	 * @except std::out_of_range Vertex buffer copy operation exceeded read buffer bounds.
-	 * @except std::out_of_range Vertex buffer copy operation exceeded write buffer bounds.
+	 * @exception std::out_of_range Vertex buffer copy operation exceeded read buffer bounds.
+	 * @exception std::out_of_range Vertex buffer copy operation exceeded write buffer bounds.
 	 */
 	void copy(const vertex_buffer& read_buffer, std::size_t copy_size, std::size_t read_offset = 0, std::size_t write_offset = 0);
 	

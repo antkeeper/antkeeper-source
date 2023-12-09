@@ -110,15 +110,15 @@ protected:
 	 * @param array_layer Number of array layers accessible to the view.
 	 * @param flags Image view flags.
 	 *
-	 * @except std::invalid_argument Image view has null image.
-	 * @except std::invalid_argument Image view has unsupported format.
-	 * @except std::invalid_argument Image view has zero mip levels.
-	 * @except std::out_of_range Image view mip range out of image mip range.
-	 * @except std::invalid_argument Image view has zero array layers.
-	 * @except std::out_of_range Image view array layer range out of image array layer range.
-	 * @except std::invalid_argument Image view dimensionality must match image dimensionality.
-	 * @except std::invalid_argument Cube image views must be constructed from cube-compatible images.
-	 * @except std::invalid_argument Cube image views array layer count must be a multiple of 6.
+	 * @exception std::invalid_argument Image view has null image.
+	 * @exception std::invalid_argument Image view has unsupported format.
+	 * @exception std::invalid_argument Image view has zero mip levels.
+	 * @exception std::out_of_range Image view mip range out of image mip range.
+	 * @exception std::invalid_argument Image view has zero array layers.
+	 * @exception std::out_of_range Image view array layer range out of image array layer range.
+	 * @exception std::invalid_argument Image view dimensionality must match image dimensionality.
+	 * @exception std::invalid_argument Cube image views must be constructed from cube-compatible images.
+	 * @exception std::invalid_argument Cube image views array layer count must be a multiple of 6.
 	 */
 	image_view
 	(

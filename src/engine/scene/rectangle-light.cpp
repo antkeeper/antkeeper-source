@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/scene/rectangle-light.hpp>
-#include <engine/math/numbers.hpp>
+#include <engine/math/constants.hpp>
 
 namespace scene {
 

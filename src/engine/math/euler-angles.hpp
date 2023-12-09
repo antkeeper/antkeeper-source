@@ -4,17 +4,17 @@
 #ifndef ANTKEEPER_MATH_EULER_ANGLES_HPP
 #define ANTKEEPER_MATH_EULER_ANGLES_HPP
 
-#include <engine/math/common.hpp>
-#include <engine/math/numbers.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/constants.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/math/quaternion.hpp>
 #include <concepts>
 
 // export module math.euler_angles;
-// import math.common;
+// import math.functions;
 // import math.vector;
 // import math.quaternion;
-// import math.numbers;
+// import math.constants;
 // import <concepts>;
 
 namespace math {

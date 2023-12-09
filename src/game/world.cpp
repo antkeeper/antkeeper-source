@@ -42,7 +42,7 @@
 #include <fstream>
 #include <engine/animation/screen-transition.hpp>
 #include <engine/animation/ease.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 
 namespace world {
 

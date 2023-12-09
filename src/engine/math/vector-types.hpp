@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2023 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef ANTKEEPER_MATH_VECTOR_TYPE_HPP
-#define ANTKEEPER_MATH_VECTOR_TYPE_HPP
+#ifndef ANTKEEPER_MATH_VECTOR_TYPES_HPP
+#define ANTKEEPER_MATH_VECTOR_TYPES_HPP
 
 #include <cstddef>
 #include <format>
@@ -17,6 +17,7 @@
 // import <utility>;
 
 namespace math {
+namespace types {
 
 /**
  * *n*-dimensional vector.
@@ -385,9 +386,6 @@ template <std::size_t I, class T, std::size_t N>
 }
 /// @}
 
-/// Vector types.
-namespace vector_types {
-
 /**
  * *n*-dimensional vector.
  *
@@ -486,13 +484,10 @@ using dvec3 = dvec<3>;
 using dvec4 = dvec<4>;
 /// @}
 
-} // namespace vector_types
+} // namespace types
 
-// Bring vector types into math::types namespace
-namespace types { using namespace math::vector_types; }
-
-// Bring vector types into math namespace
-using namespace vector_types;
+// Bring math::types into math namespace
+using namespace types;
 
 } // namespace math
 
@@ -557,4 +552,4 @@ namespace std
 static_assert(std::is_standard_layout_v<math::fvec3>);
 static_assert(std::is_trivial_v<math::fvec3>);
 
-#endif // ANTKEEPER_MATH_VECTOR_TYPE_HPP
+#endif // ANTKEEPER_MATH_VECTOR_TYPES_HPP

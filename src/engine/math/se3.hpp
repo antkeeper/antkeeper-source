@@ -14,6 +14,7 @@
 // import math.quaternion;
 
 namespace math {
+namespace types {
 
 /**
  * SE(3) proper rigid transformation (rototranslation).
@@ -119,9 +120,26 @@ public:
 	}
 };
 
+} // namespace types
+
+// Bring math::types into math namespace
+using namespace types;
+
+namespace constants {
+
+/// @name SE(3) constants
+/// @{
+
 /// Identity SE(3) transformation.
 template <class T>
 inline constexpr se3<T> identity<se3<T>> = {zero<vec3<T>>, identity<quat<T>>};
+
+/// @}
+
+} // namespace constants
+
+// Bring math::constants into math namespace
+using namespace constants;
 
 } // namespace math
 

@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_MATH_QUATERNION_HPP
 #define ANTKEEPER_MATH_QUATERNION_HPP
 
-#include <engine/math/quaternion-type.hpp>
+#include <engine/math/quaternion-types.hpp>
 #include <engine/math/quaternion-constants.hpp>
 #include <engine/math/quaternion-functions.hpp>
 

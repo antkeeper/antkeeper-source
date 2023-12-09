@@ -13,4 +13,7 @@
 // export import noise.simplex;
 // export import noise.voronoi;
 
+/// Noise generation functions.
+namespace noise {}
+
 #endif // ANTKEEPER_NOISE_HPP

@@ -9,7 +9,7 @@
 #include "game/components/ovary-component.hpp"
 #include "game/components/spring-arm-component.hpp"
 #include "game/components/scene-component.hpp"
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/math/euler-angles.hpp>
 #include <engine/debug/log.hpp>
 

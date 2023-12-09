@@ -4,7 +4,7 @@
 #include <engine/ai/steering/behavior/wander.hpp>
 #include <engine/ai/steering/behavior/seek.hpp>
 #include <array>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/math/quaternion.hpp>
 
 namespace ai {

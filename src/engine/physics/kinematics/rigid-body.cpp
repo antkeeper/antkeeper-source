@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/physics/kinematics/rigid-body.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <algorithm>
 
 namespace physics {

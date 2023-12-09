@@ -4,12 +4,12 @@
 #ifndef ANTKEEPER_MATH_POLYNOMIAL_HPP
 #define ANTKEEPER_MATH_POLYNOMIAL_HPP
 
-#include <engine/math/common.hpp>
-#include <engine/math/numbers.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/constants.hpp>
 
 // export module math.polynomial;
-// import math.common;
-// import math.numbers;
+// import math.functions;
+// import math.constants;
 
 namespace math {
 

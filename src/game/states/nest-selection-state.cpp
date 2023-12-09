@@ -43,7 +43,7 @@
 #include <engine/config.hpp>
 #include <engine/entity/archetype.hpp>
 #include <engine/input/mouse.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/math/projection.hpp>
 #include <engine/physics/light/exposure.hpp>
 #include <engine/physics/kinematics/constraints/spring-constraint.hpp>

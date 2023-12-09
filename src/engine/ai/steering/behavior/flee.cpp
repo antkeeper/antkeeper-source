@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/ai/steering/behavior/flee.hpp>
-#include <engine/math/common.hpp>
+#include <engine/math/functions.hpp>
 
 namespace ai {
 namespace steering {

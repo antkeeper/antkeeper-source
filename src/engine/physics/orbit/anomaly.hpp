@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_PHYSICS_ORBIT_ANOMALY_HPP
 #define ANTKEEPER_PHYSICS_ORBIT_ANOMALY_HPP
 
-#include <engine/math/numbers.hpp>
+#include <engine/math/constants.hpp>
 #include <cmath>
 
 namespace physics {

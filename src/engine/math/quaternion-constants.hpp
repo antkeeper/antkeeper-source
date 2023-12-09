@@ -4,33 +4,42 @@
 #ifndef ANTKEEPER_MATH_QUATERNION_CONSTANTS_HPP
 #define ANTKEEPER_MATH_QUATERNION_CONSTANTS_HPP
 
-#include <engine/math/quaternion-type.hpp>
-#include <engine/math/numbers.hpp>
+#include <engine/math/quaternion-types.hpp>
+#include <engine/math/constants.hpp>
 
 // export module math.quaternion:constants;
 // import :type;
-// import math.numbers;
+// import math.constants;
 
-namespace math
-{
-	namespace numbers
-	{
-		/// Quaternion of zeros.
-		template <class T>
-		inline constexpr quaternion<T> zero<quaternion<T>> = {};
-		
-		/// Quaternion of ones.
-		template <class T>
-		inline constexpr quaternion<T> one<quaternion<T>> = {one<T>, {one<T>, one<T>, one<T>}};
-		
-		/// Quaternion of infinities.
-		template <class T>
-		inline constexpr quaternion<T> inf<quaternion<T>> = {inf<T>, {inf<T>, inf<T>, inf<T>}};
-		
-		/// Rotational identity quaternion.
-		template <class T>
-		inline constexpr quaternion<T> identity<quaternion<T>> = {one<T>, {}};
-	}
-}
+namespace math {
+namespace constants {
+
+/// @name Quaternion constants
+/// @{
+
+/// Quaternion of zeros.
+template <class T>
+inline constexpr quaternion<T> zero<quaternion<T>> = {};
+
+/// Quaternion of ones.
+template <class T>
+inline constexpr quaternion<T> one<quaternion<T>> = {one<T>, {one<T>, one<T>, one<T>}};
+
+/// Quaternion of infinities.
+template <class T>
+inline constexpr quaternion<T> inf<quaternion<T>> = {inf<T>, {inf<T>, inf<T>, inf<T>}};
+
+/// Rotational identity quaternion.
+template <class T>
+inline constexpr quaternion<T> identity<quaternion<T>> = {one<T>, {}};
+
+/// @}
+
+} // namespace constants
+
+// Bring math::constants into math namespace
+using namespace constants;
+
+} // namespace math
 
 #endif // ANTKEEPER_MATH_QUATERNION_CONSTANTS_HPP
