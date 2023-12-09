@@ -7,7 +7,7 @@
 #include <engine/animation/bone.hpp>
 #include <engine/animation/rest-pose.hpp>
 #include <engine/animation/animation-pose.hpp>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <unordered_map>
 #include <vector>
 #include <optional>

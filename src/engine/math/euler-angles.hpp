@@ -4,13 +4,18 @@
 #ifndef ANTKEEPER_MATH_EULER_ANGLES_HPP
 #define ANTKEEPER_MATH_EULER_ANGLES_HPP
 
+#include <engine/math/common.hpp>
 #include <engine/math/numbers.hpp>
-#include <engine/math/quaternion.hpp>
 #include <engine/math/vector.hpp>
-#include <cmath>
-#include <cstdint>
+#include <engine/math/quaternion.hpp>
 #include <concepts>
-#include <utility>
+
+// export module math.euler_angles;
+// import math.common;
+// import math.vector;
+// import math.quaternion;
+// import math.numbers;
+// import <concepts>;
 
 namespace math {
 
@@ -19,7 +24,7 @@ namespace math {
  *
  * Indices of the first, second, and third rotation axes are encoded in bits 0-1, 2-3, and 4-5, respectively.
  */
-enum class rotation_sequence: std::uint8_t
+enum class rotation_sequence
 {
 	/// *z-x-z* rotation sequence (proper Euler angles).
 	zxz = 0b100010,
@@ -113,22 +118,22 @@ template <rotation_sequence Sequence, class T>
 	const auto aa_bb = a * a + b * b;
 	
 	vec3<T> angles;
-	angles[1] = std::acos(T{2} * aa_bb / (aa_bb + c * c + d * d) - T{1});
+	angles[1] = acos(T{2} * aa_bb / (aa_bb + c * c + d * d) - T{1});
 	
-	if (std::abs(angles[1]) <= tolerance)
+	if (abs(angles[1]) <= tolerance)
 	{
 		angles[0] = T{0};
-		angles[2] = std::atan2(b, a) * T{2};
+		angles[2] = atan(b, a) * T{2};
 	}
-	else if (std::abs(angles[1] - pi<T>) <= tolerance)
+	else if (abs(angles[1] - pi<T>) <= tolerance)
 	{
 		angles[0] = T{0};
-		angles[2] = std::atan2(-d, c) * T{-2};
+		angles[2] = atan(-d, c) * T{-2};
 	}
 	else
 	{
-		const auto half_sum = std::atan2(b, a);
-		const auto half_diff = std::atan2(-d, c);
+		const auto half_sum = atan(b, a);
+		const auto half_diff = atan(-d, c);
 		
 		angles[0] = half_sum + half_diff;
 		angles[2] = half_sum - half_diff;
@@ -267,12 +272,12 @@ template <rotation_sequence Sequence, class T>
 [[nodiscard]] quat<T> euler_to_quat(const vec3<T>& angles)
 {
 	const auto half_angles = angles * T{0.5};
-	const T cx = std::cos(half_angles.x());
-	const T sx = std::sin(half_angles.x());
-	const T cy = std::cos(half_angles.y());
-	const T sy = std::sin(half_angles.y());
-	const T cz = std::cos(half_angles.z());
-	const T sz = std::sin(half_angles.z());
+	const T cx = cos(half_angles.x());
+	const T sx = sin(half_angles.x());
+	const T cy = cos(half_angles.y());
+	const T sy = sin(half_angles.y());
+	const T cz = cos(half_angles.z());
+	const T sz = sin(half_angles.z());
 	
 	if constexpr (Sequence == rotation_sequence::zxz)
 	{

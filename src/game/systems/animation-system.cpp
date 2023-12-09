@@ -6,7 +6,7 @@
 #include "game/components/scene-component.hpp"
 #include <engine/animation/bone.hpp>
 #include <engine/scene/skeletal-mesh.hpp>
-#include <engine/math/interpolation.hpp>
+#include <engine/math/common.hpp>
 #include <algorithm>
 #include <execution>
 

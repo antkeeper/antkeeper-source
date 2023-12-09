@@ -15,7 +15,7 @@
 #include <engine/animation/screen-transition.hpp>
 #include <engine/config.hpp>
 #include "game/strings.hpp"
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 
 using namespace hash::literals;
 

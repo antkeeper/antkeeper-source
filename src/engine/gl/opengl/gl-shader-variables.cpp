@@ -367,17 +367,17 @@ gl_shader_fmat2::gl_shader_fmat2(std::size_t size, GLint gl_uniform_location):
 
 void gl_shader_fmat2::update(const math::fmat2& value) const noexcept
 {
-	glUniformMatrix2fv(gl_uniform_location, 1, GL_FALSE, value.data());
+	glUniformMatrix2fv(gl_uniform_location, 1, GL_FALSE, value.data()->data());
 }
 
 void gl_shader_fmat2::update(const math::fmat2& value, std::size_t index) const
 {
-	glUniformMatrix2fv(gl_uniform_location + static_cast<GLint>(index) * 2, 1, GL_FALSE, value.data());
+	glUniformMatrix2fv(gl_uniform_location + static_cast<GLint>(index) * 2, 1, GL_FALSE, value.data()->data());
 }
 
 void gl_shader_fmat2::update(std::span<const math::fmat2> values, std::size_t index) const
 {
-	glUniformMatrix2fv(gl_uniform_location + static_cast<GLint>(index) * 2, static_cast<GLsizei>(values.size()), GL_FALSE, values.data()->data());
+	glUniformMatrix2fv(gl_uniform_location + static_cast<GLint>(index) * 2, static_cast<GLsizei>(values.size()), GL_FALSE, values.data()->data()->data());
 }
 
 gl_shader_fmat3::gl_shader_fmat3(std::size_t size, GLint gl_uniform_location):
@@ -387,17 +387,17 @@ gl_shader_fmat3::gl_shader_fmat3(std::size_t size, GLint gl_uniform_location):
 
 void gl_shader_fmat3::update(const math::fmat3& value) const noexcept
 {
-	glUniformMatrix3fv(gl_uniform_location, 1, GL_FALSE, value.data());
+	glUniformMatrix3fv(gl_uniform_location, 1, GL_FALSE, value.data()->data());
 }
 
 void gl_shader_fmat3::update(const math::fmat3& value, std::size_t index) const
 {
-	glUniformMatrix3fv(gl_uniform_location + static_cast<GLint>(index) * 3, 1, GL_FALSE, value.data());
+	glUniformMatrix3fv(gl_uniform_location + static_cast<GLint>(index) * 3, 1, GL_FALSE, value.data()->data());
 }
 
 void gl_shader_fmat3::update(std::span<const math::fmat3> values, std::size_t index) const
 {
-	glUniformMatrix3fv(gl_uniform_location + static_cast<GLint>(index) * 3, static_cast<GLsizei>(values.size()), GL_FALSE, values.data()->data());
+	glUniformMatrix3fv(gl_uniform_location + static_cast<GLint>(index) * 3, static_cast<GLsizei>(values.size()), GL_FALSE, values.data()->data()->data());
 }
 
 gl_shader_fmat4::gl_shader_fmat4(std::size_t size, GLint gl_uniform_location):
@@ -407,17 +407,17 @@ gl_shader_fmat4::gl_shader_fmat4(std::size_t size, GLint gl_uniform_location):
 
 void gl_shader_fmat4::update(const math::fmat4& value) const noexcept
 {
-	glUniformMatrix4fv(gl_uniform_location, 1, GL_FALSE, value.data());
+	glUniformMatrix4fv(gl_uniform_location, 1, GL_FALSE, value.data()->data());
 }
 
 void gl_shader_fmat4::update(const math::fmat4& value, std::size_t index) const
 {
-	glUniformMatrix4fv(gl_uniform_location + static_cast<GLint>(index) * 4, 1, GL_FALSE, value.data());
+	glUniformMatrix4fv(gl_uniform_location + static_cast<GLint>(index) * 4, 1, GL_FALSE, value.data()->data());
 }
 
 void gl_shader_fmat4::update(std::span<const math::fmat4> values, std::size_t index) const
 {
-	glUniformMatrix4fv(gl_uniform_location + static_cast<GLint>(index) * 4, static_cast<GLsizei>(values.size()), GL_FALSE, values.data()->data());
+	glUniformMatrix4fv(gl_uniform_location + static_cast<GLint>(index) * 4, static_cast<GLsizei>(values.size()), GL_FALSE, values.data()->data()->data());
 }
 
 gl_shader_texture_1d::gl_shader_texture_1d(std::size_t size, GLint gl_uniform_location, GLint gl_first_texture_unit_index):

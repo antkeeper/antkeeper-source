@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/animation/locomotion/gait.hpp>
-#include <engine/math/fract.hpp>
+#include <engine/math/common.hpp>
 #include <cmath>
 
 float gait::phase(float t) const noexcept

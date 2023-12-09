@@ -45,7 +45,7 @@ constexpr math::mat3<T> von_kries_cone_response =
  * @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
  */
 template <class T>
-constexpr math::mat3<T> xyz_scaling_cone_response = math::mat3<T>::identity();
+constexpr math::mat3<T> xyz_scaling_cone_response = math::identity<math::mat3<T>>;
 
 /**
  * Constructs a chromatic adaptation transform (CAT) matrix.

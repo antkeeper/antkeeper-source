@@ -1,14 +1,21 @@
 // SPDX-FileCopyrightText: 2023 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef ANTKEEPER_UTILITY_HASH_FNV1A_HPP
-#define ANTKEEPER_UTILITY_HASH_FNV1A_HPP
+#ifndef ANTKEEPER_HASH_FNV1A_HPP
+#define ANTKEEPER_HASH_FNV1A_HPP
 
 #include <concepts>
 #include <cstdint>
 #include <string_view>
 #include <utility>
 #include <span>
+
+// export module hash.fnv1a;
+// import <concepts>;
+// import <cstdint>;
+// import <string_view>;
+// import <utility>;
+// import <span>;
 
 namespace hash {
 
@@ -208,6 +215,34 @@ struct fnv1a64_t
 };
 static_assert(sizeof(fnv1a64_t) == sizeof(std::uint64_t));
 
+/**
+ * Compares two FNV-1a hash values for equality.
+ */
+/// @{
+[[nodiscard]] inline constexpr bool operator==(const fnv1a32_t& lhs, const fnv1a32_t& rhs) noexcept
+{
+	return lhs.value == rhs.value;
+}
+[[nodiscard]] inline constexpr bool operator==(const fnv1a64_t& lhs, const fnv1a64_t& rhs) noexcept
+{
+	return lhs.value == rhs.value;
+}
+/// @}
+
+/**
+ * Checks if one FNV-1a hash value is less than another.
+ */
+/// @{
+[[nodiscard]] inline constexpr bool operator<(const fnv1a32_t& lhs, const fnv1a32_t& rhs) noexcept
+{
+	return lhs.value < rhs.value;
+}
+[[nodiscard]] inline constexpr bool operator<(const fnv1a64_t& lhs, const fnv1a64_t& rhs) noexcept
+{
+	return lhs.value < rhs.value;
+}
+/// @}
+
 } // namespace types
 
 // Bring hash::types namespace into hash namespace
@@ -292,54 +327,26 @@ using namespace hash::literals;
 
 } // namespace hash
 
-/**
- * Compares two FNV-1a hash values for equality.
- */
-/// @{
-[[nodiscard]] inline constexpr bool operator==(const ::hash::fnv1a32_t& lhs, const ::hash::fnv1a32_t& rhs) noexcept
-{
-	return lhs.value == rhs.value;
-}
-[[nodiscard]] inline constexpr bool operator==(const ::hash::fnv1a64_t& lhs, const ::hash::fnv1a64_t& rhs) noexcept
-{
-	return lhs.value == rhs.value;
-}
-/// @}
-
-/**
- * Checks if one FNV-1a hash value is less than another.
- */
-/// @{
-[[nodiscard]] inline constexpr bool operator<(const ::hash::fnv1a32_t& lhs, const ::hash::fnv1a32_t& rhs) noexcept
-{
-	return lhs.value < rhs.value;
-}
-[[nodiscard]] inline constexpr bool operator<(const ::hash::fnv1a64_t& lhs, const ::hash::fnv1a64_t& rhs) noexcept
-{
-	return lhs.value < rhs.value;
-}
-/// @}
-
 namespace std {
 
 	template <>
 	struct hash<::hash::fnv1a32_t>
 	{
-		[[nodiscard]] inline constexpr std::size_t operator()(const ::hash::fnv1a32_t& hash) const noexcept
+		[[nodiscard]] inline constexpr std::size_t operator()(const ::hash::fnv1a32_t& h) const noexcept
 		{
-			return static_cast<std::size_t>(hash.value);
+			return static_cast<std::size_t>(h.value);
 		}
 	};
 	
 	template <>
 	struct hash<::hash::fnv1a64_t>
 	{
-		[[nodiscard]] inline constexpr std::size_t operator()(const ::hash::fnv1a64_t& hash) const noexcept
+		[[nodiscard]] inline constexpr std::size_t operator()(const ::hash::fnv1a64_t& h) const noexcept
 		{
-			return static_cast<std::size_t>(hash.value);
+			return static_cast<std::size_t>(h.value);
 		}
 	};
 
 } // namespace std
 
-#endif // ANTKEEPER_UTILITY_HASH_FNV1A_HPP
+#endif // ANTKEEPER_HASH_FNV1A_HPP

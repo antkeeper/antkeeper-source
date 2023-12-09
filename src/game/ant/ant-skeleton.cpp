@@ -3,7 +3,7 @@
 
 #include "game/ant/ant-skeleton.hpp"
 #include "game/ant/ant-bone-set.hpp"
-#include <engine/math/angles.hpp>
+#include <engine/math/common.hpp>
 #include <engine/math/euler-angles.hpp>
 
 namespace {
@@ -128,14 +128,14 @@ void generate_ant_midstance_pose(skeleton& skeleton, const ant_bone_set& bones)
 		const auto protarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
 		const auto protarsomere1_r_angles = protarsomere1_l_angles * math::fvec3{1, 1, 1};
 		
-		auto procoxa_l_xf = math::transform<float>::identity();
-		auto procoxa_r_xf = math::transform<float>::identity();
-		auto profemur_l_xf = math::transform<float>::identity();
-		auto profemur_r_xf = math::transform<float>::identity();
-		auto protibia_l_xf = math::transform<float>::identity();
-		auto protibia_r_xf = math::transform<float>::identity();
-		auto protarsomere1_l_xf = math::transform<float>::identity();
-		auto protarsomere1_r_xf = math::transform<float>::identity();
+		auto procoxa_l_xf = math::identity<math::transform<float>>;
+		auto procoxa_r_xf = math::identity<math::transform<float>>;
+		auto profemur_l_xf = math::identity<math::transform<float>>;
+		auto profemur_r_xf = math::identity<math::transform<float>>;
+		auto protibia_l_xf = math::identity<math::transform<float>>;
+		auto protibia_r_xf = math::identity<math::transform<float>>;
+		auto protarsomere1_l_xf = math::identity<math::transform<float>>;
+		auto protarsomere1_r_xf = math::identity<math::transform<float>>;
 		
 		procoxa_l_xf.rotation = math::euler_xyz_to_quat(procoxa_l_angles);
 		procoxa_r_xf.rotation = math::euler_xyz_to_quat(procoxa_r_angles);
@@ -167,14 +167,14 @@ void generate_ant_midstance_pose(skeleton& skeleton, const ant_bone_set& bones)
 		const auto mesotarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
 		const auto mesotarsomere1_r_angles = mesotarsomere1_l_angles * math::fvec3{1, 1, 1};
 		
-		auto mesocoxa_l_xf = math::transform<float>::identity();
-		auto mesocoxa_r_xf = math::transform<float>::identity();
-		auto mesofemur_l_xf = math::transform<float>::identity();
-		auto mesofemur_r_xf = math::transform<float>::identity();
-		auto mesotibia_l_xf = math::transform<float>::identity();
-		auto mesotibia_r_xf = math::transform<float>::identity();
-		auto mesotarsomere1_l_xf = math::transform<float>::identity();
-		auto mesotarsomere1_r_xf = math::transform<float>::identity();
+		auto mesocoxa_l_xf = math::identity<math::transform<float>>;
+		auto mesocoxa_r_xf = math::identity<math::transform<float>>;
+		auto mesofemur_l_xf = math::identity<math::transform<float>>;
+		auto mesofemur_r_xf = math::identity<math::transform<float>>;
+		auto mesotibia_l_xf = math::identity<math::transform<float>>;
+		auto mesotibia_r_xf = math::identity<math::transform<float>>;
+		auto mesotarsomere1_l_xf = math::identity<math::transform<float>>;
+		auto mesotarsomere1_r_xf = math::identity<math::transform<float>>;
 		
 		mesocoxa_l_xf.rotation = math::euler_xyz_to_quat(mesocoxa_l_angles);
 		mesocoxa_r_xf.rotation = math::euler_xyz_to_quat(mesocoxa_r_angles);
@@ -206,14 +206,14 @@ void generate_ant_midstance_pose(skeleton& skeleton, const ant_bone_set& bones)
 		const auto metatarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
 		const auto metatarsomere1_r_angles = metatarsomere1_l_angles * math::fvec3{1, 1, 1};
 		
-		auto metacoxa_l_xf = math::transform<float>::identity();
-		auto metacoxa_r_xf = math::transform<float>::identity();
-		auto metafemur_l_xf = math::transform<float>::identity();
-		auto metafemur_r_xf = math::transform<float>::identity();
-		auto metatibia_l_xf = math::transform<float>::identity();
-		auto metatibia_r_xf = math::transform<float>::identity();
-		auto metatarsomere1_l_xf = math::transform<float>::identity();
-		auto metatarsomere1_r_xf = math::transform<float>::identity();
+		auto metacoxa_l_xf = math::identity<math::transform<float>>;
+		auto metacoxa_r_xf = math::identity<math::transform<float>>;
+		auto metafemur_l_xf = math::identity<math::transform<float>>;
+		auto metafemur_r_xf = math::identity<math::transform<float>>;
+		auto metatibia_l_xf = math::identity<math::transform<float>>;
+		auto metatibia_r_xf = math::identity<math::transform<float>>;
+		auto metatarsomere1_l_xf = math::identity<math::transform<float>>;
+		auto metatarsomere1_r_xf = math::identity<math::transform<float>>;
 		
 		metacoxa_l_xf.rotation = math::euler_xyz_to_quat(metacoxa_l_angles);
 		metacoxa_r_xf.rotation = math::euler_xyz_to_quat(metacoxa_r_angles);
@@ -259,14 +259,14 @@ void generate_ant_liftoff_pose(skeleton& skeleton, const ant_bone_set& bones)
 		const auto protarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
 		const auto protarsomere1_r_angles = protarsomere1_l_angles * math::fvec3{1, 1, 1};
 		
-		auto procoxa_l_xf = math::transform<float>::identity();
-		auto procoxa_r_xf = math::transform<float>::identity();
-		auto profemur_l_xf = math::transform<float>::identity();
-		auto profemur_r_xf = math::transform<float>::identity();
-		auto protibia_l_xf = math::transform<float>::identity();
-		auto protibia_r_xf = math::transform<float>::identity();
-		auto protarsomere1_l_xf = math::transform<float>::identity();
-		auto protarsomere1_r_xf = math::transform<float>::identity();
+		auto procoxa_l_xf = math::identity<math::transform<float>>;
+		auto procoxa_r_xf = math::identity<math::transform<float>>;
+		auto profemur_l_xf = math::identity<math::transform<float>>;
+		auto profemur_r_xf = math::identity<math::transform<float>>;
+		auto protibia_l_xf = math::identity<math::transform<float>>;
+		auto protibia_r_xf = math::identity<math::transform<float>>;
+		auto protarsomere1_l_xf = math::identity<math::transform<float>>;
+		auto protarsomere1_r_xf = math::identity<math::transform<float>>;
 		
 		procoxa_l_xf.rotation = math::euler_xyz_to_quat(procoxa_l_angles);
 		procoxa_r_xf.rotation = math::euler_xyz_to_quat(procoxa_r_angles);
@@ -298,14 +298,14 @@ void generate_ant_liftoff_pose(skeleton& skeleton, const ant_bone_set& bones)
 		const auto mesotarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
 		const auto mesotarsomere1_r_angles = mesotarsomere1_l_angles * math::fvec3{1, 1, 1};
 		
-		auto mesocoxa_l_xf = math::transform<float>::identity();
-		auto mesocoxa_r_xf = math::transform<float>::identity();
-		auto mesofemur_l_xf = math::transform<float>::identity();
-		auto mesofemur_r_xf = math::transform<float>::identity();
-		auto mesotibia_l_xf = math::transform<float>::identity();
-		auto mesotibia_r_xf = math::transform<float>::identity();
-		auto mesotarsomere1_l_xf = math::transform<float>::identity();
-		auto mesotarsomere1_r_xf = math::transform<float>::identity();
+		auto mesocoxa_l_xf = math::identity<math::transform<float>>;
+		auto mesocoxa_r_xf = math::identity<math::transform<float>>;
+		auto mesofemur_l_xf = math::identity<math::transform<float>>;
+		auto mesofemur_r_xf = math::identity<math::transform<float>>;
+		auto mesotibia_l_xf = math::identity<math::transform<float>>;
+		auto mesotibia_r_xf = math::identity<math::transform<float>>;
+		auto mesotarsomere1_l_xf = math::identity<math::transform<float>>;
+		auto mesotarsomere1_r_xf = math::identity<math::transform<float>>;
 		
 		mesocoxa_l_xf.rotation = math::euler_xyz_to_quat(mesocoxa_l_angles);
 		mesocoxa_r_xf.rotation = math::euler_xyz_to_quat(mesocoxa_r_angles);
@@ -337,14 +337,14 @@ void generate_ant_liftoff_pose(skeleton& skeleton, const ant_bone_set& bones)
 		const auto metatarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
 		const auto metatarsomere1_r_angles = metatarsomere1_l_angles * math::fvec3{1, 1, 1};
 		
-		auto metacoxa_l_xf = math::transform<float>::identity();
-		auto metacoxa_r_xf = math::transform<float>::identity();
-		auto metafemur_l_xf = math::transform<float>::identity();
-		auto metafemur_r_xf = math::transform<float>::identity();
-		auto metatibia_l_xf = math::transform<float>::identity();
-		auto metatibia_r_xf = math::transform<float>::identity();
-		auto metatarsomere1_l_xf = math::transform<float>::identity();
-		auto metatarsomere1_r_xf = math::transform<float>::identity();
+		auto metacoxa_l_xf = math::identity<math::transform<float>>;
+		auto metacoxa_r_xf = math::identity<math::transform<float>>;
+		auto metafemur_l_xf = math::identity<math::transform<float>>;
+		auto metafemur_r_xf = math::identity<math::transform<float>>;
+		auto metatibia_l_xf = math::identity<math::transform<float>>;
+		auto metatibia_r_xf = math::identity<math::transform<float>>;
+		auto metatarsomere1_l_xf = math::identity<math::transform<float>>;
+		auto metatarsomere1_r_xf = math::identity<math::transform<float>>;
 		
 		metacoxa_l_xf.rotation = math::euler_xyz_to_quat(metacoxa_l_angles);
 		metacoxa_r_xf.rotation = math::euler_xyz_to_quat(metacoxa_r_angles);
@@ -390,14 +390,14 @@ void generate_ant_touchdown_pose(skeleton& skeleton, const ant_bone_set& bones)
 		const auto protarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
 		const auto protarsomere1_r_angles = protarsomere1_l_angles * math::fvec3{1, 1, 1};
 		
-		auto procoxa_l_xf = math::transform<float>::identity();
-		auto procoxa_r_xf = math::transform<float>::identity();
-		auto profemur_l_xf = math::transform<float>::identity();
-		auto profemur_r_xf = math::transform<float>::identity();
-		auto protibia_l_xf = math::transform<float>::identity();
-		auto protibia_r_xf = math::transform<float>::identity();
-		auto protarsomere1_l_xf = math::transform<float>::identity();
-		auto protarsomere1_r_xf = math::transform<float>::identity();
+		auto procoxa_l_xf = math::identity<math::transform<float>>;
+		auto procoxa_r_xf = math::identity<math::transform<float>>;
+		auto profemur_l_xf = math::identity<math::transform<float>>;
+		auto profemur_r_xf = math::identity<math::transform<float>>;
+		auto protibia_l_xf = math::identity<math::transform<float>>;
+		auto protibia_r_xf = math::identity<math::transform<float>>;
+		auto protarsomere1_l_xf = math::identity<math::transform<float>>;
+		auto protarsomere1_r_xf = math::identity<math::transform<float>>;
 		
 		procoxa_l_xf.rotation = math::euler_xyz_to_quat(procoxa_l_angles);
 		procoxa_r_xf.rotation = math::euler_xyz_to_quat(procoxa_r_angles);
@@ -429,14 +429,14 @@ void generate_ant_touchdown_pose(skeleton& skeleton, const ant_bone_set& bones)
 		const auto mesotarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
 		const auto mesotarsomere1_r_angles = mesotarsomere1_l_angles * math::fvec3{1, 1, 1};
 		
-		auto mesocoxa_l_xf = math::transform<float>::identity();
-		auto mesocoxa_r_xf = math::transform<float>::identity();
-		auto mesofemur_l_xf = math::transform<float>::identity();
-		auto mesofemur_r_xf = math::transform<float>::identity();
-		auto mesotibia_l_xf = math::transform<float>::identity();
-		auto mesotibia_r_xf = math::transform<float>::identity();
-		auto mesotarsomere1_l_xf = math::transform<float>::identity();
-		auto mesotarsomere1_r_xf = math::transform<float>::identity();
+		auto mesocoxa_l_xf = math::identity<math::transform<float>>;
+		auto mesocoxa_r_xf = math::identity<math::transform<float>>;
+		auto mesofemur_l_xf = math::identity<math::transform<float>>;
+		auto mesofemur_r_xf = math::identity<math::transform<float>>;
+		auto mesotibia_l_xf = math::identity<math::transform<float>>;
+		auto mesotibia_r_xf = math::identity<math::transform<float>>;
+		auto mesotarsomere1_l_xf = math::identity<math::transform<float>>;
+		auto mesotarsomere1_r_xf = math::identity<math::transform<float>>;
 		
 		mesocoxa_l_xf.rotation = math::euler_xyz_to_quat(mesocoxa_l_angles);
 		mesocoxa_r_xf.rotation = math::euler_xyz_to_quat(mesocoxa_r_angles);
@@ -468,14 +468,14 @@ void generate_ant_touchdown_pose(skeleton& skeleton, const ant_bone_set& bones)
 		const auto metatarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
 		const auto metatarsomere1_r_angles = metatarsomere1_l_angles * math::fvec3{1, 1, 1};
 		
-		auto metacoxa_l_xf = math::transform<float>::identity();
-		auto metacoxa_r_xf = math::transform<float>::identity();
-		auto metafemur_l_xf = math::transform<float>::identity();
-		auto metafemur_r_xf = math::transform<float>::identity();
-		auto metatibia_l_xf = math::transform<float>::identity();
-		auto metatibia_r_xf = math::transform<float>::identity();
-		auto metatarsomere1_l_xf = math::transform<float>::identity();
-		auto metatarsomere1_r_xf = math::transform<float>::identity();
+		auto metacoxa_l_xf = math::identity<math::transform<float>>;
+		auto metacoxa_r_xf = math::identity<math::transform<float>>;
+		auto metafemur_l_xf = math::identity<math::transform<float>>;
+		auto metafemur_r_xf = math::identity<math::transform<float>>;
+		auto metatibia_l_xf = math::identity<math::transform<float>>;
+		auto metatibia_r_xf = math::identity<math::transform<float>>;
+		auto metatarsomere1_l_xf = math::identity<math::transform<float>>;
+		auto metatarsomere1_r_xf = math::identity<math::transform<float>>;
 		
 		metacoxa_l_xf.rotation = math::euler_xyz_to_quat(metacoxa_l_angles);
 		metacoxa_r_xf.rotation = math::euler_xyz_to_quat(metacoxa_r_angles);
@@ -521,14 +521,14 @@ void generate_ant_midswing_pose(skeleton& skeleton, const ant_bone_set& bones)
 		const auto protarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
 		const auto protarsomere1_r_angles = protarsomere1_l_angles * math::fvec3{1, 1, 1};
 		
-		auto procoxa_l_xf = math::transform<float>::identity();
-		auto procoxa_r_xf = math::transform<float>::identity();
-		auto profemur_l_xf = math::transform<float>::identity();
-		auto profemur_r_xf = math::transform<float>::identity();
-		auto protibia_l_xf = math::transform<float>::identity();
-		auto protibia_r_xf = math::transform<float>::identity();
-		auto protarsomere1_l_xf = math::transform<float>::identity();
-		auto protarsomere1_r_xf = math::transform<float>::identity();
+		auto procoxa_l_xf = math::identity<math::transform<float>>;
+		auto procoxa_r_xf = math::identity<math::transform<float>>;
+		auto profemur_l_xf = math::identity<math::transform<float>>;
+		auto profemur_r_xf = math::identity<math::transform<float>>;
+		auto protibia_l_xf = math::identity<math::transform<float>>;
+		auto protibia_r_xf = math::identity<math::transform<float>>;
+		auto protarsomere1_l_xf = math::identity<math::transform<float>>;
+		auto protarsomere1_r_xf = math::identity<math::transform<float>>;
 		
 		procoxa_l_xf.rotation = math::euler_xyz_to_quat(procoxa_l_angles);
 		procoxa_r_xf.rotation = math::euler_xyz_to_quat(procoxa_r_angles);
@@ -560,14 +560,14 @@ void generate_ant_midswing_pose(skeleton& skeleton, const ant_bone_set& bones)
 		const auto mesotarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
 		const auto mesotarsomere1_r_angles = mesotarsomere1_l_angles * math::fvec3{1, 1, 1};
 		
-		auto mesocoxa_l_xf = math::transform<float>::identity();
-		auto mesocoxa_r_xf = math::transform<float>::identity();
-		auto mesofemur_l_xf = math::transform<float>::identity();
-		auto mesofemur_r_xf = math::transform<float>::identity();
-		auto mesotibia_l_xf = math::transform<float>::identity();
-		auto mesotibia_r_xf = math::transform<float>::identity();
-		auto mesotarsomere1_l_xf = math::transform<float>::identity();
-		auto mesotarsomere1_r_xf = math::transform<float>::identity();
+		auto mesocoxa_l_xf = math::identity<math::transform<float>>;
+		auto mesocoxa_r_xf = math::identity<math::transform<float>>;
+		auto mesofemur_l_xf = math::identity<math::transform<float>>;
+		auto mesofemur_r_xf = math::identity<math::transform<float>>;
+		auto mesotibia_l_xf = math::identity<math::transform<float>>;
+		auto mesotibia_r_xf = math::identity<math::transform<float>>;
+		auto mesotarsomere1_l_xf = math::identity<math::transform<float>>;
+		auto mesotarsomere1_r_xf = math::identity<math::transform<float>>;
 		
 		mesocoxa_l_xf.rotation = math::euler_xyz_to_quat(mesocoxa_l_angles);
 		mesocoxa_r_xf.rotation = math::euler_xyz_to_quat(mesocoxa_r_angles);
@@ -599,14 +599,14 @@ void generate_ant_midswing_pose(skeleton& skeleton, const ant_bone_set& bones)
 		const auto metatarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
 		const auto metatarsomere1_r_angles = metatarsomere1_l_angles * math::fvec3{1, 1, 1};
 		
-		auto metacoxa_l_xf = math::transform<float>::identity();
-		auto metacoxa_r_xf = math::transform<float>::identity();
-		auto metafemur_l_xf = math::transform<float>::identity();
-		auto metafemur_r_xf = math::transform<float>::identity();
-		auto metatibia_l_xf = math::transform<float>::identity();
-		auto metatibia_r_xf = math::transform<float>::identity();
-		auto metatarsomere1_l_xf = math::transform<float>::identity();
-		auto metatarsomere1_r_xf = math::transform<float>::identity();
+		auto metacoxa_l_xf = math::identity<math::transform<float>>;
+		auto metacoxa_r_xf = math::identity<math::transform<float>>;
+		auto metafemur_l_xf = math::identity<math::transform<float>>;
+		auto metafemur_r_xf = math::identity<math::transform<float>>;
+		auto metatibia_l_xf = math::identity<math::transform<float>>;
+		auto metatibia_r_xf = math::identity<math::transform<float>>;
+		auto metatarsomere1_l_xf = math::identity<math::transform<float>>;
+		auto metatarsomere1_r_xf = math::identity<math::transform<float>>;
 		
 		metacoxa_l_xf.rotation = math::euler_xyz_to_quat(metacoxa_l_angles);
 		metacoxa_r_xf.rotation = math::euler_xyz_to_quat(metacoxa_r_angles);
@@ -646,27 +646,27 @@ void generate_ant_pupa_pose(skeleton& skeleton, const ant_bone_set& bones)
 		constexpr float procoxa_fold_angle_y = math::radians(30.0f);
 		constexpr float procoxa_fold_angle_z = math::radians(25.0f);
 		constexpr float procoxa_fold_angle_x = math::radians(15.0f);
-		auto fold_procoxa_l = math::transform<float>::identity();
-		auto fold_procoxa_r = math::transform<float>::identity();
+		auto fold_procoxa_l = math::identity<math::transform<float>>;
+		auto fold_procoxa_r = math::identity<math::transform<float>>;
 		fold_procoxa_l.rotation = math::angle_axis(procoxa_fold_angle_y, math::fvec3{0, 1, 0}) * math::angle_axis(procoxa_fold_angle_z, math::fvec3{0, 0, 1}) * math::angle_axis(procoxa_fold_angle_x, math::fvec3{1, 0, 0});
 		fold_procoxa_r.rotation = math::angle_axis(-procoxa_fold_angle_y, math::fvec3{0, 1, 0}) * math::angle_axis(-procoxa_fold_angle_z, math::fvec3{0, 0, 1}) * math::angle_axis(procoxa_fold_angle_x, math::fvec3{1, 0, 0});
 		
 		constexpr float profemur_fold_angle_z = math::radians(20.0f);
 		constexpr float profemur_fold_angle_x = math::radians(80.0f);
-		auto fold_profemur_l = math::transform<float>::identity();
-		auto fold_profemur_r = math::transform<float>::identity();
+		auto fold_profemur_l = math::identity<math::transform<float>>;
+		auto fold_profemur_r = math::identity<math::transform<float>>;
 		fold_profemur_l.rotation = math::angle_axis(profemur_fold_angle_z, math::fvec3{0, 0, 1}) * math::angle_axis(profemur_fold_angle_x, math::fvec3{1, 0, 0});
 		fold_profemur_r.rotation = math::angle_axis(-profemur_fold_angle_z, math::fvec3{0, 0, 1}) * math::angle_axis(profemur_fold_angle_x, math::fvec3{1, 0, 0});
 		
 		constexpr float protibia_fold_angle = math::radians(165.0f);
-		auto fold_protibia_l = math::transform<float>::identity();
-		auto fold_protibia_r = math::transform<float>::identity();
+		auto fold_protibia_l = math::identity<math::transform<float>>;
+		auto fold_protibia_r = math::identity<math::transform<float>>;
 		fold_protibia_l.rotation = math::angle_axis(-protibia_fold_angle, math::fvec3{1, 0, 0});
 		fold_protibia_r.rotation = math::angle_axis(-protibia_fold_angle, math::fvec3{1, 0, 0});
 		
 		constexpr float protarsomere1_fold_angle = math::radians(20.0f);
-		auto fold_protarsomere1_l = math::transform<float>::identity();
-		auto fold_protarsomere1_r = math::transform<float>::identity();
+		auto fold_protarsomere1_l = math::identity<math::transform<float>>;
+		auto fold_protarsomere1_r = math::identity<math::transform<float>>;
 		fold_protarsomere1_l.rotation = math::angle_axis(-protarsomere1_fold_angle, math::fvec3{1, 0, 0});
 		fold_protarsomere1_r.rotation = math::angle_axis(-protarsomere1_fold_angle, math::fvec3{1, 0, 0});
 		
@@ -685,26 +685,26 @@ void generate_ant_pupa_pose(skeleton& skeleton, const ant_bone_set& bones)
 		constexpr float mesocoxa_fold_angle_z = math::radians(45.0f);
 		constexpr float mesocoxa_fold_angle_y = math::radians(45.0f);
 		constexpr float mesocoxa_fold_angle_x = math::radians(10.0f);
-		auto fold_mesocoxa_l = math::transform<float>::identity();
-		auto fold_mesocoxa_r = math::transform<float>::identity();
+		auto fold_mesocoxa_l = math::identity<math::transform<float>>;
+		auto fold_mesocoxa_r = math::identity<math::transform<float>>;
 		fold_mesocoxa_l.rotation = math::angle_axis(-mesocoxa_fold_angle_z, math::fvec3{0, 0, 1}) * math::angle_axis(mesocoxa_fold_angle_y, math::fvec3{0, 1, 0}) * math::angle_axis(-mesocoxa_fold_angle_x, math::fvec3{1, 0, 0});
 		fold_mesocoxa_r.rotation = math::angle_axis(mesocoxa_fold_angle_z, math::fvec3{0, 0, 1}) * math::angle_axis(-mesocoxa_fold_angle_y, math::fvec3{0, 1, 0}) * math::angle_axis(-mesocoxa_fold_angle_x, math::fvec3{1, 0, 0});
 		
 		constexpr float mesofemur_fold_angle = math::radians(90.0f);
-		auto fold_mesofemur_l = math::transform<float>::identity();
-		auto fold_mesofemur_r = math::transform<float>::identity();
+		auto fold_mesofemur_l = math::identity<math::transform<float>>;
+		auto fold_mesofemur_r = math::identity<math::transform<float>>;
 		fold_mesofemur_l.rotation = math::angle_axis(mesofemur_fold_angle, math::fvec3{1, 0, 0});
 		fold_mesofemur_r.rotation = math::angle_axis(mesofemur_fold_angle, math::fvec3{1, 0, 0});
 		
 		constexpr float mesotibia_fold_angle = math::radians(162.0f);
-		auto fold_mesotibia_l = math::transform<float>::identity();
-		auto fold_mesotibia_r = math::transform<float>::identity();
+		auto fold_mesotibia_l = math::identity<math::transform<float>>;
+		auto fold_mesotibia_r = math::identity<math::transform<float>>;
 		fold_mesotibia_l.rotation = math::angle_axis(-mesotibia_fold_angle, math::fvec3{1, 0, 0});
 		fold_mesotibia_r.rotation = math::angle_axis(-mesotibia_fold_angle, math::fvec3{1, 0, 0});
 		
 		constexpr float mesotarsomere1_fold_angle = math::radians(20.0f);
-		auto fold_mesotarsomere1_l = math::transform<float>::identity();
-		auto fold_mesotarsomere1_r = math::transform<float>::identity();
+		auto fold_mesotarsomere1_l = math::identity<math::transform<float>>;
+		auto fold_mesotarsomere1_r = math::identity<math::transform<float>>;
 		fold_mesotarsomere1_l.rotation = math::angle_axis(-mesotarsomere1_fold_angle, math::fvec3{1, 0, 0});
 		fold_mesotarsomere1_r.rotation = math::angle_axis(-mesotarsomere1_fold_angle, math::fvec3{1, 0, 0});
 		
@@ -723,26 +723,26 @@ void generate_ant_pupa_pose(skeleton& skeleton, const ant_bone_set& bones)
 		constexpr float metacoxa_fold_angle_z = math::radians(15.0f);
 		constexpr float metacoxa_fold_angle_y = math::radians(10.0f);
 		constexpr float metacoxa_fold_angle_x = math::radians(25.0f);
-		auto fold_metacoxa_l = math::transform<float>::identity();
-		auto fold_metacoxa_r = math::transform<float>::identity();
+		auto fold_metacoxa_l = math::identity<math::transform<float>>;
+		auto fold_metacoxa_r = math::identity<math::transform<float>>;
 		fold_metacoxa_l.rotation = math::angle_axis(-metacoxa_fold_angle_z, math::fvec3{0, 0, 1}) * math::angle_axis(-metacoxa_fold_angle_y, math::fvec3{0, 1, 0}) * math::angle_axis(metacoxa_fold_angle_x, math::fvec3{1, 0, 0});
 		fold_metacoxa_r.rotation = math::angle_axis(metacoxa_fold_angle_z, math::fvec3{0, 0, 1}) * math::angle_axis(metacoxa_fold_angle_y, math::fvec3{0, 1, 0}) * math::angle_axis(metacoxa_fold_angle_x, math::fvec3{1, 0, 0});
 		
 		constexpr float metafemur_fold_angle = math::radians(105.0f);
-		auto fold_metafemur_l = math::transform<float>::identity();
-		auto fold_metafemur_r = math::transform<float>::identity();
+		auto fold_metafemur_l = math::identity<math::transform<float>>;
+		auto fold_metafemur_r = math::identity<math::transform<float>>;
 		fold_metafemur_l.rotation = math::angle_axis(metafemur_fold_angle, math::fvec3{1, 0, 0});
 		fold_metafemur_r.rotation = math::angle_axis(metafemur_fold_angle, math::fvec3{1, 0, 0});
 		
 		constexpr float metatibia_fold_angle = math::radians(165.0f);
-		auto fold_metatibia_l = math::transform<float>::identity();
-		auto fold_metatibia_r = math::transform<float>::identity();
+		auto fold_metatibia_l = math::identity<math::transform<float>>;
+		auto fold_metatibia_r = math::identity<math::transform<float>>;
 		fold_metatibia_l.rotation = math::angle_axis(-metatibia_fold_angle, math::fvec3{1, 0, 0});
 		fold_metatibia_r.rotation = math::angle_axis(-metatibia_fold_angle, math::fvec3{1, 0, 0});
 		
 		constexpr float metatarsomere1_fold_angle = math::radians(0.0f);
-		auto fold_metatarsomere1_l = math::transform<float>::identity();
-		auto fold_metatarsomere1_r = math::transform<float>::identity();
+		auto fold_metatarsomere1_l = math::identity<math::transform<float>>;
+		auto fold_metatarsomere1_r = math::identity<math::transform<float>>;
 		fold_metatarsomere1_l.rotation = math::angle_axis(-metatarsomere1_fold_angle, math::fvec3{1, 0, 0});
 		fold_metatarsomere1_r.rotation = math::angle_axis(-metatarsomere1_fold_angle, math::fvec3{1, 0, 0});
 		
@@ -759,7 +759,7 @@ void generate_ant_pupa_pose(skeleton& skeleton, const ant_bone_set& bones)
 	// Fold head
 	{
 		constexpr float head_fold_angle = math::radians(80.0f);
-		auto fold_head = math::transform<float>::identity();
+		auto fold_head = math::identity<math::transform<float>>;
 		fold_head.rotation = math::angle_axis(-head_fold_angle, math::fvec3{1, 0, 0});
 		
 		pupa_pose.set_relative_transform(bones.head, rest_pose.get_relative_transform(bones.head) * fold_head);
@@ -769,15 +769,15 @@ void generate_ant_pupa_pose(skeleton& skeleton, const ant_bone_set& bones)
 	{
 		constexpr float antennomere1_fold_angle_y = math::radians(70.0f);
 		constexpr float antennomere1_fold_angle_x = math::radians(45.0f);
-		auto fold_antennomere1_l = math::transform<float>::identity();
-		auto fold_antennomere1_r = math::transform<float>::identity();
+		auto fold_antennomere1_l = math::identity<math::transform<float>>;
+		auto fold_antennomere1_r = math::identity<math::transform<float>>;
 		fold_antennomere1_l.rotation = math::angle_axis(-antennomere1_fold_angle_y, math::fvec3{0, 1, 0}) * math::angle_axis(-antennomere1_fold_angle_x, math::fvec3{1, 0, 0});
 		fold_antennomere1_r.rotation = math::angle_axis(antennomere1_fold_angle_y, math::fvec3{0, 1, 0}) * math::angle_axis(-antennomere1_fold_angle_x, math::fvec3{1, 0, 0});
 		
 		constexpr float antennomere2_fold_angle_y = math::radians(75.0f);
 		constexpr float antennomere2_fold_angle_x = math::radians(25.0f);
-		auto fold_antennomere2_l = math::transform<float>::identity();
-		auto fold_antennomere2_r = math::transform<float>::identity();
+		auto fold_antennomere2_l = math::identity<math::transform<float>>;
+		auto fold_antennomere2_r = math::identity<math::transform<float>>;
 		fold_antennomere2_l.rotation = math::angle_axis(antennomere2_fold_angle_y, math::fvec3{0, 1, 0}) * math::angle_axis(-antennomere2_fold_angle_x, math::fvec3{1, 0, 0});
 		fold_antennomere2_r.rotation = math::angle_axis(-antennomere2_fold_angle_y, math::fvec3{0, 1, 0}) * math::angle_axis(-antennomere2_fold_angle_x, math::fvec3{1, 0, 0});
 		
@@ -790,15 +790,15 @@ void generate_ant_pupa_pose(skeleton& skeleton, const ant_bone_set& bones)
 	// Fold waist + gaster
 	{
 		constexpr float petiole_fold_angle = math::radians(40.0f);
-		auto fold_petiole = math::transform<float>::identity();
+		auto fold_petiole = math::identity<math::transform<float>>;
 		fold_petiole.rotation = math::angle_axis(petiole_fold_angle, math::fvec3{1, 0, 0});
 		
 		constexpr float postpetiole_fold_angle = math::radians(35.0f);
-		auto fold_postpetiole = math::transform<float>::identity();
+		auto fold_postpetiole = math::identity<math::transform<float>>;
 		fold_postpetiole.rotation = math::angle_axis(-postpetiole_fold_angle, math::fvec3{1, 0, 0});
 		
 		constexpr float gaster_fold_angle = math::radians(0.0f);
-		auto fold_gaster = math::transform<float>::identity();
+		auto fold_gaster = math::identity<math::transform<float>>;
 		fold_gaster.rotation = math::angle_axis(-gaster_fold_angle, math::fvec3{1, 0, 0});
 		
 		if (bones.petiole)
@@ -817,7 +817,7 @@ void generate_ant_pupa_pose(skeleton& skeleton, const ant_bone_set& bones)
 	// Invert mesosoma
 	// {
 		// const float mesosoma_invert_angle = math::radians(90.0f);
-		// auto invert_mesosoma = math::transform<float>::identity();
+		// auto invert_mesosoma = math::identity<math::transform<float>>;
 		// invert_mesosoma.rotation = math::angle_axis(mesosoma_invert_angle, math::fvec3{0, 0, 1});
 		
 		// auto mesosoma = *skeleton.get_index("mesosoma");

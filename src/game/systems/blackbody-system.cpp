@@ -5,8 +5,8 @@
 #include <engine/physics/light/blackbody.hpp>
 #include <engine/physics/light/photometry.hpp>
 #include <engine/math/quadrature.hpp>
-#include <engine/config.hpp>
 #include <engine/color/xyz.hpp>
+#include <engine/color/aces.hpp>
 #include <numeric>
 
 blackbody_system::blackbody_system(entity::registry& registry):
@@ -48,14 +48,14 @@ void blackbody_system::update_blackbody(entity::id entity_id)
 		
 		// Calculate the XYZ color of the wavelength using CIE color matching functions then transform to RGB
 		const auto color_xyz = color::xyz_match(wavelength_nm);
-		const auto color_rgb = config::scene_linear_color_space<double>.from_xyz * color_xyz;
+		const auto color_rgb = color::aces_ap1<double>.from_xyz * color_xyz;
 		
 		// Scale RGB color by spectral luminance
 		return color_rgb * spectral_luminance;
 	};
 	
 	// Integrate the blackbody RGB spectral luminance over wavelengths in the visible spectrum
-	const math::dvec3 rgb_luminance = math::quadrature::simpson(rgb_spectral_luminance, m_visible_wavelengths_nm.begin(), m_visible_wavelengths_nm.end());
+	const math::dvec3 rgb_luminance = math::simpson(rgb_spectral_luminance, m_visible_wavelengths_nm.begin(), m_visible_wavelengths_nm.end());
 	
 	// Extract luminance and color from RGB luminance
 	blackbody.luminance = math::max(rgb_luminance);

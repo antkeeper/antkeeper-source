@@ -8,7 +8,7 @@
 #include <engine/input/action.hpp>
 #include <engine/input/action-map.hpp>
 #include <engine/event/subscription.hpp>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <cstdint>
 #include <engine/scene/text.hpp>
 #include <memory>

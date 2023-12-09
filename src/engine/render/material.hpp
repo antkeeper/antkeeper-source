@@ -9,7 +9,7 @@
 #include <engine/render/material-blend-mode.hpp>
 #include <engine/render/material-variable.hpp>
 #include <engine/render/material-shadow-mode.hpp>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <unordered_map>
 
 namespace render {

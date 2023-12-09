@@ -32,7 +32,7 @@ struct operation
 	
 	std::shared_ptr<render::material> material;
 	
-	math::fmat4 transform{math::fmat4::identity()};
+	math::fmat4 transform{math::identity<math::fmat4>};
 	float depth{};
 	
 	std::span<const math::fmat4> matrix_palette{};

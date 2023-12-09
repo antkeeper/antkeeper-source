@@ -6,7 +6,7 @@
 #include <engine/resources/resource-manager.hpp>
 #include <engine/render/material.hpp>
 #include <engine/render/material-flags.hpp>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include "game/strings.hpp"
 #include <codecvt>
 

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/input/gamepad.hpp>
-#include <engine/math/map.hpp>
+#include <engine/math/common.hpp>
 #include <algorithm>
 #include <type_traits>
 #include <cmath>
@@ -113,7 +113,7 @@ void gamepad::handle_axial_motion(gamepad_axis axis)
 	if (std::abs(axis_position) > activation_min)
 	{
 		// Remap position according to activation thresholds and clamp to `[0, 1]`.
-		float response = math::map(std::abs(axis_position), activation_min, activation_max, 0.0f, 1.0f);
+		float response = math::map_range(std::abs(axis_position), activation_min, activation_max, 0.0f, 1.0f);
 		response = std::clamp(response, 0.0f, 1.0f);
 		
 		// Remap position according to axis response curve

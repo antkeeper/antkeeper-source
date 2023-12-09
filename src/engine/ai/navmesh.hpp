@@ -4,13 +4,12 @@
 #ifndef ANTKEEPER_AI_NAVMESH_HPP
 #define ANTKEEPER_AI_NAVMESH_HPP
 
-#include <engine/math/vector.hpp>
-#include <engine/math/se3.hpp>
 #include <engine/geom/brep/brep-mesh.hpp>
 #include <engine/geom/primitives/point.hpp>
 #include <engine/geom/primitives/ray.hpp>
 #include <engine/geom/coordinates.hpp>
 #include <vector>
+#include <engine/math/vector.hpp>
 
 namespace ai {
 

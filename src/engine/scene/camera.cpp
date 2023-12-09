@@ -154,7 +154,7 @@ void camera::update_frustum()
 	};
 	
 	// Update bounds
-	m_bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
+	m_bounds = {math::inf<math::fvec3>, -math::inf<math::fvec3>};
 	for (std::size_t i = 0; i < 8; ++i)
 	{
 		const math::fvec4 frustum_corner = m_inv_view_projection * clip_space_cube[i];

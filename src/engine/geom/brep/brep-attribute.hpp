@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GEOM_BREP_ATTRIBUTE_HPP
 #define ANTKEEPER_GEOM_BREP_ATTRIBUTE_HPP
 
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <memory>
 #include <vector>
 

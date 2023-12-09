@@ -6,10 +6,10 @@
 
 #include <concepts>
 
-namespace math {
+// export module math.compile;
+// import <concepts>;
 
-/// Compile-time mathematical functions.
-namespace compile {
+namespace math {
 
 /**
  * Compile-time `ceil(log2(x))` for unsigned integrals.
@@ -50,8 +50,6 @@ template <std::unsigned_integral T>
 {
 	return (e == 0) ? T(1) : (x * pow<T>(x, e - 1));
 }
-
-} // namespace compile
 
 } // namespace math
 

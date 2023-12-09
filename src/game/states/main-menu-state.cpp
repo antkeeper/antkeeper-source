@@ -27,10 +27,11 @@
 #include <engine/render/model.hpp>
 #include <engine/render/passes/sky-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <engine/render/passes/material-pass.hpp>
 #include <format>
 #include <limits>
+#include <print>
 
 main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	game_state(ctx)

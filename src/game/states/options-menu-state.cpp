@@ -16,7 +16,7 @@
 #include <engine/scene/text.hpp>
 #include <engine/debug/log.hpp>
 #include "game/strings.hpp"
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 
 using namespace hash::literals;
 

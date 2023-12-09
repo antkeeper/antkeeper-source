@@ -82,7 +82,7 @@ struct hyperrectangle
 	[[nodiscard]] T distance(const vector_type& point) const noexcept
 	{
 		const vector_type d = math::abs(point - center()) - extents();
-		return math::length(math::max(vector_type::zero(), d)) + std::min<T>(T{0}, math::max(d));
+		return math::length(math::max(math::zero<vector_type>, d)) + std::min<T>(T{0}, math::max(d));
 	}
 	
 	/**

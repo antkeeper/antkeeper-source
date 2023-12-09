@@ -60,7 +60,7 @@ void bvh::build(const brep_mesh& mesh)
 	{
 		auto& primitive = primitives[face->index()];
 		primitive.centroid = {};
-		primitive.bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
+		primitive.bounds = {math::inf<math::fvec3>, -math::inf<math::fvec3>};
 		
 		for (brep_loop* loop: face->loops())
 		{
@@ -86,7 +86,7 @@ void bvh::clear()
 
 void bvh::update_bounds(bvh_node& node, const std::span<const bvh_primitive>& primitives)
 {
-	node.bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
+	node.bounds = {math::inf<math::fvec3>, -math::inf<math::fvec3>};
 	for (std::uint32_t i = 0; i < node.size; ++i)
 	{
 		const auto& primitive = primitives[m_primitive_indices[node.offset + i]];

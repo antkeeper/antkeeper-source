@@ -4,9 +4,14 @@
 #ifndef ANTKEEPER_MATH_PROJECTION_HPP
 #define ANTKEEPER_MATH_PROJECTION_HPP
 
+#include <engine/math/common.hpp>
 #include <engine/math/matrix.hpp>
-#include <cmath>
 #include <tuple>
+
+// export module math.projection;
+// import math.common;
+// import math.matrix;
+// import <tuple>;
 
 namespace math {
 
@@ -23,7 +28,7 @@ namespace math {
 template <class T>
 [[nodiscard]] T horizontal_fov(T v, T r)
 {
-	return T{2} * std::atan(std::tan(v * T{0.5}) * r);
+	return T{2} * atan(tan(v * T{0.5}) * r);
 }
 
 /**
@@ -39,7 +44,7 @@ template <class T>
 template <class T>
 [[nodiscard]] T vertical_fov(T h, T r)
 {
-	return T{2} * std::atan(std::tan(h * T{0.5}) / r);
+	return T{2} * atan(tan(h * T{0.5}) / r);
 }
 
 /**
@@ -178,7 +183,7 @@ template <class T>
 [[nodiscard]] mat4<T> perspective(T vertical_fov, T aspect_ratio, T near, T far)
 {
 	const T half_fov = vertical_fov * T{0.5};
-	const T f = std::cos(half_fov) / std::sin(half_fov);
+	const T f = cos(half_fov) / sin(half_fov);
 	
 	return
 	{{
@@ -205,7 +210,7 @@ template <class T>
 [[nodiscard]] std::tuple<mat4<T>, mat4<T>> perspective_inv(T vertical_fov, T aspect_ratio, T near, T far)
 {
 	const T half_fov = vertical_fov * T{0.5};
-	const T f = std::cos(half_fov) / std::sin(half_fov);
+	const T f = cos(half_fov) / sin(half_fov);
 	
 	return
 	{
@@ -241,7 +246,7 @@ template <class T>
 [[nodiscard]] mat4<T> perspective_half_z(T vertical_fov, T aspect_ratio, T near, T far)
 {
 	const T half_fov = vertical_fov * T{0.5};
-	const T f = std::cos(half_fov) / std::sin(half_fov);
+	const T f = cos(half_fov) / sin(half_fov);
 
 	return
 	{{
@@ -268,7 +273,7 @@ template <class T>
 [[nodiscard]] std::tuple<mat4<T>, mat4<T>> perspective_half_z_inv(T vertical_fov, T aspect_ratio, T near, T far)
 {
 	const T half_fov = vertical_fov * T{0.5};
-	const T f = std::cos(half_fov) / std::sin(half_fov);
+	const T f = cos(half_fov) / sin(half_fov);
 
 	return
 	{
@@ -303,7 +308,7 @@ template <class T>
 [[nodiscard]] mat4<T> inf_perspective_half_z_reverse(T vertical_fov, T aspect_ratio, T near)
 {
 	const T half_fov = vertical_fov * T{0.5};
-	const T f = std::cos(half_fov) / std::sin(half_fov);
+	const T f = cos(half_fov) / sin(half_fov);
 	
 	return
 	{{
@@ -329,7 +334,7 @@ template <class T>
 [[nodiscard]] std::tuple<mat4<T>, mat4<T>> inf_perspective_half_z_reverse_inv(T vertical_fov, T aspect_ratio, T near)
 {
 	const T half_fov = vertical_fov * T{0.5};
-	const T f = std::cos(half_fov) / std::sin(half_fov);
+	const T f = cos(half_fov) / sin(half_fov);
 
 	return
 	{

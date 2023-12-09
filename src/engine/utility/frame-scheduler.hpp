@@ -176,17 +176,17 @@ public:
 	}
 
 private:
-	duration_type m_fixed_update_time{duration_type::zero()};
-	duration_type m_accumulated_time{duration_type::zero()};
+	duration_type m_fixed_update_time{};
+	duration_type m_accumulated_time{};
 	
 	time_point_type m_frame_start_time;
 	time_point_type m_frame_end_time;
-	duration_type m_frame_duration{duration_type::zero()};
+	duration_type m_frame_duration{};
 	
-	duration_type m_min_frame_duration{duration_type::zero()};
+	duration_type m_min_frame_duration{};
 	duration_type m_max_frame_duration{duration_type::max()};
 	
-	duration_type m_fixed_update_interval{duration_type::zero()};
+	duration_type m_fixed_update_interval{};
 	
 	fixed_update_callback_type m_fixed_update_callback;
 	variable_update_callback_type m_variable_update_callback;

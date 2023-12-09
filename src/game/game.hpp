@@ -39,7 +39,7 @@
 #include <engine/scene/billboard.hpp>
 #include <engine/scene/collection.hpp>
 #include <engine/scene/text.hpp>
-#include <engine/math/angles.hpp>
+#include <engine/math/common.hpp>
 #include <entt/entt.hpp>
 #include <filesystem>
 #include <memory>

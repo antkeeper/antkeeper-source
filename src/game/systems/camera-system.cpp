@@ -70,7 +70,7 @@ void camera_system::interpolate(float alpha)
 			auto& spring_arm = spring_arm_group.get<spring_arm_component>(entity_id);
 			auto& camera = static_cast<scene::camera&>(*spring_arm_group.get<scene_component>(entity_id).object);
 			
-			math::transform<double> parent_transform = math::transform<double>::identity();
+			math::transform<double> parent_transform = math::identity<math::transform<double>>;
 			if (spring_arm.parent_eid != entt::null)
 			{
 				const auto parent_scene = registry.try_get<scene_component>(spring_arm.parent_eid);

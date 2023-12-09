@@ -7,10 +7,11 @@
 #include <iterator>
 #include <type_traits>
 
-namespace math {
+// export module math.quadrature;
+// import <iterator>;
+// import <type_traits>;
 
-/// Numerical integration functions.
-namespace quadrature {
+namespace math {
 
 /**
  * Approximates the definite integral of a function using Simpson's 1/3 rule.
@@ -31,7 +32,9 @@ template<class UnaryOp, class InputIt>
 	typedef decltype(*last - *first) difference_type;
 	
 	if (first == last)
-		return output_type{0};
+	{
+		return {};
+	}
 	
 	output_type f_a = f(*first);
 	
@@ -39,7 +42,9 @@ template<class UnaryOp, class InputIt>
 	++second;
 	
 	if (second == last)
+	{
 		return f_a;
+	}
 	
 	difference_type h = *second - *first;
 	output_type f_b = f(*first + h / difference_type(2));
@@ -80,7 +85,9 @@ template<class UnaryOp, class InputIt>
 	typedef decltype(*last - *first) difference_type;
 	
 	if (first == last)
-		return output_type{0};
+	{
+		return {};
+	}
 	
 	output_type f_a = f(*first);
 	
@@ -88,7 +95,9 @@ template<class UnaryOp, class InputIt>
 	++second;
 	
 	if (second == last)
+	{
 		return f_a;
+	}
 	
 	output_type f_b = f(*second);
 	output_type sum = (f_a + f_b) * (*second - *first);
@@ -102,8 +111,6 @@ template<class UnaryOp, class InputIt>
 	
 	return sum / difference_type(2);
 }
-
-} // namespace quadrature
 
 } // namespace math
 

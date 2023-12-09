@@ -52,7 +52,7 @@
 #include <engine/config.hpp>
 #include <engine/entity/archetype.hpp>
 #include <engine/input/mouse.hpp>
-#include <engine/math/interpolation.hpp>
+#include <engine/math/common.hpp>
 #include <engine/math/projection.hpp>
 #include <engine/physics/light/exposure.hpp>
 #include <engine/physics/kinematics/constraints/spring-constraint.hpp>
@@ -142,7 +142,7 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 		auto heightmap = ctx.resource_manager->load<gl::image_2d>("chiricahua-s.png");
 		auto subdivisions = math::uvec2{0, 0};
 		// auto subdivisions = math::uvec2{3, 3};
-		auto transform = math::transform<float>::identity();
+		auto transform = math::identity<math::transform<float>>;
 		transform.scale.x() = 2000.0f;
 		transform.scale.y() = 400.0f;
 		transform.scale.z() = transform.scale.x();
@@ -231,7 +231,7 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	worker_rigid_body_component.body = std::make_unique<physics::rigid_body>();
 	worker_rigid_body_component.body->set_mass(0.0f);
 	auto rigid_body_transform = worker_rigid_body_component.body->get_transform();
-	rigid_body_transform.scale = math::fvec3::one() * worker_phenome->body_size->mean_mesosoma_length;
+	rigid_body_transform.scale = math::one<math::fvec3> * worker_phenome->body_size->mean_mesosoma_length;
 	worker_rigid_body_component.body->set_transform(rigid_body_transform);
 	
 	legged_locomotion_component worker_locomotion_component;

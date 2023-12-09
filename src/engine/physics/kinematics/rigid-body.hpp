@@ -485,10 +485,10 @@ public:
 	
 private:
 	/// Transformation representing the current state of the rigid body.
-	math::transform<float> m_current_transform{math::transform<float>::identity()};
+	math::transform<float> m_current_transform{math::identity<math::transform<float>>};
 	
 	/// Transformation representing the previous state of the rigid body.
-	math::transform<float> m_previous_transform{math::transform<float>::identity()};
+	math::transform<float> m_previous_transform{math::identity<math::transform<float>>};
 	
 	/// Center of mass.
 	math::fvec3 m_center_of_mass{};

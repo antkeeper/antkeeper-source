@@ -5,7 +5,7 @@
 #include <engine/input/application-events.hpp>
 #include <engine/input/input-update-event.hpp>
 #include <engine/debug/log.hpp>
-#include <engine/math/map.hpp>
+#include <engine/math/common.hpp>
 #include <SDL2/SDL.h>
 #include <stdexcept>
 
@@ -181,7 +181,7 @@ void sdl_input_manager::update()
 					if (auto it = m_gamepad_map.find(event.cdevice.which); it != m_gamepad_map.end())
 					{
 						// Map axis position onto `[-1, 1]`.
-						const float position = math::map
+						const float position = math::map_range
 						(
 							static_cast<float>(event.caxis.value),
 							static_cast<float>(std::numeric_limits<decltype(event.caxis.value)>::min()),

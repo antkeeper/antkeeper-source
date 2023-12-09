@@ -44,7 +44,7 @@
 #include <engine/config.hpp>
 #include <engine/entity/archetype.hpp>
 #include <engine/input/mouse.hpp>
-#include <engine/math/interpolation.hpp>
+#include <engine/math/common.hpp>
 #include <engine/math/projection.hpp>
 #include <engine/physics/light/exposure.hpp>
 #include <engine/physics/kinematics/constraints/spring-constraint.hpp>
@@ -154,9 +154,9 @@ nest_view_state::nest_view_state(::game& ctx):
 	auto worker_skeletal_mesh = std::make_unique<scene::skeletal_mesh>(worker_model);
 	worker_eid = ctx.entity_registry->create();
 	transform_component worker_transform_component;
-	worker_transform_component.local = math::transform<float>::identity();
+	worker_transform_component.local = math::identity<math::transform<float>>;
 	worker_transform_component.local.translation = {0, 0.1f, 0};
-	worker_transform_component.local.scale = math::fvec3::one() * worker_phenome.body_size->mean_mesosoma_length;
+	worker_transform_component.local.scale = math::one<math::fvec3> * worker_phenome.body_size->mean_mesosoma_length;
 	worker_transform_component.world = worker_transform_component.local;
 	ctx.entity_registry->emplace<transform_component>(worker_eid, worker_transform_component);
 	ctx.entity_registry->emplace<scene_component>(worker_eid, std::move(worker_skeletal_mesh), std::uint8_t{2});

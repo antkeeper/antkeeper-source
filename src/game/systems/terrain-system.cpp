@@ -211,7 +211,7 @@ std::unique_ptr<render::model> terrain_system::generate_terrain_model(const geom
 	
 	// Init model bounds
 	auto& bounds = model->get_bounds();
-	bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
+	bounds = {math::inf<math::fvec3>, -math::inf<math::fvec3>};
 	
 	// Construct VAO
 	constexpr gl::vertex_input_attribute vertex_attributes[] =

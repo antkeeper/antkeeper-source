@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2023 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
 #include <engine/type/typeface.hpp>
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/deserialize-error.hpp>
 #include <engine/type/freetype/ft-typeface.hpp>
 #include <stdexcept>
-#include <ft2build.h>
-#include FT_FREETYPE_H
 
 namespace type {
 

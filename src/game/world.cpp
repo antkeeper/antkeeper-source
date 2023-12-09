@@ -3,7 +3,6 @@
 
 #include "game/world.hpp"
 #include <engine/color/color.hpp>
-#include <engine/config.hpp>
 #include <engine/debug/log.hpp>
 #include <engine/entity/archetype.hpp>
 #include "game/commands/commands.hpp"
@@ -22,9 +21,6 @@
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/i18n/string-table.hpp>
-#include <engine/math/hash/hash.hpp>
-#include <engine/math/noise/noise.hpp>
-#include <engine/math/angles.hpp>
 #include <engine/physics/light/photometry.hpp>
 #include <engine/physics/light/vmag.hpp>
 #include <engine/physics/orbit/ephemeris.hpp>
@@ -46,6 +42,7 @@
 #include <fstream>
 #include <engine/animation/screen-transition.hpp>
 #include <engine/animation/ease.hpp>
+#include <engine/math/common.hpp>
 
 namespace world {
 
@@ -247,7 +244,7 @@ void create_stars(::game& ctx)
 		math::fvec3 color_xyz = color::cct_to_xyz(cct);
 		
 		// Transform XYZ color to RGB
-		math::fvec3 color_rgb = config::scene_linear_color_space<float>.from_xyz * color_xyz;
+		math::fvec3 color_rgb =  color::aces_ap1<float>.from_xyz * color_xyz;
 		
 		// Convert apparent magnitude to brightness factor relative to a 0th magnitude star
 		float brightness = physics::light::vmag::to_brightness(vmag);
@@ -436,7 +433,7 @@ void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
 				// const float lacunarity = 1.5f;
 				// const float gain = 0.5f;
 				
-				// const float fbm = math::noise::fbm
+				// const float fbm = noise::fbm
 				// (
 					// position * 0.005f,
 					// octaves,

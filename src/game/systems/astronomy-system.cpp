@@ -18,6 +18,7 @@
 #include <engine/physics/gas/atmosphere.hpp>
 #include <engine/astro/apparent-size.hpp>
 #include <engine/geom/solid-angle.hpp>
+#include <engine/math/transform.hpp>
 #include <engine/math/polynomial.hpp>
 #include <engine/debug/log.hpp>
 astronomy_system::astronomy_system(entity::registry& registry):
@@ -119,9 +120,9 @@ void astronomy_system::update(float t, float dt)
 			const math::dvec3 r_eus = icrf_to_eus * orbit.position;
 			
 			// Evaluate body orientation polynomials
-			const double body_pole_ra = math::polynomial::horner(body.pole_ra.begin(), body.pole_ra.end(), time_centuries);
-			const double body_pole_dec = math::polynomial::horner(body.pole_dec.begin(), body.pole_dec.end(), time_centuries);
-			const double body_prime_meridian = math::polynomial::horner(body.prime_meridian.begin(), body.prime_meridian.end(), time_days);
+			const double body_pole_ra = math::horner(body.pole_ra.begin(), body.pole_ra.end(), time_centuries);
+			const double body_pole_dec = math::horner(body.pole_dec.begin(), body.pole_dec.end(), time_centuries);
+			const double body_prime_meridian = math::horner(body.prime_meridian.begin(), body.prime_meridian.end(), time_days);
 			
 			// Determine body orientation in the ICRF frame
 			math::dquat rotation_icrf = physics::orbit::frame::bcbf::to_bci
@@ -512,9 +513,9 @@ void astronomy_system::update_bcbf_to_eus(const ::observer_component& observer, 
 void astronomy_system::update_icrf_to_eus(const ::celestial_body_component& body, const ::orbit_component& orbit)
 {
 	// Evaluate reference body orientation polynomials
-	const double body_pole_ra = math::polynomial::horner(body.pole_ra.begin(), body.pole_ra.end(), time_centuries);
-	const double body_pole_dec = math::polynomial::horner(body.pole_dec.begin(), body.pole_dec.end(), time_centuries);
-	const double body_prime_meridian = math::polynomial::horner(body.prime_meridian.begin(), body.prime_meridian.end(), time_days);
+	const double body_pole_ra = math::horner(body.pole_ra.begin(), body.pole_ra.end(), time_centuries);
+	const double body_pole_dec = math::horner(body.pole_dec.begin(), body.pole_dec.end(), time_centuries);
+	const double body_prime_meridian = math::horner(body.prime_meridian.begin(), body.prime_meridian.end(), time_days);
 	
 	// Construct ICRF frame to BCBF transformation
 	math::se3<double> icrf_to_bcbf = physics::orbit::frame::bci::to_bcbf

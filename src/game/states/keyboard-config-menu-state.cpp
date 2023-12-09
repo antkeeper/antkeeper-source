@@ -10,7 +10,7 @@
 #include "game/menu.hpp"
 #include "game/controls.hpp"
 #include "game/strings.hpp"
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <format>
 #include <utility>
 

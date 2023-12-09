@@ -4,16 +4,17 @@
 #ifndef ANTKEEPER_DEBUG_LOG_HPP
 #define ANTKEEPER_DEBUG_LOG_HPP
 
-#include <engine/config.hpp>
 #include <engine/debug/log/log-message-severity.hpp>
 #include <engine/debug/log/logger.hpp>
 #include <source_location>
 #include <string>
 #include <format>
 
-// Enable logging of messages of all severities by default.
-#if !defined(ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY)
-	#define ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY (ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_TRACE)
+// Disable trace message logging on release builds
+#if defined(NDEBUG)
+	#define ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY 1
+#else
+	#define ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY 0
 #endif
 
 namespace debug {

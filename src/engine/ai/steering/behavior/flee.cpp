@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/ai/steering/behavior/flee.hpp>
+#include <engine/math/common.hpp>
 
 namespace ai {
 namespace steering {
@@ -15,7 +16,7 @@ math::fvec3 flee(const agent& agent, const math::fvec3& target)
 	
 	if (sqr_distance)
 	{
-		const float inverse_distance = 1.0f / std::sqrt(sqr_distance);
+		const float inverse_distance = 1.0f / math::sqrt(sqr_distance);
 		force = difference * inverse_distance * agent.max_force;
 		force = agent.velocity - force;
 	}

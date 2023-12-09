@@ -9,7 +9,7 @@
 #include <unordered_set>
 #include <cstdint>
 #include <memory>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 
 namespace gl {
 

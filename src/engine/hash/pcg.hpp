@@ -1,15 +1,20 @@
 // SPDX-FileCopyrightText: 2023 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef ANTKEEPER_MATH_HASH_PCG_HPP
-#define ANTKEEPER_MATH_HASH_PCG_HPP
+#ifndef ANTKEEPER_HASH_PCG_HPP
+#define ANTKEEPER_HASH_PCG_HPP
 
+#include <engine/hash/make-uint.hpp>
 #include <engine/math/vector.hpp>
-#include <engine/math/hash/make-uint.hpp>
 #include <cstdint>
 #include <type_traits>
 
-namespace math {
+// export module hash.pcg;
+// import hash.make_uint;
+// import math.vector;
+// import <cstdint>;
+// import <type_traits>;
+
 namespace hash {
 
 /// @private
@@ -62,7 +67,7 @@ template <class T>
 
 /// @private
 template <class T>
-[[nodiscard]] inline constexpr vector<T, 1> pcg_uvec1(vector<T, 1> x) noexcept
+[[nodiscard]] inline constexpr math::vector<T, 1> pcg_uvec1(math::vector<T, 1> x) noexcept
 {
 	static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value);
 	static_assert(sizeof(T) <= 8);
@@ -74,7 +79,7 @@ template <class T>
 
 /// @private
 template <class T>
-[[nodiscard]] constexpr vector<T, 2> pcg_uvec2(vector<T, 2> x) noexcept
+[[nodiscard]] constexpr math::vector<T, 2> pcg_uvec2(math::vector<T, 2> x) noexcept
 {
 	static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value);
 	static_assert(sizeof(T) <= 8);
@@ -98,7 +103,7 @@ template <class T>
 
 /// @private
 template <class T>
-[[nodiscard]] constexpr vector<T, 3> pcg_uvec3(vector<T, 3> x) noexcept
+[[nodiscard]] constexpr math::vector<T, 3> pcg_uvec3(math::vector<T, 3> x) noexcept
 {
 	static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value);
 	static_assert(sizeof(T) <= 8);
@@ -122,7 +127,7 @@ template <class T>
 
 /// @private
 template <class T>
-[[nodiscard]] constexpr vector<T, 4> pcg_uvec4(vector<T, 4> x) noexcept
+[[nodiscard]] constexpr math::vector<T, 4> pcg_uvec4(math::vector<T, 4> x) noexcept
 {
 	static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value);
 	static_assert(sizeof(T) <= 8);
@@ -213,22 +218,29 @@ template <class T>
 }
 
 template <class T, std::size_t N>
-[[nodiscard]] inline constexpr vector<make_uint_t<T>, N> pcg(const vector<T, N>& x) noexcept
+[[nodiscard]] inline constexpr math::vector<make_uint_t<T>, N> pcg(const math::vector<T, N>& x) noexcept
 {
 	static_assert(N > 0 && N < 5, "PCG hash only supports vectors with 1-4 elements.");
 	
 	if constexpr (N == 1)
-		return pcg_uvec1<make_uint_t<T>>(vector<make_uint_t<T>, N>(x));
+	{
+		return pcg_uvec1<make_uint_t<T>>(math::vector<make_uint_t<T>, N>(x));
+	}
 	else if constexpr (N == 2)
-		return pcg_uvec2<make_uint_t<T>>(vector<make_uint_t<T>, N>(x));
+	{
+		return pcg_uvec2<make_uint_t<T>>(math::vector<make_uint_t<T>, N>(x));
+	}
 	else if constexpr (N == 3)
-		return pcg_uvec3<make_uint_t<T>>(vector<make_uint_t<T>, N>(x));
+	{
+		return pcg_uvec3<make_uint_t<T>>(math::vector<make_uint_t<T>, N>(x));
+	}
 	else
-		return pcg_uvec4<make_uint_t<T>>(vector<make_uint_t<T>, N>(x));
+	{
+		return pcg_uvec4<make_uint_t<T>>(math::vector<make_uint_t<T>, N>(x));
+	}
 }
 /// @}
 
 } // namespace hash
-} // namespace math
 
-#endif // ANTKEEPER_MATH_HASH_PCG_HPP
+#endif // ANTKEEPER_HASH_PCG_HPP

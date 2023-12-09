@@ -116,7 +116,7 @@ void text::set_color(const math::fvec4& color)
 void text::transformed()
 {
 	// Naive algorithm: transform each corner of the AABB
-	m_world_bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
+	m_world_bounds = {math::inf<math::fvec3>, -math::inf<math::fvec3>};
 	for (std::size_t i = 0; i < 8; ++i)
 	{
 		m_world_bounds.extend(get_transform() * m_local_bounds.corner(i));

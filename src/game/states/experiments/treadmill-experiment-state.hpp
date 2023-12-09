@@ -12,7 +12,7 @@
 #include <engine/input/mouse-events.hpp>
 #include <engine/geom/primitives/ray.hpp>
 #include <engine/geom/primitives/plane.hpp>
-#include <engine/math/angles.hpp>
+#include <engine/math/common.hpp>
 #include <engine/scene/light-probe.hpp>
 #include <engine/scene/rectangle-light.hpp>
 #include <engine/geom/bvh/bvh.hpp>
@@ -80,9 +80,9 @@ private:
 	double third_person_camera_focal_plane_width{};
 	double third_person_camera_focal_plane_height{};
 	double third_person_camera_focal_distance{};
-	math::dquat third_person_camera_yaw_rotation{math::dquat::identity()};
-	math::dquat third_person_camera_pitch_rotation{math::dquat::identity()};
-	math::dquat third_person_camera_orientation{math::dquat::identity()};
+	math::dquat third_person_camera_yaw_rotation{math::identity<math::dquat>};
+	math::dquat third_person_camera_pitch_rotation{math::identity<math::dquat>};
+	math::dquat third_person_camera_orientation{math::identity<math::dquat>};
 	
 	struct camera_preset
 	{

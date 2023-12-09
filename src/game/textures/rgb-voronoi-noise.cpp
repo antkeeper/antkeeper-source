@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/textures/rgb-voronoi-noise.hpp"
-#include <engine/math/noise/noise.hpp>
 #include <engine/debug/log.hpp>
 #include <algorithm>
 #include <execution>
 #include <fstream>
 #include <stb/stb_image_write.h>
+#include <engine/noise/noise.hpp>
 
 void generate_rgb_voronoi_noise(std::filesystem::path path)
 {
@@ -47,7 +47,7 @@ void generate_rgb_voronoi_noise(std::filesystem::path path)
 				f1_displacement,
 				f1_id,
 				f1_edge_sqr_distance
-			] = math::noise::voronoi::f1_edge<float, 2>(position, 1.0f, {frequency, frequency});
+			] = noise::voronoi::f1_edge<float, 2>(position, 1.0f, {frequency, frequency});
 			
 			const float f1_edge_distance = std::sqrt(f1_edge_sqr_distance);
 			

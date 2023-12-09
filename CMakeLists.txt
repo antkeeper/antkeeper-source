@@ -6,7 +6,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 	message(FATAL_ERROR "In-source builds prohibited.")
 endif()
 
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.28)
 include(FetchContent)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
@@ -30,16 +30,8 @@ if(MSVC)
 	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-add_compile_definitions(
-	# Set minimum Windows version (Windows XP)
-	$<$<PLATFORM_ID:Windows>:
-		WINVER=0x0501
-		_WIN32_WINNT=0x0501
-	>
-)
-
+# Enable parallel building on MSVC
 add_compile_options(
-	# Enable parallel building on MSVC
 	$<$<CXX_COMPILER_ID:MSVC>:/MP>
 )
 
@@ -61,6 +53,7 @@ FetchContent_Declare(cxxopts
 FetchContent_Declare(dr_libs
 	GIT_REPOSITORY https://github.com/mackron/dr_libs.git
 	GIT_TAG 9eed1be421749ba68a87e5b4c3b10858f8580689 # v0.13.13
+	GIT_SUBMODULES ""
 )
 FetchContent_Declare(entt
 	GIT_REPOSITORY https://github.com/skypjack/entt.git
@@ -272,6 +265,12 @@ file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
 	EXCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/game/platform"
 )
 
+# Collect module files
+# file(GLOB_RECURSE MODULE_FILES CONFIGURE_DEPENDS
+	# ${PROJECT_SOURCE_DIR}/src/*.ixx
+	# ${PROJECT_SOURCE_DIR}/src/*.cxx
+# )
+
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	
 	# Collect Windows-specific source files
@@ -299,6 +298,12 @@ endif()
 # Add executable target
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
+# Set executable module files
+# target_sources(${PROJECT_NAME}
+	# PUBLIC
+		# FILE_SET CXX_MODULES FILES ${MODULE_FILES}
+# )
+
 # Set target properties
 set_target_properties(${PROJECT_NAME}
 	PROPERTIES
@@ -308,6 +313,7 @@ set_target_properties(${PROJECT_NAME}
 		CXX_STANDARD 23
 		CXX_STANDARD_REQUIRED ON
 		CXX_EXTENSIONS OFF
+		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 )
 
 # Set compile definitions
@@ -316,6 +322,12 @@ target_compile_definitions(${PROJECT_NAME}
 		$<$<NOT:$<CONFIG:Debug>>:N>DEBUG
 		_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 		_SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING
+		
+		# Set minimum Windows version (Windows XP)
+		$<$<PLATFORM_ID:Windows>:
+			WINVER=0x0501
+			_WIN32_WINNT=0x0501
+		>
 )
 
 # Set compile options

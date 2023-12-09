@@ -6,7 +6,7 @@
 
 #include <engine/input/mapping.hpp>
 #include <engine/utility/dict.hpp>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <map>
 #include <memory>
 

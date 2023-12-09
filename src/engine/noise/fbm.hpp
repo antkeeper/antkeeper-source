@@ -1,16 +1,22 @@
 // SPDX-FileCopyrightText: 2023 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef ANTKEEPER_MATH_NOISE_FBM_HPP
-#define ANTKEEPER_MATH_NOISE_FBM_HPP
+#ifndef ANTKEEPER_NOISE_FBM_HPP
+#define ANTKEEPER_NOISE_FBM_HPP
 
-#include <engine/math/hash/make-uint.hpp>
-#include <engine/math/hash/pcg.hpp>
-#include <engine/math/noise/simplex.hpp>
+#include <engine/noise/simplex.hpp>
+#include <engine/hash/make-uint.hpp>
+#include <engine/hash/pcg.hpp>
 #include <engine/math/vector.hpp>
-#include <cstdint>
+#include <cstddef>
 
-namespace math {
+// export module noise.fbm;
+// import noise.simplex;
+// import hash.make_uint;
+// import hash.pcg;
+// import math.vector;
+// import <cstddef>;
+
 namespace noise {
 
 /**
@@ -30,12 +36,12 @@ namespace noise {
 template <class T, std::size_t N>
 [[nodiscard]] T fbm
 (
-	vector<T, N> position,
+	math::vector<T, N> position,
 	std::size_t octaves,
 	T lacunarity,
 	T gain,
-	T (*noise)(const vector<T, N>&, vector<hash::make_uint_t<T>, N> (*)(const vector<T, N>&)) = &simplex<T, N>,
-	vector<hash::make_uint_t<T>, N> (*hash)(const vector<T, N>&) = &hash::pcg<T, N>
+	T (*noise)(const math::vector<T, N>&, math::vector<::hash::make_uint_t<T>, N> (*)(const math::vector<T, N>&)) = &simplex<T, N>,
+	math::vector<::hash::make_uint_t<T>, N> (*hash)(const math::vector<T, N>&) = &::hash::pcg<T, N>
 )
 {
     T amplitude{1};
@@ -52,6 +58,5 @@ template <class T, std::size_t N>
 }
 
 } // namespace noise
-} // namespace math
 
-#endif // ANTKEEPER_MATH_NOISE_FBM_HPP
+#endif // ANTKEEPER_NOISE_FBM_HPP

@@ -4,9 +4,8 @@
 #include <engine/ai/navmesh.hpp>
 #include <engine/geom/closest-point.hpp>
 #include <engine/geom/coordinates.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/math/quaternion.hpp>
-#include <iterator>
-#include <engine/debug/log.hpp>
 
 namespace ai {
 

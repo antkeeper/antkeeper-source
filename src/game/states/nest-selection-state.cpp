@@ -43,7 +43,7 @@
 #include <engine/config.hpp>
 #include <engine/entity/archetype.hpp>
 #include <engine/input/mouse.hpp>
-#include <engine/math/interpolation.hpp>
+#include <engine/math/common.hpp>
 #include <engine/math/projection.hpp>
 #include <engine/physics/light/exposure.hpp>
 #include <engine/physics/kinematics/constraints/spring-constraint.hpp>
@@ -118,7 +118,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	
 	worker_ant_eid = ctx.entity_registry->create();
 	transform_component worker_transform_component;
-	worker_transform_component.local = math::transform<float>::identity();
+	worker_transform_component.local = math::identity<math::transform<float>>;
 	worker_transform_component.local.translation = {0, 0.5f, -4};
 	worker_transform_component.world = worker_transform_component.local;
 	ctx.entity_registry->emplace<transform_component>(worker_ant_eid, worker_transform_component);
@@ -353,7 +353,7 @@ void nest_selection_state::create_first_person_camera_rig()
 {
 	// Construct first person camera rig transform component
 	transform_component first_person_camera_rig_transform;
-	first_person_camera_rig_transform.local = math::transform<float>::identity();
+	first_person_camera_rig_transform.local = math::identity<math::transform<float>>;
 	first_person_camera_rig_transform.local.translation = {0, 10, 0};
 	first_person_camera_rig_transform.world = first_person_camera_rig_transform.local;
 	
@@ -722,10 +722,10 @@ void nest_selection_state::setup_controls()
 				ctx.entity_registry->emplace<rigid_body_component>(projectile_eid, std::move(projectile_body));
 				
 				
-				// body.linear_momentum = math::fvec3::zero();
-				// body.angular_momentum = math::fvec3::zero();
-				// body.linear_velocity = math::fvec3::zero();
-				// body.angular_velocity = math::fvec3::zero();
+				// body.linear_momentum = {};
+				// body.angular_momentum = {};
+				// body.linear_velocity = {};
+				// body.angular_velocity = {};
 				
 				//body.apply_central_impulse({0.0f, 100.5f, 0.0f});
 				

@@ -14,7 +14,7 @@
 #include <engine/render/context.hpp>
 #include <cmath>
 #include <cstdint>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <engine/debug/log.hpp>
 
 namespace render {

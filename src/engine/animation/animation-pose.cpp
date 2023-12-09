@@ -59,7 +59,7 @@ void animation_pose::reset()
 			
 			relative_transform = rest_pose.get_relative_transform(bone_index);
 			m_absolute_transforms[bone_index] = rest_pose.get_absolute_transform(bone_index);
-			m_matrix_palette[bone_index] = bone_matrix_type::identity();
+			m_matrix_palette[bone_index] = math::identity<bone_matrix_type>;
 		}
 	);
 }

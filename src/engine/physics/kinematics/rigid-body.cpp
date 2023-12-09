@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/physics/kinematics/rigid-body.hpp>
-#include <engine/math/interpolation.hpp>
+#include <engine/math/common.hpp>
 #include <algorithm>
 
 namespace physics {
@@ -22,8 +22,8 @@ void rigid_body::integrate_forces(float dt) noexcept
 	m_angular_velocity = m_inverse_inertia * m_angular_momentum;
 	
 	// Clear forces
-	m_applied_force = math::fvec3::zero();
-	m_applied_torque = math::fvec3::zero();
+	m_applied_force = {};
+	m_applied_torque = {};
 }
 
 void rigid_body::integrate_velocities(float dt) noexcept

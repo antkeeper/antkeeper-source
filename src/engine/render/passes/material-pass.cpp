@@ -25,7 +25,7 @@
 #include <engine/config.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/math/projection.hpp>
-#include <engine/utility/hash/hash-combine.hpp>
+#include <engine/hash/combine-hash.hpp>
 #include <cmath>
 #include <execution>
 
@@ -226,7 +226,7 @@ void material_pass::render(render::context& ctx)
 			}
 			
 			// Calculate shader cache key
-			std::size_t cache_key = hash_combine(lighting_state_hash, material->get_shader_template()->hash());
+			std::size_t cache_key = hash::combine_hash(lighting_state_hash, material->get_shader_template()->hash());
 			if (active_cache_key != cache_key)
 			{
 				// Lookup shader cache entry
@@ -474,11 +474,11 @@ void material_pass::evaluate_lighting(const render::context& ctx, std::uint32_t 
 	
 	// Generate lighting state hash
 	lighting_state_hash = std::hash<std::size_t>{}(light_probe_count);
-	lighting_state_hash = hash_combine(lighting_state_hash, std::hash<std::size_t>{}(directional_light_count));
-	lighting_state_hash = hash_combine(lighting_state_hash, std::hash<std::size_t>{}(directional_shadow_count));
-	lighting_state_hash = hash_combine(lighting_state_hash, std::hash<std::size_t>{}(point_light_count));
-	lighting_state_hash = hash_combine(lighting_state_hash, std::hash<std::size_t>{}(spot_light_count));
-	lighting_state_hash = hash_combine(lighting_state_hash, std::hash<std::size_t>{}(rectangle_light_count));
+	lighting_state_hash = hash::combine_hash(lighting_state_hash, std::hash<std::size_t>{}(directional_light_count));
+	lighting_state_hash = hash::combine_hash(lighting_state_hash, std::hash<std::size_t>{}(directional_shadow_count));
+	lighting_state_hash = hash::combine_hash(lighting_state_hash, std::hash<std::size_t>{}(point_light_count));
+	lighting_state_hash = hash::combine_hash(lighting_state_hash, std::hash<std::size_t>{}(spot_light_count));
+	lighting_state_hash = hash::combine_hash(lighting_state_hash, std::hash<std::size_t>{}(rectangle_light_count));
 }
 
 void material_pass::evaluate_misc(const render::context& ctx)

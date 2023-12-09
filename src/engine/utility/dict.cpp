@@ -7,7 +7,7 @@
 #include <engine/resources/deserializer.hpp>
 #include <engine/resources/deserialize-error.hpp>
 #include <engine/resources/resource-loader.hpp>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <cstdint>
 #include <string>
 #include <tuple>

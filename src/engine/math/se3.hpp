@@ -1,11 +1,17 @@
 // SPDX-FileCopyrightText: 2023 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef ANTKEEPER_MATH_TRANSFORMATION_SE3_HPP
-#define ANTKEEPER_MATH_TRANSFORMATION_SE3_HPP
+#ifndef ANTKEEPER_MATH_SE3_HPP
+#define ANTKEEPER_MATH_SE3_HPP
 
 #include <engine/math/vector.hpp>
+#include <engine/math/matrix.hpp>
 #include <engine/math/quaternion.hpp>
+
+// export module math.se3;
+// import math.vector;
+// import math.matrix;
+// import math.quaternion;
 
 namespace math {
 
@@ -111,14 +117,12 @@ public:
 	{
 		return {vec3<U>(t), quat<U>(r)};
 	}
-	
-	/// Returns an identity transformation.
-	[[nodiscard]] static inline constexpr se3 identity() noexcept
-	{
-		return {vector_type::zero(), quaternion_type::identity()};
-	}
 };
+
+/// Identity SE(3) transformation.
+template <class T>
+inline constexpr se3<T> identity<se3<T>> = {zero<vec3<T>>, identity<quat<T>>};
 
 } // namespace math
 
-#endif // ANTKEEPER_MATH_TRANSFORMATION_SE3_HPP
+#endif // ANTKEEPER_MATH_SE3_HPP

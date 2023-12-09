@@ -5,8 +5,13 @@
 #define ANTKEEPER_MATH_TRANSFORM_HPP
 
 #include <engine/math/vector.hpp>
-#include <engine/math/quaternion.hpp>
 #include <engine/math/matrix.hpp>
+#include <engine/math/quaternion.hpp>
+
+// export module math.transform;
+// import math.vector;
+// import math.matrix;
+// import math.quaternion;
 
 namespace math {
 
@@ -86,13 +91,11 @@ struct transform
 	{
 		return {vec3<U>(translation), quat<U>(rotation), vec3<U>(scale)};
 	}
-	
-	/// Returns an identity transform.
-	[[nodiscard]] static inline constexpr transform identity() noexcept
-	{
-		return {vector_type::zero(), quaternion_type::identity(), vector_type::one()};
-	}
 };
+
+/// Identity transform.
+template <class T>
+inline constexpr transform<T> identity<transform<T>> = {zero<vec3<T>>, identity<quat<T>>, one<vec3<T>>};
 
 /**
  * Calculates the inverse of a transform.
@@ -164,27 +167,27 @@ inline constexpr vector<T, 3> mul(const vector<T, 3>& v, const transform<T>& t) 
 	return mul(inverse(t), v);
 }
 
-namespace operators {
+} // namespace math
 
 /// @copydoc math::mul(const math::transform<T>&, const math::transform<T>&)
 template <class T>
 [[nodiscard]] inline math::transform<T> operator*(const math::transform<T>& x, const math::transform<T>& y)
 {
-	return mul(x, y);
+	return math::mul(x, y);
 }
 
 /// @copydoc math::mul(const math::transform<T>&, const math::vec3<T>&)
 template <class T>
 [[nodiscard]] inline constexpr math::vec3<T> operator*(const math::transform<T>& t, const math::vec3<T>& v) noexcept
 {
-	return mul(t, v);
+	return math::mul(t, v);
 }
 
 /// @copydoc math::mul(const math::vec3<T>&, const math::transform<T>&)
 template <class T>
 [[nodiscard]] inline constexpr math::vec3<T> operator*(const math::vec3<T>& v, const math::transform<T>& t) noexcept
 {
-	return mul(v, t);
+	return math::mul(v, t);
 }
 
 /**
@@ -200,12 +203,5 @@ inline math::transform<T>& operator*=(math::transform<T>& x, const math::transfo
 {
 	return (x = x * y);
 }
-
-} // namespace operators
-
-} // namespace math
-
-// Bring transform operators into global namespace
-using namespace math::operators;
 
 #endif // ANTKEEPER_MATH_TRANSFORM_HPP

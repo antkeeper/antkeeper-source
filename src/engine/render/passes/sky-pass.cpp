@@ -14,9 +14,10 @@
 #include <engine/render/model.hpp>
 #include <engine/render/material.hpp>
 #include <engine/scene/camera.hpp>
+#include <engine/math/common.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/color/color.hpp>
-#include <engine/math/interpolation.hpp>
+#include <engine/math/common.hpp>
 #include <engine/physics/orbit/orbit.hpp>
 #include <engine/physics/light/photometry.hpp>
 #include <bit>
@@ -39,20 +40,20 @@ sky_pass::sky_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, r
 	stars_model_vao(nullptr),
 	star_material(nullptr),
 	star_shader_program(nullptr),
-	observer_position_tween({0, 0, 0}, math::lerp<math::fvec3, float>),
-	sun_position_tween(math::fvec3{1.0f, 0.0f, 0.0f}, math::lerp<math::fvec3, float>),
-	sun_luminance_tween(math::fvec3{0.0f, 0.0f, 0.0f}, math::lerp<math::fvec3, float>),
-	sun_illuminance_tween(math::fvec3{0.0f, 0.0f, 0.0f}, math::lerp<math::fvec3, float>),
-	icrf_to_eus_translation({0, 0, 0}, math::lerp<math::fvec3, float>),
-	icrf_to_eus_rotation(math::fquat::identity(), math::nlerp<float>),
-	moon_position_tween(math::fvec3{0, 0, 0}, math::lerp<math::fvec3, float>),
-	moon_rotation_tween(math::fquat::identity(), math::nlerp<float>),
-	moon_angular_radius_tween(0.0f, math::lerp<float, float>),
-	moon_sunlight_direction_tween(math::fvec3{0, 0, 0}, math::lerp<math::fvec3, float>),
-	moon_sunlight_illuminance_tween(math::fvec3{0, 0, 0}, math::lerp<math::fvec3, float>),
-	moon_planetlight_direction_tween(math::fvec3{0, 0, 0}, math::lerp<math::fvec3, float>),
-	moon_planetlight_illuminance_tween(math::fvec3{0, 0, 0}, math::lerp<math::fvec3, float>),
-	moon_illuminance_tween(math::fvec3{0.0f, 0.0f, 0.0f}, math::lerp<math::fvec3, float>),
+	observer_position_tween({0, 0, 0}, math::lerp<float, 3>),
+	sun_position_tween(math::fvec3{1.0f, 0.0f, 0.0f}, math::lerp<float, 3>),
+	sun_luminance_tween(math::fvec3{0.0f, 0.0f, 0.0f}, math::lerp<float, 3>),
+	sun_illuminance_tween(math::fvec3{0.0f, 0.0f, 0.0f}, math::lerp<float, 3>),
+	icrf_to_eus_translation({0, 0, 0}, math::lerp<float, 3>),
+	icrf_to_eus_rotation(math::identity<math::fquat>, math::nlerp<float>),
+	moon_position_tween(math::fvec3{0, 0, 0}, math::lerp<float, 3>),
+	moon_rotation_tween(math::identity<math::fquat>, math::nlerp<float>),
+	moon_angular_radius_tween(0.0f, [](const float& a, const float& b, float t)->float{return math::lerp(a, b, t);}),
+	moon_sunlight_direction_tween(math::fvec3{0, 0, 0}, math::lerp<float, 3>),
+	moon_sunlight_illuminance_tween(math::fvec3{0, 0, 0}, math::lerp<float, 3>),
+	moon_planetlight_direction_tween(math::fvec3{0, 0, 0}, math::lerp<float, 3>),
+	moon_planetlight_illuminance_tween(math::fvec3{0, 0, 0}, math::lerp<float, 3>),
+	moon_illuminance_tween(math::fvec3{0.0f, 0.0f, 0.0f}, math::lerp<float, 3>),
 	magnification(1.0f)
 {
 	// Construct LUT sampler

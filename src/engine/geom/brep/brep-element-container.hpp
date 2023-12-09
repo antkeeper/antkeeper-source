@@ -5,7 +5,7 @@
 #define ANTKEEPER_GEOM_BREP_ELEMENT_CONTAINER_HPP
 
 #include <engine/geom/brep/brep-attribute-map.hpp>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <cstddef>
 #include <iterator>
 #include <memory>

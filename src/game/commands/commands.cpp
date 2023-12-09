@@ -136,7 +136,7 @@ math::transform<float> get_local_transform(entity::registry& registry, entity::i
 		return transform->local;
 	}
 	
-	return math::transform<float>::identity();
+	return math::identity<math::transform<float>>;
 }
 
 math::transform<float> get_world_transform(entity::registry& registry, entity::id eid)
@@ -147,7 +147,7 @@ math::transform<float> get_world_transform(entity::registry& registry, entity::i
 		return transform->world;
 	}
 	
-	return math::transform<float>::identity();
+	return math::identity<math::transform<float>>;
 }
 
 } // namespace command

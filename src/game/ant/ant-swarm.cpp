@@ -11,7 +11,7 @@
 #include "game/components/ant-caste-component.hpp"
 #include <engine/resources/resource-manager.hpp>
 #include <engine/math/quaternion.hpp>
-#include <engine/math/angles.hpp>
+#include <engine/math/common.hpp>
 #include <engine/scene/static-mesh.hpp>
 #include <engine/config.hpp>
 #include <cmath>
@@ -48,7 +48,7 @@ entity::id create_ant_swarm(::game& ctx)
 	
 	// Init transform component
 	::transform_component transform;
-	transform.local = math::transform<float>::identity();
+	transform.local = math::identity<math::transform<float>>;
 	transform.world = transform.local;
 	
 	// Init picking component
@@ -77,7 +77,7 @@ entity::id create_ant_swarm(::game& ctx)
 	steering.agent.max_force = 4.0f;
 	steering.agent.max_speed = 5.0f;
 	steering.agent.max_speed_squared = steering.agent.max_speed * steering.agent.max_speed;
-	steering.agent.orientation = math::fquat::identity();
+	steering.agent.orientation = math::identity<math::fquat>;
 	steering.agent.forward = steering.agent.orientation * config::global_forward;
 	steering.agent.up = steering.agent.orientation * config::global_up;
 	steering.wander_weight = 1.0f;

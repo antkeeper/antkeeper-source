@@ -55,13 +55,13 @@ void frame_scheduler::tick()
 
 void frame_scheduler::refresh() noexcept
 {
-	m_accumulated_time = duration_type::zero();
-	m_frame_duration = duration_type::zero();
+	m_accumulated_time = {};
+	m_frame_duration = {};
 	m_frame_start_time = clock_type::now();
 }
 
 void frame_scheduler::reset() noexcept
 {
-	m_fixed_update_time = duration_type::zero();
+	m_fixed_update_time = {};
 	refresh();
 }

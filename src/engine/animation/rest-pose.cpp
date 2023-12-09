@@ -8,7 +8,7 @@
 
 rest_pose::rest_pose(const skeleton& skeleton):
 	pose(skeleton),
-	m_inverse_absolute_transforms(skeleton.get_bone_count(), bone_transform_type::identity())
+	m_inverse_absolute_transforms(skeleton.get_bone_count(), math::identity<bone_transform_type>)
 {}
 
 void rest_pose::update(bone_index_type first_index, std::size_t bone_count)

@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2023 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef ANTKEEPER_MATH_NOISE_VORONOI_HPP
-#define ANTKEEPER_MATH_NOISE_VORONOI_HPP
+#ifndef ANTKEEPER_NOISE_VORONOI_HPP
+#define ANTKEEPER_NOISE_VORONOI_HPP
 
+#include <engine/hash/make-uint.hpp>
+#include <engine/hash/pcg.hpp>
 #include <engine/math/vector.hpp>
-#include <engine/math/hash/make-uint.hpp>
-#include <engine/math/hash/pcg.hpp>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -14,11 +14,18 @@
 #include <limits>
 #include <utility>
 
-namespace math {
-namespace noise {
+// export module noise.voronoi;
+// import hash.make_uint;
+// import hash.pcg;
+// import math.vector;
+// import <algorithm>;
+// import <array>;
+// import <cmath>;
+// import <tuple>;
+// import <limits>;
+// import <utility>;
 
-/// Voronoi functions.
-namespace voronoi {
+namespace noise {
 
 /**
  * Number of Voronoi cells to search.
@@ -44,7 +51,7 @@ constexpr std::size_t kernel_size = 4 << std::max<std::size_t>(0, (2 * (N - 1)))
  * @private
  */
 template <class T, std::size_t N, std::size_t... I>
-[[nodiscard]] constexpr vector<T, N> kernel_offset(std::size_t i, std::index_sequence<I...>)
+[[nodiscard]] constexpr math::vector<T, N> kernel_offset(std::size_t i, std::index_sequence<I...>)
 {
 	return {static_cast<T>((I ? (i / (2 << std::max<std::size_t>(0, 2 * I - 1))) : i) % 4)...};
 }
@@ -61,7 +68,7 @@ template <class T, std::size_t N, std::size_t... I>
  * @private
  */
 template <class T, std::size_t N, std::size_t... I>
-[[nodiscard]] constexpr std::array<vector<T, N>, kernel_size<N>> generate_kernel(std::index_sequence<I...>)
+[[nodiscard]] constexpr std::array<math::vector<T, N>, kernel_size<N>> generate_kernel(std::index_sequence<I...>)
 {
 	return {kernel_offset<T, N>(I, std::make_index_sequence<N>{})...};
 }
@@ -97,37 +104,37 @@ template <class T, std::size_t N>
 	T,
 	
 	// F1 position to center displacement
-	vector<T, N>,
+	math::vector<T, N>,
 	
 	// F1 hash
 	hash::make_uint_t<T>
 >
 f1
 (
-	const vector<T, N>& position,
+	const math::vector<T, N>& position,
 	T randomness = T{1},
-	const vector<T, N>& tiling = vector<T, N>::zero(),
-	vector<hash::make_uint_t<T>, N> (*hash)(const vector<T, N>&) = &hash::pcg<T, N>
+	const math::vector<T, N>& tiling = math::zero<math::vector<T, N>>,
+	math::vector<hash::make_uint_t<T>, N> (*hash)(const math::vector<T, N>&) = &::hash::pcg<T, N>
 )
 {
 	// Calculate factor which scales hash value onto `[0, 1]`, modulated by desired randomness
 	T hash_scale = (T{1} / static_cast<T>(std::numeric_limits<hash::make_uint_t<T>>::max())) * randomness;
 	
 	// Get integer and fractional parts
-    vector<T, N> position_i = floor(position - T{1.5});
-    vector<T, N> position_f = position - position_i;
+	math::vector<T, N> position_i = floor(position - T{1.5});
+	math::vector<T, N> position_f = position - position_i;
 	
-    // Find the F1 cell 
+	// Find the F1 cell 
 	T f1_sqr_distance = std::numeric_limits<T>::infinity();
-	vector<T, N> f1_displacement;
+	math::vector<T, N> f1_displacement;
 	hash::make_uint_t<T> f1_hash;
 	for (std::size_t i = 0; i < kernel_size<N>; ++i)
 	{
 		// Get kernel offset for current cell
-		const vector<T, N>& offset_i = kernel<T, N>[i];
+		const math::vector<T, N>& offset_i = kernel<T, N>[i];
 		
 		// Calculate hash input position, tiling where specified
-		vector<T, N> hash_position = position_i + offset_i;
+		math::vector<T, N> hash_position = position_i + offset_i;
 		for (std::size_t j = 0; j < N; ++j)
 		{
 			if (tiling[j])
@@ -139,13 +146,13 @@ f1
 		}
 		
 		// Calculate hash values for the hash position
-		vector<hash::make_uint_t<T>, N> hash_i = hash(hash_position);
+		math::vector<hash::make_uint_t<T>, N> hash_i = hash(hash_position);
 		
 		// Convert hash values to pseudorandom fractional offset
-		vector<T, N> offset_f = vector<T, N>(hash_i) * hash_scale;
+		math::vector<T, N> offset_f = math::vector<T, N>(hash_i) * hash_scale;
 		
 		// Calculate displacement from input position to cell center
-		vector<T, N> displacement = (offset_i + offset_f) - position_f;
+		math::vector<T, N> displacement = (offset_i + offset_f) - position_f;
 		
 		// Calculate square distance to the current cell center
 		T sqr_distance = sqr_length(displacement);
@@ -159,7 +166,7 @@ f1
 		}
 	}
 	
-    return
+	return
 	{
 		f1_sqr_distance,
 		f1_displacement,
@@ -187,7 +194,7 @@ template <class T, std::size_t N>
 	T,
 	
 	// F1 position to center displacement
-	vector<T, N>,
+	math::vector<T, N>,
 	
 	// F1 hash
 	hash::make_uint_t<T>,
@@ -197,31 +204,31 @@ template <class T, std::size_t N>
 >
 f1_edge
 (
-	const vector<T, N>& position,
+	const math::vector<T, N>& position,
 	T randomness = T{1},
-	const vector<T, N>& tiling = vector<T, N>::zero(),
-	vector<hash::make_uint_t<T>, N> (*hash)(const vector<T, N>&) = &hash::pcg<T, N>
+	const math::vector<T, N>& tiling = math::zero<math::vector<T, N>>,
+	math::vector<hash::make_uint_t<T>, N> (*hash)(const math::vector<T, N>&) = &::hash::pcg<T, N>
 )
 {
 	// Calculate factor which scales hash value onto `[0, 1]`, modulated by desired randomness
 	T hash_scale = (T{1} / static_cast<T>(std::numeric_limits<hash::make_uint_t<T>>::max())) * randomness;
 	
 	// Get integer and fractional parts
-    vector<T, N> position_i = floor(position - T{1.5});
-    vector<T, N> position_f = position - position_i;
+	math::vector<T, N> position_i = floor(position - T{1.5});
+	math::vector<T, N> position_f = position - position_i;
 	
-    // Find F1 cell
+	// Find F1 cell
 	T f1_sqr_distance_center = std::numeric_limits<T>::infinity();
-	vector<T, N> displacement_cache[kernel_size<N>];
+	math::vector<T, N> displacement_cache[kernel_size<N>];
 	std::size_t f1_i = 0;
 	hash::make_uint_t<T> f1_hash;
 	for (std::size_t i = 0; i < kernel_size<N>; ++i)
 	{
 		// Get kernel offset for current cell
-		const vector<T, N>& offset_i = kernel<T, N>[i];
+		const math::vector<T, N>& offset_i = kernel<T, N>[i];
 		
 		// Calculate hash input position, tiling where specified
-		vector<T, N> hash_position = position_i + offset_i;
+		math::vector<T, N> hash_position = position_i + offset_i;
 		for (std::size_t j = 0; j < N; ++j)
 		{
 			if (tiling[j])
@@ -233,10 +240,10 @@ f1_edge
 		}
 		
 		// Calculate hash values for the hash position
-		vector<hash::make_uint_t<T>, N> hash_i = hash(hash_position);
+		math::vector<hash::make_uint_t<T>, N> hash_i = hash(hash_position);
 		
 		// Convert hash values to pseudorandom fractional offset
-		vector<T, N> offset_f = vector<T, N>(hash_i) * hash_scale;
+		math::vector<T, N> offset_f = math::vector<T, N>(hash_i) * hash_scale;
 		
 		// Calculate and cache displacement from input position to cell center
 		displacement_cache[i] = (offset_i + offset_f) - position_f;
@@ -254,7 +261,7 @@ f1_edge
 	}
 	
 	// Get displacement vector from input position to the F1 cell center
-	const vector<T, N>& f1_displacement = displacement_cache[f1_i];
+	const math::vector<T, N>& f1_displacement = displacement_cache[f1_i];
 	
    // Find distance to the closest edge
 	T edge_sqr_distance_edge = std::numeric_limits<T>::infinity();
@@ -265,13 +272,13 @@ f1_edge
 			continue;
 		
 		// Fetch cached displacement vector for current cell
-		const vector<T, N>& displacement = displacement_cache[i];
+		const math::vector<T, N>& displacement = displacement_cache[i];
 		
 		// Find midpoint between the displacement vectors
-		const vector<T, N> midpoint = (f1_displacement + displacement) * T{0.5};
+		const math::vector<T, N> midpoint = (f1_displacement + displacement) * T{0.5};
 		
 		// Calculate direction from the F1 cell to current cell
-		const vector<T, N> direction = normalize(displacement - f1_displacement);
+		const math::vector<T, N> direction = normalize(displacement - f1_displacement);
 		
 		// Calculate square distance to the edge
 		const T sqr_distance = dot(midpoint, direction);
@@ -281,7 +288,7 @@ f1_edge
 			edge_sqr_distance_edge = sqr_distance;
 	}
 	
-    return
+	return
 	{
 		f1_sqr_distance_center,
 		f1_displacement,
@@ -310,7 +317,7 @@ template <class T, std::size_t N>
 	T,
 	
 	// F1 position to center displacement
-	vector<T, N>,
+	math::vector<T, N>,
 	
 	// F1 hash
 	hash::make_uint_t<T>,
@@ -319,40 +326,40 @@ template <class T, std::size_t N>
 	T,
 	
 	// F2 position to center displacement
-	vector<T, N>,
+	math::vector<T, N>,
 	
 	// F2 hash
 	hash::make_uint_t<T>
 >
 f1_f2
 (
-	const vector<T, N>& position,
+	const math::vector<T, N>& position,
 	T randomness = T{1},
-	const vector<T, N>& tiling = vector<T, N>::zero(),
-	vector<hash::make_uint_t<T>, N> (*hash)(const vector<T, N>&) = &hash::pcg<T, N>
+	const math::vector<T, N>& tiling = math::zero<math::vector<T, N>>,
+	math::vector<hash::make_uint_t<T>, N> (*hash)(const math::vector<T, N>&) = &::hash::pcg<T, N>
 )
 {
 	// Calculate factor which scales hash value onto `[0, 1]`, modulated by desired randomness
 	T hash_scale = (T{1} / static_cast<T>(std::numeric_limits<hash::make_uint_t<T>>::max())) * randomness;
 	
 	// Get integer and fractional parts
-    vector<T, N> position_i = floor(position - T{1.5});
-    vector<T, N> position_f = position - position_i;
+	math::vector<T, N> position_i = floor(position - T{1.5});
+	math::vector<T, N> position_f = position - position_i;
 	
-    // Find the F1 and F2 cells
+	// Find the F1 and F2 cells
 	T f1_sqr_distance_center = std::numeric_limits<T>::infinity();
-	vector<T, N> f1_displacement = {0, 0};
+	math::vector<T, N> f1_displacement = {0, 0};
 	hash::make_uint_t<T> f1_hash = 0;
 	T f2_sqr_distance_center = std::numeric_limits<T>::infinity();
-	vector<T, N> f2_displacement = {0, 0};
+	math::vector<T, N> f2_displacement = {0, 0};
 	hash::make_uint_t<T> f2_hash = 0;
 	for (std::size_t i = 0; i < kernel_size<N>; ++i)
 	{
 		// Get kernel offset for current cell
-		const vector<T, N>& offset_i = kernel<T, N>[i];
+		const math::vector<T, N>& offset_i = kernel<T, N>[i];
 		
 		// Calculate hash input position, tiling where specified
-		vector<T, N> hash_position = position_i + offset_i;
+		math::vector<T, N> hash_position = position_i + offset_i;
 		for (std::size_t j = 0; j < N; ++j)
 		{
 			if (tiling[j])
@@ -364,13 +371,13 @@ f1_f2
 		}
 		
 		// Calculate hash values for the hash position
-		vector<hash::make_uint_t<T>, N> hash_i = hash(hash_position);
+		math::vector<hash::make_uint_t<T>, N> hash_i = hash(hash_position);
 		
 		// Convert hash values to pseudorandom fractional offset
-		vector<T, N> offset_f = vector<T, N>(hash_i) * hash_scale;
+		math::vector<T, N> offset_f = math::vector<T, N>(hash_i) * hash_scale;
 		
 		// Calculate displacement from input position to cell center
-		vector<T, N> displacement = (offset_i + offset_f) - position_f;
+		math::vector<T, N> displacement = (offset_i + offset_f) - position_f;
 		
 		// Calculate square distance to the current cell center
 		T sqr_distance = sqr_length(displacement);
@@ -394,7 +401,7 @@ f1_f2
 		}
 	}
 	
-    return
+	return
 	{
 		f1_sqr_distance_center,
 		f1_displacement,
@@ -405,9 +412,6 @@ f1_f2
 	};
 }
 
-} // namespace voronoi
-
 } // namespace noise
-} // namespace math
 
-#endif // ANTKEEPER_MATH_NOISE_VORONOI_HPP
+#endif // ANTKEEPER_NOISE_VORONOI_HPP

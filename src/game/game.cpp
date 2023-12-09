@@ -69,7 +69,7 @@
 #include <engine/resources/resource-manager.hpp>
 #include <engine/scene/scene.hpp>
 #include <engine/utility/dict.hpp>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <engine/utility/paths.hpp>
 #include <entt/entt.hpp>
 #include <execution>

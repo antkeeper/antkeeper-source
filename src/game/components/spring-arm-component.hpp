@@ -7,7 +7,7 @@
 #include <engine/entity/id.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/math/quaternion.hpp>
-#include <engine/math/angles.hpp>
+#include <engine/math/common.hpp>
 #include <engine/physics/spring.hpp>
 
 /**
@@ -22,10 +22,10 @@ struct spring_arm_component
 	double near_focal_plane_height{1.0};
 	
 	/// Local up rotation quaternion.
-	math::dquat up_rotation{math::dquat::identity()};
+	math::dquat up_rotation{math::identity<math::dquat>};
 	
 	/// Attached camera rotation.
-	math::dquat camera_rotation{math::dquat::identity()};
+	math::dquat camera_rotation{math::identity<math::dquat>};
 	
 	/// Pitch, yaw, and roll velocities, in radians per second.
 	math::dvec3 angular_velocities{};

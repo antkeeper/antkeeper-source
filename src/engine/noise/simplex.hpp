@@ -1,16 +1,22 @@
 // SPDX-FileCopyrightText: 2023 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef ANTKEEPER_MATH_NOISE_SIMPLEX_HPP
-#define ANTKEEPER_MATH_NOISE_SIMPLEX_HPP
+#ifndef ANTKEEPER_NOISE_SIMPLEX_HPP
+#define ANTKEEPER_NOISE_SIMPLEX_HPP
 
+#include <engine/hash/make-uint.hpp>
+#include <engine/hash/pcg.hpp>
 #include <engine/math/vector.hpp>
-#include <engine/math/hash/make-uint.hpp>
-#include <engine/math/hash/pcg.hpp>
+#include <engine/math/common.hpp>
 #include <algorithm>
-#include <utility>
 
-namespace math {
+// export module noise.simplex;
+// import hash.make_uint;
+// import hash.pcg;
+// import math.common;
+// import math.vector;
+// import <algorithm>;
+
 namespace noise {
 
 /**
@@ -35,7 +41,7 @@ constexpr std::size_t simplex_edge_count = (N > 1) ? N * simplex_corner_count<N 
  * @private
  */
 template <class T, std::size_t N, std::size_t... I>
-[[nodiscard]] constexpr vector<T, N> make_simplex_corner(std::size_t i, std::index_sequence<I...>)
+[[nodiscard]] constexpr math::vector<T, N> make_simplex_corner(std::size_t i, std::index_sequence<I...>)
 {
 	return {((i >> I) % 2) * T{2} - T{1}...};
 }
@@ -46,7 +52,7 @@ template <class T, std::size_t N, std::size_t... I>
  * @private
  */
 template <class T, std::size_t N, std::size_t... I>
-[[nodiscard]] constexpr std::array<vector<T, N>, simplex_corner_count<N>> make_simplex_corners(std::index_sequence<I...>)
+[[nodiscard]] constexpr std::array<math::vector<T, N>, simplex_corner_count<N>> make_simplex_corners(std::index_sequence<I...>)
 {
 	return {make_simplex_corner<T, N>(I, std::make_index_sequence<N>{})...};
 }
@@ -65,7 +71,7 @@ constexpr auto simplex_corners = make_simplex_corners<T, N>(std::make_index_sequ
  * @private
  */
 template <class T, std::size_t N, std::size_t... I>
-[[nodiscard]] constexpr vector<T, N> make_simplex_edge(std::size_t i, std::index_sequence<I...>)
+[[nodiscard]] constexpr math::vector<T, N> make_simplex_edge(std::size_t i, std::index_sequence<I...>)
 {
 	std::size_t j = i / (simplex_edge_count<N> / N);
 	
@@ -88,10 +94,10 @@ template <class T, std::size_t N, std::size_t... I>
  * @private
  */
 template <class T, std::size_t N, std::size_t... I>
-[[nodiscard]] constexpr std::array<vector<T, N>, simplex_edge_count<N>> make_simplex_edges(std::index_sequence<I...>)
+[[nodiscard]] constexpr std::array<math::vector<T, N>, simplex_edge_count<N>> make_simplex_edges(std::index_sequence<I...>)
 {
 	if constexpr (N == 1)
-		return std::array<vector<T, N>, simplex_edge_count<N>>{vector<T, N>{T{1}}, vector<T, N>{T{-1}}};
+		return std::array<math::vector<T, N>, simplex_edge_count<N>>{math::vector<T, N>{T{1}}, math::vector<T, N>{T{-1}}};
 	else
 		return {make_simplex_edge<T, N>(I, std::make_index_sequence<N>{})...};
 }
@@ -124,12 +130,12 @@ constexpr auto simplex_edges = make_simplex_edges<T, N>(std::make_index_sequence
 template <class T, std::size_t N>
 [[nodiscard]] T simplex
 (
-	const vector<T, N>& position,
-	vector<hash::make_uint_t<T>, N> (*hash)(const vector<T, N>&) = &hash::pcg<T, N>
+	const math::vector<T, N>& position,
+	math::vector<hash::make_uint_t<T>, N> (*hash)(const math::vector<T, N>&) = &hash::pcg<T, N>
 )
 {
 	// Skewing (F) and unskewing (G) factors
-	static const T f = (std::sqrt(static_cast<T>(N + 1)) - T{1}) / static_cast<T>(N);
+	static const T f = (sqrt(static_cast<T>(N + 1)) - T{1}) / static_cast<T>(N);
 	static const T g = f / (T{1} + f * static_cast<T>(N));
 	
 	// Kernel radius set to the height of the equilateral triangle, `sqrt(0.5)`
@@ -150,19 +156,19 @@ template <class T, std::size_t N>
 	
 	// Normalization factor when using corner gradient vectors
 	// @see https://math.stackexchange.com/questions/474638/radius-and-amplitude-of-kernel-for-simplex-noise/1901116
-	static const T corner_normalization = T{1} / ((static_cast<T>(N) / std::sqrt(static_cast<T>(N + 1))) * falloff(static_cast<T>(N) / (T{4} * static_cast<T>(N + 1))));
+	static const T corner_normalization = T{1} / ((static_cast<T>(N) / sqrt(static_cast<T>(N + 1))) * falloff(static_cast<T>(N) / (T{4} * static_cast<T>(N + 1))));
 	
 	// Adjust normalization factor for difference in length between corner gradient vectors and edge gradient vectors
-	static const T edge_normalization = corner_normalization * (std::sqrt(static_cast<T>(N)) / length(simplex_edges<T, N>[0]));
+	static const T edge_normalization = corner_normalization * (sqrt(static_cast<T>(N)) / length(simplex_edges<T, N>[0]));
 	
 	// Skew input position to get the origin vertex of the unit hypercube cell to which they belong
-	const vector<T, N> origin_vertex = floor(position + sum(position) * f);
+	const math::vector<T, N> origin_vertex = floor(position + sum(position) * f);
 	
 	// Displacement vector from origin vertex position to input position
-	const vector<T, N> dx = position - origin_vertex + sum(origin_vertex) * g;
+	const math::vector<T, N> dx = position - origin_vertex + sum(origin_vertex) * g;
 	
 	// Find axis traversal order
-	vector<std::size_t, N> axis_order;
+	math::vector<std::size_t, N> axis_order;
 	for (std::size_t i = 0; i < N; ++i)
 		axis_order[i] = i;
 	std::sort
@@ -176,21 +182,21 @@ template <class T, std::size_t N>
 	);
 	
 	T n = T{0};
-	vector<T, N> current_vertex = origin_vertex;
+	math::vector<T, N> current_vertex = origin_vertex;
 	for (std::size_t i = 0; i <= N; ++i)
 	{
 		if (i)
 			++current_vertex[axis_order[i - 1]];
 		
 		// Calculate displacement vector from current vertex to input position
-		const vector<T, N> d = dx - (current_vertex - origin_vertex) + g * static_cast<T>(i);
+		const math::vector<T, N> d = dx - (current_vertex - origin_vertex) + g * static_cast<T>(i);
 		
 		// Calculate falloff
 		T t = falloff(sqr_length(d));
 		if (t > T{0})
 		{
 			const hash::make_uint_t<T> gradient_index = hash(current_vertex)[0] % simplex_edges<T, N>.size();
-			const vector<T, N>& gradient = simplex_edges<T, N>[gradient_index];
+			const math::vector<T, N>& gradient = simplex_edges<T, N>[gradient_index];
 			
 			n += dot(d, gradient) * t;
 		}
@@ -201,6 +207,5 @@ template <class T, std::size_t N>
 }
 
 } // namespace noise
-} // namespace math
 
-#endif // ANTKEEPER_MATH_NOISE_SIMPLEX_HPP
+#endif // ANTKEEPER_NOISE_SIMPLEX_HPP

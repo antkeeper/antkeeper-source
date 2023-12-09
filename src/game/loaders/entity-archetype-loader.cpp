@@ -4,7 +4,7 @@
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/render/model.hpp>
-#include <engine/math/angles.hpp>
+#include <engine/math/common.hpp>
 #include "game/components/atmosphere-component.hpp"
 #include "game/components/behavior-component.hpp"
 #include "game/components/diffuse-reflector-component.hpp"
@@ -203,7 +203,7 @@ static bool load_component_orbit(entity::archetype& archetype, const json& eleme
 static bool load_component_transform(entity::archetype& archetype, const json& element)
 {
 	::transform_component component;
-	component.local = math::transform<float>::identity();
+	component.local = math::identity<math::transform<float>>;
 	
 	if (element.contains("translation"))
 	{

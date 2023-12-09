@@ -4,9 +4,9 @@
 #ifndef ANTKEEPER_TYPE_FT_TYPEFACE_HPP
 #define ANTKEEPER_TYPE_FT_TYPEFACE_HPP
 
-#include <engine/type/typeface.hpp>
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include <engine/type/typeface.hpp>
 #include <vector>
 #include <memory>
 

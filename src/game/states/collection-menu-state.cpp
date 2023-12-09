@@ -8,10 +8,11 @@
 #include <engine/debug/log.hpp>
 #include "game/menu.hpp"
 #include "game/strings.hpp"
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/animation/screen-transition.hpp>
 #include <engine/animation/ease.hpp>
+#include <engine/config.hpp>
 
 using namespace hash::literals;
 

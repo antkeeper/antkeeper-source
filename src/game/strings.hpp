@@ -5,7 +5,7 @@
 #define ANTKEEPER_GAME_STRINGS_HPP
 
 #include "game/game.hpp"
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <cstdint>
 #include <string>
 

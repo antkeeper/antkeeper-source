@@ -8,6 +8,11 @@
 #include <cstdint>
 #include <vector>
 
+// export module math.moving_average;
+// import <algorithm>;
+// import <cstdint>;
+// import <vector>;
+
 namespace math {
 
 /**

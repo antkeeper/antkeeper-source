@@ -7,7 +7,7 @@
 #include <engine/resources/resource-manager.hpp>
 #include <engine/render/material-flags.hpp>
 #include <engine/utility/json.hpp>
-#include <engine/utility/hash/hash-combine.hpp>
+#include <engine/hash/combine-hash.hpp>
 #include <utility>
 #include <type_traits>
 #include <string>
@@ -99,10 +99,10 @@ void material::rehash() noexcept
 		m_hash = shader_template->hash();
 	}
 	
-	m_hash = hash_combine(m_hash, std::hash<bool>{}(two_sided));
-	m_hash = hash_combine(m_hash, std::hash<material_blend_mode>{}(blend_mode));
-	m_hash = hash_combine(m_hash, std::hash<material_shadow_mode>{}(shadow_mode));
-	m_hash = hash_combine(m_hash, std::hash<std::uint32_t>{}(flags));
+	m_hash = hash::combine_hash(m_hash, std::hash<bool>{}(two_sided));
+	m_hash = hash::combine_hash(m_hash, std::hash<material_blend_mode>{}(blend_mode));
+	m_hash = hash::combine_hash(m_hash, std::hash<material_shadow_mode>{}(shadow_mode));
+	m_hash = hash::combine_hash(m_hash, std::hash<std::uint32_t>{}(flags));
 }
 
 } // namespace render

@@ -5,7 +5,7 @@
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/json.hpp>
-#include <engine/math/angles.hpp>
+#include <engine/math/common.hpp>
 #include <stdexcept>
 
 template <>

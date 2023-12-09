@@ -13,7 +13,7 @@
 #include <engine/scene/collection.hpp>
 #include <engine/scene/light.hpp>
 #include <engine/geom/primitives/view-frustum.hpp>
-#include <engine/math/interpolation.hpp>
+#include <engine/math/common.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/math/matrix.hpp>
 #include <engine/math/quaternion.hpp>
@@ -248,7 +248,7 @@ void cascaded_shadow_map_stage::render_shadow_atlas(render::context& ctx, scene:
 		const auto ndc_to_light_view = light_view * subfrustum_inv_view_projection;
 		
 		// Construct AABB containing subfrustum corners in light view space
-		geom::box<float> light_projection_bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
+		geom::box<float> light_projection_bounds = {math::inf<math::fvec3>, -math::inf<math::fvec3>};
 		for (std::size_t j = 0; j < 8; ++j)
 		{
 			// Reverse half z clip-space coordinates of a cube

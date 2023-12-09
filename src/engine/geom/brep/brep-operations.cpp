@@ -138,7 +138,7 @@ std::unique_ptr<render::model> generate_model(const brep_mesh& mesh, std::shared
 	
 	// Init model bounds
 	auto& bounds = model->get_bounds();
-	bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
+	bounds = {math::inf<math::fvec3>, -math::inf<math::fvec3>};
 	
 	// Construct model VAO
 	std::size_t vertex_stride = 0;

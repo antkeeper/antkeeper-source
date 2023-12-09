@@ -8,8 +8,8 @@
 
 pose::pose(const skeleton& skeleton):
 	m_skeleton(&skeleton),
-	m_relative_transforms(skeleton.get_bone_count(), bone_transform_type::identity()),
-	m_absolute_transforms(skeleton.get_bone_count(), bone_transform_type::identity())
+	m_relative_transforms(skeleton.get_bone_count(), math::identity<bone_transform_type>),
+	m_absolute_transforms(skeleton.get_bone_count(), math::identity<bone_transform_type>)
 {}
 
 void pose::update()

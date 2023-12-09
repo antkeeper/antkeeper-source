@@ -40,11 +40,11 @@
 #include "game/strings.hpp"
 #include <engine/utility/state-machine.hpp>
 #include <engine/config.hpp>
-#include <engine/math/interpolation.hpp>
+#include <engine/math/common.hpp>
 #include <engine/physics/light/exposure.hpp>
 #include <engine/color/color.hpp>
 #include <engine/input/mouse.hpp>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <random>
 
 using namespace hash::literals;
@@ -211,7 +211,7 @@ void nuptial_flight_state::create_camera_rig()
 	
 	// Construct camera rig focus transform component
 	transform_component camera_rig_focus_transform;
-	camera_rig_focus_transform.local = math::transform<float>::identity();
+	camera_rig_focus_transform.local = math::identity<math::transform<float>>;
 	camera_rig_focus_transform.world = camera_rig_focus_transform.local;
 	
 	// Construct camera rig focus entity
@@ -278,7 +278,7 @@ void nuptial_flight_state::create_camera_rig()
 	
 	// Construct camera rig transform component
 	transform_component camera_rig_transform;
-	camera_rig_transform.local = math::transform<float>::identity();
+	camera_rig_transform.local = math::identity<math::transform<float>>;
 	camera_rig_transform.world = camera_rig_transform.local;
 	
 	// Construct camera rig camera component

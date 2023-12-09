@@ -8,7 +8,7 @@
 #include "game/ant/genes/ant-gene-type.hpp"
 #include <vector>
 #include <unordered_map>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 
 /**
  * Abstract base class for ant genes.

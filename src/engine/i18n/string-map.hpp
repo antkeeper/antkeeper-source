@@ -6,7 +6,7 @@
 
 #include <string>
 #include <unordered_map>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 
 namespace i18n {
 

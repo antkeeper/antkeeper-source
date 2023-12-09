@@ -173,7 +173,7 @@ float calculate_uv_area
 {
 	const std::byte* position_data = vertex_data + position_attribute.offset;
 	
-	geom::box<float> bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
+	geom::box<float> bounds = {math::inf<math::fvec3>, -math::inf<math::fvec3>};
 	for (std::size_t i = 0; i < vertex_count; ++i)
 	{
 		const float* px = reinterpret_cast<const float*>(position_data + vertex_stride * i);

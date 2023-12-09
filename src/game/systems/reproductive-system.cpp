@@ -9,8 +9,8 @@
 #include "game/components/egg-component.hpp"
 #include "game/components/ant-genome-component.hpp"
 #include "game/systems/physics-system.hpp"
-#include <engine/math/fract.hpp>
-#include <engine/math/interpolation.hpp>
+#include <engine/math/common.hpp>
+#include <engine/math/common.hpp>
 #include <engine/scene/static-mesh.hpp>
 #include <engine/debug/log.hpp>
 #include <execution>

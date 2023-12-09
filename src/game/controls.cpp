@@ -9,7 +9,7 @@
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/json.hpp>
 #include <engine/input/modifier-key.hpp>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 
 
 void reset_control_profile(::control_profile& profile)

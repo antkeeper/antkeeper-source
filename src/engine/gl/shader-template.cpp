@@ -8,7 +8,7 @@
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/text-file.hpp>
-#include <engine/utility/hash/hash-combine.hpp>
+#include <engine/hash/combine-hash.hpp>
 #include <sstream>
 #include <unordered_set>
 
@@ -173,7 +173,7 @@ void shader_template::rehash()
 	m_hash = 0;
 	for (const auto& line: m_template_source.lines)
 	{
-		m_hash = hash_combine(m_hash, std::hash<std::string>{}(line));
+		m_hash = hash::combine_hash(m_hash, std::hash<std::string>{}(line));
 	}
 }
 

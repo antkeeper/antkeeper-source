@@ -5,10 +5,9 @@
 #define ANTKEEPER_DEBUG_CLI_HPP
 
 #include <functional>
-#include <sstream>
+#include <ostream>
+#include <span>
 #include <string>
-#include <tuple>
-#include <type_traits>
 #include <unordered_map>
 
 namespace debug {
@@ -19,122 +18,90 @@ namespace debug {
 class cli
 {
 public:
-	/**
-	 * Interprets a command line as a function invocation.
-	 *
-	 * @param line Command line.
-	 * @return Stringified return value of the command function.
-	 */
-	std::string interpret(const std::string& line) const;
+	/// Command function type.
+	using command_type = std::function<int(std::span<const std::string>, std::ostream&)>;
+	
+	/// Constructs a CLI.
+	cli();
 	
 	/**
-	 * Registers a command with the CLI.
-	 *
-	 * @tparam T Command function return type.
-	 * @tparam Args Command function argument types.
-	 *
-	 * @param name Command name.
-	 * @param function Command function.
+	 * Interprets a command line.
+	 * 
+	 * @param line Command line to interpret.
+	 * 
+	 * @return Exit status of the command.
 	 */
+	virtual int interpret(const std::string& line);
+	
+	/// Returns the command registry.
 	/// @{
-	template <class T, class... Args>
-	void register_command(const std::string& name, const std::function<T(Args...)>& function);
-	template <class T, class... Args>
-	void register_command(const std::string& name, T (*function)(Args...));
+	[[nodiscard]] inline const auto& commands() const noexcept
+	{
+		return m_commands;
+	}
+	[[nodiscard]] inline auto& commands() noexcept
+	{
+		return m_commands;
+	}
+	/// @}
+	
+	/// Returns the variable registry.
+	/// @{
+	[[nodiscard]] inline const auto& variables() const noexcept
+	{
+		return m_variables;
+	}
+	[[nodiscard]] inline auto& variables() noexcept
+	{
+		return m_variables;
+	}
+	/// @}
+	
+	/// Returns the output stream.
+	/// @{
+	[[nodiscard]] inline const auto& output() const noexcept
+	{
+		return m_output;
+	}
+	[[nodiscard]] inline auto& output() noexcept
+	{
+		return m_output;
+	}
 	/// @}
 	
 	/**
-	 * Unregisters a command from the CLI.
+	 * Splits a command line into multiple commands.
 	 *
-	 * @param name Command name.
+	 * @param line Command line to split.
+	 * @param delimiter Command delimiter.
+	 *
+	 * @return Commands.
 	 */
-	void unregister_command(const std::string& name);
+	[[nodiscard]] std::vector<std::string> split(const std::string& line, char delimiter) const;
+	
+	/**
+	 * Performs variable expansion on a command line.
+	 *
+	 * @param line Command line to variable-expand.
+	 *
+	 * @return Variable-expanded command line.
+	 */
+	[[nodiscard]] std::string expand(const std::string& line) const;
+	
+	/**
+	 * Tokenizes a command line.
+	 *
+	 * @param line Command line to tokenize.
+	 *
+	 * @return Command line tokens.
+	 */
+	[[nodiscard]] std::vector<std::string> tokenize(const std::string& line) const;
 	
 private:
-	/// String-wrapped function object
-	typedef std::function<std::string(const std::string&)> command_type;
-	
-	/**
-	 * Parses a single argument from a string stream.
-	 *
-	 * @tparam T Argument type.
-	 *
-	 * @param stream String stream from which an argument should be parsed.
-	 */
-	template <class T>
-	[[nodiscard]] static T parse(std::istringstream& stream);
-	
-	/**
-	 * Wraps a function in an interpreter function that parses strings as arguments, then executes the wrapped function with the parsed arguments.
-	 *
-	 * @tparam T Function return type.
-	 * @tparam Args Function argument types.
-	 *
-	 * @param function Function to wrap.
-	 *
-	 * @return Wrapped function.
-	 */
-	template <class T, class... Args>
-	[[nodiscard]] static command_type wrap(std::function<T(Args...)> function);
-	
-	std::unordered_map<std::string, command_type> commands;
+	std::unordered_map<std::string, command_type> m_commands;
+	std::unordered_map<std::string, std::string> m_variables;
+	std::ostream* m_output;
 };
-
-template <class T, class... Args>
-void cli::register_command(const std::string& name, const std::function<T(Args...)>& function)
-{
-	commands[name] = wrap(function);
-}
-
-template <class T, class... Args>
-void cli::register_command(const std::string& name, T (*function)(Args...))
-{
-	commands[name] = wrap(std::function(function));
-}
-
-template <class T>
-T cli::parse(std::istringstream& stream)
-{
-	T value;
-	stream >> value;
-	return value;
-}
-
-template <class T, class... Args>
-typename cli::command_type cli::wrap(std::function<T(Args...)> function)
-{
-	return std::bind
-	(
-		[function](const std::string& line) -> std::string
-		{
-			//constexpr std::size_t argument_count = sizeof...(Args);
-			
-			// Parse string into tuple of arguments
-			std::istringstream istream(line);
-			std::tuple<Args...> arguments{parse<Args>(istream)...};
-			
-			if constexpr(std::is_void_v<T>)
-			{
-				// Invoke function with parsed arguments
-				std::apply(function, arguments);
-				
-				// Return empty string
-				return std::string();
-			}
-			else
-			{
-				// Invoke function with parsed arguments and save the result
-				T result = std::apply(function, arguments);
-				
-				// Return invocation result as a string
-				std::ostringstream ostream;
-				ostream << result;
-				return ostream.str();
-			}
-		},
-		std::placeholders::_1
-	);
-}
 
 } // namespace debug
 

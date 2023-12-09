@@ -143,7 +143,7 @@ protected:
 	inline virtual void transformed() {}
 	
 	std::uint32_t m_layer_mask{1};
-	transform_type m_transform{transform_type::identity()};
+	transform_type m_transform{math::identity<transform_type>};
 };
 
 /**

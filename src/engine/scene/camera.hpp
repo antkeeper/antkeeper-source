@@ -280,12 +280,12 @@ private:
 	math::fvec3 m_forward{0.0f, 0.0f, -1.0f};
 	math::fvec3 m_up{0.0f, 1.0f, 0.0f};
 	
-	math::fmat4 m_view{math::fmat4::identity()};
-	math::fmat4 m_inv_view{math::fmat4::identity()};
-	math::fmat4 m_projection{math::fmat4::identity()};
-	math::fmat4 m_inv_projection{math::fmat4::identity()};
-	math::fmat4 m_view_projection{math::fmat4::identity()};
-	math::fmat4 m_inv_view_projection{math::fmat4::identity()};
+	math::fmat4 m_view{math::identity<math::fmat4>};
+	math::fmat4 m_inv_view{math::identity<math::fmat4>};
+	math::fmat4 m_projection{math::identity<math::fmat4>};
+	math::fmat4 m_inv_projection{math::identity<math::fmat4>};
+	math::fmat4 m_view_projection{math::identity<math::fmat4>};
+	math::fmat4 m_inv_view_projection{math::identity<math::fmat4>};
 	
 	view_frustum_type m_view_frustum;
 	aabb_type m_bounds{{}, {}};

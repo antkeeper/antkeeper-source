@@ -6,7 +6,6 @@
 
 #include <engine/type/font-metrics.hpp>
 #include <engine/type/glyph-metrics.hpp>
-#include <engine/math/vector.hpp>
 #include <vector>
 #include <unordered_set>
 

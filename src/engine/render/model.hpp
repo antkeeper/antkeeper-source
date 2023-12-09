@@ -10,7 +10,7 @@
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/render/material.hpp>
-#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/hash/fnv1a.hpp>
 #include <cstdint>
 #include <memory>
 #include <string>
