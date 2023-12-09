@@ -7,11 +7,11 @@
 # Project related configuration options
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
-PROJECT_NAME           = "Antkeeper"
-PROJECT_NUMBER         =
-PROJECT_BRIEF          =
+PROJECT_NAME           = "@PROJECT_NAME@"
+PROJECT_NUMBER         = "@PROJECT_VERSION@"
+PROJECT_BRIEF          = "@PROJECT_DESCRIPTION@"
 PROJECT_LOGO           =
-OUTPUT_DIRECTORY       =
+OUTPUT_DIRECTORY       = "@PROJECT_BINARY_DIR@/docs/doxygen"
 CREATE_SUBDIRS         = NO
 CREATE_SUBDIRS_LEVEL   = 8
 ALLOW_UNICODE_NAMES    = NO
@@ -31,8 +31,8 @@ ABBREVIATE_BRIEF       = "The $name class" \
                          the
 ALWAYS_DETAILED_SEC    = NO
 INLINE_INHERITED_MEMB  = NO
-FULL_PATH_NAMES        = NO
-STRIP_FROM_PATH        =
+FULL_PATH_NAMES        = YES
+STRIP_FROM_PATH        = "@PROJECT_SOURCE_DIR@/src"
 STRIP_FROM_INC_PATH    =
 SHORT_NAMES            = NO
 JAVADOC_AUTOBRIEF      = YES
@@ -123,11 +123,11 @@ WARN_IF_UNDOC_ENUM_VAL = NO
 WARN_AS_ERROR          = NO
 WARN_FORMAT            = "$file:$line: $text"
 WARN_LINE_FORMAT       = "at line $line of file $file"
-WARN_LOGFILE           = 
+WARN_LOGFILE           = "@PROJECT_BINARY_DIR@/docs/doxygen/warnings.txt"
 #---------------------------------------------------------------------------
 # Configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = ../../src
+INPUT                  = "@PROJECT_SOURCE_DIR@/src"
 INPUT_ENCODING         = UTF-8
 INPUT_FILE_ENCODING    =
 FILE_PATTERNS          = *.c \
@@ -225,8 +225,8 @@ HTML_FILE_EXTENSION    = .html
 HTML_HEADER            =
 HTML_FOOTER            =
 HTML_STYLESHEET        =
-HTML_EXTRA_STYLESHEET  = doxygen-awesome-css/doxygen-awesome.css \
-                         doxygen-awesome-css/doxygen-awesome-sidebar-only.css
+HTML_EXTRA_STYLESHEET  = "@doxygen_awesome_SOURCE_DIR@/doxygen-awesome.css" \
+                         "@doxygen_awesome_SOURCE_DIR@/doxygen-awesome-sidebar-only.css"
 HTML_EXTRA_FILES       =
 HTML_COLORSTYLE        = LIGHT
 HTML_COLORSTYLE_HUE    = 209
@@ -357,7 +357,7 @@ ENABLE_PREPROCESSING   = YES
 MACRO_EXPANSION        = NO
 EXPAND_ONLY_PREDEF     = NO
 SEARCH_INCLUDES        = YES
-INCLUDE_PATH           = ../../src
+INCLUDE_PATH           = "@PROJECT_SOURCE_DIR@/src"
 INCLUDE_FILE_PATTERNS  =
 PREDEFINED             =
 EXPAND_AS_DEFINED      =

@@ -12,7 +12,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 project(Antkeeper
 	VERSION 0.0.1
-	DESCRIPTION "Ant colony simulation game"
+	DESCRIPTION "ant colony simulation game"
 	HOMEPAGE_URL "https://antkeeper.com/"
 	LANGUAGES CXX C
 )
@@ -390,5 +390,8 @@ target_link_libraries(${PROJECT_NAME}
 get_target_property(RUNTIME_OUTPUT_DIRECTORY ${PROJECT_NAME} RUNTIME_OUTPUT_DIRECTORY)
 set(DATA_OUTPUT_DIRECTORY "${RUNTIME_OUTPUT_DIRECTORY}/data")
 
-# Trigger localization CMakeLists
+# Add localization CMakeLists
 add_subdirectory(${PROJECT_SOURCE_DIR}/res/localization)
+
+# Add documentation CMakeLists
+add_subdirectory(${PROJECT_SOURCE_DIR}/docs)

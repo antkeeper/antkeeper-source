@@ -20,6 +20,7 @@ Get notified when the game is released by joining the mailing list at <https://a
 
 -   [Building](#building)
     -   [Windows](#windows)
+-   [Documentation](#documentation)
 -   [Contributing](#contributing)
 -   [Authors](#authors)
 -   [License](#license)
@@ -43,6 +44,19 @@ git clone https://github.com/antkeeper/antkeeper.git && cd antkeeper
 cmake --preset windows-x64-release
 cmake --build --preset windows-x64-release
 ```
+
+## Documentation
+
+Source code documentation can be generated with [Doxygen](https://www.doxygen.nl/download.html). [Graphviz](https://graphviz.org/download/) can optionally be used to generate dependency graphs.
+
+The following commands configure and build the source code documentation:
+
+```bash
+cmake --preset windows-x64-release -DANTKEEPER_BUILD_DOCS=ON
+cmake --build --preset windows-x64-release --target docs
+```
+
+Generated HTML documentation will be located at `build/<platform>/docs/doxygen/html/index.html`.
 
 ## Contributing
 
