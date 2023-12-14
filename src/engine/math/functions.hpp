@@ -7,6 +7,7 @@
 #include <engine/math/constants.hpp>
 #include <cmath>
 #include <concepts>
+#include <tuple>
 
 // export module math.functions;
 // import math.constants;
@@ -15,7 +16,7 @@
 
 namespace math {
 
-/// Mathematical functions
+/// Mathematical functions.
 namespace functions {
 
 /// @name Basic operations
@@ -526,14 +527,15 @@ template <std::floating_point T>
  * Splits a value into its integer and fractional components.
  *
  * @param x Value to split.
- * @param[out] i Integer part of @p x.
  *
- * @return Fractional part of @p x.
+ * @return Tuple containing the fractional part of @p x, followed by the integer part of @p x.
  */
 template <std::floating_point T>
-[[nodiscard]] inline T modf(T x, T i)
+[[nodiscard]] inline std::tuple<T, T> modf(T x)
 {
-	return std::modf(x, &i);
+	std::tuple<T, T> result;
+	std::get<0>(result) = std::modf(x, &std::get<1>(result));
+	return result;
 }
 
 /// @}

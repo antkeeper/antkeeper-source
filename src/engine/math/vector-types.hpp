@@ -44,13 +44,13 @@ struct vector
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 	/// @}
 	
-	/// Number of elements.
+	/** Number of elements. */
 	static inline constexpr size_type element_count = N;
 	
 	/// @name Data members
 	/// @{
 	
-	/// Vector elements.
+	/** Vector elements. */
 	/// @private
 	T elements[N];
 	
@@ -104,14 +104,16 @@ struct vector
 	/// @name Element access
 	/// @{
 	
-	/**
-	 * Returns a reference to the element at a given index.
-	 *
-	 * @param i Index of an element.
-	 *
-	 * @return Reference to the element at index @p i.
-	 */
 	/// @{
+	/**
+	 * Returns a reference to the *i*-th element in the vector.
+	 *
+	 * @param i Index of a vector element.
+	 *
+	 * @return Reference to the *i*-th element in the vector.
+	 *
+	 * @warning No bounds checking is performed.
+	 */
 	[[nodiscard]] inline constexpr reference operator[](size_type i) noexcept
 	{
 		return elements[i];
@@ -122,10 +124,8 @@ struct vector
 	}
 	/// @}
 	
-	/**
-	 * Returns a reference to the first element.
-	 */
 	/// @{
+	/** Returns a reference to the first element in the vector. */
 	[[nodiscard]] inline constexpr reference front() noexcept
 	{
 		return elements[0];
@@ -136,10 +136,8 @@ struct vector
 	}
 	/// @}
 	
-	/**
-	 * Returns a reference to the last element.
-	 */
 	/// @{
+	/** Returns a reference to the last element in the vector. */
 	[[nodiscard]] inline constexpr reference back() noexcept
 	{
 		return elements[N - 1];
@@ -150,10 +148,8 @@ struct vector
 	}
 	/// @}
 	
-	/**
-	 * Returns a pointer to the element array.
-	 */
 	/// @{
+	/** Returns a pointer to the first element in the vector's element array. */
 	[[nodiscard]] inline constexpr pointer data() noexcept
 	{
 		return elements;
@@ -164,8 +160,8 @@ struct vector
 	};
 	/// @}
 	
-	/// Returns a reference to the first element.
 	/// @{
+	/** Returns a reference to the first element in the vector. */
 	[[nodiscard]] inline constexpr reference x() noexcept
 	{
 		static_assert(N > 0);
@@ -178,10 +174,8 @@ struct vector
 	}
 	/// @}
 	
-	/**
-	 * Returns a reference to the second element.
-	 */
 	/// @{
+	/** Returns a reference to the second element in the vector. */
 	[[nodiscard]] inline constexpr reference y() noexcept
 	{
 		static_assert(N > 1);
@@ -194,10 +188,8 @@ struct vector
 	}
 	/// @}
 	
-	/**
-	 * Returns a reference to the third element.
-	 */
 	/// @{
+	/** Returns a reference to the third element in the vector. */
 	[[nodiscard]] inline constexpr reference z() noexcept
 	{
 		static_assert(N > 2);
@@ -215,10 +207,8 @@ struct vector
 	/// @name Iterators
 	/// @{
 	
-	/**
-	 * Returns an iterator to the first element.
-	 */
 	/// @{
+	/** Returns an iterator to the first element in the vector. */
 	[[nodiscard]] inline constexpr iterator begin() noexcept
 	{
 		return elements;
@@ -233,10 +223,8 @@ struct vector
 	}
 	/// @}
 	
-	/**
-	 * Returns an iterator to the element following the last element.
-	 */
 	/// @{
+	/** Returns an iterator to the element following the last element in the vector. */
 	[[nodiscard]] inline constexpr iterator end() noexcept
 	{
 		return elements + N;
@@ -251,10 +239,8 @@ struct vector
 	}
 	/// @}
 	
-	/**
-	 * Returns a reverse iterator to the first element of the reversed vector.
-	 */
 	/// @{
+	/** Returns a reverse iterator to the first element in the reversed vector. */
 	[[nodiscard]] inline constexpr reverse_iterator rbegin() noexcept
 	{
 		return elements + N;
@@ -269,10 +255,8 @@ struct vector
 	}
 	/// @}
 	
-	/**
-	 * Returns a reverse iterator to the element following the last element of the reversed vector.
-	 */
 	/// @{
+	/** Returns a reverse iterator to the element following the last element in the reversed vector. */
 	[[nodiscard]] inline constexpr reverse_iterator rend() noexcept
 	{
 		return elements;
@@ -292,27 +276,23 @@ struct vector
 	/// @name Capacity
 	/// @{
 	
-	/**
-	 * Returns `true` if the vector is empty, `false` otherwise.
-	 */
+	/** Returns `true` if the vector is empty, `false` otherwise. */
 	[[nodiscard]] inline static constexpr bool empty() noexcept
 	{
 		return N;
 	};
 	
-	/**
-	 * Returns the number of elements in the vector.
-	 */
-	/// @{
+	/** Returns the number of elements in the vector. */
 	[[nodiscard]] inline static constexpr size_type size() noexcept
 	{
 		return N;
 	};
+	
+	/** Returns the number of elements in the vector. */
 	[[nodiscard]] inline static constexpr size_type max_size() noexcept
 	{
 		return N;
 	};
-	/// @}
 	
 	/// @}
 	
@@ -345,8 +325,10 @@ struct vector
 	/// @}
 };
 
+/// @name Tuple-like interface
+/// @{
 /**
- * Extracts the Ith element from a vector using a tuple-like interface.
+ * Extracts the *i*-th element from a vector using a tuple-like interface.
  *
  * @tparam I Index of an element.
  * @tparam T Element type.
@@ -354,44 +336,47 @@ struct vector
  *
  * @param v Vector from which to extract an element.
  *
- * @return Reference to the Ith element of @p v.
+ * @return Reference to the *i*-th element of @p v.
+ *
+ * @relates vector
  */
-/// @{
 template <std::size_t I, class T, std::size_t N>
 [[nodiscard]] inline constexpr T& get(vector<T, N>& v) noexcept
 {
 	static_assert(I < N);
-	return v.elements[I];
+	return v[I];
 }
 
+/// @relates vector
 template <std::size_t I, class T, std::size_t N>
 [[nodiscard]] inline constexpr T&& get(vector<T, N>&& v) noexcept
 {
 	static_assert(I < N);
-	return std::move(v.elements[I]);
+	return std::move(v[I]);
 }
 
+/// @relates vector
 template <std::size_t I, class T, std::size_t N>
 [[nodiscard]] inline constexpr const T& get(const vector<T, N>& v) noexcept
 {
 	static_assert(I < N);
-	return v.elements[I];
+	return v[I];
 }
 
+/// @relates vector
 template <std::size_t I, class T, std::size_t N>
 [[nodiscard]] inline constexpr const T&& get(const vector<T, N>&& v) noexcept
 {
 	static_assert(I < N);
-	return std::move(v.elements[I]);
+	return std::move(v[I]);
 }
 /// @}
 
-/**
- * *n*-dimensional vector.
- *
- * @tparam T Element type.
- * @tparam N Number of elements.
- */
+/// @name Vector types
+/// @relates vector
+/// @{
+
+/// @copydoc vector
 template <class T, std::size_t N>
 using vec = vector<T, N>;
 
@@ -401,7 +386,7 @@ using vec = vector<T, N>;
  * @tparam T Element type.
  */
 template <class T>
-using vec2 = vector<T, 2>;
+using vec2 = vec<T, 2>;
 
 /**
  * 3-dimensional vector.
@@ -409,7 +394,7 @@ using vec2 = vector<T, 2>;
  * @tparam T Element type.
  */
 template <class T>
-using vec3 = vector<T, 3>;
+using vec3 = vec<T, 3>;
 
 /**
  * 4-dimensional vector.
@@ -417,71 +402,93 @@ using vec3 = vector<T, 3>;
  * @tparam T Element type.
  */
 template <class T>
-using vec4 = vector<T, 4>;
+using vec4 = vec<T, 4>;
 
 /**
  * *n*-dimensional vector of Boolean values.
  *
  * @tparam N Number of elements.
  */
-/// @{
 template <std::size_t N>
-using bvec = vector<bool, N>;
+using bvec = vec<bool, N>;
+
+/** 2-dimensional vector of Boolean values. */
 using bvec2 = bvec<2>;
+
+/** 3-dimensional vector of Boolean values. */
 using bvec3 = bvec<3>;
+
+/** 4-dimensional vector of Boolean values. */
 using bvec4 = bvec<4>;
-/// @}
 
 /**
  * *n*-dimensional vector of signed integers.
  *
  * @tparam N Number of elements.
  */
-/// @{
 template <std::size_t N>
-using ivec = vector<int, N>;
+using ivec = vec<int, N>;
+
+/** 2-dimensional vector of signed integers. */
 using ivec2 = ivec<2>;
+
+/** 3-dimensional vector of signed integers. */
 using ivec3 = ivec<3>;
+
+/** 4-dimensional vector of signed integers. */
 using ivec4 = ivec<4>;
-/// @}
 
 /**
  * *n*-dimensional vector of unsigned integers.
  *
  * @tparam N Number of elements.
  */
-/// @{
 template <std::size_t N>
-using uvec = vector<unsigned int, N>;
+using uvec = vec<unsigned int, N>;
+
+/** 2-dimensional vector of unsigned integers. */
 using uvec2 = uvec<2>;
+
+/** 3-dimensional vector of unsigned integers. */
 using uvec3 = uvec<3>;
+
+/** 4-dimensional vector of unsigned integers. */
 using uvec4 = uvec<4>;
-/// @}
 
 /**
- * *n*-dimensional vector of single-precision floating-point numbers.
+ * *n*-dimensional vector of single-precision floating-point values.
  *
  * @tparam N Number of elements.
  */
-/// @{
 template <std::size_t N>
-using fvec = vector<float, N>;
+using fvec = vec<float, N>;
+
+/** 2-dimensional vector of single-precision floating-point values. */
 using fvec2 = fvec<2>;
+
+/** 3-dimensional vector of single-precision floating-point values. */
 using fvec3 = fvec<3>;
+
+/** 4-dimensional vector of single-precision floating-point values. */
 using fvec4 = fvec<4>;
-/// @}
 
 /**
- * *n*-dimensional vector of double-precision floating-point numbers.
+ * *n*-dimensional vector of double-precision floating-point values.
  *
  * @tparam N Number of elements.
  */
-/// @{
 template <std::size_t N>
-using dvec = vector<double, N>;
+using dvec = vec<double, N>;
+
+/** 2-dimensional vector of double-precision floating-point values. */
 using dvec2 = dvec<2>;
+
+/** 3-dimensional vector of double-precision floating-point values. */
 using dvec3 = dvec<3>;
+
+/** 4-dimensional vector of double-precision floating-point values. */
 using dvec4 = dvec<4>;
+
 /// @}
 
 } // namespace types
@@ -494,35 +501,41 @@ using namespace types;
 namespace std
 {
 	/**
-	 * Provides access to the number of elements in a math::vector as a compile-time constant expression.
+	 * Provides access to the number of elements in a math::types::vector as a compile-time constant expression.
 	 *
 	 * @tparam T Element type.
 	 * @tparam N Number of elements.
+	 *
+	 * @relates math::types::vector
 	 */
-	template<class T, std::size_t N>
+	template <class T, std::size_t N>
 	struct tuple_size<math::vector<T, N>>:
 		std::integral_constant<std::size_t, N>
 	{};
 	
 	/**
-	 * Provides compile-time indexed access to the type of the elements in a math::vector using a tuple-like interface.
+	 * Provides compile-time indexed access to the type of the elements in a math::types::vector using a tuple-like interface.
 	 *
 	 * @tparam I Index of an element.
 	 * @tparam T Element type.
 	 * @tparam N Number of elements.
+	 *
+	 * @relates math::types::vector
 	 */
-	template<std::size_t I, class T, std::size_t N>
+	template <std::size_t I, class T, std::size_t N>
 	struct tuple_element<I, math::vector<T, N>>
 	{
-		/// Vector element type.
+		/** Vector element type. */
 		using type = T;
 	};
 	
 	/**
-	 * Specialization of std::formatter for math::vector.
+	 * Specialization of std::formatter for math::types::vector.
 	 *
 	 * @tparam T Element type.
 	 * @tparam N Number of elements.
+	 *
+	 * @relates math::types::vector
 	 */
     template <class T, std::size_t N>
     struct formatter<math::vector<T, N>>: formatter<T>

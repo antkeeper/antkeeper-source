@@ -6,7 +6,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 	message(FATAL_ERROR "In-source builds prohibited.")
 endif()
 
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.27)
 include(FetchContent)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 

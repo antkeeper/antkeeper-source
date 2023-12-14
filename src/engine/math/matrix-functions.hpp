@@ -103,29 +103,6 @@ template <class T, std::size_t N, std::size_t M>
 [[nodiscard]] constexpr matrix<T, N, M> div(T a, const matrix<T, N, M>& b) noexcept;
 
 /**
- * Extracts the Ith column from a matrix.
- *
- * @tparam I Index of a column.
- * @tparam T Element type.
- * @tparam N Number of columns.
- * @tparam M Number of rows.
- *
- * @param m Matrix from which to extract a column.
- *
- * @return Reference to the Ith column of @p m.
- */
-/// @{
-template<std::size_t I, class T, std::size_t N, std::size_t M>
-[[nodiscard]] constexpr typename matrix<T, N, M>::column_type& get(matrix<T, N, M>& m) noexcept;
-template<std::size_t I, class T, std::size_t N, std::size_t M>
-[[nodiscard]] constexpr typename matrix<T, N, M>::column_type&& get(matrix<T, N, M>&& m) noexcept;
-template<std::size_t I, class T, std::size_t N, std::size_t M>
-[[nodiscard]] constexpr const typename matrix<T, N, M>::column_type& get(const matrix<T, N, M>& m) noexcept;
-template<std::size_t I, class T, std::size_t N, std::size_t M>
-[[nodiscard]] constexpr const typename matrix<T, N, M>::column_type&& get(const matrix<T, N, M>&& m) noexcept;
-/// @}
-
-/**
  * Calculates the inverse of a square matrix.
  *
  * @param m Square matrix.
@@ -443,34 +420,6 @@ template <class T, std::size_t N, std::size_t M>
 constexpr matrix<T, N, M> div(T a, const matrix<T, N, M>& b) noexcept
 {
 	return div(a, b, std::make_index_sequence<N>{});
-}
-
-template<std::size_t I, class T, std::size_t N, std::size_t M>
-inline constexpr typename matrix<T, N, M>::column_type& get(matrix<T, N, M>& m) noexcept
-{
-	static_assert(I < N);
-	return m.columns[I];
-}
-
-template<std::size_t I, class T, std::size_t N, std::size_t M>
-inline constexpr typename matrix<T, N, M>::column_type&& get(matrix<T, N, M>&& m) noexcept
-{
-	static_assert(I < N);
-	return std::move(m.columns[I]);
-}
-
-template<std::size_t I, class T, std::size_t N, std::size_t M>
-inline constexpr const typename matrix<T, N, M>::column_type& get(const matrix<T, N, M>& m) noexcept
-{
-	static_assert(I < N);
-	return m.columns[I];
-}
-
-template<std::size_t I, class T, std::size_t N, std::size_t M>
-inline constexpr const typename matrix<T, N, M>::column_type&& get(const matrix<T, N, M>&& m) noexcept
-{
-	static_assert(I < N);
-	return std::move(m.columns[I]);
 }
 
 /// @private

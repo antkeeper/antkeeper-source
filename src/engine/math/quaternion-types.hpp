@@ -31,13 +31,13 @@ struct quaternion
 	/// @name Member types
 	/// @{
 	
-	/// Scalar type.
+	/** Scalar type. */
 	using scalar_type = T;
 	
-	/// Imaginary vector part type.
+	/** Imaginary vector part type. */
 	using vector_type = vec3<T>;
 	
-	/// Rotation matrix type.
+	/** Rotation matrix type. */
 	using matrix_type = mat3<T>;
 	
 	/// @}
@@ -45,10 +45,10 @@ struct quaternion
 	/// @name Data members
 	/// @{
 	
-	/// Quaternion real part.
+	/** Quaternion real part. */
 	scalar_type r;
 	
-	/// Quaternion imaginary part.
+	/** Quaternion imaginary part. */
 	vector_type i;
 	
 	/// @}
@@ -56,8 +56,8 @@ struct quaternion
 	/// @name Element access
 	/// @{
 	
-	/// Returns a reference to the quaternion real part.
 	/// @{
+	/** Returns a reference to the quaternion real part. */
 	[[nodiscard]] inline constexpr scalar_type& w() noexcept
 	{
 		return r;
@@ -68,8 +68,8 @@ struct quaternion
 	}
 	/// @}
 	
-	/// Returns a reference to the first element of the quaternion imaginary part.
 	/// @{
+	/** Returns a reference to the first element of the quaternion imaginary part. */
 	[[nodiscard]] inline constexpr scalar_type& x() noexcept
 	{
 		return i.x();
@@ -80,8 +80,8 @@ struct quaternion
 	}
 	/// @}
 	
-	/// Returns a reference to the second element of the quaternion imaginary part.
 	/// @{
+	/** Returns a reference to the second element of the quaternion imaginary part. */
 	[[nodiscard]] inline constexpr scalar_type& y() noexcept
 	{
 		return i.y();
@@ -92,8 +92,8 @@ struct quaternion
 	}
 	/// @}
 	
-	/// Returns a reference to the third element of the quaternion imaginary part.
 	/// @{
+	/** Returns a reference to the third element of the quaternion imaginary part. */
 	[[nodiscard]] inline constexpr scalar_type& z() noexcept
 	{
 		return i.z();
@@ -154,12 +154,12 @@ struct quaternion
 		return {static_cast<U>(r), vec3<U>(i)};
 	}
 	
+	/// @{
 	/**
 	 * Constructs a matrix representing the rotation described by the quaternion.
 	 *
 	 * @return Rotation matrix.
 	 */
-	/// @{
 	[[nodiscard]] constexpr explicit operator matrix_type() const noexcept
 	{
 		const T xx = x() * x();
@@ -197,17 +197,22 @@ struct quaternion
 	}
 };
 
+/// @name Tuple-like interface
+/// @{
+
+/// @{
 /**
- * Extracts the Ith part of a quaternion using a tuple-like interface.
+ * Extracts the *i*-th part of a quaternion using a tuple-like interface.
  *
- * @tparam I Index of a part.
+ * @tparam I Index of a part. Index `0` corresponds to the real part, and `1` to the imaginary part.
  * @tparam T Scalar type.
  *
  * @param q Quaternion from which to extract a part.
  *
- * @return Reference to the Ith part of @p q.
+ * @return Reference to the *i*-th part of @p q.
+ *
+ * @relates quaternion
  */
-/// @{
 template <std::size_t I, class T>
 [[nodiscard]] inline constexpr auto& get(quaternion<T>& q) noexcept
 {
@@ -222,6 +227,7 @@ template <std::size_t I, class T>
 	}
 }
 
+/// @relates quaternion
 template <std::size_t I, class T>
 [[nodiscard]] inline constexpr auto&& get(quaternion<T>&& q) noexcept
 {
@@ -236,6 +242,7 @@ template <std::size_t I, class T>
 	}
 }
 
+/// @relates quaternion
 template <std::size_t I, class T>
 [[nodiscard]] inline constexpr const auto& get(const quaternion<T>& q) noexcept
 {
@@ -250,6 +257,7 @@ template <std::size_t I, class T>
 	}
 }
 
+/// @relates quaternion
 template <std::size_t I, class T>
 [[nodiscard]] inline constexpr const auto&& get(const quaternion<T>&& q) noexcept
 {
@@ -265,11 +273,13 @@ template <std::size_t I, class T>
 }
 /// @}
 
-/**
- * Quaternion composed of a real scalar part and imaginary vector part.
- *
- * @tparam T Scalar type.
- */
+/// @}
+
+/// @name Quaternion types
+/// @relates quaternion
+/// @{
+
+/// @copydoc quaternion
 template <class T>
 using quat = quaternion<T>;
 
@@ -278,6 +288,8 @@ using fquat = quat<float>;
 
 /// Quaternion with double-precision floating-point scalars.
 using dquat = quat<double>;
+
+/// @}
 
 } // namespace types
 
@@ -289,39 +301,51 @@ using namespace types;
 namespace std
 {
 	/**
-	 * Provides access to the number of parts in a math::quaternion as a compile-time constant expression.
+	 * Provides access to the number of parts in a math::types::quaternion as a compile-time constant expression.
 	 *
 	 * @tparam T Scalar type.
+	 *
+	 * @relates math::types::quaternion
 	 */
-	template<class T>
+	template <class T>
 	struct tuple_size<math::quaternion<T>>:
 		std::integral_constant<std::size_t, 2>
 	{};
 	
 	/**
-	 * Provides compile-time indexed access to the type of the parts in a math::quaternion using a tuple-like interface.
+	 * Provides compile-time indexed access to the real part of a math::types::quaternion using a tuple-like interface.
 	 *
 	 * @tparam T Scalar type.
+	 *
+	 * @relates math::types::quaternion
 	 */
-	/// @{
-	template<class T>
+	template <class T>
 	struct tuple_element<0, math::quaternion<T>>
 	{
-		/// Quaternion real part type.
+		/** Quaternion real part type. */
 		using type = T;
 	};
-	template<class T>
-	struct tuple_element<1, math::quaternion<T>>
-	{
-		/// Quaternion imaginary part type.
-		using type = math::vec3<T>;
-	};
-	/// @}
 	
 	/**
-	 * Specialization of std::formatter for math::quaternion.
+	 * Provides compile-time indexed access to the imaginary part of a math::types::quaternion using a tuple-like interface.
 	 *
 	 * @tparam T Scalar type.
+	 *
+	 * @relates math::types::quaternion
+	 */
+	template <class T>
+	struct tuple_element<1, math::quaternion<T>>
+	{
+		/** Quaternion imaginary part type. */
+		using type = math::vec3<T>;
+	};
+	
+	/**
+	 * Specialization of std::formatter for math::types::quaternion.
+	 *
+	 * @tparam T Scalar type.
+	 *
+	 * @relates math::types::quaternion
 	 */
     template <class T>
     struct formatter<math::quaternion<T>>: formatter<T>
