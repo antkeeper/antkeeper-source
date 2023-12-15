@@ -24,112 +24,759 @@
 // import <limits>;
 // import <utility>;
 
+/// @name Vector operators
+/// @{
+
+/**
+ * Adds two vectors.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Vector on the right-hand side.
+ *
+ * @return @p lhs + @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr math::vec<T, N> operator+(const math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
+{
+	math::vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs[i] + rhs[i];
+	}
+	return result;
+}
+
+/**
+ * Adds a vector and a scalar.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Scalar on the right-hand side.
+ *
+ * @return @p lhs + @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr math::vec<T, N> operator+(const math::vec<T, N>& lhs, const T& rhs) noexcept
+{
+	math::vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs[i] + rhs;
+	}
+	return result;
+}
+
+/**
+ * Adds a scalar and a vector.
+ *
+ * @param lhs Scalar on the left-hand side.
+ * @param rhs Vector on the right-hand side.
+ *
+ * @return @p lhs + @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr math::vec<T, N> operator+(const T& lhs, const math::vec<T, N>& rhs) noexcept
+{
+	return rhs + lhs;
+}
+
+/**
+ * Negates a vector.
+ *
+ * @param v Vector to negate.
+ *
+ * @return `-v`.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr math::vec<T, N> operator-(const math::vec<T, N>& v) noexcept
+{
+	math::vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = -v[i];
+	}
+	return result;
+}
+
+/**
+ * Subtracts two vectors.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Vector on the right-hand side.
+ *
+ * @return @p lhs - @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr math::vec<T, N> operator-(const math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
+{
+	math::vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs[i] - rhs[i];
+	}
+	return result;
+}
+
+/**
+ * Subtracts a scalar from a vector.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Scalar on the right-hand side.
+ *
+ * @return @p lhs - @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr math::vec<T, N> operator-(const math::vec<T, N>& lhs, const T& rhs) noexcept
+{
+	math::vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs[i] - rhs;
+	}
+	return result;
+}
+
+/**
+ * Subtracts a vector from a scalar.
+ *
+ * @param lhs Scalar on the left-hand side.
+ * @param rhs Vector on the right-hand side.
+ *
+ * @return @p lhs - @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr math::vec<T, N> operator-(const T& lhs, const math::vec<T, N>& rhs) noexcept
+{
+	math::vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs - rhs[i];
+	}
+	return result;
+}
+
+/**
+ * Multiplies the elements of two vectors.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Vector on the right-hand side.
+ *
+ * @return @p lhs * @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr math::vec<T, N> operator*(const math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
+{
+	math::vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs[i] * rhs[i];
+	}
+	return result;
+}
+
+/**
+ * Multiplies a vector by a scalar.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Scalar on the right-hand side.
+ *
+ * @return @p lhs * @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr math::vec<T, N> operator*(const math::vec<T, N>& lhs, const T& rhs) noexcept
+{
+	math::vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs[i] * rhs;
+	}
+	return result;
+}
+
+/**
+ * Multiplies a scalar by a vector.
+ *
+ * @param lhs Scalar on the left-hand side.
+ * @param rhs Vector on the right-hand side.
+ *
+ * @return @p lhs * @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr math::vec<T, N> operator*(const T& lhs, const math::vec<T, N>& rhs) noexcept
+{
+	return rhs * lhs;
+}
+
+/**
+ * Divides the elements of a vector by the elements of another vector.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Vector on the right-hand side.
+ *
+ * @return @p lhs / @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr math::vec<T, N> operator/(const math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
+{
+	math::vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs[i] / rhs[i];
+	}
+	return result;
+}
+
+/**
+ * Divides the elements of a vector by a scalar.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Scalar on the right-hand side.
+ *
+ * @return @p lhs / @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr math::vec<T, N> operator/(const math::vec<T, N>& lhs, const T& rhs) noexcept
+{
+	math::vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs[i] / rhs;
+	}
+	return result;
+}
+
+/**
+ * Divides a scalar by the elements of a vector.
+ *
+ * @param lhs Scalar on the left-hand side.
+ * @param rhs Vector on the right-hand side.
+ *
+ * @return @p lhs / @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr math::vec<T, N> operator/(const T& lhs, const math::vec<T, N>& rhs) noexcept
+{
+	math::vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs / rhs[i];
+	}
+	return result;
+}
+
+/**
+ * Adds two vectors, storing the result in the first vector.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Vector on the right-hand side.
+ *
+ * @return @p lhs + @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+inline constexpr math::vec<T, N>& operator+=(math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
+{
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		lhs[i] += rhs[i];
+	}
+	return lhs;
+}
+
+/**
+ * Adds a vector and a scalar, storing the result in the vector.
+ *
+ * @param lhs Scalar on the left-hand side.
+ * @param rhs Vector on the right-hand side.
+ *
+ * @return @p lhs + @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+inline constexpr math::vec<T, N>& operator+=(math::vec<T, N>& lhs, const T& rhs) noexcept
+{
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		lhs[i] += rhs;
+	}
+	return lhs;
+}
+
+/**
+ * Subtracts two vectors, storing the result in the first vector.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Vector on the right-hand side.
+ *
+ * @return @p lhs - @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+inline constexpr math::vec<T, N>& operator-=(math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
+{
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		lhs[i] -= rhs[i];
+	}
+	return lhs;
+}
+
+/**
+ * Subtracts a scalar from a vector, storing the result in the vector.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Scalar on the right-hand side.
+ *
+ * @return @p lhs - @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+inline constexpr math::vec<T, N>& operator-=(math::vec<T, N>& lhs, const T& rhs) noexcept
+{
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		lhs[i] -= rhs;
+	}
+	return lhs;
+}
+
+/**
+ * Multiplies two vectors, storing the result in the first vector.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Vector on the right-hand side.
+ *
+ * @return @p lhs * @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+inline constexpr math::vec<T, N>& operator*=(math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
+{
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		lhs[i] *= rhs[i];
+	}
+	return lhs;
+}
+
+/**
+ * Multiplies a vector by a scalar, storing the result in the vector.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Scalar on the right-hand side.
+ *
+ * @return @p lhs * @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+inline constexpr math::vec<T, N>& operator*=(math::vec<T, N>& lhs, const T& rhs) noexcept
+{
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		lhs[i] *= rhs;
+	}
+	return lhs;
+}
+
+/**
+ * Divides two vectors, storing the result in the first vector.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Vector on the right-hand side.
+ *
+ * @return @p lhs / @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+inline constexpr math::vec<T, N>& operator/=(math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
+{
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		lhs[i] /= rhs[i];
+	}
+	return lhs;
+}
+
+/**
+ * Divides a vector by a scalar, storing the result in the vector.
+ *
+ * @param lhs Vector on the left-hand side.
+ * @param rhs Scalar on the right-hand side.
+ *
+ * @return @p lhs / @p rhs.
+ *
+ * @relates math::types::vector
+ */
+template <class T, std::size_t N>
+inline constexpr math::vec<T, N>& operator/=(math::vec<T, N>& lhs, const T& rhs) noexcept
+{
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		lhs[i] /= rhs;
+	}
+	return lhs;
+}
+
+/**
+ * Logically inverts a Boolean vector.
+ *
+ * @param v Vector to invert.
+ *
+ * @return `!v`.
+ *
+ * @relates math::types::vector
+ */
+template <std::size_t N>
+[[nodiscard]] inline constexpr math::bvec<N> operator!(const math::bvec<N>& v) noexcept
+{
+	math::bvec<N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = !v[i];
+	}
+	return result;
+}
+
+/// @}
+
 namespace math {
 namespace functions {
 
-/**
- * Returns the absolute values of each element.
- *
- * @param x Input vector.
- *
- * @return Absolute values of input vector elements.
- */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> abs(const vector<T, N>& x);
-
-/**
- * Adds two values.
- *
- * @param x First value.
- * @param y Second value.
- *
- * @return Sum of the two values.
- */
+/// @name Vector relational functions
 /// @{
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y) noexcept;
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> add(const vector<T, N>& x, T y) noexcept;
-/// @}
 
 /**
- * Checks if all elements of a boolean vector are `true`.
+ * Performs an element-wise less-than comparison of two vectors.
  *
- * @param x Vector to be tested for truth.
+ * @param lhs First vector.
+ * @param rhs Second vector.
  *
- * @return `true` if all elements are `true`, `false` otherwise.
+ * @return Boolean vector containing the result of the element comparisons.
  */
-template <std::size_t N>
-[[nodiscard]] constexpr bool all(const vector<bool, N>& x) noexcept;
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr bvec<N> less_than(const vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
+{
+	bvec<N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs[i] < rhs[i];
+	}
+	return result;
+}
 
 /**
- * Calculates the angle between two direction vectors.
+ * Performs an element-wise less-than or equal-to comparison of two vectors.
  *
- * @param from First direction vector.
- * @param to Second direction vector.
+ * @param lhs First vector.
+ * @param rhs Second vector.
  *
- * @return Angle between the two direction vectors, in radians.
+ * @return Boolean vector containing the result of the element comparisons.
  */
-template <std::floating_point T, std::size_t N>
-[[nodiscard]] T angle(const vector<T, N>& from, const vector<T, N>& to);
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr bvec<N> less_than_equal(const vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
+{
+	bvec<N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs[i] <= rhs[i];
+	}
+	return result;
+}
 
 /**
- * Checks if any elements of a boolean vector are `true`.
+ * Performs an element-wise greater-than comparison of two vectors.
  *
- * @param x Vector to be tested for truth.
+ * @param lhs First vector.
+ * @param rhs Second vector.
+ *
+ * @return Boolean vector containing the result of the element comparisons.
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr bvec<N> greater_than(const vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
+{
+	bvec<N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs[i] > rhs[i];
+	}
+	return result;
+}
+
+/**
+ * Performs an element-wise greater-than or equal-to comparison of two vectors.
+ *
+ * @param lhs First vector.
+ * @param rhs Second vector.
+ *
+ * @return Boolean vector containing the result of the element comparisons.
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr bvec<N> greater_than_equal(const vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
+{
+	bvec<N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs[i] >= rhs[i];
+	}
+	return result;
+}
+
+/**
+ * Compares two vectors for equality
+ *
+ * @param lhs First vector.
+ * @param rhs Second vector.
+ *
+ * @return Boolean vector containing the result of the element comparisons.
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr bvec<N> equal(const vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
+{
+	bvec<N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs[i] == rhs[i];
+	}
+	return result;
+}
+
+/**
+ * Compares two vectors for inequality
+ *
+ * @param lhs First vector.
+ * @param rhs Second vector.
+ *
+ * @return Boolean vector containing the result of the element comparisons.
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr bvec<N> not_equal(const vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
+{
+	bvec<N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = lhs[i] != rhs[i];
+	}
+	return result;
+}
+
+/**
+ * Checks if any elements of a Boolean vector are `true`.
+ *
+ * @param v Vector to be tested for truth.
  *
  * @return `true` if any elements are `true`, `false` otherwise.
  */
 template <std::size_t N>
-[[nodiscard]] constexpr bool any(const vector<bool, N>& x) noexcept;
+[[nodiscard]] inline constexpr bool any_of(const bvec<N>& v) noexcept
+{
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		if (v[i])
+		{
+			return true;
+		}
+	}
+	
+	return false;
+}
 
 /**
- * Performs an element-wise ceil operation.
+ * Checks if all elements of a Boolean vector are `true`.
  *
- * @param x Input vector.
+ * @param v Vector to be tested for truth.
  *
- * @return Component-wise ceil of input vector.
+ * @return `true` if all elements are `true`, `false` otherwise.
  */
-template <std::floating_point T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> ceil(const vector<T, N>& x);
+template <std::size_t N>
+[[nodiscard]] inline constexpr bool all_of(const bvec<N>& v) noexcept
+{
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		if (!v[i])
+		{
+			return false;
+		}
+	}
+	
+	return true;
+}
 
 /**
- * Clamps the values of a vector's elements.
+ * Checks if all elements of a Boolean vector are `false`.
  *
- * @param x Vector to clamp.
- * @param min Minimum value.
- * @param max Maximum value.
+ * @param v Vector to be tested for truth.
  *
- * @return Clamped vector.
+ * @return `true` if all elements are `false`, `false` otherwise.
  */
-/// @{
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> clamp(const vector<T, N>& x, const vector<T, N>& min, const vector<T, N>& max);
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> clamp(const vector<T, N>& x, T min, T max);
+template <std::size_t N>
+[[nodiscard]] inline constexpr bool none_of(const bvec<N>& v) noexcept
+{
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		if (v[i])
+		{
+			return false;
+		}
+	}
+	
+	return true;
+}
+
 /// @}
 
+/// @name Vector functions
+/// @{
+
 /**
- * Clamps the length of a vector.
+ * Calculates the dot product of two vectors.
  *
- * @param x Vector to clamp.
- * @param max_length Maximum length.
+ * @param lhs First vector.
+ * @param rhs Second vector.
  *
- * @return Length-clamped vector.
+ * @return Dot product of the two vectors.
  */
-template <std::floating_point T, std::size_t N>
-[[nodiscard]] vector<T, N> clamp_length(const vector<T, N>& x, T max_length);
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr T dot(const vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
+{
+	T result = lhs[0] * rhs[0];
+	for (std::size_t i = 1; i < N; ++i)
+	{
+		result += lhs[i] * rhs[i];
+	}
+	return result;
+}
 
 /**
  * Calculates the cross product of two vectors.
  *
- * @param x First vector.
- * @param y Second vector.
+ * @param lhs First vector.
+ * @param rhs Second vector.
  *
  * @return Cross product of the two vectors.
  */
 template <class T>
-[[nodiscard]] constexpr vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y) noexcept;
+[[nodiscard]] inline constexpr vec3<T> cross(const vec3<T>& lhs, const vec3<T>& rhs) noexcept
+{
+	return
+	{
+		lhs[1] * rhs[2] - lhs[2] * rhs[1],
+		lhs[2] * rhs[0] - lhs[0] * rhs[2],
+		lhs[0] * rhs[1] - lhs[1] * rhs[0]
+	};
+}
+
+/**
+ * Calculates the triple product of three vectors.
+ *
+ * @param x First vector.
+ * @param y Second vector.
+ * @param z Third vector.
+ *
+ * @return Triple product of the three vectors (`dot(x, cross(y, z)`).
+ */
+template <class T>
+[[nodiscard]] inline constexpr T triple(const vec3<T>& x, const vec3<T>& y, const vec3<T>& z) noexcept
+{
+	return dot(x, cross(y, z));
+}
+
+/**
+ * Calculates the square length of a vector. The square length can be calculated faster than the length because a call to `std::sqrt` is saved.
+ *
+ * @param v Vector of which to calculate the square length.
+ *
+ * @return Square length of the vector.
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr T sqr_length(const vec<T, N>& v) noexcept
+{
+	return dot(v, v);
+}
+
+/**
+ * Calculates the length of a vector.
+ *
+ * @param v Vector of which to calculate the length.
+ *
+ * @return Length of the vector.
+ */
+template <std::floating_point T, std::size_t N>
+[[nodiscard]] inline T length(const vec<T, N>& v)
+{
+	return std::sqrt(sqr_length(v));
+}
+
+/**
+ * Calculates the inverse length of a vector.
+ *
+ * @param v Vector of which to calculate the inverse length.
+ *
+ * @return Inverse length of the vector.
+ */
+template <std::floating_point T, std::size_t N>
+[[nodiscard]] inline T inv_length(const vec<T, N>& v)
+{
+	return T{1} / length(v);
+}
+
+/**
+ * Calculates the unit vector in the same direction as the original vector.
+ *
+ * @param v Vector to normalize.
+ *
+ * @return Unit vector.
+ */
+template <std::floating_point T, std::size_t N>
+[[nodiscard]] inline vec<T, N> normalize(const vec<T, N>& v)
+{
+	return v * inv_length(v);
+}
+
+/**
+ * Calculates the square distance between two points. The square distance can be calculated faster than the distance because a call to `std::sqrt` is saved.
+ *
+ * @param p0 First of two points.
+ * @param p1 Second of two points.
+ *
+ * @return Square distance between the two points.
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr T sqr_distance(const vec<T, N>& p0, const vec<T, N>& p1) noexcept
+{
+	return sqr_length(p0 - p1);
+}
 
 /**
  * Calculates the distance between two points.
@@ -140,57 +787,128 @@ template <class T>
  * @return Distance between the two points.
  */
 template <std::floating_point T, std::size_t N>
-[[nodiscard]] T distance(const vector<T, N>& p0, const vector<T, N>& p1);
+[[nodiscard]] inline T distance(const vec<T, N>& p0, const vec<T, N>& p1)
+{
+	return length(p0 - p1);
+}
 
 /**
- * Divides a vector by a value.
+ * Returns the absolute values of each element.
  *
- * @param x First value.
- * @param y Second value.
+ * @param v Input vector.
  *
- * @return Result of the division.
+ * @return Absolute values of input vector elements.
  */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr vec<T, N> abs(const vec<T, N>& v)
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = std::abs(v[i]);
+	}
+	return result;
+}
+
+/**
+ * Calculates the angle between two direction vectors.
+ *
+ * @param from First direction vector.
+ * @param to Second direction vector.
+ *
+ * @return Angle between the two direction vectors, in radians.
+ */
+template <std::floating_point T, std::size_t N>
+[[nodiscard]] inline T angle(const vec<T, N>& from, const vec<T, N>& to)
+{
+	return std::acos(std::min<T>(std::max<T>(dot(from, to), T{-1}), T{1}));
+}
+
+/**
+ * Performs an element-wise ceil operation.
+ *
+ * @param v Input vector.
+ *
+ * @return Component-wise ceil of input vector.
+ */
+template <std::floating_point T, std::size_t N>
+[[nodiscard]] inline constexpr vec<T, N> ceil(const vec<T, N>& v)
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = std::ceil(v[i]);
+	}
+	return result;
+}
+
 /// @{
+/**
+ * Clamps the values of a vector's elements.
+ *
+ * @param v Vector to clamp.
+ * @param min Minimum value.
+ * @param max Maximum value.
+ *
+ * @return Clamped vector.
+ */
 template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y) noexcept;
+[[nodiscard]] inline constexpr vec<T, N> clamp(const vec<T, N>& v, const vec<T, N>& min, const vec<T, N>& max) noexcept
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = v[i] < min[i] ? min[i] : max[i] < v[i] ? max[i] : v[i];
+	}
+	return result;
+}
+
 template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> div(const vector<T, N>& x, T y) noexcept;
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> div(T x, const vector<T, N>& y) noexcept;
+[[nodiscard]] inline constexpr vec<T, N> clamp(const vec<T, N>& v, const T& min, const T& max) noexcept
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = v[i] < min ? min : max < v[i] ? max : v[i];
+	}
+	return result;
+}
 /// @}
 
 /**
- * Calculates the dot product of two vectors.
+ * Clamps the length of a vector.
  *
- * @param x First vector.
- * @param y Second vector.
+ * @param v Vector to clamp.
+ * @param max_length Maximum length.
  *
- * @return Dot product of the two vectors.
+ * @return Length-clamped vector.
  */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr T dot(const vector<T, N>& x, const vector<T, N>& y) noexcept;
+template <std::floating_point T, std::size_t N>
+[[nodiscard]] vec<T, N> clamp_length(const vec<T, N>& v, T max_length)
+{
+	const auto length2 = sqr_length(v);
+	return (length2 > max_length * max_length) ? (v * (max_length / std::sqrt(length2))) : v;
+}
 
 /**
- * Compares two vectors for equality
+ * Performs an element-wise floor operation.
  *
- * @param x First vector.
- * @param y Second vector.
- *
- * @return Boolean vector containing the result of the element comparisons.
- */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y) noexcept;
-
-/**
- * Performs a element-wise floor operation.
- *
- * @param x Input vector.
+ * @param v Input vector.
  *
  * @return Component-wise floor of input vector.
  */
 template <std::floating_point T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> floor(const vector<T, N>& x);
+[[nodiscard]] inline constexpr vec<T, N> floor(const vec<T, N>& v)
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = std::floor(v[i]);
+	}
+	return result;
+}
 
+/// @{
 /**
  * Performs a multiply-add operation.
  *
@@ -200,107 +918,46 @@ template <std::floating_point T, std::size_t N>
  *
  * @return Vector containing the multiply-add results.
  */
-/// @{
 template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> fma(const vector<T, N>& x, const vector<T, N>& y, const vector<T, N>& z);
+[[nodiscard]] inline constexpr vec<T, N> fma(const vec<T, N>& x, const vec<T, N>& y, const vec<T, N>& z)
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = std::fma(x[i], y[i], z[i]);
+	}
+	return result;
+}
+
 template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> fma(const vector<T, N>& x, T y, T z);
+[[nodiscard]] inline constexpr vec<T, N> fma(const vec<T, N>& x, T y, T z)
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = std::fma(x[i], y, z);
+	}
+	return result;
+}
 /// @}
 
 /**
  * Returns a vector containing the fractional part of each element.
  *
- * @param x Input vector.
+ * @param v Input vector.
  *
  * @return Fractional parts of input vector.
  */
 template <std::floating_point T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> fract(const vector<T, N>& x);
-
-/**
- * Performs a element-wise greater-than comparison of two vectors.
- *
- * @param x First vector.
- * @param y Second vector.
- *
- * @return Boolean vector containing the result of the element comparisons.
- */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y) noexcept;
-
-/**
- * Performs a element-wise greater-than or equal-to comparison of two vectors.
- *
- * @param x First vector.
- * @param y Second vector.
- *
- * @return Boolean vector containing the result of the element comparisons.
- */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept;
-
-/**
- * Calculates the inverse length of a vector.
- *
- * @param x Vector of which to calculate the inverse length.
- *
- * @return Inverse length of the vector.
- */
-template <std::floating_point T, std::size_t N>
-[[nodiscard]] T inv_length(const vector<T, N>& x);
-
-/**
- * Calculates the length of a vector.
- *
- * @param x Vector of which to calculate the length.
- *
- * @return Length of the vector.
- */
-template <std::floating_point T, std::size_t N>
-[[nodiscard]] T length(const vector<T, N>& x);
-
-/**
- * Performs a element-wise less-than comparison of two vectors.
- *
- * @param x First vector.
- * @param y Second vector.
- *
- * @return Boolean vector containing the result of the element comparisons.
- */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y) noexcept;
-
-/**
- * Performs a element-wise less-than or equal-to comparison of two vectors.
- *
- * @param x First vector.
- * @param y Second vector.
- *
- * @return Boolean vector containing the result of the element comparisons.
- */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept;
-
-/**
- * Returns a vector containing the maximum elements of two vectors.
- *
- * @param x First vector.
- * @param y Second vector.
- *
- * @return Maximum elements of the two vectors.
- */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> max(const vector<T, N>& x, const vector<T, N>& y);
-
-/**
- * Returns the value of the greatest element in a vector.
- *
- * @param x Input vector.
- *
- * @return Value of the greatest element in the input vector.
- */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr T max(const vector<T, N>& x);
+[[nodiscard]] inline constexpr vec<T, N> fract(const vec<T, N>& v)
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = v[i] - std::floor(v[i]);
+	}
+	return result;
+}
 
 /**
  * Returns a vector containing the minimum elements of two vectors.
@@ -311,67 +968,119 @@ template <class T, std::size_t N>
  * @return Minimum elements of the two vectors.
  */
 template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> min(const vector<T, N>& x, const vector<T, N>& y);
+[[nodiscard]] inline constexpr vec<T, N> min(const vec<T, N>& x, const vec<T, N>& y) noexcept
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = y[i] < x[i] ? y[i] : x[i];
+	}
+	return result;
+}
 
 /**
- * Returns the value of the smallest element in a vector.
- *
- * @param x Input vector.
- *
- * @return Value of the smallest element in the input vector.
- */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr T min(const vector<T, N>& x);
-
-/**
- * Calculates the element-wise remainder of the division operation `x / y`.
+ * Returns a vector containing the maximum elements of two vectors.
  *
  * @param x First vector.
  * @param y Second vector.
  *
- * @return Remainders of `x / y`.
+ * @return Maximum elements of the two vectors.
  */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr vec<T, N> max(const vec<T, N>& x, const vec<T, N>& y) noexcept
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = x[i] < y[i] ? y[i] : x[i];
+	}
+	return result;
+}
+
+/**
+ * Returns a reference to the smallest element in a vector.
+ *
+ * @param v Input vector.
+ *
+ * @return Reference to the smallest element in @p v.
+ */
+template <class T, std::size_t N>
+[[nodiscard]] constexpr const T& min_element(const vec<T, N>& v) noexcept
+{
+	const T* result = &v[0];
+	for (std::size_t i = 1; i < N; ++i)
+	{
+		if (*result > v[i])
+		{
+			result = &v[i];
+		}
+	}
+	return *result;
+}
+
+/**
+ * Returns a reference to the greatest element in a vector.
+ *
+ * @param v Input vector.
+ *
+ * @return Reference to the greatest element in @p v.
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr const T& max_element(const vec<T, N>& v) noexcept
+{
+	const T* result = &v[0];
+	for (std::size_t i = 1; i < N; ++i)
+	{
+		if (*result < v[i])
+		{
+			result = &v[i];
+		}
+	}
+	return *result;
+}
+
 /// @{
+/**
+ * Calculates the element-wise remainder of the division operation `lhs / rhs`.
+ *
+ * @param lhs Left-hand side.
+ * @param rhs Right-hand side.
+ *
+ * @return Remainders of `lhs / rhs`.
+ */
 template <std::floating_point T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y);
+[[nodiscard]] constexpr vec<T, N> mod(const vec<T, N>& lhs, const vec<T, N>& rhs)
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = std::fmod(lhs[i], rhs[i]);
+	}
+	return result;
+}
+
 template <std::floating_point T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> mod(const vector<T, N>& x, T y);
+[[nodiscard]] constexpr vec<T, N> mod(const vec<T, N>& lhs, T rhs)
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = std::fmod(lhs[i], rhs);
+	}
+	return result;
+}
+
+template <std::floating_point T, std::size_t N>
+[[nodiscard]] constexpr vec<T, N> mod(T lhs, const vec<T, N>& rhs)
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = std::fmod(lhs, rhs[i]);
+	}
+	return result;
+}
 /// @}
-
-/**
- * Multiplies two values.
- *
- * @param x First value.
- * @param y Second value.
- *
- * @return Product of the two values.
- */
-/// @{
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y) noexcept;
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> mul(const vector<T, N>& x, T y) noexcept;
-/// @}
-
-/**
- * Negates a vector.
- *
- * @param x Vector to negate.
- *
- * @return Negated vector.
- */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> negate(const vector<T, N>& x) noexcept;
-
-/**
- * Calculates the unit vector in the same direction as the original vector.
- *
- * @param x Vector to normalize.
- *
- * @return Unit vector.
- */
-template <std::floating_point T, std::size_t N>
-[[nodiscard]] vector<T, N> normalize(const vector<T, N>& x);
 
 /**
  * Linearly interpolates between two vectors.
@@ -385,65 +1094,78 @@ template <std::floating_point T, std::size_t N>
  * @return `(b - a) * t + a`
  */
 template <class T, std::size_t N>
-[[nodiscard]] inline constexpr vector<T, N> lerp(const vector<T, N>& a, const vector<T, N>& b, T t) noexcept
+[[nodiscard]] inline constexpr vec<T, N> lerp(const vec<T, N>& a, const vec<T, N>& b, T t) noexcept
 {
 	return (b - a) * t + a;
 }
 
-/**
- * Logically inverts a boolean vector.
- *
- * @param x Vector to be inverted.
- *
- * @return Logically inverted vector.
- */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<bool, N> logical_not(const vector<T, N>& x) noexcept;
-
-/**
- * Compares two vectors for inequality
- *
- * @param x First vector.
- * @param y Second vector.
- *
- * @return Boolean vector containing the result of the element comparisons.
- */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept;
-
+/// @{
 /**
  * Raises each element to a power.
  *
- * @param x Input vector
+ * @param x Input vector.
  * @param y Exponent.
  *
  * @return Vector with its elements raised to the given power.
  */
-/// @{
 template <std::floating_point T, std::size_t N>
-[[nodiscard]] vector<T, N> pow(const vector<T, N>& x, const vector<T, N>& y);
+[[nodiscard]] inline vec<T, N> pow(const vec<T, N>& x, const vec<T, N>& y)
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = std::pow(x[i], y[i]);
+	}
+	return result;
+}
+
 template <std::floating_point T, std::size_t N>
-[[nodiscard]] vector<T, N> pow(const vector<T, N>& x, T y);
+[[nodiscard]] inline vec<T, N> pow(const vec<T, N>& x, T y)
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = std::pow(x[i], y);
+	}
+	return result;
+}
 /// @}
 
 /**
- * Performs a element-wise round operation.
+ * Performs an element-wise round operation.
  *
- * @param x Input vector
+ * @param v Input vector
  *
  * @return Component-wise round of input vector.
  */
 template <std::floating_point T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> round(const vector<T, N>& x);
+[[nodiscard]] inline constexpr vec<T, N> round(const vec<T, N>& v)
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = std::round(v[i]);
+	}
+	return result;
+}
 
 /**
  * Returns a vector containing the signs of each element.
  *
- * @param x Input vector
+ * @param v Input vector
+ *
  * @return Signs of input vector elements.
  */
 template <std::floating_point T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> sign(const vector<T, N>& x);
+[[nodiscard]] inline constexpr vec<T, N> sign(const vec<T, N>& v)
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = std::copysign(T{1}, v[i]);
+	}
+	return result;
+}
 
 /**
  * Calculates the signed angle between two direction vectors about axis.
@@ -455,55 +1177,28 @@ template <std::floating_point T, std::size_t N>
  * @return Signed angle between @p from and @p to about @p axis, in radians.
  */
 template <std::floating_point T>
-[[nodiscard]] T signed_angle(const vector<T, 3>& x, const vector<T, 3>& y, const vector<T, 3>& n);
-
-/**
- * Calculates the square distance between two points. The square distance can be calculated faster than the distance because a call to `std::sqrt` is saved.
- *
- * @param p0 First of two points.
- * @param p1 Second of two points.
- *
- * @return Square distance between the two points.
- */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr T sqr_distance(const vector<T, N>& p0, const vector<T, N>& p1) noexcept;
-
-/**
- * Calculates the square length of a vector. The square length can be calculated faster than the length because a call to `std::sqrt` is saved.
- *
- * @param x Vector of which to calculate the square length.
- *
- * @return Square length of the vector.
- */
-template <class T, std::size_t N>
-[[nodiscard]] constexpr T sqr_length(const vector<T, N>& x) noexcept;
+[[nodiscard]] inline T signed_angle(const vec3<T>& from, const vec3<T>& to, const vec3<T>& axis)
+{
+	return std::atan2(triple(axis, from, to), dot(from, to));
+}
 
 /**
  * Takes the square root of each element.
  *
- * @param x Input vector
+ * @param v Input vector
  *
  * @return Square roots of the input vector elements.
  */
 template <std::floating_point T, std::size_t N>
-[[nodiscard]] vector<T, N> sqrt(const vector<T, N>& x);
-
-/**
- * Subtracts a value by another value.
- *
- * @param x First value.
- * @param y Second value.
- *
- * @return Difference between the two values.
- */
-/// @{
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y) noexcept;
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> sub(const vector<T, N>& x, T y) noexcept;
-template <class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> sub(T x, const vector<T, N>& y) noexcept;
-/// @}
+[[nodiscard]] inline vec<T, N> sqrt(const vec<T, N>& v)
+{
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		result[i] = std::sqrt(v[i]);
+	}
+	return result;
+}
 
 /**
  * Calculates the sum of all elements in a vector.
@@ -512,652 +1207,52 @@ template <class T, std::size_t N>
  * @return Sum of the vector's elements.
  */
 template <class T, std::size_t N>
-[[nodiscard]] constexpr T sum(const vector<T, N>& x) noexcept;
+[[nodiscard]] inline constexpr T sum(const vec<T, N>& v) noexcept
+{
+	T result = v[0];
+	for (std::size_t i = 1; i < N; ++i)
+	{
+		result += v[i];
+	}
+	return result;
+}
 
 /**
  * Makes an *m*-dimensional vector by rearranging and/or duplicating elements of an *n*-dimensional vector.
  *
- * @tparam Indices List of indices of elements in @p x.
+ * @tparam Indices List of indices of elements in @p v.
  * @tparam T Vector element type.
- * @tparam N Number of dimensions in @p x.
+ * @tparam N Number of dimensions in @p v.
  *
- * @param x Vector to swizzle.
+ * @param v Vector to swizzle.
  *
- * @return Vector containing elements from @p x in the order specified by @p Indices. The size of the returned vector is equivalent to the number of indices in @p Indices.
+ * @return Vector containing elements from @p v in the order specified by @p Indices. The size of the returned vector is equivalent to the number of indices in @p Indices.
  */
 template <std::size_t... Indices, class T, std::size_t N>
-[[nodiscard]] constexpr vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& x) noexcept;
+[[nodiscard]] inline constexpr vec<T, sizeof...(Indices)> swizzle(const vec<T, N>& v) noexcept
+{
+	return {v[Indices]...};
+}
 
 /**
- * Calculates the triple product of three vectors.
+ * Performs an element-wise trunc operation.
  *
- * @param x First vector.
- * @param y Second vector.
- * @param z Third vector.
+ * @param v Input vector
  *
- * @return Triple product of the three vectors (`dot(x, cross(y, z)`).
- */
-template <class T>
-[[nodiscard]] constexpr T triple(const vector<T, 3>& x, const vector<T, 3>& y, const vector<T, 3>& z) noexcept;
-
-/**
- * Performs a element-wise trunc operation.
- *
- * @param x Input vector
  * @return Component-wise trunc of input vector.
  */
 template <std::floating_point T, std::size_t N>
-[[nodiscard]] constexpr vector<T, N> trunc(const vector<T, N>& x);
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> abs(const vector<T, N>& x, std::index_sequence<I...>)
+[[nodiscard]] inline constexpr vec<T, N> trunc(const vec<T, N>& v)
 {
-	return {std::abs(x[I])...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<T, N> abs(const vector<T, N>& x)
-{
-	return abs(x, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
-{
-	return {(x[I] + y[I])...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y) noexcept
-{
-	return add(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> add(const vector<T, N>& x, T y, std::index_sequence<I...>) noexcept
-{
-	return {(x[I] + y)...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<T, N> add(const vector<T, N>& x, T y) noexcept
-{
-	return add(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <std::size_t N, std::size_t... I>
-inline constexpr bool all(const vector<bool, N>& x, std::index_sequence<I...>) noexcept
-{
-	return (x[I] && ...);
-}
-
-template <std::size_t N>
-inline constexpr bool all(const vector<bool, N>& x) noexcept
-{
-	return all(x, std::make_index_sequence<N>{});
-}
-
-template <std::floating_point T, std::size_t N>
-T angle(const vector<T, N>& from, const vector<T, N>& to)
-{
-	return std::acos(std::min<T>(std::max<T>(dot(from, to), T{-1}), T{1}));
-}
-
-/// @private
-template <std::size_t N, std::size_t... I>
-inline constexpr bool any(const vector<bool, N>& x, std::index_sequence<I...>) noexcept
-{
-	return (x[I] || ...);
-}
-
-template <std::size_t N>
-inline constexpr bool any(const vector<bool, N>& x) noexcept
-{
-	return any(x, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <std::floating_point T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> ceil(const vector<T, N>& x, std::index_sequence<I...>)
-{
-	return {std::ceil(x[I])...};
-}
-
-template <std::floating_point T, std::size_t N>
-inline constexpr vector<T, N> ceil(const vector<T, N>& x)
-{
-	return ceil(x, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> clamp(const vector<T, N>& x, const vector<T, N>& min_val, const vector<T, N>& max_val, std::index_sequence<I...>)
-{
-	return {std::min<T>(max_val[I], std::max<T>(min_val[I], x[I]))...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<T, N> clamp(const vector<T, N>& x, const vector<T, N>& min, const vector<T, N>& max)
-{
-	return clamp(x, min, max, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> clamp(const vector<T, N>& x, T min, T max, std::index_sequence<I...>)
-{
-	return {std::min<T>(max, std::max<T>(min, x[I]))...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<T, N> clamp(const vector<T, N>& x, T min, T max)
-{
-	return clamp(x, min, max, std::make_index_sequence<N>{});
-}
-
-template <std::floating_point T, std::size_t N>
-vector<T, N> clamp_length(const vector<T, N>& x, T max_length)
-{
-	const auto length2 = sqr_length(x);
-	return (length2 > max_length * max_length) ? (x * (max_length / std::sqrt(length2))) : x;
-}
-
-template <class T>
-inline constexpr vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y) noexcept
-{
-	return
+	vec<T, N> result;
+	for (std::size_t i = 0; i < N; ++i)
 	{
-		x[1] * y[2] - x[2] * y[1],
-		x[2] * y[0] - x[0] * y[2],
-		x[0] * y[1] - x[1] * y[0]
-	};
+		result[i] = std::trunc(v[i]);
+	}
+	return result;
 }
 
-template <std::floating_point T, std::size_t N>
-inline T distance(const vector<T, N>& p0, const vector<T, N>& p1)
-{
-	return length(sub(p0, p1));
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
-{
-	return {(x[I] / y[I])...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y) noexcept
-{
-	return div(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> div(const vector<T, N>& x, T y, std::index_sequence<I...>) noexcept
-{
-	return {(x[I] / y)...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<T, N> div(const vector<T, N>& x, T y) noexcept
-{
-	return div(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> div(T x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
-{
-	return {(x / y[I])...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<T, N> div(T x, const vector<T, N>& y) noexcept
-{
-	return div(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr T dot(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
-{
-	return ((x[I] * y[I]) + ...);
-}
-
-template <class T, std::size_t N>
-inline constexpr T dot(const vector<T, N>& x, const vector<T, N>& y) noexcept
-{
-	return dot(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
-{
-	return {(x[I] == y[I])...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y) noexcept
-{
-	return equal(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <std::floating_point T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> floor(const vector<T, N>& x, std::index_sequence<I...>)
-{
-	return {std::floor(x[I])...};
-}
-
-template <std::floating_point T, std::size_t N>
-inline constexpr vector<T, N> floor(const vector<T, N>& x)
-{
-	return floor(x, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <std::floating_point T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> fma(const vector<T, N>& x, const vector<T, N>& y, const vector<T, N>& z, std::index_sequence<I...>)
-{
-	return {std::fma(x[I], y[I], z[I])...};
-}
-
-template <std::floating_point T, std::size_t N>
-inline constexpr vector<T, N> fma(const vector<T, N>& x, const vector<T, N>& y, const vector<T, N>& z)
-{
-	return fma(x, y, z, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <std::floating_point T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> fma(const vector<T, N>& x, T y, T z, std::index_sequence<I...>)
-{
-	return {std::fma(x[I], y, z)...};
-}
-
-template <std::floating_point T, std::size_t N>
-inline constexpr vector<T, N> fma(const vector<T, N>& x, T y, T z)
-{
-	return fma(x, y, z, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <std::floating_point T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> fract(const vector<T, N>& x, std::index_sequence<I...>)
-{
-	return {x[I] - std::floor(x[I])...};
-}
-
-template <std::floating_point T, std::size_t N>
-inline constexpr vector<T, N> fract(const vector<T, N>& x)
-{
-	return fract(x, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
-{
-	return {(x[I] > y[I])...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y) noexcept
-{
-	return greater_than(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
-{
-	return {(x[I] >= y[I])...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept
-{
-	return greater_than_equal(x, y, std::make_index_sequence<N>{});
-}
-
-template <std::floating_point T, std::size_t N>
-inline T inv_length(const vector<T, N>& x)
-{
-	return T{1} / length(x);
-}
-
-template <std::floating_point T, std::size_t N>
-inline T length(const vector<T, N>& x)
-{
-	return std::sqrt(sqr_length(x));
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
-{
-	return {(x[I] < y[I])...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y) noexcept
-{
-	return less_than(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
-{
-	return {(x[I] <= y[I])...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept
-{
-	return less_than_equal(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> max(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
-{
-	return {std::max<T>(x[I], y[I])...};
-}
-
-template <class T, std::size_t N>
-constexpr vector<T, N> max(const vector<T, N>& x, const vector<T, N>& y)
-{
-	return max(x, y, std::make_index_sequence<N>{});
-}
-
-template <class T, std::size_t N>
-inline constexpr T max(const vector<T, N>& x)
-{
-	return *std::max_element(x.elements, x.elements + N);
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> min(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
-{
-	return {std::min<T>(x[I], y[I])...};
-}
-
-template <class T, std::size_t N>
-constexpr vector<T, N> min(const vector<T, N>& x, const vector<T, N>& y)
-{
-	return min(x, y, std::make_index_sequence<N>{});
-}
-
-template <class T, std::size_t N>
-inline constexpr T min(const vector<T, N>& x)
-{
-	return *std::min_element(x.elements, x.elements + N);
-}
-
-/// @private
-template <std::floating_point T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
-{
-	return {std::fmod(x[I], y[I])...};
-}
-
-template <std::floating_point T, std::size_t N>
-inline constexpr vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y)
-{
-	return mod(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <std::floating_point T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> mod(const vector<T, N>& x, T y, std::index_sequence<I...>)
-{
-	return {std::fmod(x[I], y)...};
-}
-
-template <std::floating_point T, std::size_t N>
-inline constexpr vector<T, N> mod(const vector<T, N>& x, T y)
-{
-	return mod(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
-{
-	return {(x[I] * y[I])...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y) noexcept
-{
-	return mul(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> mul(const vector<T, N>& x, T y, std::index_sequence<I...>) noexcept
-{
-	return {(x[I] * y)...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<T, N> mul(const vector<T, N>& x, T y) noexcept
-{
-	return mul(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> negate(const vector<T, N>& x, std::index_sequence<I...>) noexcept
-{
-	return {(-x[I])...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<T, N> negate(const vector<T, N>& x) noexcept
-{
-	return negate(x, std::make_index_sequence<N>{});
-}
-
-template <std::floating_point T, std::size_t N>
-inline vector<T, N> normalize(const vector<T, N>& x)
-{
-	return mul(x, inv_length(x));
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<bool, N> logical_not(const vector<T, N>& x, std::index_sequence<I...>) noexcept
-{
-	return {!x[I]...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<bool, N> logical_not(const vector<T, N>& x) noexcept
-{
-	return logical_not(x, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
-{
-	return {(x[I] != y[I])...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept
-{
-	return not_equal(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <std::floating_point T, std::size_t N, std::size_t... I>
-inline vector<T, N> pow(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
-{
-	return {std::pow(x[I], y[I])...};
-}
-
-template <std::floating_point T, std::size_t N>
-inline vector<T, N> pow(const vector<T, N>& x, const vector<T, N>& y)
-{
-	return pow(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <std::floating_point T, std::size_t N, std::size_t... I>
-inline vector<T, N> pow(const vector<T, N>& x, T y, std::index_sequence<I...>)
-{
-	return {std::pow(x[I], y)...};
-}
-
-template <std::floating_point T, std::size_t N>
-inline vector<T, N> pow(const vector<T, N>& x, T y)
-{
-	return pow(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <std::floating_point T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> round(const vector<T, N>& x, std::index_sequence<I...>)
-{
-	return {std::round(x[I])...};
-}
-
-template <std::floating_point T, std::size_t N>
-inline constexpr vector<T, N> round(const vector<T, N>& x)
-{
-	return round(x, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <std::floating_point T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> sign(const vector<T, N>& x, std::index_sequence<I...>)
-{
-	return {std::copysign(T{1}, x[I])...};
-}
-
-template <std::floating_point T, std::size_t N>
-inline constexpr vector<T, N> sign(const vector<T, N>& x)
-{
-	return sign(x, std::make_index_sequence<N>{});
-}
-
-template <std::floating_point T>
-T signed_angle(const vector<T, 3>& from, const vector<T, 3>& to, const vector<T, 3>& axis)
-{
-	return std::atan2(triple(axis, from, to), dot(from, to));
-}
-
-template <class T, std::size_t N>
-inline constexpr T sqr_distance(const vector<T, N>& p0, const vector<T, N>& p1) noexcept
-{
-	return sqr_length(sub(p0, p1));
-}
-
-template <class T, std::size_t N>
-inline constexpr T sqr_length(const vector<T, N>& x) noexcept
-{
-	return dot(x, x);
-}
-
-/// @private
-template <std::floating_point T, std::size_t N, std::size_t... I>
-inline vector<T, N> sqrt(const vector<T, N>& x, std::index_sequence<I...>)
-{
-	return {std::sqrt(x[I])...};
-}
-
-template <std::floating_point T, std::size_t N>
-inline vector<T, N> sqrt(const vector<T, N>& x, const vector<T, N>& y)
-{
-	return sqrt(x, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
-{
-	return {(x[I] - y[I])...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y) noexcept
-{
-	return sub(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> sub(const vector<T, N>& x, T y, std::index_sequence<I...>) noexcept
-{
-	return {(x[I] - y)...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<T, N> sub(const vector<T, N>& x, T y) noexcept
-{
-	return sub(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> sub(T x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
-{
-	return {(x - y[I])...};
-}
-
-template <class T, std::size_t N>
-inline constexpr vector<T, N> sub(T x, const vector<T, N>& y) noexcept
-{
-	return sub(x, y, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t... I>
-inline constexpr T sum(const vector<T, N>& x, std::index_sequence<I...>) noexcept
-{
-	return (x[I] + ...);
-}
-
-template <class T, std::size_t N>
-inline constexpr T sum(const vector<T, N>& x) noexcept
-{
-	return sum(x, std::make_index_sequence<N>{});
-}
-
-template <std::size_t... Indices, class T, std::size_t N>
-inline constexpr vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& x) noexcept
-{
-	return {x[Indices]...};
-}
-
-template <class T>
-inline constexpr T triple(const vector<T, 3>& x, const vector<T, 3>& y, const vector<T, 3>& z) noexcept
-{
-	return dot(x, cross(y, z));
-}
-
-/// @private
-template <std::floating_point T, std::size_t N, std::size_t... I>
-inline constexpr vector<T, N> trunc(const vector<T, N>& x, std::index_sequence<I...>)
-{
-	return {std::trunc(x[I])...};
-}
-
-template <std::floating_point T, std::size_t N>
-inline constexpr vector<T, N> trunc(const vector<T, N>& x)
-{
-	return trunc(x, std::make_index_sequence<N>{});
-}
+/// @}
 
 } // namespace functions
 
@@ -1165,223 +1260,5 @@ inline constexpr vector<T, N> trunc(const vector<T, N>& x)
 using namespace functions;
 
 } // namespace math
-
-/// @copydoc math::add(const vector<T, N>&, const vector<T, N>&)
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr math::vector<T, N> operator+(const math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
-{
-	return math::add(x, y);
-}
-
-/// @copydoc math::add(const vector<T, N>&, T)
-/// @{
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr math::vector<T, N> operator+(const math::vector<T, N>& x, T y) noexcept
-{
-	return math::add(x, y);
-}
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr math::vector<T, N> operator+(T x, const math::vector<T, N>& y) noexcept
-{
-	return math::add(y, x);
-}
-/// @}
-
-/// @copydoc math::div(const vector<T, N>&, const vector<T, N>&)
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr math::vector<T, N> operator/(const math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
-{
-	return math::div(x, y);
-}
-
-/// @copydoc math::div(const vector<T, N>&, T)
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr math::vector<T, N> operator/(const math::vector<T, N>& x, T y) noexcept
-{
-	return math::div(x, y);
-}
-
-/// @copydoc math::div(T, const vector<T, N>&)
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr math::vector<T, N> operator/(T x, const math::vector<T, N>& y) noexcept
-{
-	return math::div(x, y);
-}
-
-/// @copydoc math::mul(const vector<T, N>&, const vector<T, N>&)
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr math::vector<T, N> operator*(const math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
-{
-	return math::mul(x, y);
-}
-
-/// @copydoc math::mul(const vector<T, N>&, T)
-/// @{
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr math::vector<T, N> operator*(const math::vector<T, N>& x, T y) noexcept
-{
-	return math::mul(x, y);
-}
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr math::vector<T, N> operator*(T x, const math::vector<T, N>& y) noexcept
-{
-	return math::mul(y, x);
-}
-/// @}
-
-/// @copydoc math::negate(const vector<T, N>&)
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr math::vector<T, N> operator-(const math::vector<T, N>& x) noexcept
-{
-	return math::negate(x);
-}
-
-/// @copydoc math::sub(const vector<T, N>&, const vector<T, N>&)
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr math::vector<T, N> operator-(const math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
-{
-	return math::sub(x, y);
-}
-
-/// @copydoc math::sub(const vector<T, N>&, T)
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr math::vector<T, N> operator-(const math::vector<T, N>& x, T y) noexcept
-{
-	return math::sub(x, y);
-}
-
-/// @copydoc math::sub(T, const vector<T, N>&)
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr math::vector<T, N> operator-(T x, const math::vector<T, N>& y) noexcept
-{
-	return math::sub(x, y);
-}
-
-/**
- * Adds two values and stores the result in the first value.
- *
- * @param x First value.
- * @param y Second value.
- *
- * @return Reference to the first value.
- */
-/// @{
-template <class T, std::size_t N>
-inline constexpr math::vector<T, N>& operator+=(math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
-{
-	return (x = x + y);
-}
-template <class T, std::size_t N>
-inline constexpr math::vector<T, N>& operator+=(math::vector<T, N>& x, T y) noexcept
-{
-	return (x = x + y);
-}
-/// @}
-
-/**
- * Subtracts the first value by the second value and stores the result in the first value.
- *
- * @param x First value.
- * @param y Second value.
- *
- * @return Reference to the first value.
- */
-/// @{
-template <class T, std::size_t N>
-inline constexpr math::vector<T, N>& operator-=(math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
-{
-	return (x = x - y);
-}
-template <class T, std::size_t N>
-inline constexpr math::vector<T, N>& operator-=(math::vector<T, N>& x, T y) noexcept
-{
-	return (x = x - y);
-}
-/// @}
-
-/**
- * Multiplies two values and stores the result in the first value.
- *
- * @param x First value.
- * @param y Second value.
- *
- * @return Reference to the first value.
- */
-/// @{
-template <class T, std::size_t N>
-inline constexpr math::vector<T, N>& operator*=(math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
-{
-	return (x = x * y);
-}
-template <class T, std::size_t N>
-inline constexpr math::vector<T, N>& operator*=(math::vector<T, N>& x, T y) noexcept
-{
-	return (x = x * y);
-}
-/// @}
-
-/**
- * Divides the first value by the second value and stores the result in the first value.
- *
- * @param x First value.
- * @param y Second value.
- *
- * @return Reference to the first value.
- */
-/// @{
-template <class T, std::size_t N>
-inline constexpr math::vector<T, N>& operator/=(math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
-{
-	return (x = x / y);
-}
-template <class T, std::size_t N>
-inline constexpr math::vector<T, N>& operator/=(math::vector<T, N>& x, T y) noexcept
-{
-	return (x = x / y);
-}
-/// @}
-
-/**
- * Tests two vector for equality
- *
- * @param x First value.
- * @param y Second value.
- *
- * @return `true` if the vectors are identical, `false` otherwise.
- */
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr bool operator==(const math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
-{
-	// if consteval
-	// {
-		for (std::size_t i = 0; i < N; ++i)
-		{
-			if (x[i] != y[i])
-			{
-				return false;
-			}
-		}
-		
-		return true;
-	// }
-	// else
-	// {
-		// !std::memcmp(x.data(), y.data(), N * sizeof(T));
-	// }
-}
-
-/**
- * Tests two vector for inequality
- *
- * @param x First value.
- * @param y Second value.
- *
- * @return `false` if the vectors are identical, `true` otherwise.
- */
-template <class T, std::size_t N>
-[[nodiscard]] inline constexpr bool operator!=(const math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
-{
-	return !(x == y);
-}
 
 #endif // ANTKEEPER_MATH_VECTOR_FUNCTIONS_HPP

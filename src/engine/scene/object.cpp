@@ -14,7 +14,7 @@ std::size_t object_base::next_object_type_id()
 void object_base::look_at(const vector_type& position, const vector_type& target, const vector_type& up)
 {
 	m_transform.translation = position;
-	m_transform.rotation = math::look_rotation(math::normalize(math::sub(target, position)), up);
+	m_transform.rotation = math::look_rotation(math::normalize(target - position), up);
 	transformed();
 }
 

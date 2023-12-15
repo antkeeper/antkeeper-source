@@ -42,7 +42,7 @@ entity::id collision_system::pick_nearest(const geom::ray<float, 3>& ray, std::u
 			const geom::sphere<float> sphere =
 			{
 				transform.world * picking.sphere.center,
-				picking.sphere.radius * math::max(transform.world.scale)
+				picking.sphere.radius * math::max_element(transform.world.scale)
 			};
 			
 			// Test for intersection between ray and sphere

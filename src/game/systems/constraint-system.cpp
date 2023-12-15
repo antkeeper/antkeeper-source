@@ -326,7 +326,7 @@ void constraint_system::handle_track_to_constraint(transform_component& transfor
 		const transform_component* target_transform = registry.try_get<transform_component>(constraint.target);
 		if (target_transform)
 		{
-			transform.world.rotation = math::look_rotation(math::normalize(math::sub(target_transform->world.translation, transform.world.translation)), constraint.up);
+			transform.world.rotation = math::look_rotation(math::normalize(target_transform->world.translation - transform.world.translation), constraint.up);
 		}
 	}
 }

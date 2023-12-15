@@ -187,9 +187,9 @@ void astronomy_system::update(float t, float dt)
 				)
 			);
 			
-			sun_light->set_illuminance(static_cast<float>(math::max(observer_blackbody_transmitted_illuminance)));
+			sun_light->set_illuminance(static_cast<float>(math::max_element(observer_blackbody_transmitted_illuminance)));
 			
-			const auto max_component = math::max(observer_blackbody_transmitted_illuminance);
+			const auto max_component = math::max_element(observer_blackbody_transmitted_illuminance);
 			if (max_component > 0.0)
 			{
 				sun_light->set_color(math::fvec3(observer_blackbody_transmitted_illuminance / max_component));
@@ -282,9 +282,9 @@ void astronomy_system::update(float t, float dt)
 			{
 				const math::fvec3 reflector_up_eus = math::fvec3(icrf_to_eus.r * math::dvec3{0, 0, 1});
 				
-				moon_light->set_illuminance(static_cast<float>(math::max(observer_reflector_illuminance)));
+				moon_light->set_illuminance(static_cast<float>(math::max_element(observer_reflector_illuminance)));
 				
-				const auto max_component = math::max(observer_reflector_illuminance);
+				const auto max_component = math::max_element(observer_reflector_illuminance);
 				if (max_component > 0.0)
 				{
 					moon_light->set_color(math::fvec3(observer_reflector_illuminance / max_component));

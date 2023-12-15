@@ -275,6 +275,15 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	ctx.function_queue.push(std::bind(::enable_menu_controls, std::ref(ctx)));
 	
 	debug::log_trace("Entered main menu state");
+	
+	using namespace math;
+	ivec3 a{0, 1, 2};
+	ivec3 b{0, 1, 2};
+	
+	debug::log_debug("a <  b: {}", static_cast<int>(a < b));
+	debug::log_debug("a >  b: {}", static_cast<int>(a > b));
+	debug::log_debug("a == b: {}", static_cast<int>(a == b));
+	debug::log_debug("a != b: {}", static_cast<int>(a != b));
 }
 
 main_menu_state::~main_menu_state()

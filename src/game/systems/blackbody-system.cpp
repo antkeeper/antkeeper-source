@@ -58,7 +58,7 @@ void blackbody_system::update_blackbody(entity::id entity_id)
 	const math::dvec3 rgb_luminance = math::simpson(rgb_spectral_luminance, m_visible_wavelengths_nm.begin(), m_visible_wavelengths_nm.end());
 	
 	// Extract luminance and color from RGB luminance
-	blackbody.luminance = math::max(rgb_luminance);
+	blackbody.luminance = math::max_element(rgb_luminance);
 	blackbody.color = rgb_luminance / blackbody.luminance;
 }
 

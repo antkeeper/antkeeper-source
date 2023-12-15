@@ -74,7 +74,7 @@ entity::id terrain_system::generate(std::shared_ptr<gl::image_2d> heightmap, con
 	const auto cell_quad_dimensions = math::uvec2{static_cast<unsigned int>(heightmap_dimensions[0] - 1) / grid.dimensions.x(), static_cast<unsigned int>(heightmap_dimensions[1] - 1) / grid.dimensions.y()};
 	const auto cell_vert_dimensions = cell_quad_dimensions + 1u;
 	
-	const auto max_scale = math::max(transform.scale);
+	const auto max_scale = math::max_element(transform.scale);
 	const auto scale_ratio = transform.scale / max_scale;
 	const auto vertex_scale = scale_ratio * math::fvec3{2.0f / static_cast<float>(cell_quad_dimensions.x()), 2.0f, 2.0f / static_cast<float>(cell_quad_dimensions.y())};
 	const auto vertex_translation = -scale_ratio;

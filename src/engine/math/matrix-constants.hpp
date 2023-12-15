@@ -22,10 +22,8 @@ namespace constants {
 template <class T, std::size_t N, std::size_t M>
 [[nodiscard]] consteval matrix<T, N, M> fill_matrix(const T& value) noexcept
 {
-	vector<T, M> v;
-	v.fill(value);
 	matrix<T, N, M> m;
-	m.fill(v);
+	m.fill(value);
 	return m;
 }
 

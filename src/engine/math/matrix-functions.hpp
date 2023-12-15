@@ -492,7 +492,7 @@ constexpr matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m) noexcept
 template <class T>
 constexpr mat4<T> look_at_rh(const vec3<T>& position, const vec3<T>& target, const vec3<T>& up)
 {
-	const auto f = normalize(sub(target, position));
+	const auto f = normalize(target - position);
 	const auto r = normalize(cross(f, up));
 	const auto u = cross(r, f);
 	const auto t = vec3<T>{dot(position, r), dot(position, u), dot(position, f)};
@@ -509,7 +509,7 @@ constexpr mat4<T> look_at_rh(const vec3<T>& position, const vec3<T>& target, con
 template <class T>
 constexpr std::tuple<mat4<T>, mat4<T>> look_at_rh_inv(const vec3<T>& position, const vec3<T>& target, const vec3<T>& up)
 {
-	const auto f = normalize(sub(target, position));
+	const auto f = normalize(target - position);
 	const auto r = normalize(cross(f, up));
 	const auto u = cross(r, f);
 	

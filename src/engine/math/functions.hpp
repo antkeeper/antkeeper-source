@@ -23,7 +23,7 @@ namespace functions {
 /// @{
 
 /**
- * Returns the minimum of two value.
+ * Returns the minimum of two values.
  *
  * @param a First value.
  * @param b Second value.
@@ -31,13 +31,13 @@ namespace functions {
  * @return `a < b ? a : b`.
  */
 template <std::floating_point T>
-[[nodiscard]] inline constexpr T min(T a, T b) noexcept
+[[nodiscard]] inline constexpr const T& min(const T& a, const T& b) noexcept
 {
 	return a < b ? a : b;
 }
 
 /**
- * Returns the maximum of two value.
+ * Returns the maximum of two values.
  *
  * @param a First value.
  * @param b Second value.
@@ -45,7 +45,7 @@ template <std::floating_point T>
  * @return `a > b ? a : b`.
  */
 template <std::floating_point T>
-[[nodiscard]] inline constexpr T max(T a, T b) noexcept
+[[nodiscard]] inline constexpr const T& max(const T& a, const T& b) noexcept
 {
 	return a > b ? a : b;
 }
@@ -60,7 +60,7 @@ template <std::floating_point T>
  * @return @p x constrained to [`min_val`, `max_val`].
  */
 template <std::floating_point T>
-[[nodiscard]] inline constexpr T clamp(T x, T min_val, T max_val) noexcept
+[[nodiscard]] inline constexpr const T& clamp(const T& x, const T& min_val, const T& max_val) noexcept
 {
 	return min(max(x, min_val), max_val);
 }
@@ -524,7 +524,7 @@ template <std::floating_point T>
 }
 
 /**
- * Splits a value into its integer and fractional components.
+ * Splits a value into its fractional and integer components.
  *
  * @param x Value to split.
  *

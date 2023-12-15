@@ -304,37 +304,37 @@ struct matrix
 	/// @{
 	
 	/** Returns `true` if the matrix is empty, `false` otherwise. */
-	[[nodiscard]] inline constexpr bool empty() noexcept
+	[[nodiscard]] inline static consteval bool empty() noexcept
 	{
 		return element_count;
 	};
 	
 	/** Returns the number of columns in the matrix. */
-	[[nodiscard]] inline constexpr size_type size() const noexcept
+	[[nodiscard]] inline static consteval size_type size() noexcept
 	{
 		return column_count;
 	};
 	
 	/** Returns the number of columns in the matrix. */
-	[[nodiscard]] inline constexpr size_type max_size() const noexcept
+	[[nodiscard]] inline static consteval size_type max_size() noexcept
 	{
 		return column_count;
 	};
 	
 	/** Returns the number of columns in the matrix. */
-	[[nodiscard]] inline constexpr size_type size_columns() const noexcept
+	[[nodiscard]] inline static consteval size_type size_columns() noexcept
 	{
 		return column_count;
 	};
 	
 	/** Returns the number of rows in the matrix. */
-	[[nodiscard]] inline constexpr size_type size_rows() const noexcept
+	[[nodiscard]] inline static consteval size_type size_rows() noexcept
 	{
 		return row_count;
 	};
 	
 	/** Returns the number of elements in the matrix. */
-	[[nodiscard]] inline constexpr size_type size_elements() const noexcept
+	[[nodiscard]] inline static consteval size_type size_elements() noexcept
 	{
 		return element_count;
 	};
@@ -379,6 +379,25 @@ struct matrix
 	{
 		std::swap(columns, other.columns);
 	};
+	
+	/// @}
+	
+	/// @name Comparison
+	/// @{
+	
+	/**
+	 * Tests two matrices for equality.
+	 *
+	 * @return `true` if the two matrices are equivalent, `false` otherwise.
+	 */
+	[[nodiscard]] inline constexpr friend bool operator==(const matrix&, const matrix&) noexcept = default;
+	
+	/**
+	 * Compares the columns of two matrices lexicographically.
+	 *
+	 * @return Lexicographical ordering of the two matrices.
+	 */
+	[[nodiscard]] inline constexpr friend auto operator<=>(const matrix&, const matrix&) noexcept = default; 
 	
 	/// @}
 };

@@ -277,19 +277,19 @@ struct vector
 	/// @{
 	
 	/** Returns `true` if the vector is empty, `false` otherwise. */
-	[[nodiscard]] inline static constexpr bool empty() noexcept
+	[[nodiscard]] inline static consteval bool empty() noexcept
 	{
 		return N;
 	};
 	
 	/** Returns the number of elements in the vector. */
-	[[nodiscard]] inline static constexpr size_type size() noexcept
+	[[nodiscard]] inline static consteval size_type size() noexcept
 	{
 		return N;
 	};
 	
 	/** Returns the number of elements in the vector. */
-	[[nodiscard]] inline static constexpr size_type max_size() noexcept
+	[[nodiscard]] inline static consteval size_type max_size() noexcept
 	{
 		return N;
 	};
@@ -321,6 +321,25 @@ struct vector
 	{
 		std::swap(elements, other.elements);
 	};
+	
+	/// @}
+	
+	/// @name Comparison
+	/// @{
+	
+	/**
+	 * Tests two vectors for equality.
+	 *
+	 * @return `true` if the two vectors are equivalent, `false` otherwise.
+	 */
+	[[nodiscard]] inline constexpr friend bool operator==(const vector&, const vector&) noexcept = default;
+	
+	/**
+	 * Compares the elements of two vectors lexicographically.
+	 *
+	 * @return Lexicographical ordering of the two vectors.
+	 */
+	[[nodiscard]] inline constexpr friend auto operator<=>(const vector&, const vector&) noexcept = default; 
 	
 	/// @}
 };
