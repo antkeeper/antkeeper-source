@@ -3,6 +3,7 @@
 
 #include <engine/app/sdl/sdl-input-manager.hpp>
 #include <engine/input/application-events.hpp>
+#include <engine/input/clipboard-events.hpp>
 #include <engine/input/input-update-event.hpp>
 #include <engine/debug/log.hpp>
 #include <engine/math/functions.hpp>
@@ -72,7 +73,7 @@ void sdl_input_manager::update()
 		{
 			case SDL_QUIT:
 				debug::log_debug("Application quit requested");
-				this->m_event_dispatcher.dispatch<input::application_quit_event>({});
+				m_event_dispatcher.dispatch<input::application_quit_event>({});
 				break;
 			
 			default:
@@ -85,7 +86,7 @@ void sdl_input_manager::update()
 	{
 		// Get next display or window event
 		SDL_Event event;
-		const int status = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_KEYDOWN, SDL_LASTEVENT);
+		const int status = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_KEYDOWN, SDL_CLIPBOARDUPDATE);
 		
 		if (!status)
 		{
@@ -293,13 +294,19 @@ void sdl_input_manager::update()
 				break;
 			}
 			
+			[[unlikely]] case SDL_CLIPBOARDUPDATE:
+			{
+				m_event_dispatcher.dispatch<input::clipboard_updated_event>({});
+				break;
+			}
+			
 			default:
 				break;
 		}
 	}
 	
 	// Dispatch input update event
-	this->m_event_dispatcher.dispatch<input::update_event>({});
+	m_event_dispatcher.dispatch<input::update_event>({});
 }
 
 void sdl_input_manager::set_cursor_visible(bool visible)
@@ -318,6 +325,29 @@ void sdl_input_manager::set_relative_mouse_mode(bool enabled)
 		debug::log_error("Failed to set relative mouse mode: \"{}\"", SDL_GetError());
 		SDL_ClearError();
 	}
+}
+
+void sdl_input_manager::set_clipboard_text(const std::string& text)
+{
+	if (SDL_SetClipboardText(text.c_str()) != 0)
+	{
+		debug::log_error("Failed to set clipboard text: \"{}\"", SDL_GetError());
+		SDL_ClearError();
+	}
+}
+
+std::string sdl_input_manager::get_clipboard_text() const
+{
+	// Get SDL-allocated text from clipboard
+	auto sdl_clipboard_text = SDL_GetClipboardText();
+	
+	// Copy text into string
+	std::string clipboard_text = sdl_clipboard_text;
+	
+	// Free SDL-allocated text
+	SDL_free(sdl_clipboard_text);
+	
+	return clipboard_text;
 }
 
 } // namespace app

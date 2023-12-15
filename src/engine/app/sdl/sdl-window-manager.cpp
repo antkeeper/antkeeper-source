@@ -21,6 +21,13 @@ sdl_window_manager::sdl_window_manager()
 	}
 	debug::log_trace("Initialized SDL events and video subsystems");
 	
+	// Disable unused events
+	SDL_EventState(SDL_AUDIODEVICEADDED, SDL_IGNORE);
+	SDL_EventState(SDL_AUDIODEVICEREMOVED, SDL_IGNORE);
+	SDL_EventState(SDL_RENDER_TARGETS_RESET, SDL_IGNORE);
+	SDL_EventState(SDL_RENDER_DEVICE_RESET, SDL_IGNORE);
+	SDL_EventState(SDL_USEREVENT, SDL_IGNORE);
+	
 	// Query displays
 	const int display_count = SDL_GetNumVideoDisplays();
 	if (display_count < 1)
@@ -117,7 +124,7 @@ void sdl_window_manager::update()
 	
 	for (;;)
 	{
-		// Get next window or display event
+		// Get next window or displayp event
 		SDL_Event event;
 		int status = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_DISPLAYEVENT, SDL_SYSWMEVENT);
 		
@@ -385,6 +392,79 @@ void sdl_window_manager::update()
 				default:
 					break;
 			}
+		}
+	}
+	
+	for (;;)
+	{
+		// Get next drop event
+		SDL_Event event;
+		int status = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_DROPFILE, SDL_DROPCOMPLETE);
+		
+		if (!status)
+		{
+			break;
+		}
+		else if (status < 0)
+		{
+			debug::log_error("Failed to peep SDL events: {}", SDL_GetError());
+			throw std::runtime_error("Failed to peep SDL events");
+		}
+		
+		switch (event.type)
+		{
+			case SDL_DROPFILE:
+			{
+				// Get window
+				auto window = get_window(SDL_GetWindowFromID(event.drop.windowID));
+				
+				// Publish drop file event
+				window->m_drop_file_publisher.publish({window, std::filesystem::path(event.drop.file)});
+				
+				// Free file path
+				SDL_free(event.drop.file);
+				
+				break;
+			}
+			
+			case SDL_DROPTEXT:
+			{
+				// Get window
+				auto window = get_window(SDL_GetWindowFromID(event.drop.windowID));
+				
+				// Publish drop text event
+				window->m_drop_text_publisher.publish({window, std::string(event.drop.file)});
+				
+				// Free text
+				SDL_free(event.drop.file);
+				
+				break;
+			}
+			
+			case SDL_DROPBEGIN:
+			{
+				// Get window
+				auto window = get_window(SDL_GetWindowFromID(event.drop.windowID));
+				
+				// Publish drop begin event
+				window->m_drop_begin_publisher.publish({window});
+				
+				break;
+			}
+			
+			case SDL_DROPCOMPLETE:
+			{
+				// Get window
+				auto window = get_window(SDL_GetWindowFromID(event.drop.windowID));
+				
+				// Publish drop end event
+				window->m_drop_end_publisher.publish({window});
+				
+				break;
+			}
+			
+			default:
+				break;
 		}
 	}
 }

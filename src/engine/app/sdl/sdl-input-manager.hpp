@@ -17,19 +17,17 @@ class sdl_window;
 class sdl_input_manager: public input_manager
 {
 public:
-	/**
-	 * Constructs an SDL input manager.
-	 */
+	/** Constructs an SDL input manager. */
 	sdl_input_manager();
 	
-	/**
-	 * Destructs an SDL input manager.
-	 */
+	/** Destructs an SDL input manager. */
 	~sdl_input_manager() override;
 	
 	void update() override;
 	void set_cursor_visible(bool visible) override;
 	void set_relative_mouse_mode(bool enabled) override;
+	void set_clipboard_text(const std::string& text) override;
+	[[nodiscard]] std::string get_clipboard_text() const override;
 
 private:
 	input::keyboard m_keyboard;

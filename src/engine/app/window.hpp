@@ -164,45 +164,69 @@ public:
 	/// @}
 	
 	/// Returns the channel through which window closed events are published.
-	[[nodiscard]] inline event::channel<window_closed_event>& get_closed_channel() noexcept
+	[[nodiscard]] inline auto& get_closed_channel() noexcept
 	{
 		return m_closed_publisher.channel();
 	}
 	
 	/// Returns the channel through which window focus changed events are published.
-	[[nodiscard]] inline event::channel<window_focus_changed_event>& get_focus_changed_channel() noexcept
+	[[nodiscard]] inline auto& get_focus_changed_channel() noexcept
 	{
 		return m_focus_changed_publisher.channel();
 	}
 	
 	/// Returns the channel through which window maximized events are published.
-	[[nodiscard]] inline event::channel<window_maximized_event>& get_maximized_channel() noexcept
+	[[nodiscard]] inline auto& get_maximized_channel() noexcept
 	{
 		return m_maximized_publisher.channel();
 	}
 	
 	/// Returns the channel through which window minimized events are published.
-	[[nodiscard]] inline event::channel<window_minimized_event>& get_minimized_channel() noexcept
+	[[nodiscard]] inline auto& get_minimized_channel() noexcept
 	{
 		return m_minimized_publisher.channel();
 	}
 	
 	/// Returns the channel through which window moved events are published.
-	[[nodiscard]] inline event::channel<window_moved_event>& get_moved_channel() noexcept
+	[[nodiscard]] inline auto& get_moved_channel() noexcept
 	{
 		return m_moved_publisher.channel();
 	}
 	
 	/// Returns the channel through which window resized events are published.
-	[[nodiscard]] inline event::channel<window_resized_event>& get_resized_channel() noexcept
+	[[nodiscard]] inline auto& get_resized_channel() noexcept
 	{
 		return m_resized_publisher.channel();
 	}
 	
 	/// Returns the channel through which window restored events are published.
-	[[nodiscard]] inline event::channel<window_restored_event>& get_restored_channel() noexcept
+	[[nodiscard]] inline auto& get_restored_channel() noexcept
 	{
 		return m_restored_publisher.channel();
+	}
+	
+	/// Returns the channel through which window drop begin events are published.
+	[[nodiscard]] inline auto& get_drop_begin_channel() noexcept
+	{
+		return m_drop_begin_publisher.channel();
+	}
+	
+	/// Returns the channel through which window drop end events are published.
+	[[nodiscard]] inline auto& get_drop_end_channel() noexcept
+	{
+		return m_drop_end_publisher.channel();
+	}
+	
+	/// Returns the channel through which window drop file events are published.
+	[[nodiscard]] inline auto& get_drop_file_channel() noexcept
+	{
+		return m_drop_file_publisher.channel();
+	}
+	
+	/// Returns the channel through which window drop text events are published.
+	[[nodiscard]] inline auto& get_drop_text_channel() noexcept
+	{
+		return m_drop_text_publisher.channel();
 	}
 	
 protected:
@@ -227,6 +251,10 @@ protected:
 	event::publisher<window_moved_event> m_moved_publisher;
 	event::publisher<window_resized_event> m_resized_publisher;
 	event::publisher<window_restored_event> m_restored_publisher;
+	event::publisher<window_drop_begin_event> m_drop_begin_publisher;
+	event::publisher<window_drop_end_event> m_drop_end_publisher;
+	event::publisher<window_drop_file_event> m_drop_file_publisher;
+	event::publisher<window_drop_text_event> m_drop_text_publisher;
 };
 
 } // namespace app

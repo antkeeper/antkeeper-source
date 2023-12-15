@@ -11,6 +11,7 @@
 #include <engine/event/dispatcher.hpp>
 #include <map>
 #include <memory>
+#include <string>
 #include <unordered_set>
 
 namespace app {
@@ -21,17 +22,13 @@ namespace app {
 class input_manager
 {
 public:
-	/**
-	 * Allocates and returns an input manager.
-	 */
+	/** Allocates and returns an input manager. */
 	static std::unique_ptr<input_manager> instance();
 
-	/// Destructs an input manager.
+	/** Destructs an input manager. */
 	virtual ~input_manager() = default;
 	
-	/**
-	 * Processes input events.
-	 */
+	/** Processes input events. */
 	virtual void update() = 0;
 	
 	/**
@@ -49,9 +46,17 @@ public:
 	virtual void set_relative_mouse_mode(bool enabled) = 0;
 	
 	/**
-	 * Returns the event dispatcher associated with registered input devices.
+	 * Sets the clipboard text.
+	 *
+	 * @param text UTF-8 text.
 	 */
+	virtual void set_clipboard_text(const std::string& text) = 0;
+	
+	/** Returns UTF-8 text from the clipboard. */
+	[[nodiscard]] virtual std::string get_clipboard_text() const = 0;
+
 	/// @{
+	/** Returns the event dispatcher associated with registered input devices. */
 	[[nodiscard]] inline const ::event::dispatcher& get_event_dispatcher() const noexcept
 	{
 		return m_event_dispatcher;
@@ -81,24 +86,24 @@ public:
 	}
 	
 protected:
+	/// @{
 	/**
 	 * Registers an input device.
 	 *
 	 * @param device Input device to register.
 	 */
-	/// @{
 	void register_device(input::device& device);
 	void register_gamepad(input::gamepad& device);
 	void register_keyboard(input::keyboard& device);
 	void register_mouse(input::mouse& device);
 	/// @}
 	
+	/// @{
 	/**
 	 * Unregisters an input device.
 	 *
 	 * @param device Input device to unregister.
 	 */
-	/// @{
 	void unregister_device(input::device& device);
 	void unregister_gamepad(input::gamepad& device);
 	void unregister_keyboard(input::keyboard& device);
