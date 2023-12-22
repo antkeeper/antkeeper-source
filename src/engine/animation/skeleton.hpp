@@ -25,7 +25,7 @@ public:
 	 */
 	explicit skeleton(std::size_t bone_count);
 	
-	/// Constructs an empty skeleton.
+	/** Constructs an empty skeleton. */
 	skeleton();
 	
 	/**
@@ -167,7 +167,7 @@ public:
 	[[nodiscard]] animation_pose* get_pose(hash::fnv1a32_t name);
 	/// @}
 	
-	/// Returns the skeleton's rest pose.
+	/** Returns the skeleton's rest pose. */
 	[[nodiscard]] inline const rest_pose& get_rest_pose() const noexcept
 	{
 		return m_rest_pose;

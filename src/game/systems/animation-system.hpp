@@ -14,6 +14,7 @@ class animation_system:
 {
 public:
 	explicit animation_system(entity::registry& registry);
+	~animation_system() override = default;
 	void update(float t, float dt) override;
 	void interpolate(float alpha);
 };

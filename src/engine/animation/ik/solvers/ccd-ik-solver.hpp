@@ -26,6 +26,9 @@ public:
 	 */
 	ccd_ik_solver(ik_rig& ik_rig, bone_index_type root_bone_index, bone_index_type effector_bone_index);
 	
+	/** Destructs a CCD IK solver. */
+	~ccd_ik_solver() override = default;
+	
 	/// @name Solving
 	/// @{
 	

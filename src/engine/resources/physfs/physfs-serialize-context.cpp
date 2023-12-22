@@ -86,7 +86,7 @@ std::size_t physfs_serialize_context::write8(const std::byte* data, std::size_t 
 		//return 0;
 	}
 	
-	if (status != count)
+	if (static_cast<std::size_t>(status) != count)
 	{
 		m_error = true;
 		throw serialize_error(PHYSFS_getLastError());

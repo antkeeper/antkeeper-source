@@ -63,16 +63,18 @@ brep_face* brep_face_container::emplace_back(const std::span<brep_vertex*> verti
 	
 	// Find or make edges
 	std::vector<brep_edge*> edges(vertices.size());
-	std::size_t i = vertices.size() - 1;
-	for (std::size_t j = 0; j < vertices.size(); ++j)
 	{
-		edges[i] = m_mesh->edges().find(vertices[i], vertices[j]);
-		if (!edges[i])
+		std::size_t i = vertices.size() - 1;
+		for (std::size_t j = 0; j < vertices.size(); ++j)
 		{
-			edges[i] = m_mesh->edges().emplace_back(vertices[i], vertices[j]);
+			edges[i] = m_mesh->edges().find(vertices[i], vertices[j]);
+			if (!edges[i])
+			{
+				edges[i] = m_mesh->edges().emplace_back(vertices[i], vertices[j]);
+			}
+			
+			i = j;
 		}
-		
-		i = j;
 	}
 	
 	// Allocate face

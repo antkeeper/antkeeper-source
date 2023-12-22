@@ -25,6 +25,9 @@ public:
 	using transform_type = math::transform<float>;
 	using aabb_type = geom::box<float>;
 	
+	/** Destructs a scene object base. */
+	virtual ~object_base() = default;
+	
 	/// Returns the type ID for this scene object type.
 	[[nodiscard]] virtual const std::size_t get_object_type_id() const noexcept = 0;
 	
@@ -33,7 +36,7 @@ public:
 	 *
 	 * @param ctx Render context.
 	 */
-	inline virtual void render(render::context& ctx) const {}
+	inline virtual void render([[maybe_unused]] render::context& ctx) const {}
 	
 	/**
 	 *
@@ -157,6 +160,9 @@ class object: public object_base
 public:
 	/// Unique type ID for this scene object type.
 	static const std::atomic<std::size_t> object_type_id;
+	
+	/** Destructs a scene base. */
+	~object() override = default;
 	
 	[[nodiscard]] inline const std::size_t get_object_type_id() const noexcept final
 	{

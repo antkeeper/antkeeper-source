@@ -343,9 +343,6 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
 	ctx.surface_camera->set_exposure_value(ev100_sunny16);
 	
-	const auto& viewport_size = ctx.window->get_viewport_size();
-	const float aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
-	
 	// Create third person camera rig
 	create_third_person_camera_rig();
 	
@@ -424,26 +421,6 @@ void treadmill_experiment_state::destroy_third_person_camera_rig()
 	ctx.entity_registry->destroy(third_person_camera_rig_eid);
 }
 
-void treadmill_experiment_state::set_third_person_camera_zoom(double zoom)
-{
-}
-
-void treadmill_experiment_state::set_third_person_camera_rotation(double yaw, double pitch)
-{
-}
-
-void treadmill_experiment_state::zoom_third_person_camera(double zoom)
-{
-}
-
-void treadmill_experiment_state::translate_third_person_camera(const math::dvec3& direction, double magnitude)
-{
-}
-
-void treadmill_experiment_state::rotate_third_person_camera(const input::mouse_moved_event& event)
-{
-}
-
 void treadmill_experiment_state::handle_mouse_motion(const input::mouse_moved_event& event)
 {
 	ctx.surface_material_pass->set_mouse_position(math::fvec2(event.position));
@@ -471,38 +448,6 @@ void treadmill_experiment_state::handle_mouse_motion(const input::mouse_moved_ev
 		
 		third_person_camera_focal_point += third_person_camera_yaw_rotation * translation;
 	}
-	
-	if (mouse_look)
-	{
-		rotate_third_person_camera(event);
-	}
-	
-	if (mouse_zoom)
-	{
-		const double zoom_speed = -1.0 / static_cast<double>(ctx.window->get_viewport_size().y());
-		zoom_third_person_camera(static_cast<double>(event.difference.y()) * zoom_speed);
-	}
-	
-	update_third_person_camera();
-}
-
-void treadmill_experiment_state::update_third_person_camera()
-{
-}
-
-void treadmill_experiment_state::load_camera_preset(std::uint8_t index)
-{
-
-}
-
-void treadmill_experiment_state::save_camera_preset(std::uint8_t index)
-{
-
-}
-
-void treadmill_experiment_state::load_or_save_camera_preset(std::uint8_t index)
-{
-
 }
 
 geom::ray<float, 3> treadmill_experiment_state::get_mouse_ray(const math::vec2<std::int32_t>& mouse_position) const
@@ -530,7 +475,7 @@ void treadmill_experiment_state::setup_controls()
 	(
 		ctx.camera_mouse_pick_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				mouse_grip = ctx.toggle_mouse_grip ? !mouse_grip : true;
 				

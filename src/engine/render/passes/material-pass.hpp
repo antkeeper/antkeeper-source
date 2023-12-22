@@ -27,6 +27,9 @@ class material_pass: public pass
 public:
 	material_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	
+	/** Destructs a material pass. */
+	~material_pass() override = default;
+	
 	void render(render::context& ctx) override;
 	
 	/// Sets the material to be used when a render operation is missing a material. If no fallback material is specified, render operations without materials will not be processed.

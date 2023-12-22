@@ -257,6 +257,9 @@ private:
 class brep_vertex_container: public brep_element_container<brep_vertex>
 {
 public:
+	/** Destructs a B-rep vertex container. */
+	~brep_vertex_container() override = default;
+	
 	/**
 	 * Appends a new vertex to the end of the container.
 	 *
@@ -280,15 +283,6 @@ public:
 	
 private:
 	friend class brep_mesh;
-	
-	/**
-	 * Constructs a B-rep vertex container.
-	 *
-	 * @param mesh Pointer to the parent mesh.
-	 */
-	inline explicit brep_vertex_container(brep_mesh* mesh) noexcept:
-		brep_element_container<brep_vertex>(mesh)
-	{}
 };
 
 } // namespace geom

@@ -22,13 +22,6 @@ private:
 	void create_camera_rig();
 	void destroy_camera_rig();
 	
-	void set_camera_rig_zoom(float zoom);
-	void satisfy_camera_rig_constraints();
-	
-	void setup_controls();
-	void enable_controls();
-	void disable_controls();
-	
 	void select_entity(entity::id entity_id);
 	void select_nearest_entity(const math::fvec3& direction);
 	

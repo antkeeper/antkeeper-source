@@ -12,6 +12,8 @@ class steering_system:
 {
 public:
 	explicit steering_system(entity::registry& registry);
+	~steering_system() override = default;
+	
 	virtual void update(float t, float dt);
 };
 

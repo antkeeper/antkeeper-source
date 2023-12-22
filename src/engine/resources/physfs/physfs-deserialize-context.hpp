@@ -31,7 +31,7 @@ public:
 	/**
 	 * Destructs a PhysicsFS deserialize context, internally closing a file using PhysicsFS.
 	 */
-	virtual ~physfs_deserialize_context();
+	~physfs_deserialize_context() override;
 	
 	/**
 	 * Opens a file using PhysicsFS and associates it with the deserialize context.

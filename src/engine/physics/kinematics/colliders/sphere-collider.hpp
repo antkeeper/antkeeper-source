@@ -48,6 +48,9 @@ public:
 	constexpr sphere_collider() noexcept = default;
 	/// @}
 	
+	/** Destructs a sphere collider. */
+	~sphere_collider() override = default;
+	
 	/**
 	 * Sets the collider's sphere.
 	 *

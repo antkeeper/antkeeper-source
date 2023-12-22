@@ -11,31 +11,31 @@ namespace type {
  */
 struct font_metrics
 {
-	/// Vertical size of the font.
+	/** Vertical size of the font. */
 	float size;
 	
-	/// Positive distance from the baseline to the highest or upper grid coordinate.
+	/** Positive distance from the baseline to the highest or upper grid coordinate. */
 	float ascent;
 	
-	/// Negative distance from the baseline to the lowest grid coordinate.
+	/** Negative distance from the baseline to the lowest grid coordinate. */
 	float descent;
 	
-	/// Distance that must be placed between two lines of text.
+	/** Distance that must be placed between two lines of text. */
 	float linegap;
 	
-	/// Baseline-to-baseline distance, computed as `ascent - descent + linegap`.
+	/** Baseline-to-baseline distance, computed as `ascent - descent + linegap`. */
 	float linespace;
 	
-	/// Vertical position of an underline.
+	/** Vertical position of an underline. */
 	float underline_position;
 	
-	/// Thickness of an underline.
+	/** Thickness of an underline. */
 	float underline_thickness;
 	
-	/// Maximum advance with for all glyphs, for horizontal layouts.
+	/** Maximum advance with for all glyphs, for horizontal layouts. */
 	float max_horizontal_advance;
 	
-	/// Maximum advance height for all glyphs, for vertical layouts.
+	/** Maximum advance height for all glyphs, for vertical layouts. */
 	float max_vertical_advance;
 };
 

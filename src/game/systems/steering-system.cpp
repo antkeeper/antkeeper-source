@@ -16,11 +16,11 @@ steering_system::steering_system(entity::registry& registry):
 	updatable_system(registry)
 {}
 
-void steering_system::update(float t, float dt)
+void steering_system::update([[maybe_unused]] float t, float dt)
 {
-	registry.group<steering_component>(entt::get<transform_component, winged_locomotion_component, rigid_body_component>).each
+	m_registry.group<steering_component>(entt::get<transform_component, winged_locomotion_component, rigid_body_component>).each
 	(
-		[&](entity::id entity_id, auto& steering, auto& transform, auto& locomotion, const auto& body_component)
+		[&](entity::id entity_id, auto& steering, auto& transform, [[maybe_unused]] auto& locomotion, const auto& body_component)
 		{
 			auto& agent = steering.agent;
 			auto& body = *body_component.body;
@@ -49,7 +49,7 @@ void steering_system::update(float t, float dt)
 			}
 			
 			// Pass force to winged locomotion component
-			registry.patch<::winged_locomotion_component>
+			m_registry.patch<::winged_locomotion_component>
 			(
 				entity_id,
 				[&](auto& component)
@@ -68,7 +68,7 @@ void steering_system::update(float t, float dt)
 			}
 			
 			// Update orientation
-			registry.patch<::transform_component>
+			m_registry.patch<::transform_component>
 			(
 				entity_id,
 				[&agent](auto& component)

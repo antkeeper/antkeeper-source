@@ -14,6 +14,7 @@ class locomotion_system:
 {
 public:
 	explicit locomotion_system(entity::registry& registry);
+	~locomotion_system() override = default;
 	void update(float t, float dt) override;
 	
 private:

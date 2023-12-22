@@ -106,7 +106,6 @@ void gamepad::handle_axial_motion(gamepad_axis axis)
 	const float activation_min = axis_activation_min[axis_index];
 	const float activation_max = axis_activation_max[axis_index];
 	const float axis_position = axis_positions[axis_index];
-	const gamepad_response_curve response_curve = axis_response_curves[axis_index];
 	
 	// Remap axis position
 	float remapped_position = 0.0f;
@@ -139,8 +138,6 @@ void gamepad::handle_biaxial_motion(gamepad_axis axis_x, gamepad_axis axis_y)
 	const float y_activation_max = axis_activation_max[y_axis_index];
 	const float x_axis_position = axis_positions[x_axis_index];
 	const float y_axis_position = axis_positions[y_axis_index];
-	const gamepad_response_curve x_response_curve = axis_response_curves[x_axis_index];
-	const gamepad_response_curve y_response_curve = axis_response_curves[y_axis_index];
 	const float deadzone_roundness = (axis_x == gamepad_axis::left_stick_x) ? left_deadzone_roundness : right_deadzone_roundness;
 	
 	const float radius = std::min<float>(x_activation_min, y_activation_min) * deadzone_roundness;

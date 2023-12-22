@@ -105,7 +105,6 @@ void generate_vertex_normals(brep_mesh& mesh)
 
 void generate_loop_barycentric(brep_mesh& mesh)
 {
-	const auto& vertex_positions = mesh.vertices().attributes().at<math::fvec3>("position");
 	auto& loop_barycentric =  static_cast<brep_attribute<math::fvec3>&>(*mesh.loops().attributes().try_emplace<math::fvec3>("barycentric").first);
 	
 	for (brep_face* face: mesh.faces())

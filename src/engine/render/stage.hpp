@@ -14,7 +14,7 @@ namespace render {
 class stage
 {
 public:
-	/// Destructs a render stage.
+	/** Destructs a render stage. */
 	virtual ~stage() = default;
 	
 	/**

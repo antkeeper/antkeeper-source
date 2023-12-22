@@ -17,7 +17,7 @@ namespace gl {
 class image_view
 {
 public:
-	/// Destructs an image view.
+	/** Destructs an image view. */
 	virtual ~image_view() = 0;
 	
 	image_view(const image_view&) = delete;
@@ -165,6 +165,9 @@ public:
 		std::uint32_t mip_level_count = 1,
 		std::uint32_t first_array_layer = 0
 	);
+	
+	/** Destructs a 1D image view. */
+	~image_view_1d() override = default;
 };
 
 /**
@@ -183,6 +186,9 @@ public:
 		std::uint32_t first_array_layer = 0,
 		std::uint32_t array_layer_count = 1
 	);
+	
+	/** Destructs a 1D image array view. */
+	~image_view_1d_array() override = default;
 };
 
 /**
@@ -200,6 +206,9 @@ public:
 		std::uint32_t mip_level_count = 1,
 		std::uint32_t first_array_layer = 0
 	);
+	
+	/** Destructs a 2D image view. */
+	~image_view_2d() override = default;
 };
 
 /**
@@ -218,6 +227,9 @@ public:
 		std::uint32_t first_array_layer = 0,
 		std::uint32_t array_layer_count = 1
 	);
+	
+	/** Destructs a 2D image array view. */
+	~image_view_2d_array() override = default;
 };
 
 /**
@@ -234,6 +246,9 @@ public:
 		std::uint32_t first_mip_level = 0,
 		std::uint32_t mip_level_count = 1
 	);
+	
+	/** Destructs a 3D image view. */
+	~image_view_3d() override = default;
 };
 
 /**
@@ -251,6 +266,9 @@ public:
 		std::uint32_t mip_level_count = 1,
 		std::uint32_t first_array_layer = 0
 	);
+	
+	/** Destructs a cube image view. */
+	~image_view_cube() override = default;
 };
 
 /**
@@ -269,6 +287,9 @@ public:
 		std::uint32_t first_array_layer = 0,
 		std::uint32_t array_layer_count = 6
 	);
+	
+	/** Destructs a cube image array view. */
+	~image_view_cube_array() override = default;
 };
 
 } // namespace gl

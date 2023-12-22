@@ -12,7 +12,7 @@ void setup_menu_controls(::game& ctx)
 	(
 		ctx.menu_up_action.get_activated_channel().subscribe
 		(
-			[&ctx](const auto& event)
+			[&ctx]([[maybe_unused]] const auto& event)
 			{
 				--(*ctx.menu_item_index);
 				if (*ctx.menu_item_index < 0)
@@ -26,7 +26,7 @@ void setup_menu_controls(::game& ctx)
 	(
 		ctx.menu_down_action.get_activated_channel().subscribe
 		(
-			[&ctx](const auto& event)
+			[&ctx]([[maybe_unused]] const auto& event)
 			{
 				++(*ctx.menu_item_index);
 				if (*ctx.menu_item_index >= ctx.menu_item_texts.size())
@@ -40,7 +40,7 @@ void setup_menu_controls(::game& ctx)
 	(
 		ctx.menu_left_action.get_activated_channel().subscribe
 		(
-			[&ctx](const auto& event)
+			[&ctx]([[maybe_unused]] const auto& event)
 			{
 				auto callback = ctx.menu_left_callbacks[*ctx.menu_item_index];
 				if (callback != nullptr)
@@ -52,7 +52,7 @@ void setup_menu_controls(::game& ctx)
 	(
 		ctx.menu_right_action.get_activated_channel().subscribe
 		(
-			[&ctx](const auto& event)
+			[&ctx]([[maybe_unused]] const auto& event)
 			{
 				auto callback = ctx.menu_right_callbacks[*ctx.menu_item_index];
 				if (callback != nullptr)
@@ -64,7 +64,7 @@ void setup_menu_controls(::game& ctx)
 	(
 		ctx.menu_select_action.get_activated_channel().subscribe
 		(
-			[&ctx](const auto& event)
+			[&ctx]([[maybe_unused]] const auto& event)
 			{
 				const auto& callback = ctx.menu_select_callbacks[*ctx.menu_item_index];
 				if (callback != nullptr)
@@ -76,7 +76,7 @@ void setup_menu_controls(::game& ctx)
 	(
 		ctx.menu_back_action.get_activated_channel().subscribe
 		(
-			[&ctx](const auto& event)
+			[&ctx]([[maybe_unused]] const auto& event)
 			{
 				if (ctx.menu_back_callback != nullptr)
 					ctx.menu_back_callback();
@@ -102,7 +102,7 @@ void enable_menu_controls(::game& ctx)
 	// Function to select menu item at mouse position
 	auto select_menu_item = [&ctx](const math::fvec2& mouse_position) -> bool
 	{
-		const float padding = config::menu_mouseover_padding * ctx.menu_font.get_font_metrics().size;
+		const float padding = config::menu_mouseover_padding * ctx.menu_font->get_metrics().size;
 		
 		for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 		{

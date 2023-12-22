@@ -45,6 +45,9 @@ public:
 	constexpr capsule_collider() noexcept = default;
 	/// @}
 	
+	/** Destructs a capsule collider. */
+	~capsule_collider() override = default;
+	
 	/**
 	 * Sets the collider's capsule.
 	 *

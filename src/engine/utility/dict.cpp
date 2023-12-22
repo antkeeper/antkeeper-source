@@ -144,14 +144,14 @@ void deserializer<dict<hash::fnv1a32_t>>::deserialize(dict<hash::fnv1a32_t>& dic
 		std::uint32_t type_hash = 0;
 		ctx.read32<std::endian::big>(reinterpret_cast<std::byte*>(&type_hash), 1);
 		
-		if (auto i = type_map.find(type_hash); i != type_map.end())
+		if (auto it = type_map.find(type_hash); it != type_map.end())
 		{
 			// Read entry key
 			hash::fnv1a32_t key;
 			ctx.read32<std::endian::big>(reinterpret_cast<std::byte*>(&key), 1);
 			
 			// Deserialize entry value
-			i->second(dict[key], ctx);
+			it->second(dict[key], ctx);
 		}
 		else
 		{
@@ -161,7 +161,7 @@ void deserializer<dict<hash::fnv1a32_t>>::deserialize(dict<hash::fnv1a32_t>& dic
 }
 
 template <>
-std::unique_ptr<dict<hash::fnv1a32_t>> resource_loader<dict<hash::fnv1a32_t>>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<dict<hash::fnv1a32_t>> resource_loader<dict<hash::fnv1a32_t>>::load([[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
 {
 	auto resource = std::make_unique<dict<hash::fnv1a32_t>>();
 	

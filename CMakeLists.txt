@@ -17,6 +17,8 @@ project(Antkeeper
 	LANGUAGES CXX C
 )
 
+option(ANTKEEPER_ASAN "Enable address sanitizer" OFF)
+
 set(APPLICATION_NAME ${PROJECT_NAME})
 string(TOLOWER "${APPLICATION_NAME}" APPLICATION_SLUG)
 set(APPLICATION_VERSION ${PROJECT_VERSION})
@@ -30,10 +32,15 @@ if(MSVC)
 	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-# Enable parallel building on MSVC
-add_compile_options(
-	$<$<CXX_COMPILER_ID:MSVC>:/MP>
-)
+if (MSVC)
+	# Enable parallel building on MSVC
+	add_compile_options(/MP)
+	
+	# Optionally enable address sanitizer
+	if (ANTKEEPER_ASAN)
+		add_compile_options(/fsanitize=address)
+	endif()
+endif()
 
 # Find Python3 interpreter
 find_package(Python3
@@ -335,7 +342,7 @@ target_compile_options(${PROJECT_NAME}
 	PRIVATE
 		$<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -pedantic>
 		$<$<CXX_COMPILER_ID:MSVC>:
-			/W3 /EHsc /GR-
+			/W4 /we4265 /we5204 /we5263 /we4946 /we4822 /we4355 /we4061 /we4062 /EHsc /GR-
 			$<$<NOT:$<CONFIG:Debug>>:/GL>
 			$<$<CONFIG:Release>:/O2 /Ob3 /Qfast_transcendentals /GS->
 		>

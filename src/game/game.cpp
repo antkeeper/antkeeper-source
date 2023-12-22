@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/game.hpp"
+#include "game/debug/shell.hpp"
+#include "game/debug/shell-buffer.hpp"
+#include "game/debug/commands.hpp"
 #include "game/commands/commands.hpp"
 #include "game/control-profile.hpp"
 #include "game/controls.hpp"
@@ -12,6 +15,7 @@
 #include "game/states/main-menu-state.hpp"
 #include "game/states/splash-state.hpp"
 #include "game/strings.hpp"
+#include "game/world.hpp"
 #include "game/systems/astronomy-system.hpp"
 #include "game/systems/atmosphere-system.hpp"
 #include "game/systems/behavior-system.hpp"
@@ -41,7 +45,6 @@
 #include <engine/animation/timeline.hpp>
 #include <engine/color/color.hpp>
 #include <engine/config.hpp>
-#include <engine/debug/cli.hpp>
 #include <engine/debug/log.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/pixel-format.hpp>
@@ -112,9 +115,6 @@ game::game(int argc, const char* const* argv)
 	setup_controls();
 	setup_debugging();
 	setup_timing();
-	
-	active_ecoregion = nullptr;
-	closed = false;
 	
 	// Profile boot duration
 	#if !defined(NDEBUG)
@@ -441,7 +441,7 @@ void game::setup_window()
 	// Setup window closed callback
 	window_closed_subscription = window->get_closed_channel().subscribe
 	(
-		[&](const auto& event)
+		[&]([[maybe_unused]] const auto& event)
 		{
 			closed = true;
 		}
@@ -538,7 +538,7 @@ void game::setup_input()
 	// Setup application quit callback
 	application_quit_subscription = input_manager->get_event_dispatcher().subscribe<input::application_quit_event>
 	(
-		[&](const auto& event)
+		[&]([[maybe_unused]] const auto& event)
 		{
 			closed = true;
 		}
@@ -773,7 +773,7 @@ void game::setup_ui()
 {
 	// Default UI settings
 	font_scale = 1.0f;
-	debug_font_size_pt = 10.0f;
+	debug_font_size_pt = 11.0f;
 	menu_font_size_pt = 22.0f;
 	title_font_size_pt = 80.0f;
 	dyslexia_font = false;
@@ -785,7 +785,7 @@ void game::setup_ui()
 	read_or_write_setting(*this, "title_font_size_pt", title_font_size_pt);
 	read_or_write_setting(*this, "dyslexia_font", dyslexia_font);
 	
-	// Allocate font materials
+	// Build font materials
 	debug_font_material = std::make_shared<render::material>();
 	menu_font_material = std::make_shared<render::material>();
 	title_font_material = std::make_shared<render::material>();
@@ -804,7 +804,6 @@ void game::setup_ui()
 	
 	// Get default framebuffer
 	const auto& viewport_size = window->get_viewport_size();
-	const float viewport_aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
 	
 	// Setup UI scene
 	ui_scene = std::make_unique<scene::collection>();
@@ -851,7 +850,7 @@ void game::setup_ui()
 	
 	// Menu BG animations
 	{
-		auto menu_bg_frame_callback = [menu_bg_tint](int channel, const float& opacity)
+		auto menu_bg_frame_callback = [menu_bg_tint]([[maybe_unused]] int channel, const float& opacity)
 		{
 			menu_bg_tint->set(math::fvec4{0.0f, 0.0f, 0.0f, opacity});
 		};
@@ -934,7 +933,7 @@ void game::setup_ui()
 			menu_bg_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), -100.0f});
 			
 			// Re-align debug text
-			frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - debug_font.get_font_metrics().size), 99.0f});
+			frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - debug_font->get_metrics().size), 99.0f});
 			
 			// Re-align menu text
 			::menu::align_text(*this);
@@ -1057,6 +1056,7 @@ void game::setup_controls()
 	camera_action_map.set_event_dispatcher(input_event_dispatcher);
 	ant_action_map.set_event_dispatcher(input_event_dispatcher);
 	debug_action_map.set_event_dispatcher(input_event_dispatcher);
+	terminal_action_map.set_event_dispatcher(input_event_dispatcher);
 	
 	// Default control profile settings
 	control_profile_filename = "controls.cfg";
@@ -1097,6 +1097,7 @@ void game::setup_controls()
 	setup_camera_controls(*this);
 	setup_game_controls(*this);
 	setup_ant_controls(*this);
+	setup_terminal_controls(*this);
 	
 	// Enable window controls
 	enable_window_controls(*this);
@@ -1112,20 +1113,45 @@ void game::setup_controls()
 
 void game::setup_debugging()
 {
-	cli = std::make_unique<debug::cli>();
+	command_line_text = std::make_shared<scene::text>();
+	command_line_text->set_material(debug_font_material);
+	command_line_text->set_color({1.0f, 1.0f, 0.0f, 1.0f});
+	command_line_text->set_font(debug_font);
+	command_line_text->set_translation
+	({
+		std::round(debug_font->get_metrics().linespace),
+		std::round(debug_font->get_metrics().linespace - debug_font->get_metrics().descent),
+		99.0f
+	});
+	
+	shell_buffer_text = std::make_shared<scene::text>();
+	shell_buffer_text->set_font(debug_font);
+	shell_buffer_text->set_material(debug_font_material);
+	shell_buffer_text->set_color({1.0f, 1.0f, 0.0f, 1.0f});
+	shell_buffer_text->set_translation({0.0f, 0.0f, 99.0f});
+	
+	shell_buffer = std::make_unique<::shell_buffer>();
+	shell_buffer->set_text_object(shell_buffer_text);
+	
+	shell = std::make_unique<::shell>();
+	shell->get_output().rdbuf(shell_buffer.get());
+	
+	// Register shell commands
+	register_commands(*shell, *this);
+	
+	// Set shell variables
+	shell->set_variable("language", language_tag);
+	shell->set_variable("version", config::application_version_string);
+	
+	command_line_text->set_content(shell->prompt());
 	
 	const auto& viewport_size = window->get_viewport_size();
 	
 	frame_time_text = std::make_unique<scene::text>();
 	frame_time_text->set_material(debug_font_material);
 	frame_time_text->set_color({1.0f, 1.0f, 0.0f, 1.0f});
-	frame_time_text->set_font(&debug_font);
-	frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - debug_font.get_font_metrics().size), 99.0f});
-	
-	#if defined(DEBUG)
-		ui_scene->add_object(*frame_time_text);
-		debug_ui_visible = true;
-	#endif
+	frame_time_text->set_font(debug_font);
+	frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - debug_font->get_metrics().size), 99.0f});
 }
 
 void game::setup_timing()
@@ -1219,7 +1245,7 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 	render_system->update(t, dt);
 }
 
-void game::variable_update(::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval, ::frame_scheduler::duration_type accumulated_time)
+void game::variable_update([[maybe_unused]] ::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval, ::frame_scheduler::duration_type accumulated_time)
 {
 	// Calculate subframe interpolation factor (`alpha`)
 	const float alpha = static_cast<float>(std::chrono::duration<double, ::frame_scheduler::duration_type::period>{accumulated_time} / fixed_update_interval);

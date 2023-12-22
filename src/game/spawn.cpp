@@ -6,7 +6,7 @@
 #include "game/components/scene-component.hpp"
 #include <engine/scene/static-mesh.hpp>
 
-entity::id spawn_ant_egg(::game& ctx, const ant_genome& genome, bool fertilized, const math::fvec3& position)
+entity::id spawn_ant_egg(::game& ctx, const ant_genome& genome, const math::fvec3& position)
 {
 	// Create entity
 	entity::id egg_eid = ctx.entity_registry->create();
@@ -42,8 +42,8 @@ entity::id spawn_ant_larva(::game& ctx, const ant_genome& genome, const math::fv
 	return larva_eid;
 }
 
-entity::id spawn_worker_ant(::game& ctx, const ant_genome& genome, const math::fvec3& position)
-{
-	return entt::null;
-}
+// entity::id spawn_worker_ant(::game& ctx, const ant_genome& genome, const math::fvec3& position)
+// {
+	// return entt::null;
+// }
 

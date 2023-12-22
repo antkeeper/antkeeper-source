@@ -11,6 +11,7 @@ class behavior_system:
 {
 public:
 	explicit behavior_system(entity::registry& registry);
+	~behavior_system() override = default;
 	virtual void update(float t, float dt);
 };
 

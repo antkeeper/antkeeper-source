@@ -54,7 +54,7 @@ navmesh_traversal traverse_navmesh(const geom::brep_mesh& mesh, geom::brep_face*
 			const auto edge_index = geom::edge_index(region);
 			
 			// Get pointer to the edge's loop
-			auto loop_it = face->loops().begin();
+			loop_it = face->loops().begin();
 			std::advance(loop_it, edge_index);
 			closest_loop = *loop_it;
 			
@@ -72,7 +72,7 @@ navmesh_traversal traverse_navmesh(const geom::brep_mesh& mesh, geom::brep_face*
 			const auto vertex_index = geom::vertex_index(region);
 			
 			// Get pointer to loop originating at the vertex
-			auto loop_it = face->loops().begin();
+			loop_it = face->loops().begin();
 			std::advance(loop_it, vertex_index);
 			geom::brep_loop* loop = *loop_it;
 			

@@ -12,7 +12,7 @@ void setup_debug_controls(::game& ctx)
 	(
 		ctx.toggle_debug_ui_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				ctx.debug_ui_visible = !ctx.debug_ui_visible;
 				if (ctx.debug_ui_visible)

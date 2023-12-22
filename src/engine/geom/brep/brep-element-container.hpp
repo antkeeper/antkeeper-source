@@ -256,9 +256,20 @@ protected:
 	 *
 	 * @param mesh Pointer to the parent mesh.
 	 */
-	inline explicit brep_element_container(brep_mesh* mesh) noexcept:
-		m_mesh(mesh)
-	{}
+	constexpr brep_element_container() noexcept = default;
+	
+	/** Destructs a B-rep element container. */
+	virtual ~brep_element_container() = default;
+	
+	/**
+	 * Associates the B-rep element container with a mesh.
+	 *
+	 * @param mesh Mesh with which to associate the container.
+	 */
+	inline void set_mesh(brep_mesh* mesh) noexcept
+	{
+		m_mesh = mesh;
+	}
 	
 	/// @name Modifiers
 	/// @{

@@ -14,6 +14,7 @@ class ik_system:
 {
 public:
 	explicit ik_system(entity::registry& registry);
+	~ik_system() override = default;
 	void update(float t, float dt) override;
 };
 

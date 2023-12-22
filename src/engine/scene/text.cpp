@@ -12,7 +12,7 @@ namespace scene {
 
 namespace {
 	
-	/// Text vertex attributes.
+	// Text vertex attributes.
 	constexpr gl::vertex_input_attribute text_vertex_attributes[3] =
 	{
 		{
@@ -35,8 +35,11 @@ namespace {
 		}
 	};
 	
-	/// Text vertex stride.
-	constexpr std::size_t text_vertex_stride = (2 + 2 + 4) * sizeof(float);
+	// Floating-point elements per text vertex
+	static const std::size_t floats_per_text_vertex = 2 + 2 + 4;
+	
+	// Text vertex byte stride.
+	static const std::size_t text_vertex_stride = floats_per_text_vertex * sizeof(float);
 }
 
 text::text()
@@ -45,7 +48,7 @@ text::text()
 	m_vertex_array = std::make_unique<gl::vertex_array>(text_vertex_attributes);
 	
 	// Construct empty vertex buffer
-	m_vertex_buffer = std::make_unique<gl::vertex_buffer>();
+	m_vertex_buffer = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw);
 	
 	// Init render operation
 	m_render_op.primitive_topology = gl::primitive_topology::triangle_list;
@@ -79,11 +82,28 @@ void text::set_material(std::shared_ptr<render::material> material)
 	m_render_op.material = material;
 }
 
-void text::set_font(const type::bitmap_font* font)
+void text::set_font(std::shared_ptr<type::font> font)
 {
 	if (m_font != font)
 	{
-		m_font = font;
+		m_font = std::move(font);
+		
+		if (m_font)
+		{
+			// Update character UV coordinates each time font texture is resized
+			m_font_texture_resized_subscription = m_font->get_texture_resized_channel().subscribe
+			(
+				[&]([[maybe_unused]] const auto& event)
+				{
+					update_uvs();
+				}
+			);
+		}
+		else
+		{
+			m_font_texture_resized_subscription.reset();
+		}
+		
 		update_content();
 	}
 }
@@ -97,7 +117,7 @@ void text::set_direction(type::text_direction direction)
 	}
 }
 
-void text::set_content(const std::string& content)
+void text::set_content(const std::string_view& content)
 {
 	if (m_content_u8 != content)
 	{
@@ -110,7 +130,7 @@ void text::set_content(const std::string& content)
 void text::set_color(const math::fvec4& color)
 {
 	m_color = color;
-	update_color();
+	update_colors();
 }
 
 void text::transformed()
@@ -125,6 +145,79 @@ void text::transformed()
 	m_render_op.transform = get_transform().matrix();
 }
 
+void text::update_uvs()
+{
+	if (!m_font || m_content_u32.empty() || m_vertex_data.size() < m_content_u32.length() * 6 * 8)
+	{
+		return;
+	}
+	
+	// Determine scale factor for texture coordinates
+	const auto& texture_dimensions = m_font->get_texture()->get_image_view()->get_image()->get_dimensions();
+	const auto uv_scale = math::fvec2
+	{
+		1.0f / static_cast<float>(texture_dimensions[0]),
+		1.0f / static_cast<float>(texture_dimensions[1])
+	};
+	
+	// Update texture coordinates
+	float* v = m_vertex_data.data() + 2;
+	for (auto code: m_content_u32)
+	{
+		// Get glyph from glyph cache
+		const auto glyph = m_font->get_cached_glyph(code);
+		
+		if (glyph)
+		{
+			// Glyph found, update glyph UVs
+			math::fvec2 uvs[6];
+			uvs[0] = {static_cast<float>(glyph->bitmap_position[0]), static_cast<float>(glyph->bitmap_position[1])};
+			uvs[1] = {uvs[0].x(), uvs[0].y() + glyph->bitmap_dimensions[1]};
+			uvs[2] = {uvs[0].x() + glyph->bitmap_dimensions[0], uvs[1].y()};
+			uvs[3] = {uvs[2].x(), uvs[0].y()};
+			uvs[4] = uvs[0];
+			uvs[5] = uvs[2];
+			
+			for (int i = 0; i < 6; ++i)
+			{
+				*(v++) = uvs[i].x() * uv_scale[0];
+				*(v++) = uvs[i].y() * uv_scale[1];
+				v += 6;
+			}
+		}
+		else
+		{
+			// Glyph not yet cached, skip it
+			v += 8 * 6;
+		}
+	}
+	
+	update_vertex_buffer();
+}
+
+void text::update_colors()
+{
+	if (m_content_u32.empty() || m_vertex_data.size() < m_content_u32.length() * 6 * 8)
+	{
+		return;
+	}
+	
+	float* v = m_vertex_data.data() + 4;
+	for ([[maybe_unused]] auto code: m_content_u32)
+	{
+		for (int i = 0; i < 6; ++i)
+		{
+			*(v++) = m_color[0];
+			*(v++) = m_color[1];
+			*(v++) = m_color[2];
+			*(v++) = m_color[3];
+			v += 4;
+		}
+	}
+	
+	update_vertex_buffer();
+}
+
 void text::update_content()
 {
 	// If no valid font or no text, clear vertex count
@@ -136,19 +229,28 @@ void text::update_content()
 		return;
 	}
 	
+	// Cache glyphs
+	m_font->cache_glyphs(m_content_u32);
+	
+	// Determine minimum size of vertex buffer, in bytes
+	std::size_t min_vertex_buffer_size = m_content_u32.length() * 6 * text_vertex_stride;
+	
 	// Reserve vertex data
-	auto vbo_min_size = m_content_u32.length() * text_vertex_stride * 6;
-	if (m_vertex_data.size() < vbo_min_size)
+	if (m_vertex_data.size() < min_vertex_buffer_size / sizeof(float))
 	{
-		m_vertex_data.resize(vbo_min_size);
+		m_vertex_data.resize(min_vertex_buffer_size / sizeof(float));
 	}
 	
-	std::uint32_t visible_character_count = static_cast<std::uint32_t>(m_content_u32.length());
-	
 	// Get font metrics and texture
-	const type::font_metrics& font_metrics = m_font->get_font_metrics();
-	const auto& font_texture = m_font->get_texture();
-	const auto& font_texture_dimensions = font_texture->get_image_view()->get_image()->get_dimensions();
+	const auto& font_metrics = m_font->get_metrics();
+	
+	// Determine scale factor for texture coordinates
+	const auto& texture_dimensions = m_font->get_texture()->get_image_view()->get_image()->get_dimensions();
+	const auto uv_scale = math::fvec2
+	{
+		1.0f / static_cast<float>(texture_dimensions[0]),
+		1.0f / static_cast<float>(texture_dimensions[1])
+	};
 	
 	// Init pen position
 	math::fvec2 pen_position = {0.0f, 0.0f};
@@ -159,128 +261,104 @@ void text::update_content()
 	
 	// Generate vertex data
 	char32_t previous_code = 0;
-	float* v = reinterpret_cast<float*>(m_vertex_data.data());
+	float* v = m_vertex_data.data();
 	for (char32_t code: m_content_u32)
 	{
+		// Get glyph from character code
+		const auto& glyph = *m_font->get_cached_glyph(code);
+		
 		// Apply kerning
 		if (previous_code)
 		{
-			pen_position.x() += m_font->get_kerning(previous_code, code).x();
+			pen_position.x() += m_font->get_kerning(previous_code, code)[0];
 		}
 		
-		// Get glyph
-		const type::bitmap_glyph* glyph = m_font->get_glyph(code);
-		if (glyph)
+		// Calculate vertex positions
+		math::fvec2 positions[6];
+		positions[0] = {pen_position[0] + glyph.horizontal_bearings[0], pen_position[1] + glyph.horizontal_bearings[1]};
+		positions[1] = {positions[0].x(), positions[0].y() - glyph.bitmap_dimensions[1]};
+		positions[2] = {positions[0].x() + glyph.bitmap_dimensions[0], positions[1].y()};
+		positions[3] = {positions[2].x(), positions[0].y()};
+		positions[4] = positions[0];
+		positions[5] = positions[2];
+		
+		// Calculate vertex UVs
+		math::fvec2 uvs[6];
+		uvs[0] = {static_cast<float>(glyph.bitmap_position[0]), static_cast<float>(glyph.bitmap_position[1])};
+		uvs[1] = {uvs[0].x(), uvs[0].y() + glyph.bitmap_dimensions[1]};
+		uvs[2] = {uvs[0].x() + glyph.bitmap_dimensions[0], uvs[1].y()};
+		uvs[3] = {uvs[2].x(), uvs[0].y()};
+		uvs[4] = uvs[0];
+		uvs[5] = uvs[2];
+		
+		for (int i = 0; i < 6; ++i)
 		{
-			// Calculate vertex positions
-			math::fvec2 positions[6];
-			positions[0] = pen_position + glyph->metrics.horizontal_bearing;
-			positions[1] = {positions[0].x(), positions[0].y() - glyph->metrics.height};
-			positions[2] = {positions[0].x() + glyph->metrics.width, positions[1].y()};
-			positions[3] = {positions[2].x(), positions[0].y()};
-			positions[4] = positions[0];
-			positions[5] = positions[2];
+			// Round positions
+			positions[i].x() = std::round(positions[i].x());
+			positions[i].y() = std::round(positions[i].y());
 			
-			// Calculate vertex UVs
-			math::fvec2 uvs[6];
-			uvs[0] = {static_cast<float>(glyph->position.x()), static_cast<float>(glyph->position.y())};
-			uvs[1] = {uvs[0].x(), uvs[0].y() + glyph->metrics.height};
-			uvs[2] = {uvs[0].x() + glyph->metrics.width, uvs[1].y()};
-			uvs[3] = {uvs[2].x(), uvs[0].y()};
-			uvs[4] = uvs[0];
-			uvs[5] = uvs[2];
-			
-			for (int i = 0; i < 6; ++i)
-			{
-				// Round positions
-				positions[i].x() = std::round(positions[i].x());
-				positions[i].y() = std::round(positions[i].y());
-				
-				// Normalize UVs
-				uvs[i].x() = uvs[i].x() / static_cast<float>(font_texture_dimensions[0]);
-				uvs[i].y() = uvs[i].y() / static_cast<float>(font_texture_dimensions[1]);
-			}
-			
-			// Add vertex to vertex data buffer
-			for (int i = 0; i < 6; ++i)
-			{
-				*(v++) = positions[i].x();
-				*(v++) = positions[i].y();
-				*(v++) = uvs[i].x();
-				*(v++) = uvs[i].y();
-				*(v++) = m_color[0];
-				*(v++) = m_color[1];
-				*(v++) = m_color[2];
-				*(v++) = m_color[3];
-			}
-			
-			// Advance pen position
-			pen_position.x() += glyph->metrics.horizontal_advance;
-			
-			// Update local-space bounds
-			for (int i = 0; i < 4; ++i)
-			{
-				const math::fvec2& position = positions[i];
-				for (int j = 0; j < 2; ++j)
-				{
-					m_local_bounds.min[j] = std::min<float>(m_local_bounds.min[j], position[j]);
-					m_local_bounds.max[j] = std::max<float>(m_local_bounds.max[j], position[j]);
-				}
-			}
+			// Normalize UVs
+			uvs[i] *= uv_scale;
 		}
-		else
+		
+		// Add vertex to vertex data buffer
+		for (int i = 0; i < 6; ++i)
 		{
-			--visible_character_count;
+			*(v++) = positions[i].x();
+			*(v++) = positions[i].y();
+			*(v++) = uvs[i].x();
+			*(v++) = uvs[i].y();
+			*(v++) = m_color[0];
+			*(v++) = m_color[1];
+			*(v++) = m_color[2];
+			*(v++) = m_color[3];
+		}
+		
+		// Advance pen position
+		pen_position.x() += glyph.horizontal_advance;
+		
+		// Update local-space bounds
+		for (int i = 0; i < 4; ++i)
+		{
+			const math::fvec2& position = positions[i];
+			for (int j = 0; j < 2; ++j)
+			{
+				m_local_bounds.min[j] = std::min<float>(m_local_bounds.min[j], position[j]);
+				m_local_bounds.max[j] = std::max<float>(m_local_bounds.max[j], position[j]);
+			}
 		}
 		
 		// Handle newlines
 		if (code == U'\n')
 		{
 			pen_position.x() = 0.0f;
-			pen_position.y() -= font_metrics.linegap;
+			pen_position.y() -= font_metrics.linespace;
 		}
 		
 		// Update previous UTF-32 character code
 		previous_code = code;
 	}
 	
-	// Adjust min VBO size
-	vbo_min_size = visible_character_count * text_vertex_stride * 6;
-	
 	// Upload vertex data to VBO, growing VBO size if necessary
-	if (vbo_min_size > m_vertex_buffer->size())
+	if (m_vertex_buffer->size() < min_vertex_buffer_size)
 	{
-		m_vertex_buffer->resize(vbo_min_size, {m_vertex_data.data(), vbo_min_size});
+		m_vertex_buffer->resize(min_vertex_buffer_size, {reinterpret_cast<const std::byte*>(m_vertex_data.data()), m_content_u32.size() * 6 * text_vertex_stride});
 	}
 	else
 	{
-		m_vertex_buffer->write({m_vertex_data.data(), vbo_min_size});
+		update_vertex_buffer();
 	}
 	
 	// Update render op
-	m_render_op.vertex_count = visible_character_count * 6;
+	m_render_op.vertex_count = static_cast<std::uint32_t>(m_content_u32.length() * 6);
 	
 	// Update world-space bounds
 	transformed();
 }
 
-void text::update_color()
+void text::update_vertex_buffer()
 {
-	std::byte* v = m_vertex_data.data();
-	
-	// Skip position UV
-	v += (2 + 2) * sizeof(float);
-	
-	for (std::size_t i = 0; i < m_render_op.vertex_count; ++i)
-	{
-		// Update vertex color
-		std::memcpy(v, m_color.data(), sizeof(float) * 4);
-		
-		v += text_vertex_stride;
-	}
-	
-	// Update VBO
-	m_vertex_buffer->write({m_vertex_data.data(), m_render_op.vertex_count * text_vertex_stride});
+	m_vertex_buffer->write({reinterpret_cast<const std::byte*>(m_vertex_data.data()), m_content_u32.size() * 6 * text_vertex_stride});
 }
 
 } // namespace scene

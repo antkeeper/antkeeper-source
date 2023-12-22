@@ -262,6 +262,9 @@ private:
 class brep_edge_container: public brep_element_container<brep_edge>
 {
 public:
+	/** Destructs a B-rep edge container. */
+	~brep_edge_container() override = default;
+	
 	/**
 	 * Appends a new edge to the end of the container.
 	 *
@@ -298,15 +301,6 @@ public:
 	
 private:
 	friend class brep_mesh;
-	
-	/**
-	 * Constructs a B-rep edge container.
-	 *
-	 * @param mesh Pointer to the parent mesh.
-	 */
-	inline explicit brep_edge_container(brep_mesh* mesh) noexcept:
-		brep_element_container<brep_edge>(mesh)
-	{}
 };
 
 } // namespace geom

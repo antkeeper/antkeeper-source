@@ -7,24 +7,24 @@
 constraint_system::constraint_system(entity::registry& registry):
 	updatable_system(registry)
 {
-	registry.on_construct<constraint_stack_component>().connect<&constraint_system::on_constraint_stack_update>(this);
-	registry.on_update<constraint_stack_component>().connect<&constraint_system::on_constraint_stack_update>(this);
-	registry.on_destroy<constraint_stack_component>().connect<&constraint_system::on_constraint_stack_update>(this);
+	m_registry.on_construct<constraint_stack_component>().connect<&constraint_system::on_constraint_stack_update>(this);
+	m_registry.on_update<constraint_stack_component>().connect<&constraint_system::on_constraint_stack_update>(this);
+	m_registry.on_destroy<constraint_stack_component>().connect<&constraint_system::on_constraint_stack_update>(this);
 }
 
 constraint_system::~constraint_system()
 {
-	registry.on_construct<constraint_stack_component>().disconnect<&constraint_system::on_constraint_stack_update>(this);
-	registry.on_update<constraint_stack_component>().disconnect<&constraint_system::on_constraint_stack_update>(this);
-	registry.on_destroy<constraint_stack_component>().disconnect<&constraint_system::on_constraint_stack_update>(this);
+	m_registry.on_construct<constraint_stack_component>().disconnect<&constraint_system::on_constraint_stack_update>(this);
+	m_registry.on_update<constraint_stack_component>().disconnect<&constraint_system::on_constraint_stack_update>(this);
+	m_registry.on_destroy<constraint_stack_component>().disconnect<&constraint_system::on_constraint_stack_update>(this);
 }
 
-void constraint_system::update(float t, float dt)
+void constraint_system::update([[maybe_unused]] float t, float dt)
 {
 	// For each entity with transform and constraint stack components
-	registry.view<transform_component, constraint_stack_component>().each
+	m_registry.view<transform_component, constraint_stack_component>().each
 	(
-		[&](entity::id transform_eid, auto& transform, auto& stack)
+		[&]([[maybe_unused]] entity::id transform_eid, auto& transform, auto& stack)
 		{
 			// Init world-space transform
 			transform.world = transform.local;
@@ -33,10 +33,10 @@ void constraint_system::update(float t, float dt)
 			entity::id constraint_eid = stack.head;
 			
 			// Consecutively apply constraints
-			while (registry.valid(constraint_eid))
+			while (m_registry.valid(constraint_eid))
 			{
 				// Get constraint stack node of the constraint
-				const constraint_stack_node_component* node = registry.try_get<constraint_stack_node_component>(constraint_eid);
+				const constraint_stack_node_component* node = m_registry.try_get<constraint_stack_node_component>(constraint_eid);
 				
 				// Abort if constraint is missing a constraint stack node
 				if (!node)
@@ -55,11 +55,11 @@ void constraint_system::update(float t, float dt)
 
 void constraint_system::evaluate(entity::id entity_id)
 {
-	if (!registry.valid(entity_id))
+	if (!m_registry.valid(entity_id))
 		return;
 	
 	// Get transform and constraint stack components of the entity
-	const auto [transform, stack] = registry.try_get<transform_component, constraint_stack_component>(entity_id);
+	const auto [transform, stack] = m_registry.try_get<transform_component, constraint_stack_component>(entity_id);
 	
 	if (!transform || !stack)
 		return;
@@ -71,10 +71,10 @@ void constraint_system::evaluate(entity::id entity_id)
 	entity::id constraint_eid = stack->head;
 	
 	// Consecutively apply constraints
-	while (registry.valid(constraint_eid))
+	while (m_registry.valid(constraint_eid))
 	{
 		// Get constraint stack node of the constraint
-		const constraint_stack_node_component* node = registry.try_get<constraint_stack_node_component>(constraint_eid);
+		const constraint_stack_node_component* node = m_registry.try_get<constraint_stack_node_component>(constraint_eid);
 		
 		// Abort if constraint is missing a constraint stack node
 		if (!node)
@@ -89,7 +89,7 @@ void constraint_system::evaluate(entity::id entity_id)
 	}
 }
 
-void constraint_system::on_constraint_stack_update(entity::registry& registry, entity::id constraint_stack_eid)
+void constraint_system::on_constraint_stack_update(entity::registry& registry, [[maybe_unused]] entity::id constraint_stack_eid)
 {
 	registry.sort<constraint_stack_component>
 	(
@@ -102,37 +102,37 @@ void constraint_system::on_constraint_stack_update(entity::registry& registry, e
 
 void constraint_system::handle_constraint(transform_component& transform, entity::id constraint_eid, float dt)
 {
-	if (auto constraint = registry.try_get<copy_translation_constraint>(constraint_eid))
-		handle_copy_translation_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<copy_rotation_constraint>(constraint_eid))
-		handle_copy_rotation_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<copy_scale_constraint>(constraint_eid))
-		handle_copy_scale_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<copy_transform_constraint>(constraint_eid))
-		handle_copy_transform_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<track_to_constraint>(constraint_eid))
-		handle_track_to_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<three_dof_constraint>(constraint_eid))
-		handle_three_dof_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<pivot_constraint>(constraint_eid))
-		handle_pivot_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<child_of_constraint>(constraint_eid))
-		handle_child_of_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<spring_to_constraint>(constraint_eid))
-		handle_spring_to_constraint(transform, *constraint, dt);
-	else if (auto constraint = registry.try_get<spring_translation_constraint>(constraint_eid))
-		handle_spring_translation_constraint(transform, *constraint, dt);
-	else if (auto constraint = registry.try_get<spring_rotation_constraint>(constraint_eid))
-		handle_spring_rotation_constraint(transform, *constraint, dt);
-	else if (auto constraint = registry.try_get<ease_to_constraint>(constraint_eid))
-		handle_ease_to_constraint(transform, *constraint, dt);
+	if (auto copy_translation_constraint_ptr = m_registry.try_get<copy_translation_constraint>(constraint_eid))
+		handle_copy_translation_constraint(transform, *copy_translation_constraint_ptr);
+	else if (auto copy_rotation_constraint_ptr = m_registry.try_get<copy_rotation_constraint>(constraint_eid))
+		handle_copy_rotation_constraint(transform, *copy_rotation_constraint_ptr);
+	else if (auto copy_scale_constraint_ptr = m_registry.try_get<copy_scale_constraint>(constraint_eid))
+		handle_copy_scale_constraint(transform, *copy_scale_constraint_ptr);
+	else if (auto copy_transform_constraint_ptr = m_registry.try_get<copy_transform_constraint>(constraint_eid))
+		handle_copy_transform_constraint(transform, *copy_transform_constraint_ptr);
+	else if (auto track_to_constraint_ptr = m_registry.try_get<track_to_constraint>(constraint_eid))
+		handle_track_to_constraint(transform, *track_to_constraint_ptr);
+	else if (auto three_dof_constraint_ptr = m_registry.try_get<three_dof_constraint>(constraint_eid))
+		handle_three_dof_constraint(transform, *three_dof_constraint_ptr);
+	else if (auto pivot_constraint_ptr = m_registry.try_get<pivot_constraint>(constraint_eid))
+		handle_pivot_constraint(transform, *pivot_constraint_ptr);
+	else if (auto child_of_constraint_ptr = m_registry.try_get<child_of_constraint>(constraint_eid))
+		handle_child_of_constraint(transform, *child_of_constraint_ptr);
+	else if (auto spring_to_constraint_ptr = m_registry.try_get<spring_to_constraint>(constraint_eid))
+		handle_spring_to_constraint(transform, *spring_to_constraint_ptr, dt);
+	else if (auto spring_translation_constraint_ptr = m_registry.try_get<spring_translation_constraint>(constraint_eid))
+		handle_spring_translation_constraint(transform, *spring_translation_constraint_ptr, dt);
+	else if (auto spring_rotation_constraint_ptr = m_registry.try_get<spring_rotation_constraint>(constraint_eid))
+		handle_spring_rotation_constraint(transform, *spring_rotation_constraint_ptr, dt);
+	else if (auto ease_to_constraint_ptr = m_registry.try_get<ease_to_constraint>(constraint_eid))
+		handle_ease_to_constraint(transform, *ease_to_constraint_ptr, dt);
 }
 
 void constraint_system::handle_child_of_constraint(transform_component& transform, const child_of_constraint& constraint)
 {
-	if (registry.valid(constraint.target))
+	if (m_registry.valid(constraint.target))
 	{
-		const transform_component* target_transform = registry.try_get<transform_component>(constraint.target);
+		const transform_component* target_transform = m_registry.try_get<transform_component>(constraint.target);
 		if (target_transform)
 		{
 			transform.world = target_transform->world * transform.world;
@@ -142,9 +142,9 @@ void constraint_system::handle_child_of_constraint(transform_component& transfor
 
 void constraint_system::handle_copy_rotation_constraint(transform_component& transform, const copy_rotation_constraint& constraint)
 {
-	if (registry.valid(constraint.target))
+	if (m_registry.valid(constraint.target))
 	{
-		const transform_component* target_transform = registry.try_get<transform_component>(constraint.target);
+		const transform_component* target_transform = m_registry.try_get<transform_component>(constraint.target);
 		if (target_transform)
 		{
 			transform.world.rotation = target_transform->world.rotation;
@@ -154,9 +154,9 @@ void constraint_system::handle_copy_rotation_constraint(transform_component& tra
 
 void constraint_system::handle_copy_scale_constraint(transform_component& transform, const copy_scale_constraint& constraint)
 {
-	if (registry.valid(constraint.target))
+	if (m_registry.valid(constraint.target))
 	{
-		const transform_component* target_transform = registry.try_get<transform_component>(constraint.target);
+		const transform_component* target_transform = m_registry.try_get<transform_component>(constraint.target);
 		if (target_transform)
 		{
 			const auto& target_scale = target_transform->world.scale;
@@ -173,9 +173,9 @@ void constraint_system::handle_copy_scale_constraint(transform_component& transf
 
 void constraint_system::handle_copy_transform_constraint(transform_component& transform, const copy_transform_constraint& constraint)
 {
-	if (registry.valid(constraint.target))
+	if (m_registry.valid(constraint.target))
 	{
-		const transform_component* target_transform = registry.try_get<transform_component>(constraint.target);
+		const transform_component* target_transform = m_registry.try_get<transform_component>(constraint.target);
 		if (target_transform)
 		{
 			transform.world = target_transform->world;
@@ -185,9 +185,9 @@ void constraint_system::handle_copy_transform_constraint(transform_component& tr
 
 void constraint_system::handle_copy_translation_constraint(transform_component& transform, const copy_translation_constraint& constraint)
 {
-	if (registry.valid(constraint.target))
+	if (m_registry.valid(constraint.target))
 	{
-		const transform_component* target_transform = registry.try_get<transform_component>(constraint.target);
+		const transform_component* target_transform = m_registry.try_get<transform_component>(constraint.target);
 		if (target_transform)
 		{
 			const auto& target_translation = target_transform->world.translation;
@@ -216,9 +216,9 @@ void constraint_system::handle_copy_translation_constraint(transform_component& 
 
 void constraint_system::handle_ease_to_constraint(transform_component& transform, ease_to_constraint& constraint, float dt)
 {
-	if (constraint.function && registry.valid(constraint.target))
+	if (constraint.function && m_registry.valid(constraint.target))
 	{
-		const transform_component* target_transform = registry.try_get<transform_component>(constraint.target);
+		const transform_component* target_transform = m_registry.try_get<transform_component>(constraint.target);
 		if (target_transform)
 		{
 			if (constraint.t < constraint.duration)
@@ -238,9 +238,9 @@ void constraint_system::handle_ease_to_constraint(transform_component& transform
 
 void constraint_system::handle_pivot_constraint(transform_component& transform, const pivot_constraint& constraint)
 {
-	if (registry.valid(constraint.target))
+	if (m_registry.valid(constraint.target))
 	{
-		const transform_component* target_transform = registry.try_get<transform_component>(constraint.target);
+		const transform_component* target_transform = m_registry.try_get<transform_component>(constraint.target);
 		if (target_transform)
 		{
 			// Get pivot center point
@@ -268,9 +268,9 @@ void constraint_system::handle_spring_rotation_constraint(transform_component& t
 
 void constraint_system::handle_spring_to_constraint(transform_component& transform, spring_to_constraint& constraint, float dt)
 {
-	if (registry.valid(constraint.target))
+	if (m_registry.valid(constraint.target))
 	{
-		const transform_component* target_transform = registry.try_get<transform_component>(constraint.target);
+		const transform_component* target_transform = m_registry.try_get<transform_component>(constraint.target);
 		if (target_transform)
 		{
 			// Spring translation
@@ -321,9 +321,9 @@ void constraint_system::handle_three_dof_constraint(transform_component& transfo
 
 void constraint_system::handle_track_to_constraint(transform_component& transform, const track_to_constraint& constraint)
 {
-	if (registry.valid(constraint.target))
+	if (m_registry.valid(constraint.target))
 	{
-		const transform_component* target_transform = registry.try_get<transform_component>(constraint.target);
+		const transform_component* target_transform = m_registry.try_get<transform_component>(constraint.target);
 		if (target_transform)
 		{
 			transform.world.rotation = math::look_rotation(math::normalize(target_transform->world.translation - transform.world.translation), constraint.up);

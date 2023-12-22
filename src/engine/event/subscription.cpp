@@ -7,8 +7,8 @@
 namespace event {
 
 subscription::subscription(std::weak_ptr<void>&& subscriber, unsubscribe_type&& unsubscriber):
-	subscriber(std::move(subscriber)),
-	unsubscriber(std::move(unsubscriber))
+	m_subscriber(std::move(subscriber)),
+	m_unsubscriber(std::move(unsubscriber))
 {}
 
 subscription::~subscription()
@@ -18,14 +18,14 @@ subscription::~subscription()
 
 bool subscription::expired() const noexcept
 {
-	return subscriber.expired();
+	return m_subscriber.expired();
 }
 
 void subscription::unsubscribe()
 {
 	if (!expired())
 	{
-		unsubscriber();
+		m_unsubscriber();
 	}
 }
 

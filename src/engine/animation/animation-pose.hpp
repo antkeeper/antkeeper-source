@@ -20,11 +20,21 @@ public:
 	 */
 	explicit animation_pose(const skeleton& skeleton);
 	
-	/// Constructs an empty animation pose.
+	/** Constructs an empty animation pose. */
 	animation_pose() noexcept = default;
+	
+	/** Destructs an animation pose. */
+	~animation_pose() override = default;
 	
 	using pose::update;
 	void update(bone_index_type first_index, std::size_t bone_count) override;
+	
+	/**
+	 * Associates this animation pose with a skeleton.
+	 *
+	 * @param skeleton Skeleton with which to associate the animation pose.
+	 */
+	void set_skeleton(const skeleton& skeleton) override;
 	
 	/**
 	 * Resets the animation pose to the skeleton's rest pose.

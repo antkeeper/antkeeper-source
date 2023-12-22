@@ -36,6 +36,9 @@ public:
 	 */
 	bloom_pass(gl::pipeline* pipeline, resource_manager* resource_manager);
 	
+	/** Destructs a bloom pass. */
+	~bloom_pass() override = default;
+	
 	/**
 	 * Renders a bloom texture.
 	 *

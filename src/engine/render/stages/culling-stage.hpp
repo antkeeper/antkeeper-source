@@ -14,6 +14,9 @@ namespace render {
 class culling_stage: public stage
 {
 public:
+	/** Destructs a culling stage. */
+	~culling_stage() override = default;
+	
 	void execute(render::context& ctx) override;
 };
 

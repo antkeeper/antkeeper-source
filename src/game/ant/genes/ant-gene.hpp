@@ -15,6 +15,9 @@
  */
 struct ant_gene_base
 {
+	/** Destructs an ant gene base. */
+	virtual ~ant_gene_base() = default;
+	
 	/// Returns the ant gene type.
 	[[nodiscard]] virtual constexpr ant_gene_type type() const noexcept = 0;
 	
@@ -32,6 +35,9 @@ struct ant_gene_base
 template <class T>
 struct ant_gene: public ant_gene_base
 {
+	/** Destructs an ant gene. */
+	virtual ~ant_gene() = default;
+	
 	[[nodiscard]] constexpr ant_gene_type type() const noexcept override;
 	
 	/// Phene definitions

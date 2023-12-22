@@ -25,28 +25,28 @@ physics_system::physics_system(entity::registry& registry):
 	constexpr auto box_i = std::to_underlying(physics::collider_type::box);
 	constexpr auto capsule_i = std::to_underlying(physics::collider_type::capsule);
 	
-	narrow_phase_table[plane_i][plane_i] = std::bind_front(&physics_system::narrow_phase_plane_plane, this);
-	narrow_phase_table[plane_i][sphere_i] = std::bind_front(&physics_system::narrow_phase_plane_sphere, this);
-	narrow_phase_table[plane_i][box_i] = std::bind_front(&physics_system::narrow_phase_plane_box, this);
-	narrow_phase_table[plane_i][capsule_i] = std::bind_front(&physics_system::narrow_phase_plane_capsule, this);
+	m_narrow_phase_table[plane_i][plane_i] = std::bind_front(&physics_system::narrow_phase_plane_plane, this);
+	m_narrow_phase_table[plane_i][sphere_i] = std::bind_front(&physics_system::narrow_phase_plane_sphere, this);
+	m_narrow_phase_table[plane_i][box_i] = std::bind_front(&physics_system::narrow_phase_plane_box, this);
+	m_narrow_phase_table[plane_i][capsule_i] = std::bind_front(&physics_system::narrow_phase_plane_capsule, this);
 	
-	narrow_phase_table[sphere_i][plane_i] = std::bind_front(&physics_system::narrow_phase_sphere_plane, this);
-	narrow_phase_table[sphere_i][sphere_i] = std::bind_front(&physics_system::narrow_phase_sphere_sphere, this);
-	narrow_phase_table[sphere_i][box_i] = std::bind_front(&physics_system::narrow_phase_sphere_box, this);
-	narrow_phase_table[sphere_i][capsule_i] = std::bind_front(&physics_system::narrow_phase_sphere_capsule, this);
+	m_narrow_phase_table[sphere_i][plane_i] = std::bind_front(&physics_system::narrow_phase_sphere_plane, this);
+	m_narrow_phase_table[sphere_i][sphere_i] = std::bind_front(&physics_system::narrow_phase_sphere_sphere, this);
+	m_narrow_phase_table[sphere_i][box_i] = std::bind_front(&physics_system::narrow_phase_sphere_box, this);
+	m_narrow_phase_table[sphere_i][capsule_i] = std::bind_front(&physics_system::narrow_phase_sphere_capsule, this);
 	
-	narrow_phase_table[box_i][plane_i] = std::bind_front(&physics_system::narrow_phase_box_plane, this);
-	narrow_phase_table[box_i][sphere_i] = std::bind_front(&physics_system::narrow_phase_box_sphere, this);
-	narrow_phase_table[box_i][box_i] = std::bind_front(&physics_system::narrow_phase_box_box, this);
-	narrow_phase_table[box_i][capsule_i] = std::bind_front(&physics_system::narrow_phase_box_capsule, this);
+	m_narrow_phase_table[box_i][plane_i] = std::bind_front(&physics_system::narrow_phase_box_plane, this);
+	m_narrow_phase_table[box_i][sphere_i] = std::bind_front(&physics_system::narrow_phase_box_sphere, this);
+	m_narrow_phase_table[box_i][box_i] = std::bind_front(&physics_system::narrow_phase_box_box, this);
+	m_narrow_phase_table[box_i][capsule_i] = std::bind_front(&physics_system::narrow_phase_box_capsule, this);
 	
-	narrow_phase_table[capsule_i][plane_i] = std::bind_front(&physics_system::narrow_phase_capsule_plane, this);
-	narrow_phase_table[capsule_i][sphere_i] = std::bind_front(&physics_system::narrow_phase_capsule_sphere, this);
-	narrow_phase_table[capsule_i][box_i] = std::bind_front(&physics_system::narrow_phase_capsule_box, this);
-	narrow_phase_table[capsule_i][capsule_i] = std::bind_front(&physics_system::narrow_phase_capsule_capsule, this);
+	m_narrow_phase_table[capsule_i][plane_i] = std::bind_front(&physics_system::narrow_phase_capsule_plane, this);
+	m_narrow_phase_table[capsule_i][sphere_i] = std::bind_front(&physics_system::narrow_phase_capsule_sphere, this);
+	m_narrow_phase_table[capsule_i][box_i] = std::bind_front(&physics_system::narrow_phase_capsule_box, this);
+	m_narrow_phase_table[capsule_i][capsule_i] = std::bind_front(&physics_system::narrow_phase_capsule_capsule, this);
 }
 
-void physics_system::update(float t, float dt)
+void physics_system::update([[maybe_unused]] float t, float dt)
 {
 	detect_collisions_broad();
 	detect_collisions_narrow();
@@ -56,13 +56,13 @@ void physics_system::update(float t, float dt)
 	correct_positions();
 	
 	// Update transform component transforms
-	auto transform_view = registry.view<rigid_body_component, transform_component>();
+	auto transform_view = m_registry.view<rigid_body_component, transform_component>();
 	for (const auto entity_id: transform_view)
 	{
 		const auto& body = *(transform_view.get<rigid_body_component>(entity_id).body);
 		
 		// Update transform
-		registry.patch<::transform_component>
+		m_registry.patch<::transform_component>
 		(
 			entity_id,
 			[&, dt](auto& transform)
@@ -77,7 +77,7 @@ void physics_system::update(float t, float dt)
 void physics_system::interpolate(float alpha)
 {
 	// Interpolate rigid body states
-	auto view = registry.view<rigid_body_component, scene_component>();
+	auto view = m_registry.view<rigid_body_component, scene_component>();
 	std::for_each
 	(
 		std::execution::par_unseq,
@@ -101,7 +101,7 @@ std::optional<std::tuple<entity::id, float, std::uint32_t, math::fvec3>> physics
 	math::fvec3 nearest_hit_normal;
 	
 	// For each entity with a rigid body
-	auto rigid_body_view = registry.view<rigid_body_component>();
+	auto rigid_body_view = m_registry.view<rigid_body_component>();
 	for (const auto entity_id: rigid_body_view)
 	{
 		if (entity_id == ignore_eid)
@@ -161,7 +161,7 @@ std::optional<std::tuple<entity::id, float, std::uint32_t, math::fvec3>> physics
 
 void physics_system::integrate(float dt)
 {
-	auto view = registry.view<rigid_body_component>();
+	auto view = m_registry.view<rigid_body_component>();
 	std::for_each
 	(
 		std::execution::par_unseq,
@@ -181,7 +181,7 @@ void physics_system::integrate(float dt)
 
 void physics_system::solve_constraints(float dt)
 {
-	registry.view<rigid_body_constraint_component>().each
+	m_registry.view<rigid_body_constraint_component>().each
 	(
 		[dt](auto& component)
 		{
@@ -192,9 +192,9 @@ void physics_system::solve_constraints(float dt)
 
 void physics_system::detect_collisions_broad()
 {
-	broad_phase_pairs.clear();
+	m_broad_phase_pairs.clear();
 	
-	auto view = registry.view<rigid_body_component>();
+	auto view = m_registry.view<rigid_body_component>();
 	for (auto i = view.begin(); i != view.end(); ++i)
 	{
 		auto& body_a = *view.get<rigid_body_component>(*i).body;
@@ -227,27 +227,27 @@ void physics_system::detect_collisions_broad()
 				continue;
 			}
 			
-			broad_phase_pairs.emplace_back(&body_a, &body_b);
+			m_broad_phase_pairs.emplace_back(&body_a, &body_b);
 		}
 	}
 }
 
 void physics_system::detect_collisions_narrow()
 {
-	narrow_phase_manifolds.clear();
+	m_narrow_phase_manifolds.clear();
 	
-	for (const auto& pair: broad_phase_pairs)
+	for (const auto& pair: m_broad_phase_pairs)
 	{
 		auto& body_a = *pair.first;
 		auto& body_b = *pair.second;
 		
-		narrow_phase_table[std::to_underlying(body_a.get_collider()->type())][std::to_underlying(body_b.get_collider()->type())](body_a, body_b);
+		m_narrow_phase_table[std::to_underlying(body_a.get_collider()->type())][std::to_underlying(body_b.get_collider()->type())](body_a, body_b);
 	}
 }
 
 void physics_system::resolve_collisions()
 {
-	for (const auto& manifold: narrow_phase_manifolds)
+	for (const auto& manifold: m_narrow_phase_manifolds)
 	{
 		auto& body_a = *manifold.body_a;
 		auto& body_b = *manifold.body_b;
@@ -338,7 +338,7 @@ void physics_system::correct_positions()
 	const float depth_threshold = 0.01f;
 	const float correction_factor = 0.4f;
 	
-	for (const auto& manifold: narrow_phase_manifolds)
+	for (const auto& manifold: m_narrow_phase_manifolds)
 	{
 		auto& body_a = *manifold.body_a;
 		auto& body_b = *manifold.body_b;
@@ -356,7 +356,7 @@ void physics_system::correct_positions()
 	}
 }
 
-void physics_system::narrow_phase_plane_plane(physics::rigid_body& body_a, physics::rigid_body& body_b)
+void physics_system::narrow_phase_plane_plane([[maybe_unused]] physics::rigid_body& body_a, [[maybe_unused]] physics::rigid_body& body_b)
 {
 	return;
 }
@@ -388,7 +388,7 @@ void physics_system::narrow_phase_plane_sphere(physics::rigid_body& body_a, phys
 	contact.normal = plane_normal;
 	contact.depth = std::abs(signed_distance - sphere_b.get_radius());
 	
-	narrow_phase_manifolds.emplace_back(std::move(manifold));
+	m_narrow_phase_manifolds.emplace_back(std::move(manifold));
 }
 
 void physics_system::narrow_phase_plane_box(physics::rigid_body& body_a, physics::rigid_body& body_b)
@@ -446,7 +446,7 @@ void physics_system::narrow_phase_plane_box(physics::rigid_body& body_a, physics
 	{
 		manifold.body_a = &body_a;
 		manifold.body_b = &body_b;
-		narrow_phase_manifolds.emplace_back(std::move(manifold));
+		m_narrow_phase_manifolds.emplace_back(std::move(manifold));
 	}
 }
 
@@ -503,7 +503,7 @@ void physics_system::narrow_phase_plane_capsule(physics::rigid_body& body_a, phy
 	{
 		manifold.body_a = &body_a;
 		manifold.body_b = &body_b;
-		narrow_phase_manifolds.emplace_back(std::move(manifold));
+		m_narrow_phase_manifolds.emplace_back(std::move(manifold));
 	}
 }
 
@@ -556,10 +556,10 @@ void physics_system::narrow_phase_sphere_sphere(physics::rigid_body& body_a, phy
 	contact.depth = sum_radii - distance;
 	contact.point = center_a + contact.normal * (radius_a - contact.depth * 0.5f);
 	
-	narrow_phase_manifolds.emplace_back(std::move(manifold));
+	m_narrow_phase_manifolds.emplace_back(std::move(manifold));
 }
 
-void physics_system::narrow_phase_sphere_box(physics::rigid_body& body_a, physics::rigid_body& body_b)
+void physics_system::narrow_phase_sphere_box([[maybe_unused]] physics::rigid_body& body_a, [[maybe_unused]] physics::rigid_body& body_b)
 {
 	return;
 }
@@ -615,7 +615,7 @@ void physics_system::narrow_phase_sphere_capsule(physics::rigid_body& body_a, ph
 	contact.normal = difference / distance;
 	contact.point = center_a + contact.normal * (radius_a - contact.depth * 0.5f);
 	
-	narrow_phase_manifolds.emplace_back(std::move(manifold));
+	m_narrow_phase_manifolds.emplace_back(std::move(manifold));
 }
 
 void physics_system::narrow_phase_box_plane(physics::rigid_body& body_a, physics::rigid_body& body_b)
@@ -623,17 +623,17 @@ void physics_system::narrow_phase_box_plane(physics::rigid_body& body_a, physics
 	narrow_phase_plane_box(body_b, body_a);
 }
 
-void physics_system::narrow_phase_box_sphere(physics::rigid_body& body_a, physics::rigid_body& body_b)
+void physics_system::narrow_phase_box_sphere([[maybe_unused]] physics::rigid_body& body_a, [[maybe_unused]] physics::rigid_body& body_b)
 {
 	return;
 }
 
-void physics_system::narrow_phase_box_box(physics::rigid_body& body_a, physics::rigid_body& body_b)
+void physics_system::narrow_phase_box_box([[maybe_unused]] physics::rigid_body& body_a, [[maybe_unused]] physics::rigid_body& body_b)
 {
 	return;
 }
 
-void physics_system::narrow_phase_box_capsule(physics::rigid_body& body_a, physics::rigid_body& body_b)
+void physics_system::narrow_phase_box_capsule([[maybe_unused]] physics::rigid_body& body_a, [[maybe_unused]] physics::rigid_body& body_b)
 {
 	return;
 }
@@ -648,7 +648,7 @@ void physics_system::narrow_phase_capsule_sphere(physics::rigid_body& body_a, ph
 	narrow_phase_sphere_capsule(body_b, body_a);
 }
 
-void physics_system::narrow_phase_capsule_box(physics::rigid_body& body_a, physics::rigid_body& body_b)
+void physics_system::narrow_phase_capsule_box([[maybe_unused]] physics::rigid_body& body_a, [[maybe_unused]] physics::rigid_body& body_b)
 {
 	return;
 }
@@ -712,5 +712,5 @@ void physics_system::narrow_phase_capsule_capsule(physics::rigid_body& body_a, p
 	contact.depth = sum_radii - distance;
 	contact.point = closest_a + contact.normal * (capsule_a.radius - contact.depth * 0.5f);
 	
-	narrow_phase_manifolds.emplace_back(std::move(manifold));
+	m_narrow_phase_manifolds.emplace_back(std::move(manifold));
 }

@@ -10,7 +10,9 @@ pose::pose(const skeleton& skeleton):
 	m_skeleton(&skeleton),
 	m_relative_transforms(skeleton.get_bone_count(), math::identity<bone_transform_type>),
 	m_absolute_transforms(skeleton.get_bone_count(), math::identity<bone_transform_type>)
-{}
+{
+	set_skeleton(skeleton);
+}
 
 void pose::update()
 {
@@ -42,4 +44,11 @@ void pose::update(bone_index_type first_index, std::size_t bone_count)
 			++child_index;
 		}
 	);
+}
+
+void pose::set_skeleton(const skeleton& skeleton)
+{
+	m_skeleton = &skeleton;
+	m_relative_transforms.resize(skeleton.get_bone_count(), math::identity<bone_transform_type>);
+	m_absolute_transforms.resize(skeleton.get_bone_count(), math::identity<bone_transform_type>);
 }

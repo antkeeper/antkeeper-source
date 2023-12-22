@@ -96,19 +96,19 @@ struct hypersphere
 	/// @private
 	/// @{
 	template <std::size_t M>
-	[[nodiscard]] static constexpr T volume(T r) noexcept
+	[[nodiscard]] constexpr T volume(T r) noexcept
 	{
 		return (math::two_pi<T> / static_cast<T>(M)) * r * r * volume<M - 2>(r);
 	}
 	
 	template <>
-	[[nodiscard]] static constexpr T volume<1>(T r) noexcept
+	[[nodiscard]] constexpr T volume<1>(T r) noexcept
 	{
 		return r * T{2};
 	}
 	
 	template <>
-	[[nodiscard]] static constexpr T volume<0>(T r) noexcept
+	[[nodiscard]] constexpr T volume<0>(T r) noexcept
 	{
 		return T{1};
 	}

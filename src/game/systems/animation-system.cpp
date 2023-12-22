@@ -14,14 +14,14 @@ animation_system::animation_system(entity::registry& registry):
 	updatable_system(registry)
 {}
 
-void animation_system::update(float t, float dt)
+void animation_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
 {
 	
 }
 
 void animation_system::interpolate(float alpha)
 {
-	auto pose_group = registry.group<pose_component>(entt::get<scene_component>);
+	auto pose_group = m_registry.group<pose_component>(entt::get<scene_component>);
 	std::for_each
 	(
 		std::execution::par_unseq,

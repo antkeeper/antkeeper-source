@@ -16,7 +16,6 @@
 #include "game/components/orbit-component.hpp"
 #include <engine/geom/primitives/ray.hpp>
 
-
 /**
  * Calculates apparent properties of celestial bodies as seen by an observer.
  */
@@ -25,7 +24,7 @@ class astronomy_system:
 {
 public:
 	explicit astronomy_system(entity::registry& registry);
-	~astronomy_system();
+	~astronomy_system() override;
 	
 	/**
 	 * Adds the timestep `dt`, scaled by set time scale, to the current time, then calculates apparent properties of celestial bodies as seen by an observer.
@@ -70,7 +69,12 @@ public:
 	
 	[[nodiscard]] inline double get_time() const noexcept
 	{
-		return time_days;
+		return m_time_days;
+	}
+	
+	[[nodiscard]] inline double get_time_scale() const noexcept
+	{
+		return m_time_scale;
 	}
 	
 private:
@@ -109,40 +113,39 @@ private:
 	 *
 	 * @return Spectral transmittance factor.
 	 */
-	math::dvec3 integrate_transmittance(const ::observer_component& observer, const ::celestial_body_component& body, const ::atmosphere_component& atmosphere, geom::ray<double, 3> ray) const;
+	[[nodiscard]] math::dvec3 integrate_transmittance(const ::observer_component& observer, const ::celestial_body_component& body, const ::atmosphere_component& atmosphere, geom::ray<double, 3> ray) const;
 	
 	/// Time since epoch, in days.
-	double time_days;
+	double m_time_days{};
 	
 	/// Time since epoch, in centuries.
-	double time_centuries;
+	double m_time_centuries{};
 	
 	/// Time scale.
-	double time_scale;
+	double m_time_scale{1.0};
 	
 	/// Number of transmittance integration samples.
-	std::size_t transmittance_samples;
+	std::size_t m_transmittance_samples{};
 	
 	/// Entity ID of the observer.
-	entity::id observer_eid;
+	entity::id m_observer_eid{entt::null};
 	
 	/// Entity ID of the reference body.
-	entity::id reference_body_eid;
+	entity::id m_reference_body_eid{entt::null};
 	
 	/// ENU to EUS transformation.
-	math::se3<double> enu_to_eus;
+	math::se3<double> m_enu_to_eus{};
 	
 	/// BCBF to EUS transformation.
-	math::se3<double> bcbf_to_eus;
+	math::se3<double> m_bcbf_to_eus{};
 	
 	/// ICRF to EUS tranformation.
-	math::se3<double> icrf_to_eus;
+	math::se3<double> m_icrf_to_eus{};
 	
-	scene::directional_light* sun_light;
-	scene::directional_light* moon_light;
-	::render::sky_pass* sky_pass;
-	math::dvec3 starlight_illuminance;
+	scene::directional_light* m_sun_light{};
+	scene::directional_light* m_moon_light{};
+	::render::sky_pass* m_sky_pass{};
+	math::dvec3 m_starlight_illuminance{};
 };
-
 
 #endif // ANTKEEPER_GAME_ASTRONOMY_SYSTEM_HPP

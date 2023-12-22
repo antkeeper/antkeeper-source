@@ -88,7 +88,7 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	std::uniform_int_distribution<> name_pool_distribution(0, static_cast<int>(name_pool->lines.size() - 1));
 	ctx.entity_registry->view<ant_caste_component>().each
 	(
-		[&](entity::id entity_id, const auto& caste)
+		[&](entity::id entity_id, [[maybe_unused]] const auto& caste)
 		{
 			ctx.entity_registry->emplace_or_replace<name_component>
 			(
@@ -122,11 +122,11 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	// Construct selection text
 	selection_text.set_material(ctx.menu_font_material);
 	selection_text.set_color({1.0f, 1.0f, 1.0f, 1.0f});
-	selection_text.set_font(&ctx.menu_font);
+	selection_text.set_font(ctx.menu_font);
 	const auto& text_aabb = selection_text.get_bounds();
 	float text_w = text_aabb.max.x() - text_aabb.min.x();
-	float text_h = text_aabb.max.y() - text_aabb.min.y();
-	selection_text.set_translation({std::round(viewport_size.x() * 0.5f - text_w * 0.5f), std::round(ctx.menu_font.get_font_metrics().size), 0.0f});
+	// float text_h = text_aabb.max.y() - text_aabb.min.y();
+	selection_text.set_translation({std::round(viewport_size.x() * 0.5f - text_w * 0.5f), std::round(ctx.menu_font->get_metrics().size), 0.0f});
 	
 	// Add text to UI
 	ctx.ui_scene->add_object(selection_text);
@@ -135,18 +135,12 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	entity::id random_alate_eid;
 	ctx.entity_registry->view<transform_component, steering_component>().each
 	(
-		[&](entity::id entity_id, auto& transform, auto& steering)
+		[&](entity::id entity_id, [[maybe_unused]] auto& transform, [[maybe_unused]] auto& steering)
 		{
 			random_alate_eid = entity_id;
 		}
 	);
 	select_entity(random_alate_eid);
-	
-	// Satisfy camera rig constraints
-	satisfy_camera_rig_constraints();
-	
-	// Setup controls
-	setup_controls();
 	
 	// Queue enable controls
 	ctx.function_queue.push
@@ -290,8 +284,6 @@ void nuptial_flight_state::create_camera_rig()
 	ctx.entity_registry->emplace<scene_component>(camera_rig_eid, camera_rig_camera);
 	ctx.entity_registry->emplace<transform_component>(camera_rig_eid, camera_rig_transform);
 	ctx.entity_registry->emplace<constraint_stack_component>(camera_rig_eid, camera_rig_constraint_stack);
-	
-	set_camera_rig_zoom(0.25f);
 }
 
 void nuptial_flight_state::destroy_camera_rig()
@@ -306,31 +298,6 @@ void nuptial_flight_state::destroy_camera_rig()
 	ctx.entity_registry->destroy(camera_rig_focus_ease_to_eid);
 	
 	ctx.entity_registry->destroy(camera_rig_fov_spring_eid);
-}
-
-void nuptial_flight_state::set_camera_rig_zoom(float zoom)
-{
-
-}
-
-void nuptial_flight_state::satisfy_camera_rig_constraints()
-{
-
-}
-
-void nuptial_flight_state::setup_controls()
-{
-
-}
-
-void nuptial_flight_state::enable_controls()
-{
-
-}
-
-void nuptial_flight_state::disable_controls()
-{
-
 }
 
 void nuptial_flight_state::select_entity(entity::id entity_id)
@@ -445,8 +412,8 @@ void nuptial_flight_state::select_entity(entity::id entity_id)
 			const auto& viewport_size = ctx.window->get_viewport_size();
 			const auto& text_aabb = selection_text.get_bounds();
 			float text_w = text_aabb.max.x() - text_aabb.min.x();
-			float text_h = text_aabb.max.y() - text_aabb.min.y();
-			selection_text.set_translation({std::round(viewport_size.x() * 0.5f - text_w * 0.5f), std::round(ctx.menu_font.get_font_metrics().size), 0.0f});
+			// float text_h = text_aabb.max.y() - text_aabb.min.y();
+			selection_text.set_translation({std::round(viewport_size.x() * 0.5f - text_w * 0.5f), std::round(ctx.menu_font->get_metrics().size), 0.0f});
 		}
 	}
 }

@@ -17,9 +17,7 @@ class screen_transition
 public:
 	screen_transition();
 	
-	void set_visible(bool visible);
-	
-	void transition(float duration, bool reverse, animation<float>::interpolator_type interpolator, bool hide = true, const std::function<void()>& callback = nullptr);
+	void transition(float duration, bool reverse, animation<float>::interpolator_type interpolator, bool hide = true, const std::function<void()>& function = nullptr);
 	
 	scene::billboard* get_billboard();
 	std::shared_ptr<render::material> get_material();

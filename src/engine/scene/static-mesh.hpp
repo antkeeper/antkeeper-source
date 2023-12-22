@@ -25,9 +25,12 @@ public:
 	explicit static_mesh(std::shared_ptr<render::model> model);
 	
 	/**
-	 * Constructs a model instance.
+	 * Constructs a static mesh.
 	 */
 	static_mesh() = default;
+	
+	/** Destructs a static mesh. */
+	~static_mesh() override = default;
 	
 	/**
 	 * Sets the model with which this model instance is associated.

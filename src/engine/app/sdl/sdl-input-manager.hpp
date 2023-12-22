@@ -28,6 +28,8 @@ public:
 	void set_relative_mouse_mode(bool enabled) override;
 	void set_clipboard_text(const std::string& text) override;
 	[[nodiscard]] std::string get_clipboard_text() const override;
+	void start_text_input(const geom::rectangle<int>& rect) override;
+	void stop_text_input() override;
 
 private:
 	input::keyboard m_keyboard;

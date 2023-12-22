@@ -37,6 +37,9 @@ public:
 	 */
 	gamepad();
 	
+	/** Destructs a gamepad. */
+	~gamepad() override = default;
+	
 	/**
 	 * Sets the activation threshold for a gamepad axis.
 	 *

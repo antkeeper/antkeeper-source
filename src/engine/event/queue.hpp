@@ -15,7 +15,10 @@ namespace event {
  */
 class queue: public dispatcher
 {
-public:	
+public:
+	/** Destructs a queue. */
+	~queue() override = default;
+	
 	/**
 	 * Adds a message to the queue, to be distributed later.
 	 *
@@ -26,7 +29,7 @@ public:
 	template <class T>
 	void enqueue(const T& message)
 	{
-		messages.emplace_back
+		m_messages.emplace_back
 		(
 			[this, message]()
 			{
@@ -40,10 +43,10 @@ public:
 	 */
 	void flush()
 	{
-		while (!messages.empty())
+		while (!m_messages.empty())
 		{
-			messages.front()();
-			messages.pop_front();
+			m_messages.front()();
+			m_messages.pop_front();
 		}
 	}
 	
@@ -52,7 +55,7 @@ public:
 	 */
 	void clear()
 	{
-		messages.clear();
+		m_messages.clear();
 	}
 	
 	/**
@@ -60,11 +63,11 @@ public:
 	 */
 	[[nodiscard]] inline bool empty() const noexcept
 	{
-		return messages.empty();
+		return m_messages.empty();
 	}
 
 private:
-	std::list<std::function<void()>> messages;
+	std::list<std::function<void()>> m_messages;
 };
 
 } // namespace event

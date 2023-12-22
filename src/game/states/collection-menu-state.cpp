@@ -51,7 +51,7 @@ collection_menu_state::collection_menu_state(::game& ctx):
 	
 	mouse_moved_subscription = ctx.input_manager->get_event_dispatcher().subscribe<input::mouse_moved_event>
 	(
-		[&](const auto& event)
+		[&]([[maybe_unused]] const auto& event)
 		{
 
 		}
@@ -95,7 +95,7 @@ collection_menu_state::collection_menu_state(::game& ctx):
 	
 	window_resized_subscription = ctx.window->get_resized_channel().subscribe
 	(
-		[&](const auto& event)
+		[&]([[maybe_unused]] const auto& event)
 		{
 			this->resize_box();
 		}

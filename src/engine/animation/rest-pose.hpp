@@ -19,11 +19,21 @@ public:
 	 */
 	explicit rest_pose(const skeleton& skeleton);
 	
-	/// Constructs an empty rest pose.
+	/** Constructs an empty rest pose. */
 	rest_pose() noexcept = default;
+	
+	/** Destructs a rest pose. */
+	~rest_pose() override = default;
 	
 	using pose::update;
 	void update(bone_index_type first_index, std::size_t bone_count) override;
+	
+	/**
+	 * Associates this rese pose with a skeleton.
+	 *
+	 * @param skeleton Skeleton with which to associate the rest pose.
+	 */
+	void set_skeleton(const skeleton& skeleton) override;
 	
 	/**
 	 * Updates the number of bones in the rest pose if the skeleton has been modified.

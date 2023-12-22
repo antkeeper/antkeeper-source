@@ -7,16 +7,16 @@
 namespace type {
 namespace unicode {
 
-std::u32string u32(const std::string& u8)
+std::u32string u32(std::string_view u8_view)
 {
 	std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
-	return convert.from_bytes(u8);
+	return convert.from_bytes(u8_view.data());
 }
 
-std::string u8(const std::u32string& u32)
+std::string u8(std::u32string_view u32_view)
 {
 	std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
-	return convert.to_bytes(u32);
+	return convert.to_bytes(u32_view.data());
 }
 
 } // namespace unicode

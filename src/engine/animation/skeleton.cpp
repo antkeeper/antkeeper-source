@@ -5,9 +5,10 @@
 #include <stdexcept>
 
 skeleton::skeleton(std::size_t bone_count):
-	m_bone_parents(bone_count, 0),
-	m_rest_pose(*this)
-{}
+	m_bone_parents(bone_count, 0)
+{
+	m_rest_pose.set_skeleton(*this);
+}
 
 skeleton::skeleton():
 	skeleton(0)

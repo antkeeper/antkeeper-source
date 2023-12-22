@@ -30,19 +30,7 @@ private:
 	void create_third_person_camera_rig();
 	void destroy_third_person_camera_rig();
 	
-	void set_third_person_camera_zoom(double zoom);
-	void set_third_person_camera_rotation(double yaw, double pitch);
-	
-	void zoom_third_person_camera(double zoom);
-	void translate_third_person_camera(const math::dvec3& direction, double magnitude);
-	void rotate_third_person_camera(const input::mouse_moved_event& event);
-	
 	void handle_mouse_motion(const input::mouse_moved_event& event);
-	
-	void update_third_person_camera();
-	void load_camera_preset(std::uint8_t index);
-	void save_camera_preset(std::uint8_t index);
-	void load_or_save_camera_preset(std::uint8_t index);
 	
 	[[nodiscard]] geom::ray<float, 3> get_mouse_ray(const math::vec2<std::int32_t>& mouse_position) const;
 	
@@ -83,16 +71,6 @@ private:
 	math::dquat third_person_camera_yaw_rotation{math::identity<math::dquat>};
 	math::dquat third_person_camera_pitch_rotation{math::identity<math::dquat>};
 	math::dquat third_person_camera_orientation{math::identity<math::dquat>};
-	
-	struct camera_preset
-	{
-		double yaw{};
-		double pitch{};
-		math::dvec3 focal_point{};
-		double zoom{0.25};
-	};
-	
-	std::vector<std::optional<camera_preset>> camera_presets{10};
 	
 	std::shared_ptr<render::matvar_fvec3> light_rectangle_emissive;
 	std::shared_ptr<scene::light_probe> light_probe;

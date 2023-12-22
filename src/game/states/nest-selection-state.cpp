@@ -219,8 +219,6 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	// Create first person camera rig
 	create_first_person_camera_rig();
 	
-	// Satisfy first person camera rig constraints
-	satisfy_first_person_camera_rig_constraints();
 	
 	// Setup controls
 	setup_controls();
@@ -392,29 +390,10 @@ void nest_selection_state::destroy_first_person_camera_rig()
 	ctx.entity_registry->destroy(first_person_camera_rig_eid);
 }
 
-void nest_selection_state::set_first_person_camera_rig_pedestal(float pedestal)
-{
-
-}
-
-void nest_selection_state::move_first_person_camera_rig(const math::fvec2& direction, float factor)
-{
-
-}
-
-void nest_selection_state::satisfy_first_person_camera_rig_constraints()
-{
-
-}
-
 void nest_selection_state::setup_controls()
 {
-	
-	constexpr float movement_speed = 200.0f;
-	
 	auto move_first_person_camera_rig = [&](const math::fvec2& direction, float speed)
 	{
-		const transform_component& first_person_camera_rig_transform = ctx.entity_registry->get<transform_component>(first_person_camera_rig_eid);
 		
 		const math::fquat yaw_rotation = math::angle_axis(static_cast<float>(first_person_camera_yaw), math::fvec3{0.0f, 1.0f, 0.0f});
 		
@@ -544,7 +523,7 @@ void nest_selection_state::setup_controls()
 	(
 		ctx.move_forward_action.get_deactivated_channel().subscribe
 		(
-			[&, stop_first_person_camera_rig](const auto& event)
+			[&, stop_first_person_camera_rig]([[maybe_unused]] const auto& event)
 			{
 				stop_first_person_camera_rig();
 			}
@@ -566,7 +545,7 @@ void nest_selection_state::setup_controls()
 	(
 		ctx.move_back_action.get_deactivated_channel().subscribe
 		(
-			[&, stop_first_person_camera_rig](const auto& event)
+			[&, stop_first_person_camera_rig]([[maybe_unused]] const auto& event)
 			{
 				stop_first_person_camera_rig();
 			}
@@ -588,7 +567,7 @@ void nest_selection_state::setup_controls()
 	(
 		ctx.move_left_action.get_deactivated_channel().subscribe
 		(
-			[&, stop_first_person_camera_rig](const auto& event)
+			[&, stop_first_person_camera_rig]([[maybe_unused]] const auto& event)
 			{
 				stop_first_person_camera_rig();
 			}
@@ -610,7 +589,7 @@ void nest_selection_state::setup_controls()
 	(
 		ctx.move_right_action.get_deactivated_channel().subscribe
 		(
-			[&, stop_first_person_camera_rig](const auto& event)
+			[&, stop_first_person_camera_rig]([[maybe_unused]] const auto& event)
 			{
 				stop_first_person_camera_rig();
 			}
@@ -622,7 +601,7 @@ void nest_selection_state::setup_controls()
 	(
 		ctx.move_up_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				ctx.entity_registry->patch<rigid_body_component>
 				(
@@ -641,7 +620,7 @@ void nest_selection_state::setup_controls()
 	(
 		ctx.move_down_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				ctx.entity_registry->patch<rigid_body_component>
 				(
@@ -752,13 +731,3 @@ void nest_selection_state::setup_controls()
 	);
 	*/
 }
-
-void nest_selection_state::enable_controls()
-{
-
-}
-
-void nest_selection_state::disable_controls()
-{
-}
-

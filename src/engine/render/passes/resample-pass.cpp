@@ -33,7 +33,7 @@ resample_pass::resample_pass(gl::pipeline* pipeline, const gl::framebuffer* fram
 	}
 }
 
-void resample_pass::render(render::context& ctx)
+void resample_pass::render([[maybe_unused]] render::context& ctx)
 {
 	for (const auto& command: m_command_buffer)
 	{

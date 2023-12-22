@@ -18,13 +18,13 @@ metamorphosis_system::metamorphosis_system(entity::registry& registry):
 	updatable_system(registry)
 {}
 
-void metamorphosis_system::update(float t, float dt)
+void metamorphosis_system::update([[maybe_unused]] float t, float dt)
 {
 	// Scale timestep
 	const auto scaled_timestep = dt * m_time_scale;
 	
 	// Incubate eggs
-	auto egg_group = registry.group<egg_component>(entt::get<ant_genome_component>);
+	auto egg_group = m_registry.group<egg_component>(entt::get<ant_genome_component>);
 	std::for_each
 	(
 		std::execution::seq,
@@ -45,8 +45,8 @@ void metamorphosis_system::update(float t, float dt)
 			if (egg.incubation_phase >= 1.0f)
 			{
 				const auto& genome = *egg_group.get<ant_genome_component>(entity_id).genome;
-				const auto layer_mask = registry.get<scene_component>(entity_id).layer_mask;
-				auto& rigid_body = *registry.get<rigid_body_component>(entity_id).body;
+				const auto layer_mask = m_registry.get<scene_component>(entity_id).layer_mask;
+				auto& rigid_body = *m_registry.get<rigid_body_component>(entity_id).body;
 				
 				// Calculate scales of first and final instars
 				const auto egg_scale = rigid_body.get_scale().x();
@@ -57,11 +57,11 @@ void metamorphosis_system::update(float t, float dt)
 				const auto growth_rate = (final_instar_scale - first_instar_scale) / genome.larva->phenes.front().development_period;
 				
 				// Erase egg component
-				registry.erase<egg_component>(entity_id);
+				m_registry.erase<egg_component>(entity_id);
 				
 				// Replace egg model with larva model
-				registry.erase<scene_component>(entity_id);
-				registry.emplace<scene_component>(entity_id, std::make_shared<scene::skeletal_mesh>(genome.larva->phenes.front().model), layer_mask);
+				m_registry.erase<scene_component>(entity_id);
+				m_registry.emplace<scene_component>(entity_id, std::make_shared<scene::skeletal_mesh>(genome.larva->phenes.front().model), layer_mask);
 				
 				// Init larva scale
 				rigid_body.set_scale(first_instar_scale);
@@ -71,16 +71,16 @@ void metamorphosis_system::update(float t, float dt)
 				larva_component larva;
 				larva.development_period = genome.larva->phenes.front().development_period;
 				larva.spinning_period = genome.larva->phenes.front().spinning_period;
-				registry.emplace<larva_component>(entity_id, std::move(larva));
+				m_registry.emplace<larva_component>(entity_id, std::move(larva));
 				
 				// Begin isometric growth
-				registry.emplace<isometric_growth_component>(entity_id, growth_rate);
+				m_registry.emplace<isometric_growth_component>(entity_id, growth_rate);
 			}
 		}
 	);
 	
 	// Develop larvae
-	auto larva_group = registry.group<larva_component>(entt::get<ant_genome_component>);
+	auto larva_group = m_registry.group<larva_component>(entt::get<ant_genome_component>);
 	std::for_each
 	(
 		std::execution::seq,
@@ -98,12 +98,12 @@ void metamorphosis_system::update(float t, float dt)
 				// If larval development complete
 				if (larva.development_phase >= 1.0f)
 				{
-					const auto& rigid_body = *registry.get<rigid_body_component>(entity_id).body;
+					const auto& rigid_body = *m_registry.get<rigid_body_component>(entity_id).body;
 					const auto& genome = *larva_group.get<ant_genome_component>(entity_id).genome;
-					const auto layer_mask = registry.get<scene_component>(entity_id).layer_mask;				
+					const auto layer_mask = m_registry.get<scene_component>(entity_id).layer_mask;				
 					
 					// Halt isometric growth
-					registry.remove<isometric_growth_component>(entity_id);
+					m_registry.remove<isometric_growth_component>(entity_id);
 					
 					// Construct cocoon mesh
 					auto cocoon_mesh = std::make_shared<scene::static_mesh>(genome.pupa->phenes.front().cocoon_model);
@@ -120,8 +120,8 @@ void metamorphosis_system::update(float t, float dt)
 					cocoon_mesh->set_material(0, std::move(cocoon_material));
 					
 					// Construct cocoon entity
-					larva.cocoon_eid = registry.create();
-					registry.emplace<scene_component>(larva.cocoon_eid, std::move(cocoon_mesh), layer_mask);
+					larva.cocoon_eid = m_registry.create();
+					m_registry.emplace<scene_component>(larva.cocoon_eid, std::move(cocoon_mesh), layer_mask);
 				}
 			}
 			else if (larva.spinning_phase < 1.0f)
@@ -138,22 +138,22 @@ void metamorphosis_system::update(float t, float dt)
 				if (larva.spinning_phase >= 1.0f)
 				{
 					// Erase larva component
-					registry.erase<larva_component>(entity_id);
+					m_registry.erase<larva_component>(entity_id);
 					
 					// Erase scene component
-					registry.erase<scene_component>(entity_id);
+					m_registry.erase<scene_component>(entity_id);
 					
 					// Define pupal development period
 					pupa_component pupa;
 					pupa.development_period = genome.pupa->phenes.front().development_period;
-					registry.emplace<pupa_component>(entity_id, std::move(pupa));
+					m_registry.emplace<pupa_component>(entity_id, std::move(pupa));
 				}
 			}
 		}
 	);
 	
 	// Develop pupae
-	auto pupa_group = registry.group<pupa_component>(entt::get<ant_genome_component>);
+	auto pupa_group = m_registry.group<pupa_component>(entt::get<ant_genome_component>);
 	std::for_each
 	(
 		std::execution::seq,
@@ -173,13 +173,13 @@ void metamorphosis_system::update(float t, float dt)
 			// If pupal development complete
 			if (pupa.development_phase >= 1.0f)
 			{
-				const auto& genome = *pupa_group.get<ant_genome_component>(entity_id).genome;
+				// const auto& genome = *pupa_group.get<ant_genome_component>(entity_id).genome;
 				
 				// Erase pupa component
-				registry.erase<pupa_component>(entity_id);
+				m_registry.erase<pupa_component>(entity_id);
 				
 				// Construct adult model
-				// registry.emplace<scene_component>(entity_id, std::make_shared<scene::skeletal_mesh>(ant_model), layer_mask);
+				// m_registry.emplace<scene_component>(entity_id, std::make_shared<scene::skeletal_mesh>(ant_model), layer_mask);
 			}
 		}
 	);

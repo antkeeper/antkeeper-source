@@ -28,7 +28,7 @@ void camera_system::interpolate(float alpha)
 	m_variable_update_time = variable_update_time;
 	
 	/*
-	auto autofocus_group = registry.group<autofocus_component>(entt::get<scene_component>);
+	auto autofocus_group = m_registry.group<autofocus_component>(entt::get<scene_component>);
 	std::for_each
 	(
 		std::execution::seq,
@@ -59,7 +59,7 @@ void camera_system::interpolate(float alpha)
 	);
 	*/
 	
-	auto spring_arm_group = registry.group<spring_arm_component>(entt::get<scene_component>);
+	auto spring_arm_group = m_registry.group<spring_arm_component>(entt::get<scene_component>);
 	std::for_each
 	(
 		std::execution::seq,
@@ -73,7 +73,7 @@ void camera_system::interpolate(float alpha)
 			math::transform<double> parent_transform = math::identity<math::transform<double>>;
 			if (spring_arm.parent_eid != entt::null)
 			{
-				const auto parent_scene = registry.try_get<scene_component>(spring_arm.parent_eid);
+				const auto parent_scene = m_registry.try_get<scene_component>(spring_arm.parent_eid);
 				if (parent_scene)
 				{
 					parent_transform.translation = math::dvec3(parent_scene->object->get_translation());

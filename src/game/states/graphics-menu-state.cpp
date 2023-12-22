@@ -213,6 +213,7 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		debug::log_trace("Reloaded fonts");
 		
 		// Refresh and realign text
+		::menu::update_text_font(ctx);
 		::menu::refresh_text(ctx);
 		::menu::align_text(ctx);
 	};
@@ -241,6 +242,7 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		debug::log_trace("Reloaded fonts");
 		
 		// Refresh and realign text
+		::menu::update_text_font(ctx);
 		::menu::refresh_text(ctx);
 		::menu::align_text(ctx);
 	};
@@ -261,6 +263,7 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		debug::log_trace("Reloaded fonts");
 		
 		// Refresh and realign text
+		::menu::update_text_font(ctx);
 		::menu::refresh_text(ctx);
 		::menu::align_text(ctx);
 	};

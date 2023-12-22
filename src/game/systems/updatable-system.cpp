@@ -5,6 +5,6 @@
 
 
 updatable_system::updatable_system(entity::registry& registry):
-	registry(registry)
+	m_registry(registry)
 {}
 

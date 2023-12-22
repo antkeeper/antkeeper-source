@@ -27,11 +27,11 @@ template <class T>
 class channel
 {
 public:
-	/// Message type.
-	typedef T message_type;
+	/** Message type. */
+	using message_type = T;
 	
-	/// Subscriber function object type.
-	typedef subscriber<message_type> subscriber_type;
+	/** Subscriber function object type. */
+	using subscriber_type = subscriber<message_type>;
 	
 	/**
 	 * Subscribes a function object to messages published through this channel.
@@ -46,7 +46,7 @@ public:
 		std::shared_ptr<subscriber_type> shared_subscriber = std::make_shared<subscriber_type>(std::move(subscriber));
 		
 		// Append subscriber to subscriber list and store iterator
-		auto iterator = subscribers.insert(subscribers.end(), shared_subscriber);
+		auto iterator = m_subscribers.insert(m_subscribers.end(), shared_subscriber);
 		
 		// Construct and return a shared subscription object which removes the subscriber from the subscriber list when unsubscribed or destructed
 		return std::make_shared<subscription>
@@ -54,7 +54,7 @@ public:
 			std::static_pointer_cast<void>(shared_subscriber),
 			[this, iterator = std::move(iterator)]
 			{
-				this->subscribers.erase(iterator);
+				this->m_subscribers.erase(iterator);
 			}
 		);
 	}
@@ -99,7 +99,7 @@ private:
 	friend class publisher<T>;
 	
 	/// List of subscribers.
-	std::list<std::shared_ptr<subscriber_type>> subscribers;
+	std::list<std::shared_ptr<subscriber_type>> m_subscribers;
 };
 
 } // namespace event

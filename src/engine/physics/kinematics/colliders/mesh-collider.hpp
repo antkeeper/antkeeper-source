@@ -44,6 +44,9 @@ public:
 	/// Constructs an empty mesh collider.
 	constexpr mesh_collider() noexcept = default;
 	
+	/** Destructs a mesh collider. */
+	~mesh_collider() override = default;
+	
 	/**
 	 * Sets the collider's mesh.
 	 *

@@ -36,6 +36,12 @@ void animation_pose::update(bone_index_type first_index, std::size_t bone_count)
 	);
 }
 
+void animation_pose::set_skeleton(const skeleton& skeleton)
+{
+	pose::set_skeleton(skeleton);
+	m_matrix_palette.resize(skeleton.get_bone_count(), math::identity<bone_matrix_type>);
+}
+
 void animation_pose::reset()
 {
 	if (!m_skeleton)

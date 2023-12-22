@@ -19,7 +19,7 @@ class blackbody_system:
 {
 public:
 	explicit blackbody_system(entity::registry& registry);
-	~blackbody_system();
+	~blackbody_system() override;
 	
 	void update(float t, float dt) override;
 	

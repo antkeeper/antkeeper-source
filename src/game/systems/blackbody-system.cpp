@@ -16,23 +16,23 @@ blackbody_system::blackbody_system(entity::registry& registry):
 	m_visible_wavelengths_nm.resize(780 - 280);
 	std::iota(m_visible_wavelengths_nm.begin(), m_visible_wavelengths_nm.end(), 280);
 	
-	registry.on_construct<::blackbody_component>().connect<&blackbody_system::on_blackbody_construct>(this);
-	registry.on_update<::blackbody_component>().connect<&blackbody_system::on_blackbody_update>(this);
+	m_registry.on_construct<::blackbody_component>().connect<&blackbody_system::on_blackbody_construct>(this);
+	m_registry.on_update<::blackbody_component>().connect<&blackbody_system::on_blackbody_update>(this);
 }
 
 blackbody_system::~blackbody_system()
 {
-	registry.on_construct<::blackbody_component>().disconnect<&blackbody_system::on_blackbody_construct>(this);
-	registry.on_update<::blackbody_component>().disconnect<&blackbody_system::on_blackbody_update>(this);
+	m_registry.on_construct<::blackbody_component>().disconnect<&blackbody_system::on_blackbody_construct>(this);
+	m_registry.on_update<::blackbody_component>().disconnect<&blackbody_system::on_blackbody_update>(this);
 }
 
-void blackbody_system::update(float t, float dt)
+void blackbody_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
 {}
 
 void blackbody_system::update_blackbody(entity::id entity_id)
 {
 	// Get blackbody component
-	auto& blackbody = registry.get<blackbody_component>(entity_id);
+	auto& blackbody = m_registry.get<blackbody_component>(entity_id);
 	
 	// Construct a lambda function which calculates the blackbody's RGB luminance of a given wavelength
 	auto rgb_spectral_luminance = [&](double wavelength_nm) -> math::dvec3
@@ -62,12 +62,12 @@ void blackbody_system::update_blackbody(entity::id entity_id)
 	blackbody.color = rgb_luminance / blackbody.luminance;
 }
 
-void blackbody_system::on_blackbody_construct(entity::registry& registry, entity::id entity_id)
+void blackbody_system::on_blackbody_construct([[maybe_unused]] entity::registry& registry, entity::id entity_id)
 {
 	update_blackbody(entity_id);
 }
 
-void blackbody_system::on_blackbody_update(entity::registry& registry, entity::id entity_id)
+void blackbody_system::on_blackbody_update([[maybe_unused]] entity::registry& registry, entity::id entity_id)
 {
 	update_blackbody(entity_id);
 }

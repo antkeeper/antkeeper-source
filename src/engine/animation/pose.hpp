@@ -22,8 +22,11 @@ public:
 	 */
 	explicit pose(const skeleton& skeleton);
 	
-	/// Constructs an empty pose.
+	/** Constructs an empty pose. */
 	constexpr pose() noexcept = default;
+	
+	/** Destructs a pose. */
+	virtual ~pose() = default;
 	
 	/**
 	 * Updates the pose after one or more relative transforms have been changed.
@@ -39,6 +42,13 @@ public:
 	 * @warning It's the caller's responsibility to ensure that any ancestors of the bone chain are up to date before the call, and any descendants are updated after the call.
 	 */
 	virtual void update(bone_index_type first_index, std::size_t bone_count);
+	
+	/**
+	 * Associates this pose with a skeleton.
+	 *
+	 * @param skeleton Skeleton with which to associate the pose.
+	 */
+	virtual void set_skeleton(const skeleton& skeleton);
 	
 	/**
 	 * Sets the relative transform describing a bone pose.

@@ -58,9 +58,9 @@ void animation_base::stop()
 	loop_count = 0;
 }
 
-void animation_base::set_speed(float speed)
+void animation_base::set_speed(float value)
 {
-	this->speed = speed;
+	this->speed = value;
 }
 
 void animation_base::set_start_callback(std::function<void()> callback)

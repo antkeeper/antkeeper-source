@@ -26,9 +26,12 @@ public:
 	explicit skeletal_mesh(std::shared_ptr<render::model> model);
 	
 	/**
-	 * Constructs a model instance.
+	 * Constructs a skeletal mesh.
 	 */
 	skeletal_mesh() = default;
+	
+	/** Destructs a skeletal mesh. */
+	~skeletal_mesh() override = default;
 	
 	/**
 	 * Sets the model with which this model instance is associated.

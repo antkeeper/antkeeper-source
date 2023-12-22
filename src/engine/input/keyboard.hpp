@@ -18,6 +18,9 @@ namespace input {
 class keyboard: public device
 {
 public:
+	/** Destructs a keyboard. */
+	~keyboard() override = default;
+	
 	/**
 	 * Simulates a key press.
 	 *
@@ -35,16 +38,44 @@ public:
 	 */
 	void release(scancode scancode, std::uint16_t modifiers = modifier_key::none);
 	
+	/**
+	 * Simulates text input.
+	 *
+	 * @param text Input text.
+	 */
+	void input_text(const std::string& text);
+	
+	/**
+	 * Simulates text editing.
+	 *
+	 * @param text Editing text.
+	 * @param position Position from which to begin editing.
+	 * @param length Number of characters to edit.
+	 */
+	void edit_text(const std::string& text, std::size_t position, std::size_t length);
+	
 	/// Returns the channel through which key pressed events are published.
-	[[nodiscard]] inline ::event::channel<key_pressed_event>& get_key_pressed_channel() noexcept
+	[[nodiscard]] inline auto& get_key_pressed_channel() noexcept
 	{
-		return key_pressed_publisher.channel();
+		return m_key_pressed_publisher.channel();
 	}
 	
 	/// Returns the channel through which key released events are published.
-	[[nodiscard]] inline ::event::channel<key_released_event>& get_key_released_channel() noexcept
+	[[nodiscard]] inline auto& get_key_released_channel() noexcept
 	{
-		return key_released_publisher.channel();
+		return m_key_released_publisher.channel();
+	}
+	
+	/// Returns the channel through which text input events are published.
+	[[nodiscard]] inline auto& get_text_input_channel() noexcept
+	{
+		return m_text_input_publisher.channel();
+	}
+	
+	/// Returns the channel through which text editing events are published.
+	[[nodiscard]] inline auto& get_text_edit_channel() noexcept
+	{
+		return m_text_edit_publisher.channel();
 	}
 	
 	/// Returns device_type::keyboard.
@@ -54,8 +85,10 @@ public:
 	}
 
 private:
-	::event::publisher<key_pressed_event> key_pressed_publisher;
-	::event::publisher<key_released_event> key_released_publisher;
+	::event::publisher<key_pressed_event> m_key_pressed_publisher;
+	::event::publisher<key_released_event> m_key_released_publisher;
+	::event::publisher<text_input_event> m_text_input_publisher;
+	::event::publisher<text_edit_event> m_text_edit_publisher;
 };
 
 } // namespace input

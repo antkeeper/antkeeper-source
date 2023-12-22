@@ -53,6 +53,8 @@ void input_manager::register_keyboard(input::keyboard& device)
 	m_subscriptions.emplace(&device, device.get_disconnected_channel().subscribe(m_event_dispatcher));
 	m_subscriptions.emplace(&device, device.get_key_pressed_channel().subscribe(m_event_dispatcher));
 	m_subscriptions.emplace(&device, device.get_key_released_channel().subscribe(m_event_dispatcher));
+	m_subscriptions.emplace(&device, device.get_text_input_channel().subscribe(m_event_dispatcher));
+	m_subscriptions.emplace(&device, device.get_text_edit_channel().subscribe(m_event_dispatcher));
 	
 	// Add keyboard to list of keyboards
 	m_keyboards.emplace(&device);

@@ -16,6 +16,9 @@ namespace physics {
 class spring_constraint: public constraint
 {
 public:
+	/** Destructs a spring constraint. */
+	~spring_constraint() override = default;
+	
 	void solve(float dt) override;
 	
 	/**

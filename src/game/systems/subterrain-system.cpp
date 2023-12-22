@@ -3,12 +3,12 @@
 
 #include "game/systems/subterrain-system.hpp"
 
-subterrain_system::subterrain_system(entity::registry& registry, ::resource_manager* resource_manager):
+subterrain_system::subterrain_system(entity::registry& registry, [[maybe_unused]] ::resource_manager* resource_manager):
 	updatable_system(registry)
 {}
 
 subterrain_system::~subterrain_system()
 {}
 
-void subterrain_system::update(float t, float dt)
+void subterrain_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
 {}

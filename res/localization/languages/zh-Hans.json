@@ -7,6 +7,6 @@
 	
 	"font_serif":"noto-serif-sc-regular.woff",
 	"font_sans_serif":"noto-sans-sc-regular.woff",
-	"font_monospace":"iosevka-regular.woff",
+	"font_monospace":"fonts/sarasa-term-sc-regular.ttf",
 	"font_dyslexia":null
 }

@@ -44,16 +44,6 @@ namespace {
 		}
 	}
 	
-	void load_camera_preset(::game& ctx,std::uint8_t index)
-	{
-		
-	}
-	
-	void save_camera_preset(::game& ctx,std::uint8_t index)
-	{
-		
-	}
-	
 	void step_camera_zoom(::game& ctx, double scale)
 	{
 		if (ctx.active_camera_eid == entt::null)
@@ -87,18 +77,6 @@ namespace {
 			ctx.input_manager->set_relative_mouse_mode(false);
 		}
 	}
-	
-	void load_or_save_camera_preset(::game& ctx, std::uint8_t index)
-	{
-		if (ctx.camera_save_preset_action.is_active())
-		{
-			save_camera_preset(ctx, index);
-		}
-		else
-		{
-			load_camera_preset(ctx, index);
-		}
-	}
 }
 
 void setup_camera_controls(::game& ctx)
@@ -123,7 +101,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_mouse_pick_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 			}
 		)
@@ -134,7 +112,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_mouse_look_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				update_relative_mouse_mode(ctx);
 			}
@@ -144,7 +122,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_mouse_look_action.get_deactivated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				update_relative_mouse_mode(ctx);
 			}
@@ -156,7 +134,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_mouse_drag_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				update_relative_mouse_mode(ctx);
 				
@@ -185,7 +163,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_mouse_drag_action.get_deactivated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				update_relative_mouse_mode(ctx);
 			}
@@ -197,7 +175,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_mouse_zoom_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				update_relative_mouse_mode(ctx);
 			}
@@ -207,7 +185,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_mouse_zoom_action.get_deactivated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				update_relative_mouse_mode(ctx);
 			}
@@ -219,7 +197,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_zoom_in_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				step_camera_zoom(ctx, static_cast<double>(ctx.camera_zoom_in_action.get_input_value()));
 			}
@@ -231,7 +209,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_zoom_out_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				step_camera_zoom(ctx, -static_cast<double>(ctx.camera_zoom_out_action.get_input_value()));
 			}
@@ -243,7 +221,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_orbit_left_action.get_active_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				if (ctx.active_camera_eid == entt::null)
 				{
@@ -259,7 +237,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_orbit_left_action.get_deactivated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				if (ctx.active_camera_eid == entt::null)
 				{
@@ -277,7 +255,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_orbit_right_action.get_active_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				if (ctx.active_camera_eid == entt::null)
 				{
@@ -293,7 +271,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_orbit_right_action.get_deactivated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				if (ctx.active_camera_eid == entt::null)
 				{
@@ -311,7 +289,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_orbit_up_action.get_active_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				if (ctx.active_camera_eid == entt::null)
 				{
@@ -327,7 +305,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_orbit_up_action.get_deactivated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				if (ctx.active_camera_eid == entt::null)
 				{
@@ -345,7 +323,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_orbit_down_action.get_active_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				if (ctx.active_camera_eid == entt::null)
 				{
@@ -361,7 +339,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_orbit_down_action.get_deactivated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				if (ctx.active_camera_eid == entt::null)
 				{
@@ -379,7 +357,7 @@ void setup_camera_controls(::game& ctx)
 	(
 		ctx.camera_look_ahead_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				if (ctx.active_camera_eid == entt::null || ctx.controlled_ant_eid == entt::null)
 				{
@@ -414,78 +392,6 @@ void setup_camera_controls(::game& ctx)
 				// Update spring arm target angles
 				spring_arm.angles_spring.set_target_value(target_angles);
 			}
-		)
-	);
-	
-	// Camera presets
-	ctx.event_subscriptions.emplace_back
-	(
-		ctx.camera_preset_1_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(ctx, 0);}
-		)
-	);
-	ctx.event_subscriptions.emplace_back
-	(
-		ctx.camera_preset_2_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(ctx, 1);}
-		)
-	);
-	ctx.event_subscriptions.emplace_back
-	(
-		ctx.camera_preset_3_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(ctx, 2);}
-		)
-	);
-	ctx.event_subscriptions.emplace_back
-	(
-		ctx.camera_preset_4_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(ctx, 3);}
-		)
-	);
-	ctx.event_subscriptions.emplace_back
-	(
-		ctx.camera_preset_5_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(ctx, 4);}
-		)
-	);
-	ctx.event_subscriptions.emplace_back
-	(
-		ctx.camera_preset_6_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(ctx, 5);}
-		)
-	);
-	ctx.event_subscriptions.emplace_back
-	(
-		ctx.camera_preset_7_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(ctx, 6);}
-		)
-	);
-	ctx.event_subscriptions.emplace_back
-	(
-		ctx.camera_preset_8_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(ctx, 7);}
-		)
-	);
-	ctx.event_subscriptions.emplace_back
-	(
-		ctx.camera_preset_9_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(ctx, 8);}
-		)
-	);
-	ctx.event_subscriptions.emplace_back
-	(
-		ctx.camera_preset_10_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(ctx, 9);}
 		)
 	);
 }

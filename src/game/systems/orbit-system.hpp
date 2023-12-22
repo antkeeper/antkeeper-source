@@ -19,7 +19,7 @@ class orbit_system:
 {
 public:
 	explicit orbit_system(entity::registry& registry);
-	~orbit_system();
+	~orbit_system() override;
 	
 	/**
 	 * Scales then adds the timestep `dt` to the current time, then recalculates the positions of orbiting bodies.
@@ -54,11 +54,11 @@ private:
 	void on_orbit_construct(entity::registry& registry, entity::id entity_id);
 	void on_orbit_update(entity::registry& registry, entity::id entity_id);
 	
-	std::shared_ptr<physics::orbit::ephemeris<double>> ephemeris;
-	double time;
-	double time_scale;
-	std::vector<math::dvec3> positions;
-	std::unordered_set<int> ephemeris_indices;
+	std::shared_ptr<physics::orbit::ephemeris<double>> m_ephemeris;
+	double m_time;
+	double m_time_scale;
+	std::vector<math::dvec3> m_positions;
+	std::unordered_set<int> m_ephemeris_indices;
 };
 
 #endif // ANTKEEPER_GAME_ORBIT_SYSTEM_HPP

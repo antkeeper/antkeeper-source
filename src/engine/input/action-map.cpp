@@ -385,7 +385,7 @@ void action_map::handle_mouse_button_released(const mouse_button_released_event&
 	}
 }
 
-void action_map::handle_update(const update_event& event)
+void action_map::handle_update([[maybe_unused]] const update_event& event)
 {
 	for (const auto* action: m_actions)
 	{

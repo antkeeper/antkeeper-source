@@ -34,7 +34,10 @@ class sky_pass: public pass
 {
 public:
 	sky_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
-	virtual ~sky_pass() = default;
+	
+	/** Destructs a sky pass. */
+	~sky_pass() override = default;
+	
 	void render(render::context& ctx) override;
 	
 	/// @name Transmittance LUT
@@ -266,18 +269,18 @@ private:
 	float camera_exposure;
 
 	std::shared_ptr<gl::shader_program> sky_shader_program;
-	const gl::shader_variable* model_view_projection_var;
-	const gl::shader_variable* view_var;
-	const gl::shader_variable* view_projection_var;
-	const gl::shader_variable* inv_view_projection_var;
-	const gl::shader_variable* camera_position_var;
-	const gl::shader_variable* mouse_var;
-	const gl::shader_variable* resolution_var;
-	const gl::shader_variable* light_direction_var;
-	const gl::shader_variable* sun_luminance_var;
-	const gl::shader_variable* sun_angular_radius_var;
-	const gl::shader_variable* atmosphere_radii_var;
-	const gl::shader_variable* observer_position_var;
+	const gl::shader_variable* sky_model_view_projection_var;
+	const gl::shader_variable* sky_view_var;
+	const gl::shader_variable* sky_view_projection_var;
+	const gl::shader_variable* sky_inv_view_projection_var;
+	const gl::shader_variable* sky_camera_position_var;
+	const gl::shader_variable* sky_mouse_var;
+	const gl::shader_variable* sky_resolution_var;
+	const gl::shader_variable* sky_light_direction_var;
+	const gl::shader_variable* sky_sun_luminance_var;
+	const gl::shader_variable* sky_sun_angular_radius_var;
+	const gl::shader_variable* sky_atmosphere_radii_var;
+	const gl::shader_variable* sky_observer_position_var;
 	const gl::shader_variable* sky_transmittance_lut_var;
 	const gl::shader_variable* sky_transmittance_lut_resolution_var;
 	const gl::shader_variable* sky_luminance_lut_var;

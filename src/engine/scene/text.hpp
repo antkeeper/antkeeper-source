@@ -9,8 +9,11 @@
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/render/material.hpp>
-#include <engine/type/bitmap-font.hpp>
+#include <engine/type/font.hpp>
 #include <engine/type/text-direction.hpp>
+#include <engine/event/subscription.hpp>
+#include <memory>
+#include <string_view>
 
 namespace scene {
 
@@ -20,8 +23,11 @@ namespace scene {
 class text: public object<text>
 {
 public:
-	/// Constructs a text object.
+	/** Constructs a text object. */
 	text();
+	
+	/** Destructs a text object. */
+	~text() override = default;
 	
 	void render(render::context& ctx) const override;
 	
@@ -42,7 +48,7 @@ public:
 	 *
 	 * @param font Pointer to a font.
 	 */
-	void set_font(const type::bitmap_font* font);
+	void set_font(std::shared_ptr<type::font> font);
 	
 	/**
 	 * Sets the direction of the text.
@@ -56,7 +62,7 @@ public:
 	 *
 	 * @param content UTF-8 string of text.
 	 */
-	void set_content(const std::string& content);
+	void set_content(const std::string_view& content);
 	
 	/**
 	 * Sets the text color.
@@ -67,32 +73,32 @@ public:
 	 */
 	void set_color(const math::fvec4& color);
 	
-	/// Returns the text material.
+	/** Returns the text material. */
 	[[nodiscard]] inline const std::shared_ptr<render::material>& get_material() const noexcept
 	{
 		return m_render_op.material;
 	}
 	
-	/// Returns the text font.
-	[[nodiscard]] inline const type::bitmap_font* get_font() const noexcept
+	/** Returns the text font. */
+	[[nodiscard]] inline const auto& get_font() const noexcept
 	{
 		return m_font;
 	}
 	
-	/// Returns the text direction.
-	[[nodiscard]] inline const type::text_direction& get_direction() const noexcept
+	/** Returns the text direction. */
+	[[nodiscard]] inline const auto& get_direction() const noexcept
 	{
 		return m_direction;
 	}
 	
-	/// Returns the text content.
-	[[nodiscard]] inline const std::string& get_content() const noexcept
+	/** Returns the text content. */
+	[[nodiscard]] inline const auto& get_content() const noexcept
 	{
 		return m_content_u8;
 	}
 	
-	/// Returns the text color.
-	[[nodiscard]] inline const math::fvec4& get_color() const noexcept
+	/** Returns the text color. */
+	[[nodiscard]] inline const auto& get_color() const noexcept
 	{
 		return m_color;
 	}
@@ -103,19 +109,29 @@ public:
 	}
 
 private:
+	/** Updates UV coordinates of each characters. */
+	void update_uvs();
+	
+	/** Updates the colors of each character. */
+	void update_colors();
+	
 	void update_content();
-	void update_color();
+	
+	/** Uploads character veretex data to the vertex buffer. */
+	void update_vertex_buffer();
+
 	void transformed() override;
 	
 	mutable render::operation m_render_op;
 	aabb_type m_local_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
 	aabb_type m_world_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
-	const type::bitmap_font* m_font{nullptr};
+	std::shared_ptr<type::font> m_font;
+	std::shared_ptr<event::subscription> m_font_texture_resized_subscription;
 	type::text_direction m_direction{type::text_direction::ltr};
 	std::string m_content_u8;
 	std::u32string m_content_u32;
 	math::fvec4 m_color{1.0f, 0.0f, 1.0f, 1.0f};
-	std::vector<std::byte> m_vertex_data;
+	std::vector<float> m_vertex_data;
 	std::unique_ptr<gl::vertex_array> m_vertex_array;
 	std::unique_ptr<gl::vertex_buffer> m_vertex_buffer;
 };

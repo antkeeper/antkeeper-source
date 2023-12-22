@@ -16,7 +16,7 @@ class collision_system: public updatable_system
 {
 public:
 	explicit collision_system(entity::registry& registry);
-	~collision_system();
+	~collision_system() override;
 	
 	virtual void update(float t, float dt);
 	
@@ -28,7 +28,7 @@ public:
 	 *
 	 * @return ID of the picked entity, or `entt::null` if no entity was picked.
 	 */
-	entity::id pick_nearest(const geom::ray<float, 3>& ray, std::uint32_t flags) const;
+	[[nodiscard]] entity::id pick_nearest(const geom::ray<float, 3>& ray, std::uint32_t flags) const;
 	
 	/**
 	 * Picks the nearest entity with the specified picking flags that has a non-negative distance from a plane.
@@ -39,7 +39,7 @@ public:
 	 *
 	 * @return ID of the picked entity, or `entt::null` if no entity was picked.
 	 */
-	entity::id pick_nearest(const math::fvec3& origin, const math::fvec3& normal, std::uint32_t flags) const;
+	[[nodiscard]] entity::id pick_nearest(const math::fvec3& origin, const math::fvec3& normal, std::uint32_t flags) const;
 };
 
 

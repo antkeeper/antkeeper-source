@@ -19,9 +19,9 @@ reproductive_system::reproductive_system(entity::registry& registry):
 	updatable_system(registry)
 {}
 
-void reproductive_system::update(float t, float dt)
+void reproductive_system::update([[maybe_unused]] float t, float dt)
 {
-	auto ovary_group = registry.group<ovary_component>(entt::get<ant_genome_component, rigid_body_component, scene_component, pose_component>);
+	auto ovary_group = m_registry.group<ovary_component>(entt::get<ant_genome_component, rigid_body_component, scene_component, pose_component>);
 	std::for_each
 	(
 		std::execution::seq,
@@ -86,22 +86,22 @@ void reproductive_system::update(float t, float dt)
 					auto egg_scene_object = std::make_shared<scene::static_mesh>(parent_genome.genome->egg->phenes.front().model);
 					
 					// Construct egg entity
-					ovary.ovipositor_egg_eid = registry.create();
-					registry.emplace<rigid_body_component>(ovary.ovipositor_egg_eid, std::move(egg_rigid_body));
-					registry.emplace<scene_component>(ovary.ovipositor_egg_eid, std::move(egg_scene_object), ovipositor_scene.layer_mask);
-					registry.emplace<ant_genome_component>(ovary.ovipositor_egg_eid, parent_genome);
+					ovary.ovipositor_egg_eid = m_registry.create();
+					m_registry.emplace<rigid_body_component>(ovary.ovipositor_egg_eid, std::move(egg_rigid_body));
+					m_registry.emplace<scene_component>(ovary.ovipositor_egg_eid, std::move(egg_scene_object), ovipositor_scene.layer_mask);
+					m_registry.emplace<ant_genome_component>(ovary.ovipositor_egg_eid, parent_genome);
 				}
 				else
 				{
 					// Update position of egg rigid body
-					auto& egg_rigid_body = *registry.get<rigid_body_component>(ovary.ovipositor_egg_eid).body;
+					auto& egg_rigid_body = *m_registry.get<rigid_body_component>(ovary.ovipositor_egg_eid).body;
 					egg_rigid_body.set_transform(egg_transform);
 				}
 				
 				if (ovary.elapsed_oviposition_time >= ovary.oviposition_duration)
 				{
 					// Place egg
-					auto& egg_rigid_body = *registry.get<rigid_body_component>(ovary.ovipositor_egg_eid).body;
+					auto& egg_rigid_body = *m_registry.get<rigid_body_component>(ovary.ovipositor_egg_eid).body;
 					const auto oviposition_ray = geom::ray<float, 3>{egg_transform.translation, egg_transform.rotation * math::fvec3{0, 0, -1}};
 					if (auto trace = m_physics_system->trace(oviposition_ray, ovary.ovipositor_egg_eid, ~std::uint32_t{0}))
 					{
@@ -110,10 +110,10 @@ void reproductive_system::update(float t, float dt)
 						egg_rigid_body.set_transform(egg_transform);
 						
 						// Get genome of egg
-						const auto& genome = *registry.get<ant_genome_component>(ovary.ovipositor_egg_eid).genome;
+						const auto& genome = *m_registry.get<ant_genome_component>(ovary.ovipositor_egg_eid).genome;
 						
 						// Construct egg component
-						registry.emplace<egg_component>(ovary.ovipositor_egg_eid, genome.egg->phenes.front().incubation_period, 0.0f);
+						m_registry.emplace<egg_component>(ovary.ovipositor_egg_eid, genome.egg->phenes.front().incubation_period, 0.0f);
 						
 						// Oviposition complete
 						ovary.ovipositing = false;

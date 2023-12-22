@@ -21,18 +21,18 @@ material::material(const material& other)
 
 material& material::operator=(const material& other)
 {
-	two_sided = other.two_sided;
-	blend_mode = other.blend_mode;
-	shadow_mode = other.shadow_mode;
-	flags = other.flags;
-	shader_template = other.shader_template;
+	m_two_sided = other.m_two_sided;
+	m_blend_mode = other.m_blend_mode;
+	m_shadow_mode = other.m_shadow_mode;
+	m_flags = other.m_flags;
+	m_shader_template = other.m_shader_template;
 	
-	variable_map.clear();
-	for (const auto& [key, value]: other.variable_map)
+	m_variable_map.clear();
+	for (const auto& [key, value]: other.m_variable_map)
 	{
 		if (value)
 		{
-			variable_map.emplace(key, value->clone());
+			m_variable_map.emplace(key, value->clone());
 		}
 	}
 	
@@ -43,47 +43,47 @@ material& material::operator=(const material& other)
 
 void material::set_two_sided(bool two_sided) noexcept
 {
-	this->two_sided = two_sided;
+	m_two_sided = two_sided;
 	
 	rehash();
 }
 
 void material::set_blend_mode(material_blend_mode mode) noexcept
 {
-	blend_mode = mode;
+	m_blend_mode = mode;
 	
 	rehash();
 }
 
 void material::set_shadow_mode(material_shadow_mode mode) noexcept
 {
-	shadow_mode = mode;
+	m_shadow_mode = mode;
 	
 	rehash();
 }
 
 void material::set_flags(std::uint32_t flags) noexcept
 {
-	this->flags = flags;
+	m_flags = flags;
 	
 	rehash();
 }
 
 void material::set_shader_template(std::shared_ptr<gl::shader_template> shader_template)
 {
-	this->shader_template = shader_template;
+	m_shader_template = shader_template;
 	
 	rehash();
 }
 
 void material::set_variable(hash::fnv1a32_t key, std::shared_ptr<material_variable_base> value)
 {
-	variable_map[key] = std::move(value);
+	m_variable_map[key] = std::move(value);
 }
 
 std::shared_ptr<material_variable_base> material::get_variable(hash::fnv1a32_t key) const
 {
-	if (auto i = variable_map.find(key); i != variable_map.end())
+	if (auto i = m_variable_map.find(key); i != m_variable_map.end())
 	{
 		return i->second;
 	}
@@ -94,15 +94,15 @@ std::shared_ptr<material_variable_base> material::get_variable(hash::fnv1a32_t k
 void material::rehash() noexcept
 {
 	m_hash = 0;
-	if (shader_template)
+	if (m_shader_template)
 	{
-		m_hash = shader_template->hash();
+		m_hash = m_shader_template->hash();
 	}
 	
-	m_hash = hash::combine_hash(m_hash, std::hash<bool>{}(two_sided));
-	m_hash = hash::combine_hash(m_hash, std::hash<material_blend_mode>{}(blend_mode));
-	m_hash = hash::combine_hash(m_hash, std::hash<material_shadow_mode>{}(shadow_mode));
-	m_hash = hash::combine_hash(m_hash, std::hash<std::uint32_t>{}(flags));
+	m_hash = hash::combine_hash(m_hash, std::hash<bool>{}(m_two_sided));
+	m_hash = hash::combine_hash(m_hash, std::hash<material_blend_mode>{}(m_blend_mode));
+	m_hash = hash::combine_hash(m_hash, std::hash<material_shadow_mode>{}(m_shadow_mode));
+	m_hash = hash::combine_hash(m_hash, std::hash<std::uint32_t>{}(m_flags));
 }
 
 } // namespace render
@@ -274,7 +274,7 @@ static bool load_scalar_property(render::material& material, hash::fnv1a32_t key
 }
 
 template <typename T>
-static bool load_vector_property(render::material& material, hash::fnv1a32_t key, std::size_t vector_size, const nlohmann::json& json)
+static bool load_vector_property(render::material& material, hash::fnv1a32_t key, const nlohmann::json& json)
 {
 	// If JSON element is an array of arrays
 	if (json.is_array() && json.begin().value().is_array())
@@ -314,7 +314,7 @@ static bool load_vector_property(render::material& material, hash::fnv1a32_t key
 }
 
 template <typename T>
-static bool load_matrix_property(render::material& material, hash::fnv1a32_t key, std::size_t column_count, std::size_t row_count, const nlohmann::json& json)
+static bool load_matrix_property(render::material& material, hash::fnv1a32_t key, const nlohmann::json& json)
 {
 	// If JSON element is an array of arrays of arrays
 	if (json.is_array() && json.begin().value().is_array())
@@ -507,11 +507,11 @@ std::unique_ptr<render::material> resource_loader<render::material>::load(::reso
 				if (type.find("float") != std::string::npos)
 				{
 					if (columns == 2 && rows == 2)
-						load_matrix_property<math::fmat2>(*material, key, columns, rows, value_element.value());
+						load_matrix_property<math::fmat2>(*material, key, value_element.value());
 					else if (columns == 3 && rows == 3)
-						load_matrix_property<math::fmat3>(*material, key, columns, rows, value_element.value());
+						load_matrix_property<math::fmat3>(*material, key, value_element.value());
 					else if (columns == 4 && rows == 4)
-						load_matrix_property<math::fmat4>(*material, key, columns, rows, value_element.value());
+						load_matrix_property<math::fmat4>(*material, key, value_element.value());
 				}
 			}
 			// If variable type is a vector
@@ -522,38 +522,38 @@ std::unique_ptr<render::material> resource_loader<render::material>::load(::reso
 				if (type.find("float") != std::string::npos)
 				{
 					if (size == 2)
-						load_vector_property<math::fvec2>(*material, key, size, value_element.value());
+						load_vector_property<math::fvec2>(*material, key, value_element.value());
 					else if (size == 3)
-						load_vector_property<math::fvec3>(*material, key, size, value_element.value());
+						load_vector_property<math::fvec3>(*material, key, value_element.value());
 					else if (size == 4)
-						load_vector_property<math::fvec4>(*material, key, size, value_element.value());
+						load_vector_property<math::fvec4>(*material, key, value_element.value());
 				}
 				else if (type.find("uint") != std::string::npos)
 				{
 					if (size == 2)
-						load_vector_property<math::uvec2>(*material, key, size, value_element.value());
+						load_vector_property<math::uvec2>(*material, key, value_element.value());
 					else if (size == 3)
-						load_vector_property<math::uvec3>(*material, key, size, value_element.value());
+						load_vector_property<math::uvec3>(*material, key, value_element.value());
 					else if (size == 4)
-						load_vector_property<math::uvec4>(*material, key, size, value_element.value());
+						load_vector_property<math::uvec4>(*material, key, value_element.value());
 				}
 				else if (type.find("int") != std::string::npos)
 				{
 					if (size == 2)
-						load_vector_property<math::ivec2>(*material, key, size, value_element.value());
+						load_vector_property<math::ivec2>(*material, key, value_element.value());
 					else if (size == 3)
-						load_vector_property<math::ivec3>(*material, key, size, value_element.value());
+						load_vector_property<math::ivec3>(*material, key, value_element.value());
 					else if (size == 4)
-						load_vector_property<math::ivec4>(*material, key, size, value_element.value());
+						load_vector_property<math::ivec4>(*material, key, value_element.value());
 				}
 				else if (type.find("bool") != std::string::npos)
 				{
 					if (size == 2)
-						load_vector_property<math::bvec2>(*material, key, size, value_element.value());
+						load_vector_property<math::bvec2>(*material, key, value_element.value());
 					else if (size == 3)
-						load_vector_property<math::bvec3>(*material, key, size, value_element.value());
+						load_vector_property<math::bvec3>(*material, key, value_element.value());
 					else if (size == 4)
-						load_vector_property<math::bvec4>(*material, key, size, value_element.value());
+						load_vector_property<math::bvec4>(*material, key, value_element.value());
 				}
 			}
 			// If variable type is a scalar

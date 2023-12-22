@@ -8,12 +8,22 @@ namespace input {
 
 void keyboard::press(scancode scancode, std::uint16_t modifiers, bool repeat)
 {
-	key_pressed_publisher.publish({this, scancode, modifiers, repeat});
+	m_key_pressed_publisher.publish({this, scancode, modifiers, repeat});
 }
 
 void keyboard::release(scancode scancode, std::uint16_t modifiers)
 {
-	key_released_publisher.publish({this, scancode, modifiers});
+	m_key_released_publisher.publish({this, scancode, modifiers});
+}
+
+void keyboard::input_text(const std::string& text)
+{
+	m_text_input_publisher.publish({this, text});
+}
+	
+void keyboard::edit_text(const std::string& text, std::size_t position, std::size_t length)
+{
+	m_text_edit_publisher.publish({this, text, position, length});
 }
 
 } // namespace input

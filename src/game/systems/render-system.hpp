@@ -19,7 +19,7 @@ class render_system: public updatable_system
 {
 public:
 	explicit render_system(entity::registry& registry);
-	~render_system();
+	~render_system() override;
 	
 	virtual void update(float t, float dt);
 	
@@ -37,12 +37,12 @@ private:
 	
 	void on_transform_construct(entity::registry& registry, entity::id entity_id);
 	
-	entt::observer updated_scene_transforms;
+	entt::observer m_updated_scene_transforms;
 	
-	float t;
-	float dt;
-	::render::renderer* renderer;
-	std::vector<scene::collection*> layers;
+	float m_t;
+	float m_dt;
+	::render::renderer* m_renderer;
+	std::vector<scene::collection*> m_layers;
 };
 
 

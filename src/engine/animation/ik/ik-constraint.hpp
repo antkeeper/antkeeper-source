@@ -12,6 +12,9 @@
 class ik_constraint
 {
 public:
+	/** Destructs an IK constraint. */
+	virtual ~ik_constraint() = default;
+	
 	/**
 	 * Solves the constraint.
 	 *

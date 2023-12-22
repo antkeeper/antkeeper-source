@@ -9,6 +9,6 @@ morphogenesis_system::morphogenesis_system(entity::registry& registry):
 	updatable_system(registry)
 {}
 
-void morphogenesis_system::update(float t, float dt)
+void morphogenesis_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
 {}
 

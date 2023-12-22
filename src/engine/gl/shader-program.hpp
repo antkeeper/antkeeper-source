@@ -103,7 +103,7 @@ public:
 	 */
 	[[nodiscard]] inline const std::unordered_map<hash::fnv1a32_t, const std::unique_ptr<const shader_variable>>& variables() const noexcept
 	{
-		return variable_map;
+		return m_variable_map;
 	}
 	
 	/**
@@ -115,7 +115,7 @@ public:
 	 */
 	[[nodiscard]] inline const shader_variable* variable(hash::fnv1a32_t key) const
 	{
-		if (auto i = variable_map.find(key); i != variable_map.end())
+		if (auto i = m_variable_map.find(key); i != m_variable_map.end())
 		{
 			return i->second.get();
 		}
@@ -128,7 +128,7 @@ public:
 	 */
 	[[nodiscard]] inline const std::string& info() const noexcept
 	{
-		return info_log;
+		return m_info_log;
 	}
 
 private:
@@ -136,11 +136,11 @@ private:
 	
 	void load_variables();
 	
-	unsigned int gl_program_id{0};
+	unsigned int m_gl_program_id{0};
 	bool m_linked{false};
-	std::unordered_set<const shader_object*> attached_objects;
-	std::unordered_map<hash::fnv1a32_t, const std::unique_ptr<const shader_variable>> variable_map;
-	std::string info_log;
+	std::unordered_set<const shader_object*> m_attached_objects;
+	std::unordered_map<hash::fnv1a32_t, const std::unique_ptr<const shader_variable>> m_variable_map;
+	std::string m_info_log;
 };
 
 } // namespace gl

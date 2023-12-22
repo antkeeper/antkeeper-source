@@ -11,9 +11,6 @@ pass::pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer):
 	m_enabled(true)
 {}
 
-pass::~pass()
-{}
-
 void pass::set_enabled(bool enabled)
 {
 	m_enabled = enabled;

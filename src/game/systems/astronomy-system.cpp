@@ -22,66 +22,56 @@
 #include <engine/math/polynomial.hpp>
 #include <engine/debug/log.hpp>
 astronomy_system::astronomy_system(entity::registry& registry):
-	updatable_system(registry),
-	time_days(0.0),
-	time_centuries(0.0),
-	time_scale(1.0),
-	observer_eid(entt::null),
-	reference_body_eid(entt::null),
-	transmittance_samples(0),
-	sun_light(nullptr),
-	moon_light(nullptr),
-	sky_pass(nullptr),
-	starlight_illuminance{0, 0, 0}
+	updatable_system(registry)
 {
 	// Construct ENU to EUS transformation
-	enu_to_eus = math::se3<double>
+	m_enu_to_eus = math::se3<double>
 	{
 		{0, 0, 0},
 		math::dquat::rotate_x(-math::half_pi<double>)
 	};
 	
-	registry.on_construct<::observer_component>().connect<&astronomy_system::on_observer_modified>(this);
-	registry.on_update<::observer_component>().connect<&astronomy_system::on_observer_modified>(this);
-	registry.on_destroy<::observer_component>().connect<&astronomy_system::on_observer_destroyed>(this);
-	registry.on_construct<::celestial_body_component>().connect<&astronomy_system::on_celestial_body_modified>(this);
-	registry.on_update<::celestial_body_component>().connect<&astronomy_system::on_celestial_body_modified>(this);
-	registry.on_destroy<::celestial_body_component>().connect<&astronomy_system::on_celestial_body_destroyed>(this);
-	registry.on_construct<::orbit_component>().connect<&astronomy_system::on_orbit_modified>(this);
-	registry.on_update<::orbit_component>().connect<&astronomy_system::on_orbit_modified>(this);
-	registry.on_destroy<::orbit_component>().connect<&astronomy_system::on_orbit_destroyed>(this);
-	registry.on_construct<::atmosphere_component>().connect<&astronomy_system::on_atmosphere_modified>(this);
-	registry.on_update<::atmosphere_component>().connect<&astronomy_system::on_atmosphere_modified>(this);
-	registry.on_destroy<::atmosphere_component>().connect<&astronomy_system::on_atmosphere_destroyed>(this);
+	m_registry.on_construct<::observer_component>().connect<&astronomy_system::on_observer_modified>(this);
+	m_registry.on_update<::observer_component>().connect<&astronomy_system::on_observer_modified>(this);
+	m_registry.on_destroy<::observer_component>().connect<&astronomy_system::on_observer_destroyed>(this);
+	m_registry.on_construct<::celestial_body_component>().connect<&astronomy_system::on_celestial_body_modified>(this);
+	m_registry.on_update<::celestial_body_component>().connect<&astronomy_system::on_celestial_body_modified>(this);
+	m_registry.on_destroy<::celestial_body_component>().connect<&astronomy_system::on_celestial_body_destroyed>(this);
+	m_registry.on_construct<::orbit_component>().connect<&astronomy_system::on_orbit_modified>(this);
+	m_registry.on_update<::orbit_component>().connect<&astronomy_system::on_orbit_modified>(this);
+	m_registry.on_destroy<::orbit_component>().connect<&astronomy_system::on_orbit_destroyed>(this);
+	m_registry.on_construct<::atmosphere_component>().connect<&astronomy_system::on_atmosphere_modified>(this);
+	m_registry.on_update<::atmosphere_component>().connect<&astronomy_system::on_atmosphere_modified>(this);
+	m_registry.on_destroy<::atmosphere_component>().connect<&astronomy_system::on_atmosphere_destroyed>(this);
 }
 
 astronomy_system::~astronomy_system()
 {
-	registry.on_construct<::observer_component>().disconnect<&astronomy_system::on_observer_modified>(this);
-	registry.on_update<::observer_component>().disconnect<&astronomy_system::on_observer_modified>(this);
-	registry.on_destroy<::observer_component>().disconnect<&astronomy_system::on_observer_destroyed>(this);
-	registry.on_construct<::celestial_body_component>().disconnect<&astronomy_system::on_celestial_body_modified>(this);
-	registry.on_update<::celestial_body_component>().disconnect<&astronomy_system::on_celestial_body_modified>(this);
-	registry.on_destroy<::celestial_body_component>().disconnect<&astronomy_system::on_celestial_body_destroyed>(this);
-	registry.on_construct<::orbit_component>().disconnect<&astronomy_system::on_orbit_modified>(this);
-	registry.on_update<::orbit_component>().disconnect<&astronomy_system::on_orbit_modified>(this);
-	registry.on_destroy<::orbit_component>().disconnect<&astronomy_system::on_orbit_destroyed>(this);
-	registry.on_construct<::atmosphere_component>().disconnect<&astronomy_system::on_atmosphere_modified>(this);
-	registry.on_update<::atmosphere_component>().disconnect<&astronomy_system::on_atmosphere_modified>(this);
-	registry.on_destroy<::atmosphere_component>().disconnect<&astronomy_system::on_atmosphere_destroyed>(this);
+	m_registry.on_construct<::observer_component>().disconnect<&astronomy_system::on_observer_modified>(this);
+	m_registry.on_update<::observer_component>().disconnect<&astronomy_system::on_observer_modified>(this);
+	m_registry.on_destroy<::observer_component>().disconnect<&astronomy_system::on_observer_destroyed>(this);
+	m_registry.on_construct<::celestial_body_component>().disconnect<&astronomy_system::on_celestial_body_modified>(this);
+	m_registry.on_update<::celestial_body_component>().disconnect<&astronomy_system::on_celestial_body_modified>(this);
+	m_registry.on_destroy<::celestial_body_component>().disconnect<&astronomy_system::on_celestial_body_destroyed>(this);
+	m_registry.on_construct<::orbit_component>().disconnect<&astronomy_system::on_orbit_modified>(this);
+	m_registry.on_update<::orbit_component>().disconnect<&astronomy_system::on_orbit_modified>(this);
+	m_registry.on_destroy<::orbit_component>().disconnect<&astronomy_system::on_orbit_destroyed>(this);
+	m_registry.on_construct<::atmosphere_component>().disconnect<&astronomy_system::on_atmosphere_modified>(this);
+	m_registry.on_update<::atmosphere_component>().disconnect<&astronomy_system::on_atmosphere_modified>(this);
+	m_registry.on_destroy<::atmosphere_component>().disconnect<&astronomy_system::on_atmosphere_destroyed>(this);
 }
 
-void astronomy_system::update(float t, float dt)
+void astronomy_system::update([[maybe_unused]] float t, float dt)
 {
 	// Add scaled timestep to current time
-	set_time(time_days + dt * time_scale);
+	set_time(m_time_days + dt * m_time_scale);
 	
 	// Abort if no valid observer entity or reference body entity
-	if (observer_eid == entt::null || reference_body_eid == entt::null)
+	if (m_observer_eid == entt::null || m_reference_body_eid == entt::null)
 		return;
 	
 	// Get pointer to observer component
-	const auto observer = registry.try_get<observer_component>(observer_eid);
+	const auto observer = m_registry.try_get<observer_component>(m_observer_eid);
 	
 	// Abort if no observer component
 	if (!observer)
@@ -93,36 +83,36 @@ void astronomy_system::update(float t, float dt)
 		reference_body,
 		reference_orbit,
 		reference_atmosphere
-	] = registry.try_get<celestial_body_component, orbit_component, atmosphere_component>(reference_body_eid);
+	] = m_registry.try_get<celestial_body_component, orbit_component, atmosphere_component>(m_reference_body_eid);
 	
 	// Abort if no reference body or reference orbit
 	if (!reference_body || !reference_orbit)
 		return;
 	
-	// if (sky_pass)
+	// if (m_sky_pass)
 	// {
-		// sky_pass->set_ground_albedo(math::fvec3{1.0f, 1.0f, 1.0f} * static_cast<float>(reference_body->albedo));
+		// m_sky_pass->set_ground_albedo(math::fvec3{1.0f, 1.0f, 1.0f} * static_cast<float>(reference_body->albedo));
 	// }
 	
 	// Update ICRF to EUS transformation
 	update_icrf_to_eus(*reference_body, *reference_orbit);
 	
 	// Set the transform component translations of orbiting bodies to their topocentric positions
-	registry.view<celestial_body_component, orbit_component, transform_component>().each
+	m_registry.view<celestial_body_component, orbit_component, transform_component>().each
 	(
 		[&](entity::id entity_id, const auto& body, const auto& orbit, auto& transform)
 		{
 			// Skip reference body entity
-			if (entity_id == reference_body_eid || orbit.parent == entt::null)
+			if (entity_id == m_reference_body_eid || orbit.parent == entt::null)
 				return;
 			
 			// Transform orbital Cartesian position (r) from the ICRF frame to the EUS frame
-			const math::dvec3 r_eus = icrf_to_eus * orbit.position;
+			const math::dvec3 r_eus = m_icrf_to_eus * orbit.position;
 			
 			// Evaluate body orientation polynomials
-			const double body_pole_ra = math::horner(body.pole_ra.begin(), body.pole_ra.end(), time_centuries);
-			const double body_pole_dec = math::horner(body.pole_dec.begin(), body.pole_dec.end(), time_centuries);
-			const double body_prime_meridian = math::horner(body.prime_meridian.begin(), body.prime_meridian.end(), time_days);
+			const double body_pole_ra = math::horner(body.pole_ra.begin(), body.pole_ra.end(), m_time_centuries);
+			const double body_pole_dec = math::horner(body.pole_dec.begin(), body.pole_dec.end(), m_time_centuries);
+			const double body_prime_meridian = math::horner(body.prime_meridian.begin(), body.prime_meridian.end(), m_time_days);
 			
 			// Determine body orientation in the ICRF frame
 			math::dquat rotation_icrf = physics::orbit::frame::bcbf::to_bci
@@ -133,7 +123,7 @@ void astronomy_system::update(float t, float dt)
 			).r;
 			
 			// Transform body orientation from the ICRF frame to the EUS frame.
-			math::dquat rotation_eus = math::normalize(icrf_to_eus.r * rotation_icrf);
+			math::dquat rotation_eus = math::normalize(m_icrf_to_eus.r * rotation_icrf);
 			
 			// Update local transform
 			transform.local.translation = math::normalize(math::fvec3(r_eus));
@@ -143,11 +133,11 @@ void astronomy_system::update(float t, float dt)
 	);
 	
 	// Update blackbody lighting
-	registry.view<celestial_body_component, orbit_component, blackbody_component>().each(
-	[&](entity::id entity_id, const auto& blackbody_body, const auto& blackbody_orbit, const auto& blackbody)
+	m_registry.view<celestial_body_component, orbit_component, blackbody_component>().each(
+	[&]([[maybe_unused]] entity::id entity_id, const auto& blackbody_body, const auto& blackbody_orbit, const auto& blackbody)
 	{
 		// Transform blackbody position from ICRF frame to EUS frame
-		const math::dvec3 blackbody_position_eus = icrf_to_eus * blackbody_orbit.position;
+		const math::dvec3 blackbody_position_eus = m_icrf_to_eus * blackbody_orbit.position;
 		
 		// Measure distance and direction, in EUS frame, from observer to blackbody
 		const double observer_blackbody_distance = math::length(blackbody_position_eus);
@@ -175,10 +165,10 @@ void astronomy_system::update(float t, float dt)
 		}
 		
 		// Update sun light
-		if (sun_light != nullptr)
+		if (m_sun_light != nullptr)
 		{
-			const math::dvec3 blackbody_up_eus = icrf_to_eus.r * math::dvec3{0, 0, 1};
-			sun_light->set_rotation
+			const math::dvec3 blackbody_up_eus = m_icrf_to_eus.r * math::dvec3{0, 0, 1};
+			m_sun_light->set_rotation
 			(
 				math::look_rotation
 				(
@@ -187,34 +177,34 @@ void astronomy_system::update(float t, float dt)
 				)
 			);
 			
-			sun_light->set_illuminance(static_cast<float>(math::max_element(observer_blackbody_transmitted_illuminance)));
+			m_sun_light->set_illuminance(static_cast<float>(math::max_element(observer_blackbody_transmitted_illuminance)));
 			
 			const auto max_component = math::max_element(observer_blackbody_transmitted_illuminance);
 			if (max_component > 0.0)
 			{
-				sun_light->set_color(math::fvec3(observer_blackbody_transmitted_illuminance / max_component));
+				m_sun_light->set_color(math::fvec3(observer_blackbody_transmitted_illuminance / max_component));
 			}
 			else
 			{
-				sun_light->set_color({});
+				m_sun_light->set_color({});
 			}
 		}
 		
 		// Upload blackbody params to sky pass
-		if (this->sky_pass)
+		if (m_sky_pass)
 		{
-			this->sky_pass->set_sun_position(math::fvec3(blackbody_position_eus));
-			this->sky_pass->set_sun_luminance(math::fvec3(blackbody.color * blackbody.luminance));
-			this->sky_pass->set_sun_illuminance(math::fvec3(observer_blackbody_illuminance), math::fvec3(observer_blackbody_transmitted_illuminance));
-			this->sky_pass->set_sun_angular_radius(static_cast<float>(observer_blackbody_angular_radius));
+			m_sky_pass->set_sun_position(math::fvec3(blackbody_position_eus));
+			m_sky_pass->set_sun_luminance(math::fvec3(blackbody.color * blackbody.luminance));
+			m_sky_pass->set_sun_illuminance(math::fvec3(observer_blackbody_illuminance), math::fvec3(observer_blackbody_transmitted_illuminance));
+			m_sky_pass->set_sun_angular_radius(static_cast<float>(observer_blackbody_angular_radius));
 		}
 		
 		// Update diffuse reflectors
-		this->registry.view<celestial_body_component, orbit_component, diffuse_reflector_component, transform_component>().each(
-		[&](entity::id entity_id, const auto& reflector_body, const auto& reflector_orbit, const auto& reflector, const auto& transform)
+		m_registry.view<celestial_body_component, orbit_component, diffuse_reflector_component, transform_component>().each(
+		[&]([[maybe_unused]] entity::id entity_id, const auto& reflector_body, const auto& reflector_orbit, const auto& reflector, const auto& transform)
 		{
 			// Transform reflector position from ICRF frame to EUS frame
-			const math::dvec3 reflector_position_eus = icrf_to_eus * reflector_orbit.position;
+			const math::dvec3 reflector_position_eus = m_icrf_to_eus * reflector_orbit.position;
 			
 			// Measure distance and direction, in EUS frame, from observer to reflector
 			const double observer_reflector_distance = math::length(reflector_position_eus);
@@ -266,35 +256,35 @@ void astronomy_system::update(float t, float dt)
 			// Measure illuminance from reflector reaching observer
 			const math::dvec3 observer_reflector_illuminance = observer_reflector_luminance * observer_reflector_solid_angle;
 			
-			if (this->sky_pass)
+			if (m_sky_pass)
 			{
-				this->sky_pass->set_moon_position(transform.local.translation);
-				this->sky_pass->set_moon_rotation(transform.local.rotation);
-				this->sky_pass->set_moon_angular_radius(static_cast<float>(observer_reflector_angular_radius));
-				this->sky_pass->set_moon_sunlight_direction(math::fvec3(-reflector_blackbody_direction_eus));
-				this->sky_pass->set_moon_sunlight_illuminance(math::fvec3(reflector_blackbody_illuminance * observer_reflector_transmittance));
-				this->sky_pass->set_moon_planetlight_direction(math::fvec3(observer_reflector_direction_eus));
-				this->sky_pass->set_moon_planetlight_illuminance(math::fvec3(reflector_observer_illuminance * observer_reflector_transmittance));
-				this->sky_pass->set_moon_illuminance(math::fvec3(observer_reflector_illuminance / observer_reflector_transmittance), math::fvec3(observer_reflector_illuminance));
+				m_sky_pass->set_moon_position(transform.local.translation);
+				m_sky_pass->set_moon_rotation(transform.local.rotation);
+				m_sky_pass->set_moon_angular_radius(static_cast<float>(observer_reflector_angular_radius));
+				m_sky_pass->set_moon_sunlight_direction(math::fvec3(-reflector_blackbody_direction_eus));
+				m_sky_pass->set_moon_sunlight_illuminance(math::fvec3(reflector_blackbody_illuminance * observer_reflector_transmittance));
+				m_sky_pass->set_moon_planetlight_direction(math::fvec3(observer_reflector_direction_eus));
+				m_sky_pass->set_moon_planetlight_illuminance(math::fvec3(reflector_observer_illuminance * observer_reflector_transmittance));
+				m_sky_pass->set_moon_illuminance(math::fvec3(observer_reflector_illuminance / observer_reflector_transmittance), math::fvec3(observer_reflector_illuminance));
 			}
 			
-			if (moon_light)
+			if (m_moon_light)
 			{
-				const math::fvec3 reflector_up_eus = math::fvec3(icrf_to_eus.r * math::dvec3{0, 0, 1});
+				const math::fvec3 reflector_up_eus = math::fvec3(m_icrf_to_eus.r * math::dvec3{0, 0, 1});
 				
-				moon_light->set_illuminance(static_cast<float>(math::max_element(observer_reflector_illuminance)));
+				m_moon_light->set_illuminance(static_cast<float>(math::max_element(observer_reflector_illuminance)));
 				
 				const auto max_component = math::max_element(observer_reflector_illuminance);
 				if (max_component > 0.0)
 				{
-					moon_light->set_color(math::fvec3(observer_reflector_illuminance / max_component));
+					m_moon_light->set_color(math::fvec3(observer_reflector_illuminance / max_component));
 				}
 				else
 				{
-					moon_light->set_color({});
+					m_moon_light->set_color({});
 				}
 				
-				moon_light->set_rotation
+				m_moon_light->set_rotation
 				(
 					math::look_rotation
 					(
@@ -309,149 +299,149 @@ void astronomy_system::update(float t, float dt)
 
 void astronomy_system::set_time(double t)
 {
-	time_days = t;
-	time_centuries = time_days * physics::time::jd::centuries_per_day<double>;
+	m_time_days = t;
+	m_time_centuries = m_time_days * physics::time::jd::centuries_per_day<double>;
 }
 
 void astronomy_system::set_time_scale(double scale)
 {
-	time_scale = scale;
+	m_time_scale = scale;
 }
 
 void astronomy_system::set_observer(entity::id eid)
 {
-	if (observer_eid != eid)
+	if (m_observer_eid != eid)
 	{
-		observer_eid = eid;
+		m_observer_eid = eid;
 		
-		if (observer_eid != entt::null)
+		if (m_observer_eid != entt::null)
 			observer_modified();
 		else
-			reference_body_eid = entt::null;
+			m_reference_body_eid = entt::null;
 	}
 }
 
 void astronomy_system::set_transmittance_samples(std::size_t samples)
 {
-	transmittance_samples = samples;
+	m_transmittance_samples = samples;
 }
 
 void astronomy_system::set_sun_light(scene::directional_light* light)
 {
-	sun_light = light;
+	m_sun_light = light;
 }
 
 void astronomy_system::set_moon_light(scene::directional_light* light)
 {
-	moon_light = light;
+	m_moon_light = light;
 }
 
 void astronomy_system::set_starlight_illuminance(const math::dvec3& illuminance)
 {
-	starlight_illuminance = illuminance;
+	m_starlight_illuminance = illuminance;
 }
 
 void astronomy_system::set_sky_pass(::render::sky_pass* pass)
 {
-	this->sky_pass = pass;
+	m_sky_pass = pass;
 	
-	if (sky_pass)
+	if (m_sky_pass)
 	{
-		if (observer_eid != entt::null)
+		if (m_observer_eid != entt::null)
 		{
 			// Get pointer to observer
-			const auto observer = registry.try_get<observer_component>(reference_body_eid);
+			const auto observer = m_registry.try_get<observer_component>(m_reference_body_eid);
 			
-			sky_pass->set_observer_elevation(static_cast<float>(observer->elevation));
+			m_sky_pass->set_observer_elevation(static_cast<float>(observer->elevation));
 		}
 		
-		if (reference_body_eid != entt::null)
+		if (m_reference_body_eid != entt::null)
 		{
 			// Get pointer to reference celestial body
-			const auto reference_body = registry.try_get<celestial_body_component>(reference_body_eid);
+			const auto reference_body = m_registry.try_get<celestial_body_component>(m_reference_body_eid);
 			
 			if (reference_body)
 			{
-				sky_pass->set_planet_radius(static_cast<float>(reference_body->radius));
-				// sky_pass->set_ground_albedo(math::fvec3{1.0f, 1.0f, 1.0f} * static_cast<float>(reference_body->albedo));
+				m_sky_pass->set_planet_radius(static_cast<float>(reference_body->radius));
+				// m_sky_pass->set_ground_albedo(math::fvec3{1.0f, 1.0f, 1.0f} * static_cast<float>(reference_body->albedo));
 			}
 			else
 			{
-				sky_pass->set_planet_radius(0.0f);
-				// sky_pass->set_ground_albedo({0.0f, 0.0f, 0.0f});
+				m_sky_pass->set_planet_radius(0.0f);
+				// m_sky_pass->set_ground_albedo({0.0f, 0.0f, 0.0f});
 			}
 		}
 	}
 }
 
-void astronomy_system::on_observer_modified(entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_observer_modified([[maybe_unused]] entity::registry& registry, entity::id entity_id)
 {
-	if (entity_id == observer_eid)
+	if (entity_id == m_observer_eid)
 		observer_modified();
 }
 
-void astronomy_system::on_observer_destroyed(entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_observer_destroyed([[maybe_unused]] entity::registry& registry, entity::id entity_id)
 {
-	if (entity_id == observer_eid)
+	if (entity_id == m_observer_eid)
 		observer_modified();
 }
 
-void astronomy_system::on_celestial_body_modified(entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_celestial_body_modified([[maybe_unused]] entity::registry& registry, entity::id entity_id)
 {
-	if (entity_id == reference_body_eid)
+	if (entity_id == m_reference_body_eid)
 		reference_body_modified();
 }
 
-void astronomy_system::on_celestial_body_destroyed(entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_celestial_body_destroyed([[maybe_unused]] entity::registry& registry, entity::id entity_id)
 {
-	if (entity_id == reference_body_eid)
+	if (entity_id == m_reference_body_eid)
 		reference_body_modified();
 }
 
-void astronomy_system::on_orbit_modified(entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_orbit_modified([[maybe_unused]] entity::registry& registry, entity::id entity_id)
 {
-	if (entity_id == reference_body_eid)
+	if (entity_id == m_reference_body_eid)
 		reference_orbit_modified();
 }
 
-void astronomy_system::on_orbit_destroyed(entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_orbit_destroyed([[maybe_unused]] entity::registry& registry, entity::id entity_id)
 {
-	if (entity_id == reference_body_eid)
+	if (entity_id == m_reference_body_eid)
 		reference_orbit_modified();
 }
 
-void astronomy_system::on_atmosphere_modified(entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_atmosphere_modified([[maybe_unused]] entity::registry& registry, entity::id entity_id)
 {
-	if (entity_id == reference_body_eid)
+	if (entity_id == m_reference_body_eid)
 		reference_atmosphere_modified();
 }
 
-void astronomy_system::on_atmosphere_destroyed(entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_atmosphere_destroyed([[maybe_unused]] entity::registry& registry, entity::id entity_id)
 {
-	if (entity_id == reference_body_eid)
+	if (entity_id == m_reference_body_eid)
 		reference_atmosphere_modified();
 }
 
 void astronomy_system::observer_modified()
 {
 	// Get pointer to observer component
-	const auto observer = registry.try_get<observer_component>(observer_eid);
+	const auto observer = m_registry.try_get<observer_component>(m_observer_eid);
 	
 	if (observer)
 	{
-		if (reference_body_eid != observer->reference_body_eid)
+		if (m_reference_body_eid != observer->reference_body_eid)
 		{
 			// Reference body changed
-			reference_body_eid = observer->reference_body_eid;
+			m_reference_body_eid = observer->reference_body_eid;
 			reference_body_modified();
 			reference_orbit_modified();
 			reference_atmosphere_modified();
 		}
 		
-		if (reference_body_eid != entt::null)
+		if (m_reference_body_eid != entt::null)
 		{
 			// Get pointer to reference celestial body
-			const auto reference_body = registry.try_get<celestial_body_component>(reference_body_eid);
+			const auto reference_body = m_registry.try_get<celestial_body_component>(m_reference_body_eid);
 			
 			// Update BCBF to EUS transformation
 			if (reference_body)
@@ -459,20 +449,20 @@ void astronomy_system::observer_modified()
 		}
 	
 		// Upload observer elevation to sky pass
-		if (sky_pass)
-			sky_pass->set_observer_elevation(static_cast<float>(observer->elevation));
+		if (m_sky_pass)
+			m_sky_pass->set_observer_elevation(static_cast<float>(observer->elevation));
 	}
 }
 
 void astronomy_system::reference_body_modified()
 {
 	// Get pointer to reference celestial body
-	const auto reference_body = registry.try_get<celestial_body_component>(reference_body_eid);
+	const auto reference_body = m_registry.try_get<celestial_body_component>(m_reference_body_eid);
 	
 	if (reference_body)
 	{
 		// Get pointer to observer
-		const auto observer = registry.try_get<observer_component>(observer_eid);
+		const auto observer = m_registry.try_get<observer_component>(m_observer_eid);
 		
 		// Update BCBF to EUS transformation
 		if (observer)
@@ -480,12 +470,12 @@ void astronomy_system::reference_body_modified()
 	}
 	
 	// Update reference celestial body-related sky pass parameters
-	if (sky_pass)
+	if (m_sky_pass)
 	{
 		if (reference_body)
-			sky_pass->set_planet_radius(static_cast<float>(reference_body->radius));
+			m_sky_pass->set_planet_radius(static_cast<float>(reference_body->radius));
 		else
-			sky_pass->set_planet_radius(0.0f);
+			m_sky_pass->set_planet_radius(0.0f);
 	}
 }
 
@@ -502,20 +492,20 @@ void astronomy_system::reference_atmosphere_modified()
 void astronomy_system::update_bcbf_to_eus(const ::observer_component& observer, const ::celestial_body_component& body)
 {
 	// Construct BCBF to EUS transformation
-	bcbf_to_eus = physics::orbit::frame::bcbf::to_enu
+	m_bcbf_to_eus = physics::orbit::frame::bcbf::to_enu
 	(
 		body.radius + observer.elevation,
 		observer.latitude,
 		observer.longitude
-	) * enu_to_eus;
+	) * m_enu_to_eus;
 }
 
 void astronomy_system::update_icrf_to_eus(const ::celestial_body_component& body, const ::orbit_component& orbit)
 {
 	// Evaluate reference body orientation polynomials
-	const double body_pole_ra = math::horner(body.pole_ra.begin(), body.pole_ra.end(), time_centuries);
-	const double body_pole_dec = math::horner(body.pole_dec.begin(), body.pole_dec.end(), time_centuries);
-	const double body_prime_meridian = math::horner(body.prime_meridian.begin(), body.prime_meridian.end(), time_days);
+	const double body_pole_ra = math::horner(body.pole_ra.begin(), body.pole_ra.end(), m_time_centuries);
+	const double body_pole_dec = math::horner(body.pole_dec.begin(), body.pole_dec.end(), m_time_centuries);
+	const double body_prime_meridian = math::horner(body.prime_meridian.begin(), body.prime_meridian.end(), m_time_days);
 	
 	// Construct ICRF frame to BCBF transformation
 	math::se3<double> icrf_to_bcbf = physics::orbit::frame::bci::to_bcbf
@@ -527,18 +517,18 @@ void astronomy_system::update_icrf_to_eus(const ::celestial_body_component& body
 	icrf_to_bcbf.t = icrf_to_bcbf.r * -orbit.position;
 	
 	/// Construct ICRF to EUS transformation
-	icrf_to_eus = icrf_to_bcbf * bcbf_to_eus;
+	m_icrf_to_eus = icrf_to_bcbf * m_bcbf_to_eus;
 	
 	// Pass ICRF to EUS transformation to sky pass
-	if (sky_pass)
+	if (m_sky_pass)
 	{
 		// Upload topocentric frame to sky pass
-		sky_pass->set_icrf_to_eus
+		m_sky_pass->set_icrf_to_eus
 		(
 			math::se3<float>
 			{
-				math::fvec3(icrf_to_eus.t),
-				math::fquat(icrf_to_eus.r)
+				math::fvec3(m_icrf_to_eus.t),
+				math::fquat(m_icrf_to_eus.r)
 			}
 		);
 	}
@@ -575,10 +565,10 @@ math::dvec3 astronomy_system::integrate_transmittance(const ::observer_component
 		// Integrate atmospheric particle densities
 		math::dvec3 densities{};
 		double previous_sample_distance = 0.0;
-		for (std::size_t i = 0; i < transmittance_samples; ++i)
+		for (std::size_t i = 0; i < m_transmittance_samples; ++i)
 		{
 			// Determine distance along sample ray to sample point and length of the sample
-			const double sample_distance = (static_cast<double>(i) + 0.5) / static_cast<double>(transmittance_samples) * sample_end_distance;
+			const double sample_distance = (static_cast<double>(i) + 0.5) / static_cast<double>(m_transmittance_samples) * sample_end_distance;
 			const double sample_length = sample_distance - previous_sample_distance;
 			previous_sample_distance = sample_distance;
 			

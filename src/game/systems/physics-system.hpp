@@ -24,6 +24,8 @@ class physics_system:
 {
 public:
 	explicit physics_system(entity::registry& registry);
+	~physics_system() override = default;
+	
 	void update(float t, float dt) override;
 	
 	void interpolate(float alpha);
@@ -35,7 +37,7 @@ public:
 	 */
 	inline void set_gravity(const math::fvec3& gravity) noexcept
 	{
-		this->gravity = gravity;
+		m_gravity = gravity;
 	}
 	
 	/**
@@ -81,12 +83,12 @@ private:
 	void narrow_phase_capsule_box(physics::rigid_body& body_a, physics::rigid_body& body_b);
 	void narrow_phase_capsule_capsule(physics::rigid_body& body_a, physics::rigid_body& body_b);
 	
-	std::array<std::array<std::function<void(physics::rigid_body&, physics::rigid_body&)>, 4>, 4> narrow_phase_table;
+	std::array<std::array<std::function<void(physics::rigid_body&, physics::rigid_body&)>, 4>, 4> m_narrow_phase_table;
 	
-	math::fvec3 gravity{0.0f, -9.80665f, 0.0f};
+	math::fvec3 m_gravity{0.0f, -9.80665f, 0.0f};
 	
-	std::vector<std::pair<physics::rigid_body*, physics::rigid_body*>> broad_phase_pairs;
-	std::vector<collision_manifold_type> narrow_phase_manifolds;
+	std::vector<std::pair<physics::rigid_body*, physics::rigid_body*>> m_broad_phase_pairs;
+	std::vector<collision_manifold_type> m_narrow_phase_manifolds;
 };
 
 #endif // ANTKEEPER_GAME_PHYSICS_SYSTEM_HPP

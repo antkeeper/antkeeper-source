@@ -10,13 +10,13 @@ metabolic_system::metabolic_system(entity::registry& registry):
 	updatable_system(registry)
 {}
 
-void metabolic_system::update(float t, float dt)
+void metabolic_system::update([[maybe_unused]] float t, float dt)
 {
 	// Scale timestep
 	const auto scaled_timestep = dt * m_time_scale;
 	
 	// Handle isometric growth
-	auto isometric_growth_group = registry.group<isometric_growth_component>(entt::get<rigid_body_component>);
+	auto isometric_growth_group = m_registry.group<isometric_growth_component>(entt::get<rigid_body_component>);
 	std::for_each
 	(
 		std::execution::seq,

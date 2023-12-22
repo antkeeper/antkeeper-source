@@ -11,7 +11,7 @@ namespace ai {
 namespace steering {
 namespace behavior {
 
-math::fvec3 wander_2d(const agent& agent, float noise, float distance, float radius, float& angle)
+math::fvec3 wander_2d(const agent& agent, [[maybe_unused]] float noise, float distance, float radius, float& angle)
 {
 	// Shift wander angle
 	// angle += math::random(-noise, noise);
@@ -29,7 +29,7 @@ math::fvec3 wander_2d(const agent& agent, float noise, float distance, float rad
 	return seek(agent, center + offset);
 }
 
-math::fvec3 wander_3d(const agent& agent, float noise, float distance, float radius, float& theta, float& phi)
+math::fvec3 wander_3d(const agent& agent, [[maybe_unused]] float noise, float distance, float radius, float& theta, float& phi)
 {
 	// Shift wander angles
 	// theta += math::random(-noise, noise);

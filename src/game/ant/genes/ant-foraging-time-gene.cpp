@@ -8,7 +8,7 @@
 
 namespace {
 
-void load_ant_foraging_time_phene(ant_foraging_time_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
+void load_ant_foraging_time_phene(ant_foraging_time_phene& phene, [[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
 {
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.min_solar_altitude), 1);
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.max_solar_altitude), 1);

@@ -25,7 +25,7 @@ terrain_system::terrain_system(entity::registry& registry):
 terrain_system::~terrain_system()
 {}
 
-void terrain_system::update(float t, float dt)
+void terrain_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
 {
 }
 
@@ -59,13 +59,13 @@ entity::id terrain_system::generate(std::shared_ptr<gl::image_2d> heightmap, con
 	terrain_grid_component grid;
 	grid.dimensions = subdivisions + 1u;
 	grid.cells.resize(grid.dimensions.x() * grid.dimensions.y());
-	auto grid_eid = registry.create();
+	auto grid_eid = m_registry.create();
 	for (auto y = 0u; y < grid.dimensions.y(); ++y)
 	{
 		for (auto x = 0u; x < grid.dimensions.x(); ++x)
 		{
-			auto cell_eid = registry.create();
-			registry.emplace<terrain_cell_component>(cell_eid, grid_eid, math::uvec2{x, y});
+			auto cell_eid = m_registry.create();
+			m_registry.emplace<terrain_cell_component>(cell_eid, grid_eid, math::uvec2{x, y});
 			grid.cells[y * grid.dimensions.x() + x] = cell_eid;
 		}
 	}
@@ -108,7 +108,7 @@ entity::id terrain_system::generate(std::shared_ptr<gl::image_2d> heightmap, con
 		std::end(grid.cells),
 		[&](auto cell_eid)
 		{
-			const auto& cell = registry.get<terrain_cell_component>(cell_eid);
+			const auto& cell = m_registry.get<terrain_cell_component>(cell_eid);
 			
 			// Allocate cell mesh and attributes
 			auto mesh = std::make_shared<geom::brep_mesh>();
@@ -187,17 +187,17 @@ entity::id terrain_system::generate(std::shared_ptr<gl::image_2d> heightmap, con
 			rigid_body->set_mass(0.0f);
 			rigid_body->set_collider(std::make_shared<physics::mesh_collider>(mesh));
 			rigid_body->set_transform({transform.translation, transform.rotation, math::fvec3{max_scale, max_scale, max_scale} * 0.5f});
-			registry.emplace<rigid_body_component>(cell_eid, std::move(rigid_body));
+			m_registry.emplace<rigid_body_component>(cell_eid, std::move(rigid_body));
 			
 			auto model = generate_terrain_model(*mesh, material, cell_quad_dimensions);
 			scene_component scene;
 			scene.object = std::make_shared<scene::static_mesh>(std::move(model));
 			scene.layer_mask = 1;
-			registry.emplace<scene_component>(cell_eid, std::move(scene));
+			m_registry.emplace<scene_component>(cell_eid, std::move(scene));
 		}
 	);
 	
-	registry.emplace<terrain_grid_component>(grid_eid, std::move(grid));
+	m_registry.emplace<terrain_grid_component>(grid_eid, std::move(grid));
 	return grid_eid;
 }
 

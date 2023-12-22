@@ -14,6 +14,8 @@ class morphogenesis_system:
 {
 public:
 	explicit morphogenesis_system(entity::registry& registry);
+	~morphogenesis_system() override = default;
+	
 	virtual void update(float t, float dt);
 	
 private:

@@ -12,6 +12,9 @@ namespace physics {
 class constraint
 {
 public:
+	/** Destructs a rigid body constraint. */
+	virtual ~constraint() = default;
+	
 	/**
 	 * Solves the constraint.
 	 *

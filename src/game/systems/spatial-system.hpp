@@ -13,11 +13,13 @@ class spatial_system:
 {
 public:
 	explicit spatial_system(entity::registry& registry);
+	~spatial_system() override = default;
+	
 	virtual void update(float t, float dt);
 	
 private:
 	/// Observes entities with updated, unconstrained transforms.
-	entt::observer updated_unconstrained_transforms;
+	entt::observer m_updated_unconstrained_transforms;
 };
 
 

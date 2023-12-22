@@ -11,7 +11,7 @@ class subterrain_system: public updatable_system
 {
 public:
 	subterrain_system(entity::registry& registry, ::resource_manager* resource_manager);
-	~subterrain_system();
+	~subterrain_system() override;
 	virtual void update(float t, float dt);
 
 private:

@@ -40,6 +40,7 @@ std::uint32_t infer_cube_map_face_width(std::uint32_t width, std::uint32_t heigh
 	switch (layout)
 	{
 		case cube_map_layout::column:
+			[[fallthrough]];
 		case cube_map_layout::spherical:
 			return width;
 		
@@ -50,9 +51,12 @@ std::uint32_t infer_cube_map_face_width(std::uint32_t width, std::uint32_t heigh
 			return height / 4;
 		
 		case cube_map_layout::horizontal_cross:
+			[[fallthrough]];
 		case cube_map_layout::equirectangular:
 			return width / 4;
 		
+		case cube_map_layout::unknown:
+			[[fallthrough]];
 		default:
 			return 0;
 	}

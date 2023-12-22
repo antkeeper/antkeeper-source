@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <bit>
+#include <stacktrace>
 
 namespace {
 
@@ -118,7 +119,7 @@ namespace {
 		GL_MAX                    // blend_op::max
 	};
 	
-	void gl_debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* user_param)
+	void gl_debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, [[maybe_unused]] GLsizei length, const GLchar* message, [[maybe_unused]] const void* user_param)
 	{
 		const auto src_str = [source]() -> const char*
 		{
@@ -184,7 +185,7 @@ namespace {
 			{
 				std::string formatted_message;
 				std::format_to(std::back_inserter(formatted_message), "OpenGL {} {} ({}) {}: {}", src_str, type_str, severity_str, id, message);
-				debug::log_fatal("{}", formatted_message);
+				debug::log_fatal("{}\n{}", formatted_message, std::stacktrace::current());
 				throw std::runtime_error(formatted_message);
 			}
 			
@@ -257,58 +258,70 @@ pipeline::pipeline()
 
 void pipeline::bind_framebuffer(const gl::framebuffer* framebuffer)
 {
-	if (m_framebuffer != framebuffer)
+	if (framebuffer)
 	{
-		m_framebuffer = framebuffer;
-		
-		if (m_framebuffer)
+		if (framebuffer->m_gl_named_framebuffer != m_bound_gl_named_framebuffer)
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer->m_gl_named_framebuffer);
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->m_gl_named_framebuffer);
+			m_bound_gl_named_framebuffer = framebuffer->m_gl_named_framebuffer;
 		}
-		else
-		{
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		}
+	}
+	else if (m_bound_gl_named_framebuffer)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		m_bound_gl_named_framebuffer = 0;
 	}
 }
 
 void pipeline::bind_shader_program(const gl::shader_program* shader_program)
 {
-	if (m_shader_program != shader_program)
+	if (shader_program)
 	{
-		m_shader_program = shader_program;
-		
-		if (m_shader_program)
+		if (shader_program->m_gl_program_id != m_bound_gl_program_id)
 		{
-			glUseProgram(m_shader_program->gl_program_id);
+			glUseProgram(shader_program->m_gl_program_id);
+			m_bound_gl_program_id = shader_program->m_gl_program_id;
 		}
-		else
-		{
-			glUseProgram(0);
-		}
+	}
+	else if (m_bound_gl_program_id)
+	{
+		glUseProgram(0);
+		m_bound_gl_program_id = 0;
 	}
 }
 
 void pipeline::bind_vertex_array(const vertex_array* array)
 {
-	if (m_vertex_array != array)
-	{
-		m_vertex_array = array;
-		
-		if (m_vertex_array)
-		{
-			glBindVertexArray(m_vertex_array->m_gl_named_array);
-		}
-		else
-		{
-			glBindVertexArray(0);
-		}
-	}
+	m_bound_gl_named_array = array ? array->m_gl_named_array : 0;
+	glBindVertexArray(m_bound_gl_named_array);
+	
+	/// @BUG
+	/// 
+	/// The following code was occasionally causing this exception:
+	///
+	/// > OpenGL API error (high severity) 1282: GL_INVALID_OPERATION error generated. Array object is not active.
+	///
+	/// Why?
+	
+	
+	// if (array)
+	// {
+		// if (array->m_gl_named_array != m_bound_gl_named_array)
+		// {
+			// glBindVertexArray(array->m_gl_named_array);
+			// m_bound_gl_named_array = array->m_gl_named_array;
+		// }
+	// }
+	// else if (m_bound_gl_named_array)
+	// {
+		// glBindVertexArray(0);
+		// m_bound_gl_named_array = 0;
+	// }
 }
 
 void pipeline::bind_vertex_buffers(std::uint32_t first_binding, std::span<const vertex_buffer* const> buffers, std::span<const std::size_t> offsets, std::span<const std::size_t> strides)
 {
-	if (!m_vertex_array)
+	if (!m_bound_gl_named_array)
 	{
 		throw std::runtime_error("Failed to bind vertex buffer: no vertex array bound.");
 	}
@@ -327,7 +340,7 @@ void pipeline::bind_vertex_buffers(std::uint32_t first_binding, std::span<const 
 	{
 		glVertexArrayVertexBuffer
 		(
-			m_vertex_array->m_gl_named_array,
+			m_bound_gl_named_array,
 			static_cast<GLuint>(first_binding + i),
 			buffers[i]->m_gl_named_buffer,
 			static_cast<GLintptr>(offsets[i]),
@@ -512,6 +525,8 @@ void pipeline::set_cull_mode(cull_mode mode)
 					glCullFace(GL_FRONT_AND_BACK);
 					break;
 				
+				case cull_mode::none:
+					[[fallthrough]];
 				default:
 					break;
 			}
@@ -1020,14 +1035,14 @@ void pipeline::draw(std::uint32_t vertex_count, std::uint32_t instance_count, st
 	);
 }
 
-void pipeline::draw_indexed(std::uint32_t index_count, std::uint32_t instance_count, std::uint32_t first_index, std::int32_t vertex_offset, std::uint32_t first_instance)
+void pipeline::draw_indexed(std::uint32_t index_count, std::uint32_t instance_count, std::uint32_t first_index, [[maybe_unused]] std::int32_t vertex_offset, std::uint32_t first_instance)
 {
 	glDrawElementsInstancedBaseInstance
 	(
 		primitive_topology_lut[std::to_underlying(m_input_assembly_state.topology)],
-		static_cast<GLsizei>(instance_count),
+		static_cast<GLsizei>(index_count),
 		GL_UNSIGNED_INT,// GL_UNSIGNED_SHORT, GL_UNSIGNED_BYTE
-		reinterpret_cast<const GLvoid*>(first_index * sizeof(unsigned int)),
+		reinterpret_cast<const GLvoid*>(first_index * sizeof(std::uint32_t)),
 		static_cast<GLsizei>(instance_count),
 		static_cast<GLuint>(first_instance)
 	);

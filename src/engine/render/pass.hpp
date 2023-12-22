@@ -18,7 +18,7 @@ class pass
 {
 public:
 	pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer);
-	virtual ~pass();
+	virtual ~pass() = default;
 
 	virtual void render(render::context& ctx) = 0;
 

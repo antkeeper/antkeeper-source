@@ -15,6 +15,9 @@ namespace scene {
 class light: public object<light>
 {
 public:
+	/** Destructs a light. */
+	~light() override = default;
+	
 	/// Returns an enumeration denoting the light object type.
 	[[nodiscard]] virtual light_type get_light_type() const noexcept = 0;
 	

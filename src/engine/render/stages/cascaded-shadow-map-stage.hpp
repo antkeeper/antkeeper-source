@@ -31,6 +31,9 @@ public:
 	 */
 	cascaded_shadow_map_stage(gl::pipeline& pipeline, ::resource_manager& resource_manager);
 	
+	/** Destructs a cascaded shadow map stage. */
+	~cascaded_shadow_map_stage() override = default;
+	
 	void execute(render::context& ctx) override;
 	
 	/**

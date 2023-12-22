@@ -5,24 +5,12 @@
 #define ANTKEEPER_TYPE_TYPEFACE_HPP
 
 #include <engine/type/font-metrics.hpp>
-#include <engine/type/glyph-metrics.hpp>
-#include <vector>
-#include <unordered_set>
+#include <engine/type/glyph.hpp>
+#include <engine/type/typeface-style.hpp>
+#include <array>
+#include <string>
 
 namespace type {
-
-/// Emumerates typeface styles.
-enum class typeface_style
-{
-	/// Normal typeface style.
-	normal,
-	
-	/// Italic typeface style.
-	italic,
-	
-	/// Oblique typeface style.
-	oblique
-};
 
 /**
  * Abstract base class for a typeface, which corresponds to a single digital font file.
@@ -32,101 +20,152 @@ enum class typeface_style
 class typeface
 {
 public:
-	/**
-	 * Creates a typeface, setting its style and weight.
-	 *
-	 * @param style Typeface style.
-	 * @param weight Typeface weight.
-	 */
-	typeface(typeface_style style, int weight);
-	
-	/// Creates an empty typeface.
-	typeface();
-	
-	/// Destroys a typeface.
+	/** Destructs a typeface. */
 	virtual ~typeface() = default;
 	
-	/**
-	 * Sets the style of the typeface.
-	 *
-	 * @param style Typeface style.
-	 */
-	void set_style(typeface_style style);
+	/// @name Font
+	/// @{
 	
 	/**
-	 * Sets the weight of the typeface.
+	 * Gets the metrics for a font of the given size.
 	 *
-	 * @param weight Typeface weight.
+	 * @param size Font size, in pixels.
+	 * 
+	 * @return Font metrics.
 	 */
-	void set_weight(int weight);
+	[[nodiscard]] virtual font_metrics get_font_metrics(float size) const = 0;
 	
-	/// Returns the style of the typeface.
-	[[nodiscard]] inline typeface_style get_style() const noexcept
-	{
-		return style;
-	}
+	/// @}
 	
-	/// Returns the weight of the typeface.
-	[[nodiscard]] inline int get_weight() const noexcept
-	{
-		return weight;
-	}
-	
-	/// Returns `true` if the typeface contains kerning information, `false` otherwise.
-	virtual bool has_kerning() const = 0;
+	/// @name Glyphs
+	/// @{
 	
 	/**
-	 * Gets metrics for a font of the specified size.
+	 * Checks if the typeface contains the given glyph.
 	 *
-	 * @param[in] height Height of the font, in pixels.
-	 * @param[out] metrics Font metrics.
-	 * @return `true` if font metrics were returned, `false` otherwise.
+	 * @param code UTF-32 character code of a glyph.
+	 *
+	 * @return `true` if the typeface contains the glyph, `false` otherwise.
 	 */
-	virtual bool get_metrics(float height, font_metrics& metrics) const = 0;
+	[[nodiscard]] virtual bool has_glyph(char32_t code) const = 0;
 	
 	/**
-	 * Gets metrics for a glyph in a font of the specified size.
+	 * Loads a glyph.
 	 *
-	 * @param[in] height Height of the font, in pixels.
-	 * @param[in] code UTF-32 character code of a glyph.
-	 * @param[out] metrics Glyph metrics.
-	 * @return `true` if glyph metrics were returned, `false` otherwise.
+	 * @param code UTF-32 character code of a glyph.
+	 * @param size Font size, in pixels.
+	 * @param sdf `true` to render a signed distance field (SDF) glyph bitmap, `false` otherwise.
+	 * 
+	 * @return Loaded glyph.
 	 */
-	virtual bool get_metrics(float height, char32_t code, glyph_metrics& metrics) const = 0;
+	[[nodiscard]] virtual glyph get_glyph(char32_t code, float size, bool sdf = false) const = 0;
 	
-	/**
-	 * Gets a bitmap of a glyph in a font of the specified size.
-	 *
-	 * @param[in] height Height of the font, in pixels.
-	 * @param[in] code UTF-32 character code of a glyph.
-	 * @param[out] bitmap Glyph bitmap data.
-	 * @return `true` if glyph bitmap data was returned, `false` otherwise.
-	 */
-	virtual bool get_bitmap(float height, char32_t code, std::vector<std::byte>& bitmap, std::uint32_t& bitmap_width, std::uint32_t& bitmap_height) const = 0;
+	/// @}
+	
+	/// @name Kerning
+	/// @{
 	
 	/**
 	 * Gets the kerning offset for a pair of glyphs.
 	 *
-	 * @param[in] height Height of the font, in pixels.
-	 * @param[in] first UTF-32 character code of the first glyph.
-	 * @param[in] second UTF-32 character code of the second glyph.
-	 * @param[out] offset Kerning offset.
-	 * @return `true` if a kerning offset was returned, `false` otherwise.
+	 * @param size Font size, in pixels.
+	 * @param first UTF-32 character code of the first glyph.
+	 * @param second UTF-32 character code of the second glyph.
+	 * 
+	 * @return Kerning offset, in pixels.
 	 */
-	virtual bool get_kerning(float height, char32_t first, char32_t second, math::fvec2& offset) const = 0;
+	[[nodiscard]] virtual std::array<float, 2> get_kerning(float size, char32_t first, char32_t second) const = 0;
 	
-	/// Returns the set of characters supported by the typeface.
-	[[nodiscard]] inline const std::unordered_set<char32_t>& get_charset() const noexcept
+	/// @}
+	
+	/// @name Typeface information
+	/// @{
+	
+	/** Returns the name of the typeface family, if any. */
+	[[nodiscard]] inline constexpr const auto& get_family_name() const noexcept
 	{
-		return charset;
+		return m_family_name;
 	}
 	
-protected:
-	std::unordered_set<char32_t> charset;
+	/** Returns the name of the typeface style, if any. */
+	[[nodiscard]] inline constexpr const auto& get_style_name() const noexcept
+	{
+		return m_style_name;
+	}
 	
-private:
-	typeface_style style;
-	int weight;
+	/** Returns `true` if the typeface has horizontal metrics, `false` otherwise. */
+	[[nodiscard]] inline constexpr auto has_horizontal() const noexcept
+	{
+		return m_has_horizontal;
+	}
+	
+	/** Returns `true` if the typeface has vertical metrics, `false` otherwise. */
+	[[nodiscard]] inline constexpr auto has_vertical() const noexcept
+	{
+		return m_has_vertical;
+	}
+	
+	/** Returns `true` if the typeface has kerning information, `false` otherwise. */
+	[[nodiscard]] inline constexpr auto has_kerning() const noexcept
+	{
+		return m_has_kerning;
+	}
+	
+	/** Returns `true` if the typeface has fixed font sizes, `false` otherwise. */
+	[[nodiscard]] inline constexpr auto has_fixed_sizes() const noexcept
+	{
+		return m_has_fixed_sizes;
+	}
+	
+	/** Returns `true` if the typeface has colored glyphs, `false` otherwise. */
+	[[nodiscard]] inline constexpr auto has_color() const noexcept
+	{
+		return m_has_color;
+	}
+	
+	/** Returns `true` if the typeface has scalable font sizes, `false` otherwise. */
+	[[nodiscard]] inline constexpr auto is_scalable() const noexcept
+	{
+		return m_is_scalable;
+	}
+	
+	/** Returns `true` if the typeface has fixed-width (monospace) glyphs, `false` otherwise. */
+	[[nodiscard]] inline constexpr auto is_fixed_width() const noexcept
+	{
+		return m_is_fixed_width;
+	}
+	
+	/** Returns the style flags of the typeface. */
+	[[nodiscard]] inline constexpr auto get_style_flags() const noexcept
+	{
+		return m_style_flags;
+	}
+	
+	/** Returns `true` if the typeface is italic, `false` otherwise. */
+	[[nodiscard]] inline constexpr auto is_italic() const noexcept
+	{
+		return m_style_flags & typeface_style_italic_bit;
+	}
+	
+	/** Returns `true` if the typeface is bold, `false` otherwise. */
+	[[nodiscard]] inline constexpr auto is_bold() const noexcept
+	{
+		return m_style_flags & typeface_style_bold_bit;
+	}
+	
+	/// @}
+	
+protected:
+	std::string m_family_name;
+	std::string m_style_name;
+	bool m_has_horizontal{false};
+	bool m_has_vertical{false};
+	bool m_has_kerning{false};
+	bool m_has_fixed_sizes{false};
+	bool m_has_color{false};
+	bool m_is_scalable{false};
+	bool m_is_fixed_width{false};
+	std::uint32_t m_style_flags{};
 };
 
 } // namespace type

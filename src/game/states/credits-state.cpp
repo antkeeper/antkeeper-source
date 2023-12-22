@@ -23,7 +23,7 @@ credits_state::credits_state(::game& ctx):
 	
 	// Construct credits text
 	credits_text.set_material(ctx.menu_font_material);
-	credits_text.set_font(&ctx.menu_font);
+	credits_text.set_font(ctx.menu_font);
 	credits_text.set_color({1.0f, 1.0f, 1.0f, 0.0f});
 	credits_text.set_content(get_string(ctx, "credits"));
 	
@@ -35,9 +35,8 @@ credits_state::credits_state(::game& ctx):
 	
 	// Set up animation timing configuration
 	const float credits_fade_in_duration = 0.5;
-	const float credits_scroll_duration = 5.0;
 	
-	auto set_credits_opacity = [this](int channel, const float& opacity)
+	auto set_credits_opacity = [this]([[maybe_unused]] int channel, const float& opacity)
 	{
 		this->credits_text.set_color({1.0f, 1.0f, 1.0f, opacity});
 	};
@@ -70,7 +69,7 @@ credits_state::credits_state(::game& ctx):
 	);
 	
 	// Construct credits skip function
-	auto skip = [&](const auto& event)
+	auto skip = [&]([[maybe_unused]] const auto& event)
 	{
 		ctx.function_queue.emplace
 		(

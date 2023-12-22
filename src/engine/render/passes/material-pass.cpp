@@ -365,7 +365,7 @@ void material_pass::evaluate_lighting(const render::context& ctx, std::uint32_t 
 			{
 				const scene::directional_light& directional_light = static_cast<const scene::directional_light&>(light);
 				
-				const std::size_t index = directional_light_count;
+				const std::size_t light_index = directional_light_count;
 				
 				++directional_light_count;
 				if (directional_light_count > directional_light_colors.size())
@@ -374,13 +374,13 @@ void material_pass::evaluate_lighting(const render::context& ctx, std::uint32_t 
 					directional_light_directions.resize(directional_light_count);
 				}
 				
-				directional_light_colors[index] = directional_light.get_colored_illuminance() * ctx.camera->get_exposure_normalization();
-				directional_light_directions[index] = directional_light.get_direction() * ctx.camera->get_rotation();
+				directional_light_colors[light_index] = directional_light.get_colored_illuminance() * ctx.camera->get_exposure_normalization();
+				directional_light_directions[light_index] = directional_light.get_direction() * ctx.camera->get_rotation();
 				
 				// Add directional shadow
 				if (directional_light.is_shadow_caster() && directional_light.get_shadow_framebuffer())
 				{
-					const std::size_t index = directional_shadow_count;
+					const std::size_t shadow_index = directional_shadow_count;
 					
 					++directional_shadow_count;
 					if (directional_shadow_count > directional_shadow_maps.size())
@@ -391,10 +391,10 @@ void material_pass::evaluate_lighting(const render::context& ctx, std::uint32_t 
 						directional_shadow_matrices.resize(directional_shadow_count);
 					}
 					
-					directional_shadow_maps[index] = directional_light.get_shadow_texture().get();
-					directional_shadow_splits[index] = directional_light.get_shadow_cascade_distances();
-					directional_shadow_fade_ranges[index] = directional_light.get_shadow_fade_range();
-					directional_shadow_matrices[index] = directional_light.get_shadow_cascade_matrices();
+					directional_shadow_maps[shadow_index] = directional_light.get_shadow_texture().get();
+					directional_shadow_splits[shadow_index] = directional_light.get_shadow_cascade_distances();
+					directional_shadow_fade_ranges[shadow_index] = directional_light.get_shadow_fade_range();
+					directional_shadow_matrices[shadow_index] = directional_light.get_shadow_cascade_matrices();
 				}
 				break;
 			}
@@ -869,18 +869,10 @@ void material_pass::build_material_command_buffer(std::vector<std::function<void
 		switch (shader_var->type())
 		{
 			/// @TODO render::matvar_bool is broken due to the std::vector<bool> specialization.
-			// case gl::shader_variable_type::bvec1:
-				// if (material_var->type() == material_variable_type::bvec1)
-				// {
-					// command_buffer.emplace_back
-					// (
-						// [size, shader_var, material_var = std::static_pointer_cast<matvar_bool>(material_var)]()
-						// {
-							// shader_var->update(std::span<const bool>{material_var->data(), size});
-						// }
-					// );
-				// }
-				// break;
+			case gl::shader_variable_type::bvec1:
+				throw std::runtime_error("bvec1 unimplemented");
+				break;
+			
 			case gl::shader_variable_type::bvec2:
 				if (material_var->type() == material_variable_type::bvec2)
 				{

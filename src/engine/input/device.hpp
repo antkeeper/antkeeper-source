@@ -19,6 +19,9 @@ namespace input {
 class device
 {
 public:
+	/** Destructs an input device. */
+	virtual ~device() = default;
+	
 	/**
 	 * Simulates the device being connected.
 	 */
@@ -34,7 +37,7 @@ public:
 	/// Returns `true` if the device is currently connected.
 	[[nodiscard]] inline bool is_connected() const noexcept
 	{
-		return connected;
+		return m_connected;
 	}
 	
 	/**
@@ -47,30 +50,30 @@ public:
 	/// Returns the universally unique identifier (UUID) of this input device.
 	[[nodiscard]] inline const ::uuid& get_uuid() const noexcept
 	{
-		return uuid;
+		return m_uuid;
 	}
 	
 	/// Returns the channel through which device connected events are published.
 	[[nodiscard]] inline ::event::channel<device_connected_event>& get_connected_channel() noexcept
 	{
-		return connected_publisher.channel();
+		return m_connected_publisher.channel();
 	}
 	
 	/// Returns the channel through which device disconnected events are published.
 	[[nodiscard]] inline ::event::channel<device_disconnected_event>& get_disconnected_channel() noexcept
 	{
-		return disconnected_publisher.channel();
+		return m_disconnected_publisher.channel();
 	}
 	
 	/// Returns the input device type.
 	[[nodiscard]] virtual constexpr device_type get_device_type() const noexcept = 0;
 	
 private:
-	::uuid uuid;
-	bool connected{false};
+	::uuid m_uuid;
+	bool m_connected{false};
 	
-	::event::publisher<device_connected_event> connected_publisher;
-	::event::publisher<device_disconnected_event> disconnected_publisher;
+	::event::publisher<device_connected_event> m_connected_publisher;
+	::event::publisher<device_disconnected_event> m_disconnected_publisher;
 };
 
 } // namespace input

@@ -9,6 +9,7 @@
 #include <engine/input/keyboard.hpp>
 #include <engine/input/mouse.hpp>
 #include <engine/event/dispatcher.hpp>
+#include <engine/geom/primitives/rectangle.hpp>
 #include <map>
 #include <memory>
 #include <string>
@@ -54,6 +55,16 @@ public:
 	
 	/** Returns UTF-8 text from the clipboard. */
 	[[nodiscard]] virtual std::string get_clipboard_text() const = 0;
+	
+	/**
+	 * Enables text input events.
+	 *
+	 * @param rect Text input rectangle, with the origin at the upper left.
+	 */
+	virtual void start_text_input(const geom::rectangle<int>& rect = {}) = 0;
+	
+	/** Disables text input events. */
+	virtual void stop_text_input() = 0;
 
 	/// @{
 	/** Returns the event dispatcher associated with registered input devices. */

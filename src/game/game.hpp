@@ -24,7 +24,7 @@
 #include <engine/render/anti-aliasing-method.hpp>
 #include <engine/render/material-variable.hpp>
 #include <engine/render/material.hpp>
-#include <engine/type/bitmap-font.hpp>
+#include <engine/type/font.hpp>
 #include <engine/type/typeface.hpp>
 #include <engine/utility/dict.hpp>
 #include <engine/utility/json.hpp>
@@ -55,13 +55,10 @@ class animator;
 class resource_manager;
 class screen_transition;
 class timeline;
+class shell;
+class shell_buffer;
 
 template <typename T> class animation;
-
-namespace debug
-{
-	class cli;
-}
 
 namespace render
 {
@@ -150,7 +147,7 @@ public:
 	// Window management and window event handling
 	std::unique_ptr<app::window_manager> window_manager;
 	std::shared_ptr<app::window> window;
-	bool closed;
+	bool closed{false};
 	std::shared_ptr<::event::subscription> window_closed_subscription;
 	std::shared_ptr<::event::subscription> window_resized_subscription;
 	
@@ -171,9 +168,9 @@ public:
 	
 	// Fonts
 	std::unordered_map<hash::fnv1a32_t, std::shared_ptr<type::typeface>> typefaces;
-	type::bitmap_font debug_font;
-	type::bitmap_font menu_font;
-	type::bitmap_font title_font;
+	std::shared_ptr<type::font> debug_font;
+	std::shared_ptr<type::font> menu_font;
+	std::shared_ptr<type::font> title_font;
 	std::shared_ptr<render::material> debug_font_material;
 	std::shared_ptr<render::material> menu_font_material;
 	std::shared_ptr<render::material> title_font_material;
@@ -187,6 +184,7 @@ public:
 	input::action_map window_action_map;
 	input::action fullscreen_action;
 	input::action screenshot_action;
+	input::action toggle_terminal_action;
 	
 	input::action_map menu_action_map;
 	input::action menu_up_action;
@@ -222,17 +220,6 @@ public:
 	input::action camera_orbit_up_action;
 	input::action camera_orbit_down_action;
 	input::action camera_look_ahead_action;
-	input::action camera_preset_1_action;
-	input::action camera_preset_2_action;
-	input::action camera_preset_3_action;
-	input::action camera_preset_4_action;
-	input::action camera_preset_5_action;
-	input::action camera_preset_6_action;
-	input::action camera_preset_7_action;
-	input::action camera_preset_8_action;
-	input::action camera_preset_9_action;
-	input::action camera_preset_10_action;
-	input::action camera_save_preset_action;
 	
 	input::action_map ant_action_map;
 	input::action ant_move_forward_action;
@@ -248,6 +235,16 @@ public:
 	input::action toggle_debug_ui_action;
 	input::action adjust_exposure_action;
 	input::action adjust_time_action;
+	
+	input::action_map terminal_action_map;
+	input::action terminal_up_action;
+	input::action terminal_down_action;
+	input::action terminal_left_action;
+	input::action terminal_right_action;
+	input::action terminal_enter_action;
+	input::action terminal_backspace_action;
+	input::action terminal_paste_action;
+	input::action terminal_clear_line_action;
 	
 	std::vector<std::shared_ptr<::event::subscription>> event_subscriptions;
 	
@@ -280,7 +277,14 @@ public:
 	// Debugging
 	bool debug_ui_visible{false};
 	std::unique_ptr<scene::text> frame_time_text;
-	std::unique_ptr<debug::cli> cli;
+	bool terminal_enabled{false};
+	std::string command_line;
+	std::size_t command_line_cursor{};
+	std::shared_ptr<scene::text> command_line_text;
+	std::shared_ptr<scene::text> shell_buffer_text;
+	std::unique_ptr<::shell_buffer> shell_buffer;
+	std::unique_ptr<::shell> shell;
+	std::vector<std::function<void()>> reenable_controls;
 	
 	// Hierarchichal state machine
 	hsm::state_machine<game_state> state_machine;

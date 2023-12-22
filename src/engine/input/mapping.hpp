@@ -11,6 +11,7 @@
 #include <engine/input/mouse-motion-axis.hpp>
 #include <engine/input/mouse-scroll-axis.hpp>
 #include <engine/input/scancode.hpp>
+#include <engine/input/modifier-key.hpp>
 #include <cstdint>
 
 namespace input {
@@ -47,14 +48,17 @@ public:
 	/**
 	 * Constructs a gamepad axis mapping.
 	 *
-	 * @param gamepad Pointer to the gamepad to map, or `nullptr` if input from any gamepad will be mapped.
-	 * @param axis Gamepad axis to map.
-	 * @param direction Sign bit of the direction to map.
+	 * @param map_gamepad Pointer to the gamepad to map, or `nullptr` if input from any gamepad will be mapped.
+	 * @param map_axis Gamepad axis to map.
+	 * @param map_direction Sign bit of the direction to map.
 	 */
 	/// @{
-	gamepad_axis_mapping(input::gamepad* gamepad, gamepad_axis axis, bool direction);
+	gamepad_axis_mapping(input::gamepad* map_gamepad, gamepad_axis map_axis, bool map_direction);
 	gamepad_axis_mapping() = default;
 	/// @}
+	
+	/** Destructs a gamepad axis mapping. */
+	~gamepad_axis_mapping() override = default;
 	
 	/// Returns mapping_type::gamepad_axis.
 	[[nodiscard]] inline constexpr mapping_type get_mapping_type() const noexcept override
@@ -81,13 +85,16 @@ public:
 	/**
 	 * Constructs a gamepad button mapping.
 	 *
-	 * @param gamepad Pointer to the gamepad to map, or `nullptr` if input from any gamepad will be mapped.
-	 * @param button Gamepad button to map.
+	 * @param map_gamepad Pointer to the gamepad to map, or `nullptr` if input from any gamepad will be mapped.
+	 * @param map_button Gamepad button to map.
 	 */
 	/// @{
-	gamepad_button_mapping(input::gamepad* gamepad, gamepad_button button);
+	gamepad_button_mapping(input::gamepad* map_gamepad, gamepad_button map_button);
 	gamepad_button_mapping() = default;
 	/// @}
+	
+	/** Destructs a gamepad button mapping. */
+	~gamepad_button_mapping() override = default;
 	
 	/// Returns mapping_type::gamepad_button.
 	[[nodiscard]] inline constexpr mapping_type get_mapping_type() const noexcept override
@@ -111,15 +118,18 @@ public:
 	/**
 	 * Constructs a key mapping.
 	 *
-	 * @param keyboard Pointer to the keyboard to map, or `nullptr` if input from any keyboard will be mapped.
-	 * @param scancode Scancode of the key to map.
-	 * @param repeat `false` if the mapping should ignore key repeats, `true` otherwise.
-	 * @param modifiers Modifier keys bitmask.
+	 * @param map_keyboard Pointer to the keyboard to map, or `nullptr` if input from any keyboard will be mapped.
+	 * @param map_scancode Scancode of the key to map.
+	 * @param map_repeat `false` if the mapping should ignore key repeats, `true` otherwise.
+	 * @param map_modifiers Modifier keys bitmask.
 	 */
 	/// @{
-	key_mapping(input::keyboard* keyboard, input::scancode scancode, std::uint16_t modifiers = 0, bool repeat = false);
+	key_mapping(input::keyboard* map_keyboard, input::scancode map_scancode, std::uint16_t map_modifiers = modifier_key::none, bool map_repeat = false);
 	key_mapping() = default;
 	/// @}
+	
+	/** Destructs a key mapping. */
+	~key_mapping() override = default;
 	
 	/// Returns mapping_type::key.
 	[[nodiscard]] inline constexpr mapping_type get_mapping_type() const noexcept override
@@ -149,13 +159,16 @@ public:
 	/**
 	 * Constructs a mouse button mapping.
 	 *
-	 * @param mouse Pointer to the mouse to map, or `nullptr` if input from any mouse will be mapped.
-	 * @param button Mouse button to map.
+	 * @param map_mouse Pointer to the mouse to map, or `nullptr` if input from any mouse will be mapped.
+	 * @param map_button Mouse button to map.
 	 */
 	/// @{
-	mouse_button_mapping(input::mouse* mouse, mouse_button button);
+	mouse_button_mapping(input::mouse* map_mouse, mouse_button map_button);
 	mouse_button_mapping() = default;
 	/// @}
+	
+	/** Destructs a mouse button mapping. */
+	~mouse_button_mapping() override = default;
 	
 	/// Returns mapping_type::mouse_button.
 	[[nodiscard]] inline constexpr mapping_type get_mapping_type() const noexcept override
@@ -179,14 +192,17 @@ public:
 	/**
 	 * Constructs a mouse motion mapping.
 	 *
-	 * @param mouse Pointer to the mouse to map, or `nullptr` if input from any mouse will be mapped.
-	 * @param axis Mouse motion axis to map.
-	 * @param direction Sign bit of the direction to map.
+	 * @param map_mouse Pointer to the mouse to map, or `nullptr` if input from any mouse will be mapped.
+	 * @param map_axis Mouse motion axis to map.
+	 * @param map_direction Sign bit of the direction to map.
 	 */
 	/// @{
-	mouse_motion_mapping(input::mouse* mouse, mouse_motion_axis axis, bool direction);
+	mouse_motion_mapping(input::mouse* map_mouse, mouse_motion_axis map_axis, bool map_direction);
 	mouse_motion_mapping() = default;
 	/// @}
+	
+	/** Destructs a mouse motion mapping. */
+	~mouse_motion_mapping() override = default;
 	
 	/// Returns mapping_type::mouse_motion.
 	[[nodiscard]] inline constexpr mapping_type get_mapping_type() const noexcept override
@@ -213,15 +229,17 @@ public:
 	/**
 	 * Constructs a mouse scroll mapping.
 	 *
-	 * @param control Control to which input will be mapped.
-	 * @param mouse Pointer to the mouse to map, or `nullptr` if input from any mouse will be mapped.
-	 * @param axis Mouse scroll axis to map.
-	 * @param direction Sign bit of the direction to map.
+	 * @param map_mouse Pointer to the mouse to map, or `nullptr` if input from any mouse will be mapped.
+	 * @param map_axis Mouse scroll axis to map.
+	 * @param map_direction Sign bit of the direction to map.
 	 */
 	/// @{
-	mouse_scroll_mapping(input::mouse* mouse, mouse_scroll_axis axis, bool direction);
+	mouse_scroll_mapping(input::mouse* map_mouse, mouse_scroll_axis map_axis, bool map_direction);
 	mouse_scroll_mapping() = default;
 	/// @}
+	
+	/** Destructs a mouse scroll mapping. */
+	~mouse_scroll_mapping() override = default;
 	
 	/// Returns mapping_type::mouse_scroll.
 	[[nodiscard]] inline constexpr mapping_type get_mapping_type() const noexcept override

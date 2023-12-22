@@ -21,6 +21,9 @@ public:
 	/// Creates a directional light.
 	directional_light();
 	
+	/** Destructs a directional light. */
+	~directional_light() override = default;
+	
 	/// Returns light_type::directional.
 	[[nodiscard]] inline light_type get_light_type() const noexcept override
 	{

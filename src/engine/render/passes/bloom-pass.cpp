@@ -54,7 +54,7 @@ bloom_pass::bloom_pass(gl::pipeline* pipeline, resource_manager* resource_manage
 	m_vertex_array = std::make_unique<gl::vertex_array>();
 }
 
-void bloom_pass::render(render::context& ctx)
+void bloom_pass::render([[maybe_unused]] render::context& ctx)
 {
 	// Execute command buffer
 	for (const auto& command: m_command_buffer)

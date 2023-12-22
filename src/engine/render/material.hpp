@@ -79,25 +79,25 @@ public:
 	/// Returns `true` if the material surface is two-sided, and `false` otherwise.
 	[[nodiscard]] inline bool is_two_sided() const noexcept
 	{
-		return two_sided;
+		return m_two_sided;
 	}
 	
 	/// Returns the material blend mode.
 	[[nodiscard]] inline material_blend_mode get_blend_mode() const noexcept
 	{
-		return blend_mode;
+		return m_blend_mode;
 	}
 	
 	/// Returns the material shadow mode.
 	[[nodiscard]] inline material_shadow_mode get_shadow_mode() const noexcept
 	{
-		return shadow_mode;
+		return m_shadow_mode;
 	}
 	
 	/// Returns the material flags.
 	[[nodiscard]] inline std::uint32_t get_flags() const noexcept
 	{
-		return flags;
+		return m_flags;
 	}
 	
 	/// @}
@@ -117,7 +117,7 @@ public:
 	 */
 	[[nodiscard]] inline const std::shared_ptr<gl::shader_template>& get_shader_template() const noexcept
 	{
-		return shader_template;
+		return m_shader_template;
 	}
 	
 	/**
@@ -144,7 +144,7 @@ public:
 	 */
 	[[nodiscard]] inline const std::unordered_map<hash::fnv1a32_t, std::shared_ptr<material_variable_base>>& get_variables() const noexcept
 	{
-		return variable_map;
+		return m_variable_map;
 	}
 	
 	/// @}
@@ -171,12 +171,12 @@ private:
 	 */
 	void rehash() noexcept;
 	
-	bool two_sided{false};
-	material_blend_mode blend_mode{material_blend_mode::opaque};
-	material_shadow_mode shadow_mode{material_shadow_mode::opaque};
-	std::uint32_t flags{0};
-	std::shared_ptr<gl::shader_template> shader_template;
-	std::unordered_map<hash::fnv1a32_t, std::shared_ptr<material_variable_base>> variable_map;
+	bool m_two_sided{false};
+	material_blend_mode m_blend_mode{material_blend_mode::opaque};
+	material_shadow_mode m_shadow_mode{material_shadow_mode::opaque};
+	std::uint32_t m_flags{0};
+	std::shared_ptr<gl::shader_template> m_shader_template;
+	std::unordered_map<hash::fnv1a32_t, std::shared_ptr<material_variable_base>> m_variable_map;
 	std::size_t m_hash{0};
 };
 

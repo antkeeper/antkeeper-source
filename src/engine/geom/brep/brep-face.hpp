@@ -258,6 +258,9 @@ private:
 class brep_face_container: public brep_element_container<brep_face>
 {
 public:
+	/** Destructs a B-rep face container. */
+	~brep_face_container() override = default;
+	
 	/**
 	 * Appends a new face to the end of the container.
 	 *
@@ -290,15 +293,6 @@ public:
 	
 private:
 	friend class brep_mesh;
-	
-	/**
-	 * Constructs a B-rep face container.
-	 *
-	 * @param mesh Pointer to the parent mesh.
-	 */
-	inline explicit brep_face_container(brep_mesh* mesh) noexcept:
-		brep_element_container<brep_face>(mesh)
-	{}
 };
 
 } // namespace geom

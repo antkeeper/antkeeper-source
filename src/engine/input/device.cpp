@@ -7,19 +7,19 @@ namespace input {
 
 void device::connect()
 {
-	connected = true;
-	connected_publisher.publish({this});
+	m_connected = true;
+	m_connected_publisher.publish({this});
 }
 
 void device::disconnect()
 {
-	connected = false;
-	disconnected_publisher.publish({this});
+	m_connected = false;
+	m_disconnected_publisher.publish({this});
 }
 
 void device::set_uuid(const ::uuid& id)
 {
-	uuid = id;
+	m_uuid = id;
 }
 
 } // namespace input

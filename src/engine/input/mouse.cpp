@@ -7,23 +7,23 @@ namespace input {
 
 void mouse::press(mouse_button button)
 {
-	button_pressed_publisher.publish({this, position, button});
+	m_button_pressed_publisher.publish({this, m_position, button});
 }
 
 void mouse::release(mouse_button button)
 {
-	button_released_publisher.publish({this, position, button});
+	m_button_released_publisher.publish({this, m_position, button});
 }
 
 void mouse::move(const math::vec2<std::int32_t>& position, const math::vec2<std::int32_t>& difference)
 {
-	this->position = position;
-	moved_publisher.publish({this, position, difference});
+	m_position = position;
+	m_moved_publisher.publish({this, m_position, difference});
 }
 
 void mouse::scroll(const math::fvec2& velocity)
 {
-	scrolled_publisher.publish({this, position, velocity});
+	m_scrolled_publisher.publish({this, m_position, velocity});
 }
 
 } // namespace input

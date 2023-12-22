@@ -11,6 +11,7 @@ class camera_system: public updatable_system
 {
 public:
 	explicit camera_system(entity::registry& registry);
+	~camera_system() override = default;
 	void update(float t, float dt) override;
 	void interpolate(float alpha);
 	

@@ -30,6 +30,9 @@ public:
 	constexpr texture() noexcept = default;
 	/// @}
 	
+	/** Destructs a texture. */
+	virtual ~texture() = default;
+	
 	/**
 	 * Sets the sampler object.
 	 *
@@ -66,6 +69,9 @@ public:
 	constexpr texture_1d() noexcept = default;
 	/// @}
 	
+	/** Destructs a 1D texture. */
+	~texture_1d() override = default;
+	
 	/**
 	 * Sets the image view.
 	 */
@@ -99,6 +105,9 @@ public:
 	
 	constexpr texture_1d_array() noexcept = default;
 	/// @}
+	
+	/** Destructs a 1D texture array. */
+	~texture_1d_array() override = default;
 	
 	/**
 	 * Sets the image view.
@@ -134,6 +143,9 @@ public:
 	constexpr texture_2d() noexcept = default;
 	/// @}
 	
+	/** Destructs a 2D texture. */
+	~texture_2d() override = default;
+	
 	/**
 	 * Sets the image view.
 	 */
@@ -167,6 +179,9 @@ public:
 	
 	constexpr texture_2d_array() noexcept = default;
 	/// @}
+	
+	/** Destructs a 2D texture array. */
+	~texture_2d_array() override = default;
 	
 	/**
 	 * Sets the image view.
@@ -202,6 +217,9 @@ public:
 	constexpr texture_3d() noexcept = default;
 	/// @}
 	
+	/** Destructs a 3D texture. */
+	~texture_3d() override = default;
+	
 	/**
 	 * Sets the image view.
 	 */
@@ -236,6 +254,9 @@ public:
 	constexpr texture_cube() noexcept = default;
 	/// @}
 	
+	/** Destructs a cube texture. */
+	~texture_cube() override = default;
+	
 	/**
 	 * Sets the image view.
 	 */
@@ -269,6 +290,9 @@ public:
 	
 	constexpr texture_cube_array() noexcept = default;
 	/// @}
+	
+	/** Destructs a cube texture array. */
+	~texture_cube_array() override = default;
 	
 	/**
 	 * Sets the image view.

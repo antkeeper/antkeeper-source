@@ -19,7 +19,7 @@ collision_system::~collision_system()
 {
 }
 
-void collision_system::update(float t, float dt)
+void collision_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
 {
 
 }
@@ -30,7 +30,7 @@ entity::id collision_system::pick_nearest(const geom::ray<float, 3>& ray, std::u
 	float nearest_distance = std::numeric_limits<float>::infinity();
 	
 	// For each entity with picking and transform components
-	registry.view<picking_component, transform_component>().each
+	m_registry.view<picking_component, transform_component>().each
 	(
 		[&](entity::id entity_id, const auto& picking, const auto& transform)
 		{
@@ -50,7 +50,7 @@ entity::id collision_system::pick_nearest(const geom::ray<float, 3>& ray, std::u
 			if (result)
 			{
 				float t0 = std::get<0>(*result);
-				float t1 = std::get<1>(*result);
+				// float t1 = std::get<1>(*result);
 				
 				if (t0 < nearest_distance)
 				{
@@ -73,7 +73,7 @@ entity::id collision_system::pick_nearest(const math::fvec3& origin, const math:
 	const geom::plane<float> picking_plane = geom::plane<float>(origin, normal);
 	
 	// For each entity with picking and transform components
-	registry.view<picking_component, transform_component>().each
+	m_registry.view<picking_component, transform_component>().each
 	(
 		[&](entity::id entity_id, const auto& picking, const auto& transform)
 		{

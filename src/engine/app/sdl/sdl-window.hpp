@@ -26,12 +26,13 @@ public:
 		bool v_sync
 	);
 	
+	~sdl_window() override;
+	
 	sdl_window(const sdl_window&) = delete;
 	sdl_window(sdl_window&&) = delete;
 	sdl_window& operator=(const sdl_window&) = delete;
 	sdl_window& operator=(sdl_window&&) = delete;
-	
-	virtual ~sdl_window();
+
 	void set_title(const std::string& title) override;
 	void set_position(const math::ivec2& position) override;
 	void set_size(const math::ivec2& size) override;

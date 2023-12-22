@@ -9,7 +9,7 @@ clear_pass::clear_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffe
 	pass(pipeline, framebuffer)
 {}
 
-void clear_pass::render(render::context& ctx)
+void clear_pass::render([[maybe_unused]] render::context& ctx)
 {
 	if (m_clear_mask)
 	{

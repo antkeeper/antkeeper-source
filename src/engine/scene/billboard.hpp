@@ -24,6 +24,9 @@ public:
 	/// Constructs a billboard.
 	billboard();
 	
+	/** Destructs a billboard. */
+	~billboard() override = default;
+	
 	void render(render::context& ctx) const override;
 	
 	/**

@@ -19,6 +19,9 @@ public:
 	 * @param registry Reference to the registry on which the system will operate.
 	 */
 	explicit updatable_system(entity::registry& registry);
+	
+	/** Destructs an updatable system. */
+	virtual ~updatable_system() = default;
 
 	/**
 	 * Perform's a system's update() function.
@@ -29,8 +32,8 @@ public:
 	virtual void update(float t, float dt) = 0;
 	
 protected:
-	/// Registry on which the system operate
-	entity::registry& registry;
+	/** Registry on which the system operates. */
+	entity::registry& m_registry;
 };
 
 

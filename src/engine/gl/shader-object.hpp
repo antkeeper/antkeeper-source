@@ -67,7 +67,7 @@ public:
 	/// Returns the shader object info log, which is updated when the shader object is compiled.
 	[[nodiscard]] inline const std::string& info() const noexcept
 	{
-		return info_log;
+		return m_info_log;
 	}
 	
 	/// Returns `true` if the shader object has been successfully compiled, `false` otherwise.
@@ -82,10 +82,10 @@ public:
 private:
 	friend class shader_program;
 	
-	unsigned int gl_shader_id{0};
+	unsigned int m_gl_shader_id{0};
 	shader_stage m_stage{0};
 	bool m_compiled{false};
-	std::string info_log;
+	std::string m_info_log;
 };
 
 } // namespace gl

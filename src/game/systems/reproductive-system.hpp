@@ -16,6 +16,8 @@ class reproductive_system:
 {
 public:
 	explicit reproductive_system(entity::registry& registry);
+	~reproductive_system() override = default;
+	
 	void update(float t, float dt) override;
 	
 	/**

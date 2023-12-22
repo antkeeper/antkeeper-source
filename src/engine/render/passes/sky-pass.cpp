@@ -256,40 +256,40 @@ void sky_pass::render(render::context& ctx)
 		m_pipeline->bind_shader_program(sky_shader_program.get());
 		
 		// Upload shader parameters
-		if (model_view_projection_var)
-			model_view_projection_var->update(model_view_projection);
-		if (view_var)
+		if (sky_model_view_projection_var)
+			sky_model_view_projection_var->update(model_view_projection);
+		if (sky_view_var)
 		{
-			view_var->update(view);
+			sky_view_var->update(view);
 		}
-		if (view_projection_var)
+		if (sky_view_projection_var)
 		{
-			view_projection_var->update(view_projection);
+			sky_view_projection_var->update(view_projection);
 		}
-		if (inv_view_projection_var)
+		if (sky_inv_view_projection_var)
 		{
 			const auto inv_view_projection = math::fmat4(math::fmat3(camera.get_inv_view())) * camera.get_inv_projection();
-			inv_view_projection_var->update(inv_view_projection);
-			// inv_view_projection_var->update(camera.get_inv_view_projection());
+			sky_inv_view_projection_var->update(inv_view_projection);
+			// sky_inv_view_projection_var->update(camera.get_inv_view_projection());
 		}
-		if (camera_position_var)
+		if (sky_camera_position_var)
 		{
-			camera_position_var->update(camera.get_translation());
+			sky_camera_position_var->update(camera.get_translation());
 		}
-		if (mouse_var)
-			mouse_var->update(mouse_position);
-		if (resolution_var)
-			resolution_var->update(resolution);
-		if (light_direction_var)
-			light_direction_var->update(dominant_light_direction);
-		if (sun_luminance_var)
-			sun_luminance_var->update(sun_luminance);
-		if (sun_angular_radius_var)
-			sun_angular_radius_var->update(sun_angular_radius * magnification);
-		if (atmosphere_radii_var)
-			atmosphere_radii_var->update(atmosphere_radii);
-		if (observer_position_var)
-			observer_position_var->update(observer_position);
+		if (sky_mouse_var)
+			sky_mouse_var->update(mouse_position);
+		if (sky_resolution_var)
+			sky_resolution_var->update(resolution);
+		if (sky_light_direction_var)
+			sky_light_direction_var->update(dominant_light_direction);
+		if (sky_sun_luminance_var)
+			sky_sun_luminance_var->update(sun_luminance);
+		if (sky_sun_angular_radius_var)
+			sky_sun_angular_radius_var->update(sun_angular_radius * magnification);
+		if (sky_atmosphere_radii_var)
+			sky_atmosphere_radii_var->update(atmosphere_radii);
+		if (sky_observer_position_var)
+			sky_observer_position_var->update(observer_position);
 		if (sky_transmittance_lut_var)
 			sky_transmittance_lut_var->update(*m_transmittance_lut_texture);
 		if (sky_transmittance_lut_resolution_var)
@@ -542,18 +542,18 @@ void sky_pass::set_sky_model(std::shared_ptr<render::model> model)
 			
 			if (sky_shader_program->linked())
 			{
-				model_view_projection_var = sky_shader_program->variable("model_view_projection");
-				view_var = sky_shader_program->variable("view");
-				view_projection_var = sky_shader_program->variable("view_projection");
-				inv_view_projection_var = sky_shader_program->variable("inv_view_projection");
-				camera_position_var = sky_shader_program->variable("camera_position");
-				mouse_var = sky_shader_program->variable("mouse");
-				resolution_var = sky_shader_program->variable("resolution");
-				light_direction_var = sky_shader_program->variable("light_direction");
-				sun_luminance_var = sky_shader_program->variable("sun_luminance");
-				sun_angular_radius_var = sky_shader_program->variable("sun_angular_radius");
-				atmosphere_radii_var = sky_shader_program->variable("atmosphere_radii");
-				observer_position_var = sky_shader_program->variable("observer_position");
+				sky_model_view_projection_var = sky_shader_program->variable("model_view_projection");
+				sky_view_var = sky_shader_program->variable("view");
+				sky_view_projection_var = sky_shader_program->variable("view_projection");
+				sky_inv_view_projection_var = sky_shader_program->variable("inv_view_projection");
+				sky_camera_position_var = sky_shader_program->variable("camera_position");
+				sky_mouse_var = sky_shader_program->variable("mouse");
+				sky_resolution_var = sky_shader_program->variable("resolution");
+				sky_light_direction_var = sky_shader_program->variable("light_direction");
+				sky_sun_luminance_var = sky_shader_program->variable("sun_luminance");
+				sky_sun_angular_radius_var = sky_shader_program->variable("sun_angular_radius");
+				sky_atmosphere_radii_var = sky_shader_program->variable("atmosphere_radii");
+				sky_observer_position_var = sky_shader_program->variable("observer_position");
 				sky_transmittance_lut_var = sky_shader_program->variable("sky_transmittance_lut");
 				sky_transmittance_lut_resolution_var = sky_shader_program->variable("sky_transmittance_lut_resolution");
 				sky_luminance_lut_var = sky_shader_program->variable("sky_luminance_lut");
@@ -687,9 +687,9 @@ void sky_pass::update_tweens()
 	moon_illuminance_tween.update();
 }
 
-void sky_pass::set_magnification(float magnification)
+void sky_pass::set_magnification(float scale)
 {
-	this->magnification = magnification;
+	this->magnification = scale;
 }
 
 void sky_pass::set_icrf_to_eus(const math::se3<float>& transformation)

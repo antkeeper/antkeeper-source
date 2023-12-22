@@ -15,8 +15,8 @@ namespace event {
 class subscription
 {
 public:
-	/// Unsubscribe function object type.
-	typedef std::function<void()> unsubscribe_type;
+	/** Unsubscribe function object type. */
+	using unsubscribe_type = std::function<void()>;
 	
 	/**
 	 * Constructs a subscription.
@@ -42,14 +42,14 @@ public:
 	void unsubscribe();
 	
 private:
-	std::weak_ptr<void> subscriber;
-	unsubscribe_type unsubscriber;
+	std::weak_ptr<void> m_subscriber;
+	unsubscribe_type m_unsubscriber;
 };
 
 /**
  * Shared pointer to a subscription.
  */
-typedef std::shared_ptr<subscription> shared_subscription;
+using shared_subscription = std::shared_ptr<subscription>;
 
 } // namespace event
 

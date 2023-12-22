@@ -14,6 +14,9 @@
 struct deserialize_context
 {
 public:
+	/** Destructs a deserialize context. */
+	virtual ~deserialize_context() = default;
+	
 	/**
 	 * Returns the path associated with this deserialize context.
 	 */

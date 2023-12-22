@@ -9,22 +9,22 @@
 
 spatial_system::spatial_system(entity::registry& registry):
 	updatable_system(registry),
-	updated_unconstrained_transforms(registry, entt::collector.update<transform_component>().where(entt::exclude<constraint_stack_component>))
+	m_updated_unconstrained_transforms(registry, entt::collector.update<transform_component>().where(entt::exclude<constraint_stack_component>))
 {}
 
-void spatial_system::update(float t, float dt)
+void spatial_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
 {
 	// Update world-space transforms of all updated, unconstrained transform components
 	std::for_each
 	(
 		std::execution::par_unseq,
-		updated_unconstrained_transforms.begin(),
-		updated_unconstrained_transforms.end(),
+		m_updated_unconstrained_transforms.begin(),
+		m_updated_unconstrained_transforms.end(),
 		[&](auto entity_id)
 		{
-			auto& transform = registry.get<transform_component>(entity_id);
+			auto& transform = m_registry.get<transform_component>(entity_id);
 			transform.world = transform.local;
 		}
 	);
-	updated_unconstrained_transforms.clear();
+	m_updated_unconstrained_transforms.clear();
 }

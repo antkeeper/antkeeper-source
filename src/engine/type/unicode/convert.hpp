@@ -5,6 +5,7 @@
 #define ANTKEEPER_TYPE_UNICODE_CONVERT_HPP
 
 #include <string>
+#include <string_view>
 
 namespace type {
 namespace unicode {
@@ -12,18 +13,18 @@ namespace unicode {
 /**
  * Converts a UTF-8 string to UTF-32.
  *
- * @param u8 UTF-8 string.
+ * @param view_u8 UTF-8 string view.
  * @return UTF-32 string.
  */
-[[nodiscard]] std::u32string u32(const std::string& u8);
+[[nodiscard]] std::u32string u32(std::string_view u8_view);
 
 /**
  * Converts a UTF-32 string to UTF-8.
  *
- * @param u32 UTF-32 string.
+ * @param view_u32 UTF-32 string view.
  * @return UTF-8 string.
  */
-[[nodiscard]] std::string u8(const std::u32string& u32);
+[[nodiscard]] std::string u8(std::u32string_view u32_view);
 
 } // namespace unicode
 } // namespace type

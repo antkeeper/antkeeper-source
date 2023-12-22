@@ -39,6 +39,9 @@ public:
 	 */
 	light_probe_stage(gl::pipeline& pipeline, ::resource_manager& resource_manager);
 	
+	/** Destructs a light probe stage. */
+	~light_probe_stage() override = default;
+	
 	void execute(render::context& ctx) override;
 	
 	/**

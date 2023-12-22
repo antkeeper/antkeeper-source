@@ -25,6 +25,10 @@ class final_pass: public pass
 {
 public:
 	final_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
+	
+	/** Destructs a final pass. */
+	~final_pass() override = default;
+	
 	void render(render::context& ctx) override;
 	
 	void set_color_texture(std::shared_ptr<gl::texture_2d> texture);

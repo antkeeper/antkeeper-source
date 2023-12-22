@@ -17,6 +17,9 @@ namespace physics {
 class collider
 {
 public:
+	/** Destructs a collider. */
+	virtual ~collider() = default;
+	
 	/**
 	 * Returns the collider type.
 	 */

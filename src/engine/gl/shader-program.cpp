@@ -13,10 +13,10 @@ namespace gl {
 shader_program::shader_program()
 {
 	// Create an OpenGL shader program
-	gl_program_id = glCreateProgram();
+	m_gl_program_id = glCreateProgram();
 	
 	// Handle OpenGL errors
-	if (!gl_program_id)
+	if (!m_gl_program_id)
 	{
 		throw std::runtime_error("Unable to create OpenGL shader program");
 	}
@@ -28,87 +28,87 @@ shader_program::~shader_program()
 	detach_all();
 	
 	// Delete the OpenGL shader program
-	glDeleteProgram(gl_program_id);
+	glDeleteProgram(m_gl_program_id);
 }
 
 void shader_program::attach(const shader_object& object)
 {
-	if (attached_objects.find(&object) != attached_objects.end())
+	if (m_attached_objects.find(&object) != m_attached_objects.end())
 	{
 		throw std::runtime_error("OpenGL shader object already attached to the shader program");
 	}
 	else
 	{
 		// Check that both the OpenGL shader program and OpenGL shader object are valid
-		if (glIsProgram(gl_program_id) != GL_TRUE)
+		if (glIsProgram(m_gl_program_id) != GL_TRUE)
 		{
 			throw std::runtime_error("Invalid OpenGL shader program");
 		}
-		if (glIsShader(object.gl_shader_id) != GL_TRUE)
+		if (glIsShader(object.m_gl_shader_id) != GL_TRUE)
 		{
 			throw std::runtime_error("Invalid OpenGL shader object");
 		}
 		
 		// Attach the OpenGL shader object to the OpenGL shader program
-		glAttachShader(gl_program_id, object.gl_shader_id);
+		glAttachShader(m_gl_program_id, object.m_gl_shader_id);
 		
 		// Add shader object to set of attached objects
-		attached_objects.insert(&object);
+		m_attached_objects.insert(&object);
 	}
 }
 
 void shader_program::detach(const shader_object& object)
 {
-	if (attached_objects.find(&object) == attached_objects.end())
+	if (m_attached_objects.find(&object) == m_attached_objects.end())
 	{
 		throw std::runtime_error("Shader object is not attached to the shader program.");
 	}
 	else
 	{
 		// Check that both the OpenGL shader program and OpenGL shader object are valid
-		if (glIsProgram(gl_program_id) != GL_TRUE)
+		if (glIsProgram(m_gl_program_id) != GL_TRUE)
 		{
 			throw std::runtime_error("Invalid OpenGL shader program");
 		}
-		if (glIsShader(object.gl_shader_id) != GL_TRUE)
+		if (glIsShader(object.m_gl_shader_id) != GL_TRUE)
 		{
 			throw std::runtime_error("Invalid OpenGL shader object");
 		}
 		
 		// Detach the OpenGL shader object from the OpenGL shader program
-		glDetachShader(gl_program_id, object.gl_shader_id);
+		glDetachShader(m_gl_program_id, object.m_gl_shader_id);
 		
 		// Remove shader object from set of attached objects
-		attached_objects.erase(&object);
+		m_attached_objects.erase(&object);
 	}
 }
 
 void shader_program::detach_all()
 {
-	while (!attached_objects.empty())
+	while (!m_attached_objects.empty())
 	{
-		detach(**attached_objects.begin());
+		detach(**m_attached_objects.begin());
 	}
 }
 
 bool shader_program::link()
 {
 	m_linked = false;
-	info_log.clear();
-	variable_map.clear();
+	m_info_log.clear();
+	m_variable_map.clear();
 	
 	// Check that the OpenGL shader program is valid
-	if (glIsProgram(gl_program_id) != GL_TRUE)
+	if (glIsProgram(m_gl_program_id) != GL_TRUE)
 	{
 		throw std::runtime_error("Invalid OpenGL shader program");
 	}
 	
 	// Link OpenGL shader program
-	glLinkProgram(gl_program_id);
+	glLinkProgram(m_gl_program_id);
 	
 	// Get OpenGL shader program linking status
 	GLint gl_link_status;
-	glGetProgramiv(gl_program_id, GL_LINK_STATUS, &gl_link_status);
+	glGetProgramiv(m_gl_program_id, GL_LINK_STATUS, &gl_link_status);
 	m_linked = (gl_link_status == GL_TRUE);
 	
 	// Populate info log string
@@ -121,18 +121,18 @@ bool shader_program::link()
 	{
 		// Get OpenGL shader program info log length
 		GLint gl_info_log_length;
-		glGetProgramiv(gl_program_id, GL_INFO_LOG_LENGTH, &gl_info_log_length);
+		glGetProgramiv(m_gl_program_id, GL_INFO_LOG_LENGTH, &gl_info_log_length);
 		
 		if (gl_info_log_length > 0)
 		{
 			// Resize string to accommodate OpenGL shader program info log
-			info_log.resize(gl_info_log_length);
+			m_info_log.resize(gl_info_log_length);
 			
 			// Read OpenGL shader program info log into string
-			glGetProgramInfoLog(gl_program_id, gl_info_log_length, &gl_info_log_length, info_log.data());
+			glGetProgramInfoLog(m_gl_program_id, gl_info_log_length, &gl_info_log_length, m_info_log.data());
 			
 			// Remove redundant null terminator from string
-			info_log.pop_back();
+			m_info_log.pop_back();
 		}
 	}
 	
@@ -141,18 +141,18 @@ bool shader_program::link()
 
 void shader_program::load_variables()
 {
-	variable_map.clear();
+	m_variable_map.clear();
 	
 	// Get maximum uniform name length
 	GLint max_uniform_name_length = 0;
-	glGetProgramiv(gl_program_id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &max_uniform_name_length);
+	glGetProgramiv(m_gl_program_id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &max_uniform_name_length);
 	
 	// Allocate uniform name buffer
 	std::string uniform_name(static_cast<std::size_t>(max_uniform_name_length), '\0');
 	
 	// Get number of active uniforms in the shader
 	GLint active_uniform_count = 0;
-	glGetProgramiv(gl_program_id, GL_ACTIVE_UNIFORMS, &active_uniform_count);
+	glGetProgramiv(m_gl_program_id, GL_ACTIVE_UNIFORMS, &active_uniform_count);
 	
 	// Init texture unit index
 	GLint texture_index = 0;
@@ -164,10 +164,10 @@ void shader_program::load_variables()
 		GLsizei uniform_name_length;
 		GLint uniform_size;
 		GLenum uniform_type;
-		glGetActiveUniform(gl_program_id, static_cast<GLuint>(uniform_index), static_cast<GLsizei>(max_uniform_name_length), &uniform_name_length, &uniform_size, &uniform_type, uniform_name.data());
+		glGetActiveUniform(m_gl_program_id, static_cast<GLuint>(uniform_index), static_cast<GLsizei>(max_uniform_name_length), &uniform_name_length, &uniform_size, &uniform_type, uniform_name.data());
 		
 		// Get uniform location
-		const GLint uniform_location = glGetUniformLocation(gl_program_id, uniform_name.c_str());
+		const GLint uniform_location = glGetUniformLocation(m_gl_program_id, uniform_name.c_str());
 		if (uniform_location == -1)
 		{
 			throw std::runtime_error("Unable to get shader uniform location");
@@ -280,7 +280,7 @@ void shader_program::load_variables()
 		}
 		
 		// Map variable to variable key
-		variable_map.emplace(variable_key, std::move(variable));
+		m_variable_map.emplace(variable_key, std::move(variable));
 	}
 }
 

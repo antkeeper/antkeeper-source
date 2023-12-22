@@ -123,7 +123,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_forward_action.get_active_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -133,7 +133,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_forward_action.get_deactivated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -145,7 +145,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_back_action.get_active_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -155,7 +155,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_back_action.get_deactivated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -167,7 +167,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_left_action.get_active_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -177,7 +177,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_left_action.get_deactivated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -189,7 +189,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_right_action.get_active_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -199,7 +199,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_right_action.get_deactivated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -211,16 +211,16 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_interact_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
-				if (ctx.active_camera_eid == entt::null)
-				{
-					return;
-				}
+				// if (ctx.active_camera_eid == entt::null)
+				// {
+					// return;
+				// }
 				
-				auto& camera_object = *ctx.entity_registry->get<scene_component>(ctx.active_camera_eid).object;
+				// auto& camera_object = *ctx.entity_registry->get<scene_component>(ctx.active_camera_eid).object;
 				
-				camera_object.set_layer_mask(camera_object.get_layer_mask() == 1 ? 2 : 1);
+				// camera_object.set_layer_mask(camera_object.get_layer_mask() == 1 ? 2 : 1);
 			}
 		)
 	);
@@ -230,7 +230,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_oviposit_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				if (ctx.controlled_ant_eid == entt::null)
 				{
@@ -248,7 +248,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_oviposit_action.get_deactivated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				if (ctx.controlled_ant_eid == entt::null)
 				{

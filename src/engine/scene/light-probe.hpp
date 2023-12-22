@@ -23,6 +23,9 @@ public:
 	/// Constructs a light probe.
 	light_probe();
 	
+	/** Destructs a light probe. */
+	~light_probe() override = default;
+	
 	/**
 	 * Updates the light probe's illuminance matrices from its illuminance texture.
 	 *

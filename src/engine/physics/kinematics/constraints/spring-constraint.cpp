@@ -5,7 +5,7 @@
 
 namespace physics {
 
-void spring_constraint::solve(float dt)
+void spring_constraint::solve([[maybe_unused]] float dt)
 {
 	if (!m_body_a || !m_body_b)
 	{

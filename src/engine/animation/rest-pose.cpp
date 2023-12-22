@@ -31,6 +31,12 @@ void rest_pose::update(bone_index_type first_index, std::size_t bone_count)
 	);
 }
 
+void rest_pose::set_skeleton(const skeleton& skeleton)
+{
+	pose::set_skeleton(skeleton);
+	m_inverse_absolute_transforms.resize(skeleton.get_bone_count(), math::identity<bone_transform_type>);
+}
+
 void rest_pose::resize()
 {
 	if (m_skeleton)

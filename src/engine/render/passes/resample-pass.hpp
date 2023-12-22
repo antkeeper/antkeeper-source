@@ -33,6 +33,9 @@ public:
 	 */
 	resample_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	
+	/** Destructs a resample pass. */
+	~resample_pass() override = default;
+	
 	/**
 	 * Resamples a texture.
 	 *

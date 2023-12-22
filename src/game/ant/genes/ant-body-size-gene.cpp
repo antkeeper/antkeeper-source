@@ -8,7 +8,7 @@
 
 namespace {
 
-void load_ant_body_size_phene(ant_body_size_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
+void load_ant_body_size_phene(ant_body_size_phene& phene, [[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
 {
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.min_mesosoma_length), 1);
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.max_mesosoma_length), 1);

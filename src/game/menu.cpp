@@ -29,15 +29,25 @@ void update_text_font(::game& ctx)
 {
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
-		name->set_material(ctx.menu_font_material);
-		name->set_font(&ctx.menu_font);
+		if (name)
+		{
+			name->set_font(ctx.menu_font);
+			name->set_material(ctx.menu_font_material);
+		}
 		
 		if (value)
 		{
+			value->set_font(ctx.menu_font);
 			value->set_material(ctx.menu_font_material);
-			value->set_font(&ctx.menu_font);
 		}
 	}
+	
+	ctx.command_line_text->set_font(ctx.debug_font);
+	ctx.command_line_text->set_material(ctx.debug_font_material);
+	ctx.shell_buffer_text->set_font(ctx.debug_font);
+	ctx.shell_buffer_text->set_material(ctx.debug_font_material);
+	ctx.frame_time_text->set_font(ctx.debug_font);
+	ctx.frame_time_text->set_material(ctx.debug_font_material);
 }
 
 void update_text_color(::game& ctx)
@@ -48,23 +58,30 @@ void update_text_color(::game& ctx)
 		
 		const math::fvec4& color = (i == *ctx.menu_item_index) ? config::menu_active_color : config::menu_inactive_color;
 		
-		name->set_color(color);
+		if (name)
+		{
+			name->set_color(color);
+		}
 		if (value)
+		{
 			value->set_color(color);
+		}
 	}
 }
 
 void align_text(::game& ctx, bool center, bool has_back, float anchor_y)
 {
-	
-	
 	const math::fvec2 viewport_size = math::fvec2(ctx.window->get_viewport_size());
 	const math::fvec2 viewport_center = viewport_size * 0.5f;
 	
 	const float viewport_padding = viewport_size.y() * (1.0f / 9.0f);
 	
 	// Calculate menu width
-	float m_width = ctx.menu_font.get_glyph_metrics(U'M').width;
+	float m_width = 0.0f;
+	if (ctx.menu_font->cache_glyph(U'M'); auto m_glyph = ctx.menu_font->get_cached_glyph(U'M'))
+	{
+		m_width = m_glyph->dimensions[0];
+	}
 	float column_spacing = m_width * 2.0f;
 	const float min_two_column_row_width = m_width * 18.0f;
 	float menu_width = 0.0f;
@@ -95,22 +112,22 @@ void align_text(::game& ctx, bool center, bool has_back, float anchor_y)
 	// Align texts
 	float menu_height;
 	if (has_back)
-		menu_height = (ctx.menu_item_texts.size() - 1) * ctx.menu_font.get_font_metrics().linespace - ctx.menu_font.get_font_metrics().linegap;
+		menu_height = (ctx.menu_item_texts.size() - 1) * ctx.menu_font->get_metrics().linespace - ctx.menu_font->get_metrics().linegap;
 	else
-		menu_height = ctx.menu_item_texts.size() * ctx.menu_font.get_font_metrics().linespace - ctx.menu_font.get_font_metrics().linegap;
+		menu_height = ctx.menu_item_texts.size() * ctx.menu_font->get_metrics().linespace - ctx.menu_font->get_metrics().linegap;
 	
 	float menu_x = viewport_center.x() - menu_width * 0.5f;
-	float menu_y = viewport_center.y() + anchor_y + menu_height * 0.5f - ctx.menu_font.get_font_metrics().size;
+	float menu_y = viewport_center.y() + anchor_y + menu_height * 0.5f - ctx.menu_font->get_metrics().size;
 	
 	for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 	{
 		auto [name, value] = ctx.menu_item_texts[i];
 		
 		float x = menu_x;
-		float y = menu_y - ctx.menu_font.get_font_metrics().linespace * i;
+		float y = menu_y - ctx.menu_font->get_metrics().linespace * i;
 		if (has_back && i == ctx.menu_item_texts.size() - 1)
 		{
-			y = viewport_padding;// + ctx.menu_font.get_font_metrics().linespace;
+			y = viewport_padding;// + ctx.menu_font->get_metrics().linespace;
 		}
 		
 		if (center || i == ctx.menu_item_texts.size() - 1)
@@ -151,7 +168,8 @@ void add_text_to_ui(::game& ctx)
 {
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
-		ctx.ui_scene->add_object(*name);
+		if (name)
+			ctx.ui_scene->add_object(*name);
 		if (value)
 			ctx.ui_scene->add_object(*value);
 	}
@@ -161,7 +179,8 @@ void remove_text_from_ui(::game& ctx)
 {
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
-		ctx.ui_scene->remove_object(*name);
+		if (name)
+			ctx.ui_scene->remove_object(*name);
 		if (value)
 			ctx.ui_scene->remove_object(*value);
 	}
@@ -190,11 +209,11 @@ void clear_callbacks(::game& ctx)
 void setup_animations(::game& ctx)
 {
 	ctx.menu_fade_animation = std::make_unique<animation<float>>();
-	animation_channel<float>* opacity_channel = ctx.menu_fade_animation->add_channel(0);
+	[[maybe_unused]] animation_channel<float>* opacity_channel = ctx.menu_fade_animation->add_channel(0);
 	
 	ctx.menu_fade_animation->set_frame_callback
 	(
-		[&ctx](int channel, const float& opacity)
+		[&ctx]([[maybe_unused]] int channel, const float& opacity)
 		{
 			for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 			{

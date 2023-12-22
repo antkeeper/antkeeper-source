@@ -10,12 +10,13 @@
 
 namespace geom {
 
-brep_mesh::brep_mesh() noexcept:
-	m_vertices(this),
-	m_edges(this),
-	m_loops(this),
-	m_faces(this)
-{}
+brep_mesh::brep_mesh() noexcept
+{
+	m_vertices.set_mesh(this);
+	m_edges.set_mesh(this);
+	m_loops.set_mesh(this);
+	m_faces.set_mesh(this);
+}
 
 brep_mesh::brep_mesh(const brep_mesh& other):
 	brep_mesh()
@@ -158,7 +159,7 @@ void deserializer<geom::brep_mesh>::deserialize(geom::brep_mesh& mesh, deseriali
 }
 
 template <>
-std::unique_ptr<geom::brep_mesh> resource_loader<geom::brep_mesh>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<geom::brep_mesh> resource_loader<geom::brep_mesh>::load([[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
 {
 	auto resource = std::make_unique<geom::brep_mesh>();
 	deserializer<geom::brep_mesh>().deserialize(*resource, ctx);

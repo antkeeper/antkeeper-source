@@ -16,6 +16,9 @@ namespace geom {
 class brep_attribute_base
 {
 public:
+	/** Destructs a B-rep attribute base. */
+	virtual ~brep_attribute_base() = default;
+	
 	/// Returns the name of the attribute.
 	[[nodiscard]] inline constexpr hash::fnv1a32_t name() const noexcept
 	{
@@ -70,7 +73,7 @@ public:
 	using const_reverse_iterator = std::vector<value_type>::const_reverse_iterator;
 	
 	/**
-	 * Constructs an attribute.
+	 * Constructs a B-rep attribute.
 	 *
 	 * @param name Name of the attribute.
 	 * @param element_count Number of elements.
@@ -79,6 +82,9 @@ public:
 		brep_attribute_base(name),
 		m_values(element_count)
 	{}
+	
+	/** Destructs a B-rep attribute. */
+	~brep_attribute() override = default;
 	
 	/// @name Attribute access
 	/// @{

@@ -14,6 +14,9 @@ namespace render {
 class queue_stage: public stage
 {
 public:
+	/** Destructs a queue stage. */
+	~queue_stage() override = default;
+	
 	void execute(render::context& ctx) override;
 };
 

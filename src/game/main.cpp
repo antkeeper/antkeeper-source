@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 				std::format("{}{}", ansi::fg_white, ansi::bg_bright_red)
 			};
 			
-			std::osyncstream(std::cout) << std::format
+			std::osyncstream((static_cast<int>(event.severity) > 3) ? std::cerr : std::cout) << std::format
 			(
 				"[{:8.03f}] {}{}: {}:{}:{}: {}{}\n",
 				std::chrono::duration<float>(event.time - launch_time).count(),
@@ -67,6 +67,10 @@ int main(int argc, char* argv[])
 	
 	// Determine path to log archive
 	const std::filesystem::path log_archive_path = get_shared_config_path() / config::application_name / "logs";
+	
+	// Determine log file prefix
+	const std::string log_stem_prefix = std::format("{}-log-", config::application_slug);
+	const std::string log_extension = ".txt";
 	
 	// Set up log archive
 	bool log_archive_exists = false;
@@ -87,7 +91,8 @@ int main(int argc, char* argv[])
 				for (const auto& entry: std::filesystem::directory_iterator{log_archive_path})
 				{
 					if (entry.is_regular_file() &&
-						entry.path().extension() == ".log")
+						entry.path().extension() == log_extension &&
+						entry.path().stem().string().starts_with(log_stem_prefix))
 					{
 						log_archive.emplace(entry.path());
 					}
@@ -126,7 +131,7 @@ int main(int argc, char* argv[])
 	{
 		// Determine log filename
 		const auto time = std::chrono::floor<std::chrono::seconds>(launch_time);
-		const std::string log_filename = std::format("{0}-{1:%Y%m%d}T{1:%H%M%S}Z.log", config::application_slug, time);
+		const std::string log_filename = std::format("{0}{1:%Y%m%d}T{1:%H%M%S}Z{2}", log_stem_prefix, time, log_extension);
 		
 		// Open log file
 		log_filepath = log_archive_path / log_filename;

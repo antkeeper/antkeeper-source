@@ -11,7 +11,6 @@ namespace unicode {}
 
 } // namespace type
 
-#include <engine/type/unicode/block.hpp>
 #include <engine/type/unicode/convert.hpp>
 
 #endif // ANTKEEPER_TYPE_UNICODE_HPP

@@ -20,13 +20,8 @@ public:
 private:
 	void create_first_person_camera_rig();
 	void destroy_first_person_camera_rig();
-	void set_first_person_camera_rig_pedestal(float pedestal);
-	void move_first_person_camera_rig(const math::fvec2& direction, float factor);
-	void satisfy_first_person_camera_rig_constraints();
 	
 	void setup_controls();
-	void enable_controls();
-	void disable_controls();
 	
 	std::vector<std::shared_ptr<::event::subscription>> action_subscriptions;
 	std::shared_ptr<::event::subscription> mouse_motion_subscription;
@@ -39,7 +34,7 @@ private:
 	
 	bool moving{false};
 	math::fvec2 movement_direction{0.0f, 0.0f};
-	float movement_speed{0.0f};
+	float movement_speed{200.0f};
 	
 	entity::id worker_ant_eid;
 	

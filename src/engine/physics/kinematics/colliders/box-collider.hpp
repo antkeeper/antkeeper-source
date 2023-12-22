@@ -45,6 +45,9 @@ public:
 	constexpr box_collider() noexcept = default;
 	/// @}
 	
+	/** Destructs a box collider. */
+	~box_collider() override = default;
+	
 	/**
 	 * Sets the collider's box.
 	 *

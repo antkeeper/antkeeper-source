@@ -14,6 +14,8 @@ class metabolic_system:
 {
 public:
 	explicit metabolic_system(entity::registry& registry);
+	~metabolic_system() override = default;
+	
 	virtual void update(float t, float dt);
 	
 	/**

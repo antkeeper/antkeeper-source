@@ -14,6 +14,9 @@
 struct serialize_context
 {
 public:
+	/** Destructs a serialize context. */
+	virtual ~serialize_context() = default;
+	
 	/**
 	 * Returns the path associated with this serialize context.
 	 */

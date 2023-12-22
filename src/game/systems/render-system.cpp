@@ -9,73 +9,73 @@
 
 render_system::render_system(entity::registry& registry):
 	updatable_system(registry),
-	updated_scene_transforms(registry, entt::collector.update<transform_component>().where<scene_component>(entt::exclude<rigid_body_component>)),
-	t(0.0),
-	dt(0.0),
-	renderer(nullptr)
+	m_updated_scene_transforms(registry, entt::collector.update<transform_component>().where<scene_component>(entt::exclude<rigid_body_component>)),
+	m_t(0.0),
+	m_dt(0.0),
+	m_renderer(nullptr)
 {
-	registry.on_construct<scene_component>().connect<&render_system::on_scene_construct>(this);
-	registry.on_update<scene_component>().connect<&render_system::on_scene_update>(this);
-	registry.on_destroy<scene_component>().connect<&render_system::on_scene_destroy>(this);
+	m_registry.on_construct<scene_component>().connect<&render_system::on_scene_construct>(this);
+	m_registry.on_update<scene_component>().connect<&render_system::on_scene_update>(this);
+	m_registry.on_destroy<scene_component>().connect<&render_system::on_scene_destroy>(this);
 	
-	registry.on_construct<transform_component>().connect<&render_system::on_transform_construct>(this);
+	m_registry.on_construct<transform_component>().connect<&render_system::on_transform_construct>(this);
 }
 
 render_system::~render_system()
 {
-	registry.on_construct<scene_component>().disconnect<&render_system::on_scene_construct>(this);
-	registry.on_update<scene_component>().disconnect<&render_system::on_scene_update>(this);
-	registry.on_destroy<scene_component>().disconnect<&render_system::on_scene_destroy>(this);
+	m_registry.on_construct<scene_component>().disconnect<&render_system::on_scene_construct>(this);
+	m_registry.on_update<scene_component>().disconnect<&render_system::on_scene_update>(this);
+	m_registry.on_destroy<scene_component>().disconnect<&render_system::on_scene_destroy>(this);
 	
-	registry.on_construct<transform_component>().disconnect<&render_system::on_transform_construct>(this);
+	m_registry.on_construct<transform_component>().disconnect<&render_system::on_transform_construct>(this);
 }
 
 void render_system::update(float t, float dt)
 {
-	this->t = t;
-	this->dt = dt;
+	m_t = t;
+	m_dt = dt;
 	
 	std::for_each
 	(
 		std::execution::par_unseq,
-		updated_scene_transforms.begin(),
-		updated_scene_transforms.end(),
+		m_updated_scene_transforms.begin(),
+		m_updated_scene_transforms.end(),
 		[&](auto entity_id)
 		{
-			auto& transform = registry.get<transform_component>(entity_id);
-			const auto& scene = registry.get<scene_component>(entity_id);
+			auto& transform = m_registry.get<transform_component>(entity_id);
+			const auto& scene = m_registry.get<scene_component>(entity_id);
 			
 			// WARNING: could potentially lead to multithreading issues with scene::object_base::transformed()
 			scene.object->set_transform(transform.world);
 		}
 	);
-	updated_scene_transforms.clear();
+	m_updated_scene_transforms.clear();
 }
 
 void render_system::draw(float alpha)
 {
-	if (renderer)
+	if (m_renderer)
 	{
-		for (scene::collection* collection: layers)
+		for (scene::collection* collection: m_layers)
 		{
-			renderer->render(t + dt * alpha, dt, alpha, *collection);
+			m_renderer->render(m_t + m_dt * alpha, m_dt, alpha, *collection);
 		}
 	}
 }
 
 void render_system::add_layer(scene::collection* layer)
 {
-	layers.push_back(layer);
+	m_layers.push_back(layer);
 }
 
 void render_system::remove_layers()
 {
-	layers.clear();
+	m_layers.clear();
 }
 
 void render_system::set_renderer(render::renderer* renderer)
 {
-	this->renderer = renderer;
+	m_renderer = renderer;
 }
 
 void render_system::on_scene_construct(entity::registry& registry, entity::id entity_id)
@@ -88,11 +88,11 @@ void render_system::on_scene_construct(entity::registry& registry, entity::id en
 		component.object->set_transform(transform->world);
 	}
 	
-	for (std::size_t i = 0; i < layers.size(); ++i)
+	for (std::size_t i = 0; i < m_layers.size(); ++i)
 	{
 		if (component.layer_mask & static_cast<std::uint8_t>(1 << i))
 		{
-			layers[i]->add_object(*component.object);
+			m_layers[i]->add_object(*component.object);
 		}
 	}
 }
@@ -101,10 +101,10 @@ void render_system::on_scene_update(entity::registry& registry, entity::id entit
 {
 	const auto& component = registry.get<::scene_component>(entity_id);
 	
-	for (std::size_t i = 0; i < layers.size(); ++i)
+	for (std::size_t i = 0; i < m_layers.size(); ++i)
 	{
 		// Remove from layer
-		scene::collection* layer = layers[i];
+		scene::collection* layer = m_layers[i];
 		layer->remove_object(*component.object);
 		
 		if (component.layer_mask & static_cast<std::uint8_t>(1 << i))
@@ -119,11 +119,11 @@ void render_system::on_scene_destroy(entity::registry& registry, entity::id enti
 {
 	const auto& component = registry.get<::scene_component>(entity_id);
 	
-	for (std::size_t i = 0; i < layers.size(); ++i)
+	for (std::size_t i = 0; i < m_layers.size(); ++i)
 	{
 		if (component.layer_mask & static_cast<std::uint8_t>(1 << i))
 		{
-			layers[i]->remove_object(*component.object);
+			m_layers[i]->remove_object(*component.object);
 		}
 	}
 }

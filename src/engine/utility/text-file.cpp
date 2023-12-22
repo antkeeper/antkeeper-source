@@ -40,7 +40,7 @@ void deserializer<text_file>::deserialize(text_file& file, deserialize_context& 
 }
 
 template <>
-std::unique_ptr<text_file> resource_loader<text_file>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<text_file> resource_loader<text_file>::load([[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
 {
 	auto resource = std::make_unique<text_file>();
 	

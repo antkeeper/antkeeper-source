@@ -16,7 +16,11 @@
 class animation_base
 {
 public:
+	/** Constructs an animation base. */
 	animation_base();
+	
+	/** Destructs an animation base. */
+	virtual ~animation_base() = default;
 	
 	/**
 	 * Advances the animation position (t) by @p dt.
@@ -50,9 +54,9 @@ public:
 	/**
 	 * Sets the speed of the animation.
 	 *
-	 * @param speed Speed multiplier.
+	 * @param value Speed multiplier.
 	 */
-	void set_speed(float speed);
+	void set_speed(float value);
 	
 	/// Returns `true` if looping of the animation is enabled, `false` otherwise.
 	bool is_looped() const;
@@ -144,6 +148,9 @@ public:
 	/// Creates an animation.
 	animation();
 	
+	/** Destructs an animation. */
+	~animation() override = default;
+	
 	/// @copydoc animation_base::advance()
 	virtual void advance(float dt);
 	
@@ -168,9 +175,9 @@ public:
 	/**
 	 * Sets the frame interpolator function object.
 	 *
-	 * @param interpolator Frame interpolator function object.
+	 * @param interp Frame interpolator function object.
 	 */
-	void set_interpolator(interpolator_type interpolator);
+	void set_interpolator(interpolator_type interp);
 	
 	/**
 	 * Sets the callback that's executed on each frame of animation.
@@ -320,9 +327,9 @@ void animation<T>::remove_channels()
 }
 
 template <typename T>
-void animation<T>::set_interpolator(interpolator_type interpolator)
+void animation<T>::set_interpolator(interpolator_type interp)
 {
-	this->interpolator = interpolator;
+	this->interpolator = interp;
 }
 
 template <typename T>

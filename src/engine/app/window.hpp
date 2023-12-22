@@ -25,6 +25,9 @@ class window_manager;
 class window
 {
 public:
+	/** Destructs a window. */
+	virtual ~window() = default;
+	
 	/**
 	 * Changes the title of the window.
 	 *

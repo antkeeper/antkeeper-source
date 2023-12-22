@@ -15,6 +15,9 @@ namespace scene {
 class point_light: public light
 {
 public:
+	/** Destructs a point light. */
+	~point_light() override = default;
+	
 	/// Returns light_type::point.
 	[[nodiscard]] inline light_type get_light_type() const noexcept override
 	{

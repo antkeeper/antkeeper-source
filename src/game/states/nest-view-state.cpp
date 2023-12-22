@@ -222,9 +222,6 @@ nest_view_state::nest_view_state(::game& ctx):
 	// Setup camera
 	ctx.underground_camera->set_exposure_value(0.0f);
 	
-	const auto& viewport_size = ctx.window->get_viewport_size();
-	const float aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
-	
 	// Create third person camera rig
 	create_third_person_camera_rig();
 	
@@ -639,7 +636,7 @@ void nest_view_state::setup_controls()
 	(
 		ctx.move_up_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				zoom_third_person_camera(1.0 / static_cast<double>(third_person_camera_zoom_step_count));
 				update_third_person_camera();
@@ -652,7 +649,7 @@ void nest_view_state::setup_controls()
 	(
 		ctx.move_down_action.get_activated_channel().subscribe
 		(
-			[&](const auto& event)
+			[&]([[maybe_unused]] const auto& event)
 			{
 				zoom_third_person_camera(-1.0 / static_cast<double>(third_person_camera_zoom_step_count));
 				update_third_person_camera();

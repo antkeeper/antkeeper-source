@@ -20,7 +20,7 @@ namespace gl {
 class image
 {
 public:
-	/// Destructs an image.
+	/** Destructs an image. */
 	virtual ~image() = 0;
 	
 	image(const image&) = delete;
@@ -173,7 +173,7 @@ public:
 	}
 	
 	/// Returns the image flags.
-	[[nodiscard]] inline constexpr std::uint8_t get_flags() const noexcept
+	[[nodiscard]] inline constexpr std::uint32_t get_flags() const noexcept
 	{
 		return m_flags;
 	}
@@ -229,7 +229,7 @@ private:
 	std::array<std::uint32_t, 3> m_dimensions{0, 0, 0};
 	std::uint32_t m_mip_levels{0};
 	std::uint32_t m_array_layers{0};
-	std::uint8_t m_flags{0};
+	std::uint32_t m_flags{0};
 	
 	friend class image_view;
 };
@@ -249,6 +249,9 @@ public:
 		std::uint32_t array_layers = 1,
 		std::uint32_t flags = 0
 	);
+	
+	/** Destructs a 1D image. */
+	~image_1d() override = default;
 };
 
 /**
@@ -267,6 +270,9 @@ public:
 		std::uint32_t array_layers = 1,
 		std::uint32_t flags = 0
 	);
+	
+	/** Destructs a 2D image. */
+	~image_2d() override = default;
 };
 
 /**
@@ -285,6 +291,9 @@ public:
 		std::uint32_t mip_levels = 1,
 		std::uint32_t flags = 0
 	);
+	
+	/** Destructs a 3D image. */
+	 ~image_3d() override = default;
 };
 
 /**
@@ -301,6 +310,9 @@ public:
 		std::uint32_t mip_levels = 1,
 		std::uint32_t array_layers = 6
 	);
+	
+	/** Destructs a cube image. */
+	~image_cube() override = default;
 };
 
 } // namespace gl

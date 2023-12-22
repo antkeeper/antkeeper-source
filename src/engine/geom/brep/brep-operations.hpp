@@ -45,7 +45,7 @@ void generate_loop_barycentric(brep_mesh& mesh);
  *
  * @return Generated model.
  */
-std::unique_ptr<render::model> generate_model(const brep_mesh& mesh, std::shared_ptr<render::material> material = nullptr);
+[[nodiscard]] std::unique_ptr<render::model> generate_model(const brep_mesh& mesh, std::shared_ptr<render::material> material = nullptr);
 
 } // namespace geom
 

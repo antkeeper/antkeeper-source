@@ -339,9 +339,9 @@ public:
 	 * @param instance_count Number of instances to draw.
 	 * @param first_index Base index within the index buffer.
 	 * @param vertex_offset Value added to the vertex index before indexing into the vertex buffer.
-	 * @param first_instance Instance ID of the first instance to draw. (WARNING: not currently supported)
+	 * @param first_instance Instance ID of the first instance to draw.
 	 *
-	 * @warning @p first_instance currently not supported.
+	 * @warning @p vertex_offset currently not supported.
 	 */
 	void draw_indexed(std::uint32_t index_count, std::uint32_t instance_count, std::uint32_t first_index, std::int32_t vertex_offset, std::uint32_t first_instance);
 	
@@ -409,9 +409,9 @@ private:
 	pipeline_color_blend_state m_color_blend_state;
 	clear_value m_clear_value;
 	
-	const framebuffer* m_framebuffer{};
-	const shader_program* m_shader_program{};
-	const vertex_array* m_vertex_array{};
+	unsigned int m_bound_gl_named_framebuffer{};
+	unsigned int m_bound_gl_program_id{};
+	unsigned int m_bound_gl_named_array{};
 };
 
 } // namespace gl

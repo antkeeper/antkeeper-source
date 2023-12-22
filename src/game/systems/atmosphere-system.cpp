@@ -9,21 +9,21 @@
 atmosphere_system::atmosphere_system(entity::registry& registry):
 	updatable_system(registry)
 {
-	registry.on_construct<::atmosphere_component>().connect<&atmosphere_system::on_atmosphere_construct>(this);
-	registry.on_update<::atmosphere_component>().connect<&atmosphere_system::on_atmosphere_update>(this);
-	registry.on_destroy<::atmosphere_component>().connect<&atmosphere_system::on_atmosphere_destroy>(this);
+	m_registry.on_construct<::atmosphere_component>().connect<&atmosphere_system::on_atmosphere_construct>(this);
+	m_registry.on_update<::atmosphere_component>().connect<&atmosphere_system::on_atmosphere_update>(this);
+	m_registry.on_destroy<::atmosphere_component>().connect<&atmosphere_system::on_atmosphere_destroy>(this);
 	
 	set_rgb_wavelengths({680, 550, 440});
 }
 
 atmosphere_system::~atmosphere_system()
 {
-	registry.on_construct<::atmosphere_component>().disconnect<&atmosphere_system::on_atmosphere_construct>(this);
-	registry.on_update<::atmosphere_component>().disconnect<&atmosphere_system::on_atmosphere_update>(this);
-	registry.on_destroy<::atmosphere_component>().disconnect<&atmosphere_system::on_atmosphere_destroy>(this);
+	m_registry.on_construct<::atmosphere_component>().disconnect<&atmosphere_system::on_atmosphere_construct>(this);
+	m_registry.on_update<::atmosphere_component>().disconnect<&atmosphere_system::on_atmosphere_update>(this);
+	m_registry.on_destroy<::atmosphere_component>().disconnect<&atmosphere_system::on_atmosphere_destroy>(this);
 }
 
-void atmosphere_system::update(float t, float dt)
+void atmosphere_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
 {}
 
 void atmosphere_system::set_rgb_wavelengths(const math::dvec3& wavelengths)
@@ -40,9 +40,9 @@ void atmosphere_system::set_rgb_wavelengths(const math::dvec3& wavelengths)
 	};
 	
 	// Update atmosphere components
-	registry.view<::atmosphere_component>().each
+	m_registry.view<::atmosphere_component>().each
 	(
-		[&](entity::id entity_id, auto& component)
+		[&](entity::id entity_id, [[maybe_unused]] auto& component)
 		{
 			update_atmosphere(entity_id);
 		}
@@ -67,7 +67,7 @@ void atmosphere_system::set_active_atmosphere(entity::id entity_id)
 void atmosphere_system::update_atmosphere(entity::id entity_id)
 {
 	// Get atmosphere component of the entity
-	::atmosphere_component* component = registry.try_get<::atmosphere_component>(entity_id);
+	::atmosphere_component* component = m_registry.try_get<::atmosphere_component>(entity_id);
 	
 	// Abort if entity has no atmosphere component
 	if (!component)
@@ -116,13 +116,13 @@ void atmosphere_system::update_sky_pass()
 	}
 	
 	// Abort if active atmosphere entity is not valid
-	if (!registry.valid(m_active_atmosphere_eid))
+	if (!m_registry.valid(m_active_atmosphere_eid))
 	{
 		return;
 	}
 	
 	// Get atmosphere component of the entity
-	::atmosphere_component* component = registry.try_get<::atmosphere_component>(m_active_atmosphere_eid);
+	::atmosphere_component* component = m_registry.try_get<::atmosphere_component>(m_active_atmosphere_eid);
 	
 	// Abort if entity has no atmosphere component
 	if (!component)
@@ -137,17 +137,17 @@ void atmosphere_system::update_sky_pass()
 	m_sky_pass->set_airglow_luminance(math::fvec3(component->airglow_luminance));
 }
 
-void atmosphere_system::on_atmosphere_construct(entity::registry& registry, entity::id entity_id)
+void atmosphere_system::on_atmosphere_construct([[maybe_unused]] entity::registry& registry, entity::id entity_id)
 {
 	update_atmosphere(entity_id);
 }
 
-void atmosphere_system::on_atmosphere_update(entity::registry& registry, entity::id entity_id)
+void atmosphere_system::on_atmosphere_update([[maybe_unused]] entity::registry& registry, entity::id entity_id)
 {
 	update_atmosphere(entity_id);
 }
 
-void atmosphere_system::on_atmosphere_destroy(entity::registry& registry, entity::id entity_id)
+void atmosphere_system::on_atmosphere_destroy([[maybe_unused]] entity::registry& registry, entity::id entity_id)
 {
 	if (entity_id == m_active_atmosphere_eid)
 	{

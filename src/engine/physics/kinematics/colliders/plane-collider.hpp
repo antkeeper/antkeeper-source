@@ -48,6 +48,9 @@ public:
 	constexpr plane_collider() noexcept = default;
 	/// @}
 	
+	/** Destructs a plane collider. */
+	~plane_collider() override = default;
+	
 	/**
 	 * Constructs a plane collider from a normal and offset.
 	 *

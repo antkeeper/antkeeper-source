@@ -21,6 +21,7 @@
 #include "game/states/experiments/treadmill-experiment-state.hpp"
 #include "game/strings.hpp"
 #include "game/world.hpp"
+#include "game/debug/shell.hpp"
 #include <engine/math/vector.hpp>
 #include <engine/math/projection.hpp>
 #include <engine/physics/light/exposure.hpp>
@@ -30,6 +31,7 @@
 #include <engine/hash/fnv1a.hpp>
 #include <engine/render/passes/material-pass.hpp>
 #include <engine/input/clipboard-events.hpp>
+#include <engine/input/keyboard-events.hpp>
 #include <format>
 #include <limits>
 #include <print>
@@ -46,7 +48,7 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	title_text = std::make_unique<scene::text>();
 	title_text->set_material(ctx.title_font_material);
 	title_text->set_color({1.0f, 1.0f, 1.0f, (fade_in) ? 1.0f : 0.0f});
-	title_text->set_font(&ctx.title_font);
+	title_text->set_font(ctx.title_font);
 	title_text->set_content(get_string(ctx, "title_antkeeper"));
 	const auto& title_aabb = title_text->get_bounds();
 	float title_w = title_aabb.max.x() - title_aabb.min.x();
@@ -58,10 +60,10 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	
 	// Construct title fade animation
 	title_fade_animation.set_interpolator(ease<float>::out_cubic);
-	animation_channel<float>* opacity_channel = title_fade_animation.add_channel(0);
+	[[maybe_unused]] animation_channel<float>* opacity_channel = title_fade_animation.add_channel(0);
 	title_fade_animation.set_frame_callback
 	(
-		[this, &ctx](int channel, const float& opacity)
+		[this, &ctx]([[maybe_unused]] int channel, const float& opacity)
 		{
 			math::fvec4 color = this->title_text->get_color();
 			color[3] = opacity;

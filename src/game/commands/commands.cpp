@@ -107,11 +107,6 @@ void set_transform(entity::registry& registry, entity::id eid, const math::trans
 	}
 }
 
-void place(entity::registry& registry, entity::id eid, entity::id celestial_body_id, double altitude, double latitude, double longitude)
-{
-
-}
-
 void assign_render_layers(entity::registry& registry, entity::id eid, std::uint8_t layer_mask)
 {
 	const ::scene_component* component = registry.try_get<::scene_component>(eid);

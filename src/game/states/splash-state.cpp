@@ -64,7 +64,7 @@ splash_state::splash_state(::game& ctx):
 	splash_fade_out_opacity_channel->insert_keyframe({splash_fade_out_duration, 0.0f});
 	
 	// Setup animation frame callbacks
-	auto set_splash_opacity = [splash_tint](int channel, const float& opacity)
+	auto set_splash_opacity = [splash_tint]([[maybe_unused]] int channel, const float& opacity)
 	{
 		splash_tint->set(math::fvec4{1, 1, 1, opacity});
 	};
@@ -116,7 +116,7 @@ splash_state::splash_state(::game& ctx):
 	);
 	
 	// Construct splash skip function
-	auto skip = [&](const auto& event)
+	auto skip = [&]([[maybe_unused]] const auto& event)
 	{
 		ctx.function_queue.emplace
 		(

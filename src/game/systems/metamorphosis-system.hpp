@@ -12,6 +12,8 @@ class metamorphosis_system:
 {
 public:
 	explicit metamorphosis_system(entity::registry& registry);
+	~metamorphosis_system() override = default;
+	
 	virtual void update(float t, float dt);
 	
 	/**

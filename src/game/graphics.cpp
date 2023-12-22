@@ -6,6 +6,7 @@
 #include <engine/debug/log.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/texture.hpp>
+#include <engine/render/passes/clear-pass.hpp>
 #include <engine/render/passes/bloom-pass.hpp>
 #include <engine/render/passes/final-pass.hpp>
 #include <engine/render/passes/resample-pass.hpp>
@@ -271,7 +272,7 @@ void save_screenshot(::game& ctx)
 {
 	// Determine timestamped screenshot filename
 	const auto time = std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now());
-	const std::string screenshot_filename = std::format("{0}-{1:%Y%m%d}T{1:%H%M%S}Z.png", config::application_name, time);
+	const std::string screenshot_filename = std::format("{0}-{1:%Y%m%d}T{1:%H%M%S}Z.png", config::application_slug, time);
 	
 	// Determine path to screenshot file
 	std::filesystem::path screenshot_filepath = ctx.screenshots_path / screenshot_filename;
@@ -328,12 +329,15 @@ void reroute_framebuffers(::game& ctx)
 	if (ctx.resample_pass->is_enabled())
 	{
 		ctx.common_final_pass->set_framebuffer(ctx.ldr_framebuffer_a.get());
+		ctx.resample_pass->set_source_texture(ctx.ldr_color_texture_a);
 	}
 	else
 	{
 		ctx.common_final_pass->set_framebuffer(nullptr);
+		ctx.resample_pass->set_source_texture(nullptr);
 	}
 	
+	ctx.clear_pass->set_framebuffer(ctx.hdr_framebuffer.get());
 	ctx.sky_pass->set_framebuffer(ctx.hdr_framebuffer.get());
 	ctx.surface_material_pass->set_framebuffer(ctx.hdr_framebuffer.get());
 	ctx.bloom_pass->set_source_texture(ctx.hdr_color_texture);

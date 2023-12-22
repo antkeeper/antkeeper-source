@@ -19,12 +19,13 @@ template <class T>
 class publisher
 {
 public:
-	/// Message type.
-	typedef T message_type;
+	/** Message type. */
+	using message_type = T;
 	
-	/// Channel type.
-	typedef channel<message_type> channel_type;
+	/** Channel type. */
+	using channel_type = channel<message_type>;
 	
+	/// @{
 	/**
 	 * Publishes a message.
 	 *
@@ -33,15 +34,14 @@ public:
 	 * @param policy Execution policy to use.
 	 * @param message Message to publish.
 	 */
-	/// @{
 	template <class ExecutionPolicy>
 	void publish(ExecutionPolicy&& policy, const message_type& message) const
 	{
 		std::for_each
 		(
 			policy,
-			std::begin(m_channel.subscribers),
-			std::end(m_channel.subscribers),
+			std::begin(m_channel.m_subscribers),
+			std::end(m_channel.m_subscribers),
 			[&](const auto& subscriber)
 			{
 				(*subscriber)(message);
@@ -55,10 +55,8 @@ public:
 	}
 	/// @}
 	
-	/**
-	 * Returns the channel through which messages are published.
-	 */
 	/// @{
+	/** Returns the channel through which messages are published. */
 	[[nodiscard]] inline const channel_type& channel() const noexcept
 	{
 		return m_channel;

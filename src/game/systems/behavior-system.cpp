@@ -10,9 +10,9 @@ behavior_system::behavior_system(entity::registry& registry):
 	updatable_system(registry)
 {}
 
-void behavior_system::update(float t, float dt)
+void behavior_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
 {
-	// registry.view<behavior_component>().each(
+	// m_registry.view<behavior_component>().each(
 		// [&](entity::id entity_id, auto& behavior)
 		// {
 		// });

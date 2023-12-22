@@ -121,7 +121,7 @@ std::size_t physfs_deserialize_context::read8(std::byte* data, std::size_t count
 {
 	const PHYSFS_sint64 status = PHYSFS_readBytes(m_file, data, count);
 	
-	if (status != count)
+	if (static_cast<std::size_t>(status) != count)
 	{
 		if (status < 0 || !PHYSFS_eof(m_file))
 		{

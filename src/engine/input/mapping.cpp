@@ -9,39 +9,39 @@
 
 namespace input {
 
-gamepad_axis_mapping::gamepad_axis_mapping(input::gamepad* gamepad, gamepad_axis axis, bool direction):
-	gamepad{gamepad},
-	axis{axis},
-	direction{direction}
+gamepad_axis_mapping::gamepad_axis_mapping(input::gamepad* map_gamepad, gamepad_axis map_axis, bool map_direction):
+	gamepad{map_gamepad},
+	axis{map_axis},
+	direction{map_direction}
 {}
 
-gamepad_button_mapping::gamepad_button_mapping(input::gamepad* gamepad, gamepad_button button):
-	gamepad{gamepad},
-	button{button}
+gamepad_button_mapping::gamepad_button_mapping(input::gamepad* map_gamepad, gamepad_button map_button):
+	gamepad{map_gamepad},
+	button{map_button}
 {}
 
-key_mapping::key_mapping(input::keyboard* keyboard, input::scancode scancode, std::uint16_t modifiers, bool repeat):
-	keyboard{keyboard},
-	scancode{scancode},
-	repeat{repeat},
-	modifiers{modifiers}
+key_mapping::key_mapping(input::keyboard* map_keyboard, input::scancode map_scancode, std::uint16_t map_modifiers, bool map_repeat):
+	keyboard{map_keyboard},
+	scancode{map_scancode},
+	repeat{map_repeat},
+	modifiers{map_modifiers}
 {}
 
-mouse_button_mapping::mouse_button_mapping(input::mouse* mouse, mouse_button button):
-	mouse{mouse},
-	button{button}
+mouse_button_mapping::mouse_button_mapping(input::mouse* map_mouse, mouse_button map_button):
+	mouse{map_mouse},
+	button{map_button}
 {}
 
-mouse_motion_mapping::mouse_motion_mapping(input::mouse* mouse, mouse_motion_axis axis, bool direction):
-	mouse{mouse},
-	axis{axis},
-	direction{direction}
+mouse_motion_mapping::mouse_motion_mapping(input::mouse* map_mouse, mouse_motion_axis map_axis, bool map_direction):
+	mouse{map_mouse},
+	axis{map_axis},
+	direction{map_direction}
 {}
 
-mouse_scroll_mapping::mouse_scroll_mapping(input::mouse* mouse, mouse_scroll_axis axis, bool direction):
-	mouse{mouse},
-	axis{axis},
-	direction{direction}
+mouse_scroll_mapping::mouse_scroll_mapping(input::mouse* map_mouse, mouse_scroll_axis map_axis, bool map_direction):
+	mouse{map_mouse},
+	axis{map_axis},
+	direction{map_direction}
 {}
 
 } // namespace input

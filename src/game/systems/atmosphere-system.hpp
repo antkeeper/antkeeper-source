@@ -18,7 +18,7 @@ class atmosphere_system:
 {
 public:
 	explicit atmosphere_system(entity::registry& registry);
-	~atmosphere_system();
+	~atmosphere_system() override;
 	
 	virtual void update(float t, float dt);
 	

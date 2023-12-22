@@ -24,6 +24,9 @@ class texture_cube;
 class shader_variable
 {
 public:
+	/** Destructs a shader variable. */
+	virtual ~shader_variable() = default;
+	
 	/**
 	 * Returns the shader variable data type.
 	 */

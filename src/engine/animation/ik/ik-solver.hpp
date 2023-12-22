@@ -10,6 +10,9 @@
 class ik_solver
 {
 public:
+	/** Destructs an IK solver. */
+	virtual ~ik_solver() = default;
+	
 	/**
 	 * Transforms bones to find an inverse kinematic solution for an end effector.
 	 */

@@ -7,6 +7,6 @@
 	
 	"font_serif":"castoro-regular.woff",
 	"font_sans_serif":"noto-sans-regular.woff",
-	"font_monospace":"iosevka-regular.woff",
+	"font_monospace":"fonts/iosevka-term-regular.ttf",
 	"font_dyslexia":"open-dyslexic-3-regular.woff"
 }

@@ -21,33 +21,36 @@ void reset_control_profile(::control_profile& profile)
 	settings.clear();
 	
 	// Fullscreen
-	mappings.emplace("fullscreen", std::make_unique<input::key_mapping>(nullptr, input::scancode::f11, 0, false));
+	mappings.emplace("fullscreen", std::make_unique<input::key_mapping>(nullptr, input::scancode::f11, input::modifier_key::none, false));
 	mappings.emplace("fullscreen", std::make_unique<input::key_mapping>(nullptr, input::scancode::enter, input::modifier_key::alt, false));
 	
 	// Screenshot
-	mappings.emplace("screenshot", std::make_unique<input::key_mapping>(nullptr, input::scancode::f12, 0, false));
-	mappings.emplace("screenshot", std::make_unique<input::key_mapping>(nullptr, input::scancode::print_screen, 0, false));
+	mappings.emplace("screenshot", std::make_unique<input::key_mapping>(nullptr, input::scancode::f12, input::modifier_key::none, false));
+	mappings.emplace("screenshot", std::make_unique<input::key_mapping>(nullptr, input::scancode::print_screen, input::modifier_key::none, false));
+	
+	// Toggle terminal
+	mappings.emplace("toggle_terminal", std::make_unique<input::key_mapping>(nullptr, input::scancode::grave, input::modifier_key::none, false));
 	
 	// Menu up
-	mappings.emplace("menu_up", std::make_unique<input::key_mapping>(nullptr, input::scancode::up, 0, true));
-	mappings.emplace("menu_up", std::make_unique<input::key_mapping>(nullptr, input::scancode::w, 0, true));
-	mappings.emplace("menu_up", std::make_unique<input::key_mapping>(nullptr, input::scancode::i, 0, true));
+	mappings.emplace("menu_up", std::make_unique<input::key_mapping>(nullptr, input::scancode::up, input::modifier_key::none, true));
+	mappings.emplace("menu_up", std::make_unique<input::key_mapping>(nullptr, input::scancode::w, input::modifier_key::none, true));
+	mappings.emplace("menu_up", std::make_unique<input::key_mapping>(nullptr, input::scancode::i, input::modifier_key::none, true));
 	mappings.emplace("menu_up", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::left_stick_y, true));
 	mappings.emplace("menu_up", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_y, true));
 	mappings.emplace("menu_up", std::make_unique<input::gamepad_button_mapping>(nullptr, input::gamepad_button::dpad_up));
 	
 	// Menu down
-	mappings.emplace("menu_down", std::make_unique<input::key_mapping>(nullptr, input::scancode::down, 0, true));
-	mappings.emplace("menu_down", std::make_unique<input::key_mapping>(nullptr, input::scancode::s, 0, true));
-	mappings.emplace("menu_down", std::make_unique<input::key_mapping>(nullptr, input::scancode::k, 0, true));
+	mappings.emplace("menu_down", std::make_unique<input::key_mapping>(nullptr, input::scancode::down, input::modifier_key::none, true));
+	mappings.emplace("menu_down", std::make_unique<input::key_mapping>(nullptr, input::scancode::s, input::modifier_key::none, true));
+	mappings.emplace("menu_down", std::make_unique<input::key_mapping>(nullptr, input::scancode::k, input::modifier_key::none, true));
 	mappings.emplace("menu_down", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::left_stick_y, false));
 	mappings.emplace("menu_down", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_y, false));
 	mappings.emplace("menu_down", std::make_unique<input::gamepad_button_mapping>(nullptr, input::gamepad_button::dpad_down));
 	
 	// Menu left
-	mappings.emplace("menu_left", std::make_unique<input::key_mapping>(nullptr, input::scancode::left, 0, true));
-	mappings.emplace("menu_left", std::make_unique<input::key_mapping>(nullptr, input::scancode::a, 0, true));
-	mappings.emplace("menu_left", std::make_unique<input::key_mapping>(nullptr, input::scancode::j, 0, true));
+	mappings.emplace("menu_left", std::make_unique<input::key_mapping>(nullptr, input::scancode::left, input::modifier_key::none, true));
+	mappings.emplace("menu_left", std::make_unique<input::key_mapping>(nullptr, input::scancode::a, input::modifier_key::none, true));
+	mappings.emplace("menu_left", std::make_unique<input::key_mapping>(nullptr, input::scancode::j, input::modifier_key::none, true));
 	mappings.emplace("menu_left", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::left_stick_x, true));
 	mappings.emplace("menu_left", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_x, true));
 	mappings.emplace("menu_left", std::make_unique<input::gamepad_button_mapping>(nullptr, input::gamepad_button::dpad_left));
@@ -55,9 +58,9 @@ void reset_control_profile(::control_profile& profile)
 	mappings.emplace("menu_left", std::make_unique<input::mouse_scroll_mapping>(nullptr, input::mouse_scroll_axis::y, true));
 	
 	// Menu right
-	mappings.emplace("menu_right", std::make_unique<input::key_mapping>(nullptr, input::scancode::right, 0, true));
-	mappings.emplace("menu_right", std::make_unique<input::key_mapping>(nullptr, input::scancode::d, 0, true));
-	mappings.emplace("menu_right", std::make_unique<input::key_mapping>(nullptr, input::scancode::l, 0, true));
+	mappings.emplace("menu_right", std::make_unique<input::key_mapping>(nullptr, input::scancode::right, input::modifier_key::none, true));
+	mappings.emplace("menu_right", std::make_unique<input::key_mapping>(nullptr, input::scancode::d, input::modifier_key::none, true));
+	mappings.emplace("menu_right", std::make_unique<input::key_mapping>(nullptr, input::scancode::l, input::modifier_key::none, true));
 	mappings.emplace("menu_right", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::left_stick_x, false));
 	mappings.emplace("menu_right", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_x, false));
 	mappings.emplace("menu_right", std::make_unique<input::gamepad_button_mapping>(nullptr, input::gamepad_button::dpad_right));
@@ -65,36 +68,36 @@ void reset_control_profile(::control_profile& profile)
 	mappings.emplace("menu_right", std::make_unique<input::mouse_scroll_mapping>(nullptr, input::mouse_scroll_axis::y, false));
 	
 	// Menu select
-	mappings.emplace("menu_select", std::make_unique<input::key_mapping>(nullptr, input::scancode::enter, 0, false));
-	mappings.emplace("menu_select", std::make_unique<input::key_mapping>(nullptr, input::scancode::space, 0, false));
-	mappings.emplace("menu_select", std::make_unique<input::key_mapping>(nullptr, input::scancode::e, 0, false));
+	mappings.emplace("menu_select", std::make_unique<input::key_mapping>(nullptr, input::scancode::enter, input::modifier_key::none, false));
+	mappings.emplace("menu_select", std::make_unique<input::key_mapping>(nullptr, input::scancode::space, input::modifier_key::none, false));
+	mappings.emplace("menu_select", std::make_unique<input::key_mapping>(nullptr, input::scancode::e, input::modifier_key::none, false));
 	mappings.emplace("menu_select", std::make_unique<input::gamepad_button_mapping>(nullptr, input::gamepad_button::a));
 	
 	// Menu back
-	mappings.emplace("menu_back", std::make_unique<input::key_mapping>(nullptr, input::scancode::escape, 0, false));
-	mappings.emplace("menu_back", std::make_unique<input::key_mapping>(nullptr, input::scancode::backspace, 0, false));
-	mappings.emplace("menu_back", std::make_unique<input::key_mapping>(nullptr, input::scancode::q, 0, false));
+	mappings.emplace("menu_back", std::make_unique<input::key_mapping>(nullptr, input::scancode::escape, input::modifier_key::none, false));
+	mappings.emplace("menu_back", std::make_unique<input::key_mapping>(nullptr, input::scancode::backspace, input::modifier_key::none, false));
+	mappings.emplace("menu_back", std::make_unique<input::key_mapping>(nullptr, input::scancode::q, input::modifier_key::none, false));
 	mappings.emplace("menu_back", std::make_unique<input::gamepad_button_mapping>(nullptr, input::gamepad_button::b));
 	mappings.emplace("menu_back", std::make_unique<input::gamepad_button_mapping>(nullptr, input::gamepad_button::back));
 	
 	// Menu modifier
-	mappings.emplace("menu_modifier", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_shift, 0, false));
-	mappings.emplace("menu_modifier", std::make_unique<input::key_mapping>(nullptr, input::scancode::right_shift, 0, false));
+	mappings.emplace("menu_modifier", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_shift, input::modifier_key::none, false));
+	mappings.emplace("menu_modifier", std::make_unique<input::key_mapping>(nullptr, input::scancode::right_shift, input::modifier_key::none, false));
 	
 	// Move forward
-	mappings.emplace("move_forward", std::make_unique<input::key_mapping>(nullptr, input::scancode::w, 0, false));
+	mappings.emplace("move_forward", std::make_unique<input::key_mapping>(nullptr, input::scancode::w, input::modifier_key::none, false));
 	mappings.emplace("move_forward", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::left_stick_y, true));
 	
 	// Move back
-	mappings.emplace("move_back", std::make_unique<input::key_mapping>(nullptr, input::scancode::s, 0, false));
+	mappings.emplace("move_back", std::make_unique<input::key_mapping>(nullptr, input::scancode::s, input::modifier_key::none, false));
 	mappings.emplace("move_back", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::left_stick_y, false));
 	
 	// Move left
-	mappings.emplace("move_left", std::make_unique<input::key_mapping>(nullptr, input::scancode::a, 0, false));
+	mappings.emplace("move_left", std::make_unique<input::key_mapping>(nullptr, input::scancode::a, input::modifier_key::none, false));
 	mappings.emplace("move_left", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::left_stick_x, true));
 	
 	// Move right
-	mappings.emplace("move_right", std::make_unique<input::key_mapping>(nullptr, input::scancode::d, 0, false));
+	mappings.emplace("move_right", std::make_unique<input::key_mapping>(nullptr, input::scancode::d, input::modifier_key::none, false));
 	mappings.emplace("move_right", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::left_stick_x, false));
 	
 	// Move up
@@ -106,14 +109,14 @@ void reset_control_profile(::control_profile& profile)
 	mappings.emplace("move_down", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::left_trigger, false));
 	
 	// Interact
-	mappings.emplace("interact", std::make_unique<input::key_mapping>(nullptr, input::scancode::e, 0, false));
+	mappings.emplace("interact", std::make_unique<input::key_mapping>(nullptr, input::scancode::e, input::modifier_key::none, false));
 	mappings.emplace("interact", std::make_unique<input::gamepad_button_mapping>(nullptr, input::gamepad_button::a));
 	
 	// Move fast
 	// mappings.emplace("move_fast", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_shift, 0, false));
 	
 	// Move slow
-	mappings.emplace("move_slow", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_ctrl, 0, false));
+	mappings.emplace("move_slow", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_ctrl, input::modifier_key::none, false));
 	
 	// Camera mouse pick
 	mappings.emplace("camera_mouse_pick", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::left));
@@ -125,53 +128,50 @@ void reset_control_profile(::control_profile& profile)
 	mappings.emplace("camera_mouse_drag", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::middle));
 	
 	// Camera zoom
-	mappings.emplace("camera_mouse_zoom", std::make_unique<input::key_mapping>(nullptr, input::scancode::z, 0, false));
+	mappings.emplace("camera_mouse_zoom", std::make_unique<input::key_mapping>(nullptr, input::scancode::z, input::modifier_key::none, false));
 	mappings.emplace("camera_zoom_in", std::make_unique<input::mouse_scroll_mapping>(nullptr, input::mouse_scroll_axis::y, false));
 	mappings.emplace("camera_zoom_out", std::make_unique<input::mouse_scroll_mapping>(nullptr, input::mouse_scroll_axis::y, true));
 	
 	// Camera orbit
-	mappings.emplace("camera_orbit_left", std::make_unique<input::key_mapping>(nullptr, input::scancode::left, 0, false));
+	mappings.emplace("camera_orbit_left", std::make_unique<input::key_mapping>(nullptr, input::scancode::left, input::modifier_key::none, false));
 	mappings.emplace("camera_orbit_left", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_x, false));
-	mappings.emplace("camera_orbit_right", std::make_unique<input::key_mapping>(nullptr, input::scancode::right, 0, false));
+	mappings.emplace("camera_orbit_right", std::make_unique<input::key_mapping>(nullptr, input::scancode::right, input::modifier_key::none, false));
 	mappings.emplace("camera_orbit_right", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_x, true));
-	mappings.emplace("camera_orbit_up", std::make_unique<input::key_mapping>(nullptr, input::scancode::up, 0, false));
+	mappings.emplace("camera_orbit_up", std::make_unique<input::key_mapping>(nullptr, input::scancode::up, input::modifier_key::none, false));
 	mappings.emplace("camera_orbit_up", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_y, true));
-	mappings.emplace("camera_orbit_down", std::make_unique<input::key_mapping>(nullptr, input::scancode::up, 0, false));
+	mappings.emplace("camera_orbit_down", std::make_unique<input::key_mapping>(nullptr, input::scancode::up, input::modifier_key::none, false));
 	mappings.emplace("camera_orbit_down", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_y, false));
 	
 	// Camera look ahead
-	mappings.emplace("camera_look_ahead", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_shift, 0, false));
+	mappings.emplace("camera_look_ahead", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_shift, input::modifier_key::none, false));
 	mappings.emplace("camera_look_ahead", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::left_trigger, false));
 	
-	// Camera presets 
-	mappings.emplace("camera_preset_1", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_1, 0, false));
-	mappings.emplace("camera_preset_2", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_2, 0, false));
-	mappings.emplace("camera_preset_3", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_3, 0, false));
-	mappings.emplace("camera_preset_4", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_4, 0, false));
-	mappings.emplace("camera_preset_5", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_5, 0, false));
-	mappings.emplace("camera_preset_6", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_6, 0, false));
-	mappings.emplace("camera_preset_7", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_7, 0, false));
-	mappings.emplace("camera_preset_8", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_8, 0, false));
-	mappings.emplace("camera_preset_9", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_9, 0, false));
-	mappings.emplace("camera_preset_10", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_0, 0, false));
-	mappings.emplace("camera_save_preset", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_ctrl, 0, false));
-	mappings.emplace("camera_save_preset", std::make_unique<input::key_mapping>(nullptr, input::scancode::right_ctrl, 0, false));
-	
 	// Oviposit
-	mappings.emplace("oviposit", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_alt, 0, false));
+	mappings.emplace("oviposit", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_alt, input::modifier_key::none, false));
 	
 	// Pause
-	mappings.emplace("pause", std::make_unique<input::key_mapping>(nullptr, input::scancode::escape, 0, false));
+	mappings.emplace("pause", std::make_unique<input::key_mapping>(nullptr, input::scancode::escape, input::modifier_key::none, false));
 	mappings.emplace("pause", std::make_unique<input::gamepad_button_mapping>(nullptr, input::gamepad_button::start));
 	
 	// Toggle debug UI
-	mappings.emplace("toggle_debug", std::make_unique<input::key_mapping>(nullptr, input::scancode::grave, 0, false));
+	// mappings.emplace("toggle_debug", std::make_unique<input::key_mapping>(nullptr, input::scancode::grave, 0, false));
 	
 	// Adjust exposure
-	mappings.emplace("adjust_exposure", std::make_unique<input::key_mapping>(nullptr, input::scancode::b, 0, false));
+	mappings.emplace("adjust_exposure", std::make_unique<input::key_mapping>(nullptr, input::scancode::b, input::modifier_key::none, false));
 	
 	// Adjust time
-	mappings.emplace("adjust_time", std::make_unique<input::key_mapping>(nullptr, input::scancode::t, 0, false));
+	mappings.emplace("adjust_time", std::make_unique<input::key_mapping>(nullptr, input::scancode::t, input::modifier_key::none, false));
+	
+	// Terminal keys
+	mappings.emplace("terminal_up", std::make_unique<input::key_mapping>(nullptr, input::scancode::up, input::modifier_key::none, true));
+	mappings.emplace("terminal_down", std::make_unique<input::key_mapping>(nullptr, input::scancode::down, input::modifier_key::none, true));
+	mappings.emplace("terminal_left", std::make_unique<input::key_mapping>(nullptr, input::scancode::left, input::modifier_key::none, true));
+	mappings.emplace("terminal_right", std::make_unique<input::key_mapping>(nullptr, input::scancode::right, input::modifier_key::none, true));
+	mappings.emplace("terminal_enter", std::make_unique<input::key_mapping>(nullptr, input::scancode::enter, input::modifier_key::none, true));
+	mappings.emplace("terminal_backspace", std::make_unique<input::key_mapping>(nullptr, input::scancode::backspace, input::modifier_key::none, true));
+	mappings.emplace("terminal_paste", std::make_unique<input::key_mapping>(nullptr, input::scancode::v, input::modifier_key::ctrl, true));
+	mappings.emplace("terminal_paste", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::right));
+	mappings.emplace("terminal_clear_line", std::make_unique<input::key_mapping>(nullptr, input::scancode::escape, input::modifier_key::none, true));
 }
 
 void apply_control_profile(::game& ctx, const ::control_profile& profile)
@@ -189,6 +189,7 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	ctx.window_action_map.remove_mappings();
 	add_mappings(ctx.window_action_map, ctx.fullscreen_action, "fullscreen");
 	add_mappings(ctx.window_action_map, ctx.screenshot_action, "screenshot");
+	add_mappings(ctx.window_action_map, ctx.toggle_terminal_action, "toggle_terminal");
 	
 	// Menu controls
 	ctx.menu_action_map.remove_mappings();
@@ -225,17 +226,6 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	add_mappings(ctx.camera_action_map, ctx.camera_orbit_up_action, "camera_orbit_up");
 	add_mappings(ctx.camera_action_map, ctx.camera_orbit_down_action, "camera_orbit_down");
 	add_mappings(ctx.camera_action_map, ctx.camera_look_ahead_action, "camera_look_ahead");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_1_action, "camera_preset_1");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_2_action, "camera_preset_2");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_3_action, "camera_preset_3");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_4_action, "camera_preset_4");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_5_action, "camera_preset_5");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_6_action, "camera_preset_6");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_7_action, "camera_preset_7");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_8_action, "camera_preset_8");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_9_action, "camera_preset_9");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_10_action, "camera_preset_10");
-	add_mappings(ctx.camera_action_map, ctx.camera_save_preset_action, "camera_save_preset");
 	
 	// Ant controls
 	ctx.ant_action_map.remove_mappings();
@@ -252,6 +242,16 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	add_mappings(ctx.debug_action_map, ctx.toggle_debug_ui_action, "toggle_debug");
 	add_mappings(ctx.debug_action_map, ctx.adjust_exposure_action, "adjust_exposure");
 	add_mappings(ctx.debug_action_map, ctx.adjust_time_action, "adjust_time");
+	
+	// Terminal controls
+	add_mappings(ctx.terminal_action_map, ctx.terminal_up_action, "terminal_up");
+	add_mappings(ctx.terminal_action_map, ctx.terminal_down_action, "terminal_down");
+	add_mappings(ctx.terminal_action_map, ctx.terminal_left_action, "terminal_left");
+	add_mappings(ctx.terminal_action_map, ctx.terminal_right_action, "terminal_right");
+	add_mappings(ctx.terminal_action_map, ctx.terminal_enter_action, "terminal_enter");
+	add_mappings(ctx.terminal_action_map, ctx.terminal_backspace_action, "terminal_backspace");
+	add_mappings(ctx.terminal_action_map, ctx.terminal_paste_action, "terminal_paste");
+	add_mappings(ctx.terminal_action_map, ctx.terminal_clear_line_action, "terminal_clear_line");
 }
 
 void update_control_profile(::game& ctx, ::control_profile& profile)
@@ -296,6 +296,7 @@ void update_control_profile(::game& ctx, ::control_profile& profile)
 	// Window controls
 	add_mappings(ctx.window_action_map, ctx.fullscreen_action, "fullscreen");
 	add_mappings(ctx.window_action_map, ctx.screenshot_action, "screenshot");
+	add_mappings(ctx.window_action_map, ctx.toggle_terminal_action, "toggle_terminal");
 	
 	// Menu controls
 	add_mappings(ctx.menu_action_map, ctx.menu_up_action, "menu_up");
@@ -339,22 +340,21 @@ void update_control_profile(::game& ctx, ::control_profile& profile)
 	add_mappings(ctx.camera_action_map, ctx.camera_orbit_up_action, "camera_orbit_up");
 	add_mappings(ctx.camera_action_map, ctx.camera_orbit_down_action, "camera_orbit_down");
 	add_mappings(ctx.camera_action_map, ctx.camera_look_ahead_action, "camera_look_ahead");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_1_action, "camera_preset_1");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_2_action, "camera_preset_2");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_3_action, "camera_preset_3");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_4_action, "camera_preset_4");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_5_action, "camera_preset_5");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_6_action, "camera_preset_6");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_7_action, "camera_preset_7");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_8_action, "camera_preset_8");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_9_action, "camera_preset_9");
-	add_mappings(ctx.camera_action_map, ctx.camera_preset_10_action, "camera_preset_10");
-	add_mappings(ctx.camera_action_map, ctx.camera_save_preset_action, "camera_save_preset");
 	
 	// Debug controls
 	add_mappings(ctx.debug_action_map, ctx.toggle_debug_ui_action, "toggle_debug");
 	add_mappings(ctx.debug_action_map, ctx.adjust_exposure_action, "adjust_exposure");
 	add_mappings(ctx.debug_action_map, ctx.adjust_time_action, "adjust_time");
+	
+	// Terminal controls
+	add_mappings(ctx.terminal_action_map, ctx.terminal_up_action, "terminal_up");
+	add_mappings(ctx.terminal_action_map, ctx.terminal_down_action, "terminal_down");
+	add_mappings(ctx.terminal_action_map, ctx.terminal_left_action, "terminal_left");
+	add_mappings(ctx.terminal_action_map, ctx.terminal_right_action, "terminal_right");
+	add_mappings(ctx.terminal_action_map, ctx.terminal_enter_action, "terminal_enter");
+	add_mappings(ctx.terminal_action_map, ctx.terminal_backspace_action, "terminal_backspace");
+	add_mappings(ctx.terminal_action_map, ctx.terminal_paste_action, "terminal_paste");
+	add_mappings(ctx.terminal_action_map, ctx.terminal_clear_line_action, "terminal_clear_line");
 }
 
 void setup_game_controls(::game& ctx)
@@ -364,7 +364,7 @@ void setup_game_controls(::game& ctx)
 	(
 		ctx.pause_action.get_activated_channel().subscribe
 		(
-			[&ctx](const auto& event)
+			[&ctx]([[maybe_unused]] const auto& event)
 			{
 				if (!ctx.resume_callback)
 				{

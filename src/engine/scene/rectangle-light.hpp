@@ -18,6 +18,9 @@ public:
 	/// Constructs a rectangular area light.
 	rectangle_light();
 	
+	/** Destructs a rectangular area light. */
+	~rectangle_light() override = default;
+	
 	/// Returns light_type::rectangle.
 	[[nodiscard]] inline light_type get_light_type() const noexcept override
 	{

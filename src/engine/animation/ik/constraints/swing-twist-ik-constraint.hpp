@@ -13,6 +13,9 @@
 class swing_twist_ik_constraint: public ik_constraint
 {
 public:
+	/** Destructs a swing-twist IK constraint. */
+	~swing_twist_ik_constraint() override = default;
+	
 	void solve(math::fquat& q) override;
 	
 	/**

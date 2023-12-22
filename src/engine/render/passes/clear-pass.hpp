@@ -15,6 +15,10 @@ class clear_pass: public pass
 {
 public:
 	clear_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer);
+	
+	/** Destructs a clear pass. */
+	~clear_pass() override = default;
+	
 	void render(render::context& ctx) override;
 };
 

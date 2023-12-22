@@ -31,7 +31,6 @@ private:
 	animation<float> title_fade_animation;
 	
 	std::shared_ptr<event::subscription> window_resized_subscription;
-	std::vector<std::shared_ptr<event::subscription>> drop_subscriptions;
 };
 
 #endif // ANTKEEPER_MAIN_MENU_STATE_HPP

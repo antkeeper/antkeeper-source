@@ -88,14 +88,8 @@ private:
 	friend class brep_mesh;
 	friend class brep_face_container;
 	
-	/**
-	 * Constructs a B-rep face container.
-	 *
-	 * @param mesh Pointer to the parent mesh.
-	 */
-	inline explicit brep_loop_container(brep_mesh* mesh) noexcept:
-		brep_element_container<brep_loop>(mesh)
-	{}
+	/** Destructs a B-rep loop container. */
+	~brep_loop_container() override = default;
 	
 	/**
 	 * Appends a new loop to the end of the container.

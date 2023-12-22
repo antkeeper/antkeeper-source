@@ -14,6 +14,9 @@
 class euler_ik_constraint: public ik_constraint
 {
 public:
+	/** Destructs an Euler angle IK constraint. */
+	~euler_ik_constraint() override = default;
+	
 	void solve(math::fquat& q) override;
 	
 	/**

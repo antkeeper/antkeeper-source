@@ -16,6 +16,9 @@ namespace scene {
 class spot_light: public light
 {
 public:
+	/** Destructs a spot light. */
+	~spot_light() override = default;
+	
 	/// Returns light_type::spot.
 	[[nodiscard]] inline light_type get_light_type() const noexcept override
 	{

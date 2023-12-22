@@ -156,6 +156,18 @@ void sdl_input_manager::update()
 				break;
 			}
 			
+			case SDL_TEXTINPUT:
+			{
+				m_keyboard.input_text(event.text.text);
+				break;
+			}
+			
+			case SDL_TEXTEDITING:
+			{
+				m_keyboard.edit_text(event.edit.text, static_cast<std::size_t>(event.edit.start), static_cast<std::size_t>(event.edit.length));
+				break;
+			}
+			
 			case SDL_MOUSEWHEEL:
 			{
 				const float flip = (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) ? -1.0f : 1.0f;
@@ -348,6 +360,24 @@ std::string sdl_input_manager::get_clipboard_text() const
 	SDL_free(sdl_clipboard_text);
 	
 	return clipboard_text;
+}
+
+void sdl_input_manager::start_text_input(const geom::rectangle<int>& rect)
+{
+	const SDL_Rect sdl_rect
+	{
+		rect.min.x(),
+		rect.min.y(),
+		rect.max.x() - rect.min.x(),
+		rect.max.y() - rect.min.y()
+	};
+	SDL_SetTextInputRect(&sdl_rect);
+	SDL_StartTextInput();
+}
+
+void sdl_input_manager::stop_text_input()
+{
+	SDL_StopTextInput();
 }
 
 } // namespace app

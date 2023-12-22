@@ -29,7 +29,7 @@ class constraint_system:
 {
 public:
 	explicit constraint_system(entity::registry& registry);
-	~constraint_system();
+	~constraint_system() override;
 	
 	virtual void update(float t, float dt);
 	

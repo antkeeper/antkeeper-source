@@ -8,7 +8,7 @@
 
 namespace {
 
-void load_ant_diet_phene(ant_diet_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
+void load_ant_diet_phene([[maybe_unused]] ant_diet_phene& phene, [[maybe_unused]] ::resource_manager& resource_manager, [[maybe_unused]] deserialize_context& ctx)
 {
 
 }

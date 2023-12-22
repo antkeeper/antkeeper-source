@@ -22,6 +22,9 @@ public:
 	/// Camera view frustum type.
 	using view_frustum_type = geom::view_frustum<float>;
 	
+	/** Destructs a camera. */
+	~camera() override = default;
+	
 	/**
 	 * Constructs a picking ray from normalized device coordinates (NDC).
 	 *

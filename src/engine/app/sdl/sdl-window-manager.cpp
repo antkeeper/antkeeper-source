@@ -21,6 +21,9 @@ sdl_window_manager::sdl_window_manager()
 	}
 	debug::log_trace("Initialized SDL events and video subsystems");
 	
+	// Render native IME
+	SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
+	
 	// Disable unused events
 	SDL_EventState(SDL_AUDIODEVICEADDED, SDL_IGNORE);
 	SDL_EventState(SDL_AUDIODEVICEREMOVED, SDL_IGNORE);
@@ -80,6 +83,7 @@ sdl_window_manager::sdl_window_manager()
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, config::opengl_min_alpha_size);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, config::opengl_min_depth_size);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, config::opengl_min_stencil_size);
+	SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 0);
 }
 
 sdl_window_manager::~sdl_window_manager()
@@ -471,16 +475,13 @@ void sdl_window_manager::update()
 
 sdl_window* sdl_window_manager::get_window(SDL_Window* internal_window)
 {
-	if (auto i = m_window_map.find(internal_window); i != m_window_map.end())
-	{
-		return i->second;
-	}
-	else
+	auto it = m_window_map.find(internal_window);
+	if (it == m_window_map.end())
 	{
 		throw std::runtime_error("SDL window unrecognized by SDL window manager");
 	}
 	
-	return nullptr;
+	return it->second;
 }
 
 std::size_t sdl_window_manager::get_display_count() const
@@ -565,6 +566,8 @@ void sdl_window_manager::update_display(int sdl_display_index)
 		case SDL_ORIENTATION_PORTRAIT_FLIPPED:
 			display.set_orientation(display_orientation::portrait_flipped);
 			break;
+		case SDL_ORIENTATION_UNKNOWN:
+			[[fallthrough]];
 		default:
 			display.set_orientation(display_orientation::unknown);
 			break;
