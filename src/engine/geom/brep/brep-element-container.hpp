@@ -312,7 +312,7 @@ protected:
 	
 	/// @}
 	
-	brep_mesh* m_mesh;
+	brep_mesh* m_mesh{};
 	
 private:
 	std::vector<std::unique_ptr<element_type>> m_elements;

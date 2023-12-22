@@ -92,8 +92,8 @@ public:
 		}
 		
 	private:
-		brep_loop* m_loop;
-		std::ptrdiff_t m_position;
+		brep_loop* m_loop{};
+		std::ptrdiff_t m_position{};
 	};
 	
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
@@ -249,10 +249,10 @@ public:
 	}
 	
 private:
-	std::size_t m_index;
-	std::array<brep_vertex*, 2> m_vertices;
-	std::array<brep_edge*, 2> m_vertex_next;
-	std::array<brep_edge*, 2> m_vertex_previous;
+	std::size_t m_index{};
+	std::array<brep_vertex*, 2> m_vertices{};
+	std::array<brep_edge*, 2> m_vertex_next{};
+	std::array<brep_edge*, 2> m_vertex_previous{};
 	brep_edge_loop_list m_loops;
 };
 

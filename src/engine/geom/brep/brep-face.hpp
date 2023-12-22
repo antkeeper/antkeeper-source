@@ -91,8 +91,8 @@ public:
 		}
 		
 	private:
-		brep_loop* m_loop;
-		std::ptrdiff_t m_position;
+		brep_loop* m_loop{};
+		std::ptrdiff_t m_position{};
 	};
 	
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
@@ -248,7 +248,7 @@ public:
 	}
 	
 private:
-	std::size_t m_index;
+	std::size_t m_index{};
 	brep_face_loop_list m_loops;
 };
 

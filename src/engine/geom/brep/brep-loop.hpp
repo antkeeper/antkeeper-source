@@ -69,14 +69,14 @@ public:
 	}
 	
 private:
-	std::size_t m_index;
-	brep_vertex* m_vertex;
-	brep_edge* m_edge;
-	brep_face* m_face;
-	brep_loop* m_edge_next;
-	brep_loop* m_edge_previous;
-	brep_loop* m_face_next;
-	brep_loop* m_face_previous;
+	std::size_t m_index{};
+	brep_vertex* m_vertex{};
+	brep_edge* m_edge{};
+	brep_face* m_face{};
+	brep_loop* m_edge_next{};
+	brep_loop* m_edge_previous{};
+	brep_loop* m_face_next{};
+	brep_loop* m_face_previous{};
 };
 
 /**
