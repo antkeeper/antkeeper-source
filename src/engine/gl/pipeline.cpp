@@ -185,7 +185,7 @@ namespace {
 			{
 				std::string formatted_message;
 				std::format_to(std::back_inserter(formatted_message), "OpenGL {} {} ({}) {}: {}", src_str, type_str, severity_str, id, message);
-				debug::log_fatal("{}\n{}", formatted_message, std::stacktrace::current());
+				debug::log_fatal("{}\n{}", formatted_message, std::to_string(std::stacktrace::current()));
 				throw std::runtime_error(formatted_message);
 			}
 			
