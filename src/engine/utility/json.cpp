@@ -4,16 +4,27 @@
 #include <engine/utility/json.hpp>
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/deserializer.hpp>
+#include <engine/resources/serializer.hpp>
 
 template <>
-void deserializer<json>::deserialize(::json& json, deserialize_context& ctx)
+void serializer<json>::serialize(const json& element, serialize_context& ctx)
+{
+	// Dump JSON to string
+	auto dump = element.dump(1, '\t', false);
+	
+	// Write string
+	ctx.write8(reinterpret_cast<std::byte*>(dump.data()), dump.length());
+}
+
+template <>
+void deserializer<json>::deserialize(json& element, deserialize_context& ctx)
 {
 	// Read file into buffer
 	std::string file_buffer(ctx.size(), '\0');
 	ctx.read8(reinterpret_cast<std::byte*>(file_buffer.data()), ctx.size());
 	
 	// Parse JSON from file buffer
-	json = ::json::parse(file_buffer, nullptr, true, true);
+	element = nlohmann::json::parse(file_buffer, nullptr, true, true);
 }
 
 template <>

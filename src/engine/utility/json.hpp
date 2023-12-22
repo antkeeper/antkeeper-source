@@ -6,7 +6,7 @@
 
 #include <nlohmann/json.hpp>
 
-/// JSON data.
+/** JSON element. */
 using json = nlohmann::json;
 
 #endif // ANTKEEPER_UTILITY_JSON_HPP

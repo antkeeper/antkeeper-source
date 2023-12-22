@@ -156,7 +156,7 @@ game::~game()
 	
 	// Save settings
 	resource_manager->set_write_path(shared_config_path);
-	resource_manager->save(*settings, "settings.cfg");
+	resource_manager->save(*settings, "settings.json");
 	
 	// Destruct input and window managers
 	input_manager.reset();
@@ -347,18 +347,18 @@ void game::load_settings()
 	if (option_reset)
 	{
 		// Command-line reset option found, reset settings
-		settings = std::make_shared<dict<hash::fnv1a32_t>>();
+		settings = std::make_shared<json>();
 		resource_manager->set_write_path(shared_config_path);
-		resource_manager->save(*settings, "settings.cfg");
+		resource_manager->save(*settings, "settings.json");
 		debug::log_info("Settings reset");
 	}
 	else
 	{
-		settings = resource_manager->load<dict<hash::fnv1a32_t>>("settings.cfg");
+		settings = resource_manager->load<json>("settings.json");
 		if (!settings)
 		{
 			debug::log_info("Settings not found");
-			settings = std::make_shared<dict<hash::fnv1a32_t>>();
+			settings = std::make_shared<json>();
 		}
 	}
 }
@@ -625,7 +625,7 @@ void game::load_language()
 	languages = resource_manager->load<json>("localization/languages.json");
 	
 	// Load language string map
-	string_map = resource_manager->load<i18n::string_map>(std::format("localization/strings.{}.json", language_tag));
+	string_map = resource_manager->load<json>(std::format("localization/strings.{}.json", language_tag));
 	
 	// Change window title
 	const std::string window_title = get_string(*this, "window_title");

@@ -20,7 +20,7 @@ void keyboard::input_text(const std::string& text)
 {
 	m_text_input_publisher.publish({this, text});
 }
-	
+
 void keyboard::edit_text(const std::string& text, std::size_t position, std::size_t length)
 {
 	m_text_edit_publisher.publish({this, text, position, length});

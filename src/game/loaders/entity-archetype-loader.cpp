@@ -277,7 +277,7 @@ std::unique_ptr<entity::archetype> resource_loader<entity::archetype>::load(::re
 	std::unique_ptr<entity::archetype> archetype = std::make_unique<entity::archetype>();
 	
 	// Load components from table rows
-	for (json::const_iterator element = json_data->cbegin(); element != json_data->cend(); ++element)
+	for (auto element = json_data->cbegin(); element != json_data->cend(); ++element)
 	{
 		if (!load_component(*archetype, resource_manager, element))
 		{

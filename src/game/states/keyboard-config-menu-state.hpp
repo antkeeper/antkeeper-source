@@ -21,7 +21,7 @@ public:
 	
 private:
 	std::string get_mapping_string(const input::action_map& action_map, const input::action& control);
-	void add_control_item(input::action_map& action_map, input::action& control, hash::fnv1a32_t control_name_hash);
+	void add_control_item(input::action_map& action_map, input::action& control, std::string_view control_name);
 	
 	std::shared_ptr<event::subscription> key_mapped_subscription;
 	std::shared_ptr<event::subscription> mouse_button_mapped_subscription;

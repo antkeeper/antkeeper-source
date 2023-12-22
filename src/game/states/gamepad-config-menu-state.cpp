@@ -270,7 +270,7 @@ std::string gamepad_config_menu_state::get_mapping_string(const input::action_ma
 	return mapping_string;
 }
 
-void gamepad_config_menu_state::add_control_item(input::action_map& action_map, input::action& control, hash::fnv1a32_t control_name_hash)
+void gamepad_config_menu_state::add_control_item(input::action_map& action_map, input::action& control, std::string_view control_name)
 {
 	// Construct texts
 	auto name_text = std::make_unique<scene::text>();
@@ -280,7 +280,7 @@ void gamepad_config_menu_state::add_control_item(input::action_map& action_map, 
 	ctx.menu_item_texts.push_back({name_text.get(), value_text.get()});
 	
 	// Set control name and mapping texts
-	name_text->set_content(get_string(ctx, control_name_hash));
+	name_text->set_content(get_string(ctx, control_name));
 	value_text->set_content(get_mapping_string(action_map, control));
 	
 	// Callback invoked when an input has been mapped to the control

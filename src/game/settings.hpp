@@ -6,7 +6,7 @@
 
 #include "game/game.hpp"
 #include <engine/debug/log.hpp>
-
+#include <string_view>
 
 /**
  * Reads a setting if found, inserts a setting if not found, and overwrites a setting if a type mismatch occurs.
@@ -20,24 +20,23 @@
  * @return `true` if the setting was read, `false` if the setting was written.
  */
 template <class T>
-bool read_or_write_setting(::game& ctx, hash::fnv1a32_t key, T& value)
+bool read_or_write_setting(::game& ctx, std::string_view key, T& value)
 {
-	if (auto i = ctx.settings->find(key); i != ctx.settings->end())
+	if (auto it = ctx.settings->find(key); it != ctx.settings->end())
 	{
 		try
 		{
-			value = std::any_cast<T>(i->second);
+			it->get_to<T>(value);
 		}
-		catch (const std::bad_any_cast&)
+		catch (const std::exception& e)
 		{
-			debug::log_error("Setting type mismatch ({:x}={})", key.value, value);
-			i->second = value;
+			debug::log_error("Setting type mismatch ({}={}): {}", key, value, e.what());
 			return false;
 		}
 	}
 	else
 	{
-		debug::log_trace("Setting key not found ({:x}={})", key.value, value);
+		debug::log_trace("Setting key not found ({}={})", key, value);
 		(*ctx.settings)[key] = value;
 		return false;
 	}

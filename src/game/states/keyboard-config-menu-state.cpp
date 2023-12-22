@@ -130,7 +130,7 @@ std::string keyboard_config_menu_state::get_mapping_string(const input::action_m
 		std::string scancode_string_name = std::format("scancode_{:02x}", std::to_underlying(key_mapping.scancode));
 		
 		// Set mapping string to scancode string
-		mapping_string = get_string(ctx, hash::fnv1a32<char>(scancode_string_name));
+		mapping_string = get_string(ctx, scancode_string_name);
 	}
 	else if (auto mouse_button_mappings = action_map.get_mouse_button_mappings(control); !mouse_button_mappings.empty())
 	{
@@ -192,7 +192,7 @@ std::string keyboard_config_menu_state::get_mapping_string(const input::action_m
 	return mapping_string;
 }
 
-void keyboard_config_menu_state::add_control_item(input::action_map& action_map, input::action& control, hash::fnv1a32_t control_name_hash)
+void keyboard_config_menu_state::add_control_item(input::action_map& action_map, input::action& control, std::string_view control_name)
 {
 	// Construct texts
 	auto name_text = std::make_unique<scene::text>();
@@ -202,7 +202,7 @@ void keyboard_config_menu_state::add_control_item(input::action_map& action_map,
 	ctx.menu_item_texts.push_back({name_text.get(), value_text.get()});
 	
 	// Set control name and mapping texts
-	name_text->set_content(get_string(ctx, control_name_hash));
+	name_text->set_content(get_string(ctx, control_name));
 	value_text->set_content(get_mapping_string(action_map, control));
 	
 	// Callback invoked when an input has been mapped to the control

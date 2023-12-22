@@ -5,9 +5,8 @@
 #define ANTKEEPER_GAME_STRINGS_HPP
 
 #include "game/game.hpp"
-#include <engine/hash/fnv1a.hpp>
 #include <cstdint>
-#include <string>
+#include <string_view>
 
 /**
  * Returns a localized string.
@@ -17,6 +16,6 @@
  *
  * @return String value.
  */
-[[nodiscard]] std::string get_string(const ::game& ctx, hash::fnv1a32_t key);
+[[nodiscard]] std::string get_string(const ::game& ctx, std::string_view key);
 
 #endif // ANTKEEPER_GAME_STRINGS_HPP

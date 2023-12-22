@@ -21,7 +21,6 @@ public:
 private:
 	void update_text_content();
 	
-	std::shared_ptr<json> language_manifest;
 	json::const_iterator language_it;
 	
 	std::unique_ptr<scene::text> language_name_text;

@@ -31,9 +31,9 @@ namespace {
 			return 1;
 		}
 		
-		if (auto i = ctx->string_map->find(hash::fnv1a32<char>(arguments[1])); i != ctx->string_map->end())
+		if (auto it = ctx->string_map->find(arguments[1]); it != ctx->string_map->end())
 		{
-			cout << i->second << '\n';
+			cout << it->get_ref<const std::string&>() << '\n';
 			return 0;
 		}
 		

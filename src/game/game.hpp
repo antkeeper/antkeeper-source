@@ -26,7 +26,6 @@
 #include <engine/render/material.hpp>
 #include <engine/type/font.hpp>
 #include <engine/type/typeface.hpp>
-#include <engine/utility/dict.hpp>
 #include <engine/utility/json.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/utility/state-machine.hpp>
@@ -142,7 +141,7 @@ public:
 	std::filesystem::path controls_path;
 	
 	// Persistent settings
-	std::shared_ptr<dict<hash::fnv1a32_t>> settings;
+	std::shared_ptr<json> settings;
 	
 	// Window management and window event handling
 	std::unique_ptr<app::window_manager> window_manager;
@@ -164,7 +163,7 @@ public:
 	// Localization and internationalization
 	std::shared_ptr<json> languages;
 	std::string language_tag;
-	std::shared_ptr<i18n::string_map> string_map;
+	std::shared_ptr<json> string_map;
 	
 	// Fonts
 	std::unordered_map<hash::fnv1a32_t, std::shared_ptr<type::typeface>> typefaces;
