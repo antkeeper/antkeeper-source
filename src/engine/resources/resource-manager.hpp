@@ -140,11 +140,8 @@ std::shared_ptr<T> resource_manager::load(const std::filesystem::path& path)
 	{
 		debug::log_trace("Loading resource \"{}\"...", path_string);
 		
-		// Open file for reading
-		auto deserialize_ctx = open_read(path);
-		
 		// Load and cache resource
-		std::shared_ptr<T> resource = resource_loader<T>::load(*this, *deserialize_ctx);
+		std::shared_ptr<T> resource = resource_loader<T>::load(*this, open_read(path));
 		resource_cache[path] = resource;
 		
 		debug::log_trace("Loaded resource \"{}\"", path_string);

@@ -18,11 +18,11 @@ void load_ant_body_size_phene(ant_body_size_phene& phene, [[maybe_unused]] ::res
 } // namespace
 
 template <>
-std::unique_ptr<ant_body_size_gene> resource_loader<ant_body_size_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<ant_body_size_gene> resource_loader<ant_body_size_gene>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	std::unique_ptr<ant_body_size_gene> gene = std::make_unique<ant_body_size_gene>();
 	
-	load_ant_gene(*gene, resource_manager, ctx, &load_ant_body_size_phene);
+	load_ant_gene(*gene, resource_manager, *ctx, &load_ant_body_size_phene);
 	
 	return gene;
 }

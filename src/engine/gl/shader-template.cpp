@@ -329,7 +329,7 @@ static void handle_includes(std::vector<std::shared_ptr<text_file>>& include_fil
 }
 
 template <>
-std::unique_ptr<gl::shader_template> resource_loader<gl::shader_template>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<gl::shader_template> resource_loader<gl::shader_template>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	// Load shader template source file
 	const auto source_file = resource_loader<text_file>::load(resource_manager, ctx);
@@ -341,7 +341,7 @@ std::unique_ptr<gl::shader_template> resource_loader<gl::shader_template>::load(
 	
 	// Handle `#pragma include` directives
 	std::unordered_set<std::filesystem::path> include_once;
-	include_once.insert(ctx.path());
+	include_once.insert(ctx->path());
 	handle_includes(include_files, source_file_copy, include_once, resource_manager);
 	
 	// Construct shader template

@@ -198,43 +198,43 @@ namespace {
 }
 
 template <>
-std::unique_ptr<gl::texture_1d> resource_loader<gl::texture_1d>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<gl::texture_1d> resource_loader<gl::texture_1d>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
-	return std::unique_ptr<gl::texture_1d>(static_cast<gl::texture_1d*>(load_texture(resource_manager, ctx, texture_type_1d).release()));
+	return std::unique_ptr<gl::texture_1d>(static_cast<gl::texture_1d*>(load_texture(resource_manager, *ctx, texture_type_1d).release()));
 }
 
 template <>
-std::unique_ptr<gl::texture_1d_array> resource_loader<gl::texture_1d_array>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<gl::texture_1d_array> resource_loader<gl::texture_1d_array>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
-	return std::unique_ptr<gl::texture_1d_array>(static_cast<gl::texture_1d_array*>(load_texture(resource_manager, ctx, texture_type_1d_array).release()));
+	return std::unique_ptr<gl::texture_1d_array>(static_cast<gl::texture_1d_array*>(load_texture(resource_manager, *ctx, texture_type_1d_array).release()));
 }
 
 template <>
-std::unique_ptr<gl::texture_2d> resource_loader<gl::texture_2d>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<gl::texture_2d> resource_loader<gl::texture_2d>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
-	return std::unique_ptr<gl::texture_2d>(static_cast<gl::texture_2d*>(load_texture(resource_manager, ctx, texture_type_2d).release()));
+	return std::unique_ptr<gl::texture_2d>(static_cast<gl::texture_2d*>(load_texture(resource_manager, *ctx, texture_type_2d).release()));
 }
 
 template <>
-std::unique_ptr<gl::texture_2d_array> resource_loader<gl::texture_2d_array>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<gl::texture_2d_array> resource_loader<gl::texture_2d_array>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
-	return std::unique_ptr<gl::texture_2d_array>(static_cast<gl::texture_2d_array*>(load_texture(resource_manager, ctx, texture_type_2d_array).release()));
+	return std::unique_ptr<gl::texture_2d_array>(static_cast<gl::texture_2d_array*>(load_texture(resource_manager, *ctx, texture_type_2d_array).release()));
 }
 
 template <>
-std::unique_ptr<gl::texture_3d> resource_loader<gl::texture_3d>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<gl::texture_3d> resource_loader<gl::texture_3d>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
-	return std::unique_ptr<gl::texture_3d>(static_cast<gl::texture_3d*>(load_texture(resource_manager, ctx, texture_type_3d).release()));
+	return std::unique_ptr<gl::texture_3d>(static_cast<gl::texture_3d*>(load_texture(resource_manager, *ctx, texture_type_3d).release()));
 }
 
 template <>
-std::unique_ptr<gl::texture_cube> resource_loader<gl::texture_cube>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<gl::texture_cube> resource_loader<gl::texture_cube>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
-	return std::unique_ptr<gl::texture_cube>(static_cast<gl::texture_cube*>(load_texture(resource_manager, ctx, texture_type_cube).release()));
+	return std::unique_ptr<gl::texture_cube>(static_cast<gl::texture_cube*>(load_texture(resource_manager, *ctx, texture_type_cube).release()));
 }
 
 template <>
-std::unique_ptr<gl::texture_cube_array> resource_loader<gl::texture_cube_array>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<gl::texture_cube_array> resource_loader<gl::texture_cube_array>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
-	return std::unique_ptr<gl::texture_cube_array>(static_cast<gl::texture_cube_array*>(load_texture(resource_manager, ctx, texture_type_cube_array).release()));
+	return std::unique_ptr<gl::texture_cube_array>(static_cast<gl::texture_cube_array*>(load_texture(resource_manager, *ctx, texture_type_cube_array).release()));
 }

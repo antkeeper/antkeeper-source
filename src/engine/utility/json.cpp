@@ -28,11 +28,11 @@ void deserializer<json>::deserialize(json& element, deserialize_context& ctx)
 }
 
 template <>
-std::unique_ptr<json> resource_loader<json>::load([[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<json> resource_loader<json>::load([[maybe_unused]] ::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	auto resource = std::make_unique<json>();
 	
-	deserializer<json>().deserialize(*resource, ctx);
+	deserializer<json>().deserialize(*resource, *ctx);
 	
 	return resource;
 }

@@ -945,28 +945,28 @@ namespace {
 }
 
 template <>
-std::unique_ptr<gl::image_1d> resource_loader<gl::image_1d>::load([[maybe_unused]] resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<gl::image_1d> resource_loader<gl::image_1d>::load([[maybe_unused]] resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
-	return std::unique_ptr<gl::image_1d>(static_cast<gl::image_1d*>(load_image(ctx, 1, 0).release()));
+	return std::unique_ptr<gl::image_1d>(static_cast<gl::image_1d*>(load_image(*ctx, 1, 0).release()));
 }
 
 template <>
-std::unique_ptr<gl::image_2d> resource_loader<gl::image_2d>::load([[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<gl::image_2d> resource_loader<gl::image_2d>::load([[maybe_unused]] ::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
-	return std::unique_ptr<gl::image_2d>(static_cast<gl::image_2d*>(load_image(ctx, 2, 0).release()));
+	return std::unique_ptr<gl::image_2d>(static_cast<gl::image_2d*>(load_image(*ctx, 2, 0).release()));
 }
 
 template <>
-std::unique_ptr<gl::image_3d> resource_loader<gl::image_3d>::load([[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<gl::image_3d> resource_loader<gl::image_3d>::load([[maybe_unused]] ::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
-	return std::unique_ptr<gl::image_3d>(static_cast<gl::image_3d*>(load_image(ctx, 3, 0).release()));
+	return std::unique_ptr<gl::image_3d>(static_cast<gl::image_3d*>(load_image(*ctx, 3, 0).release()));
 }
 
 template <>
-std::unique_ptr<gl::image_cube> resource_loader<gl::image_cube>::load([[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<gl::image_cube> resource_loader<gl::image_cube>::load([[maybe_unused]] ::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	// Load cube map
-	auto cube_map = std::unique_ptr<gl::image_2d>(static_cast<gl::image_2d*>(load_image(ctx, 2, 1).release()));
+	auto cube_map = std::unique_ptr<gl::image_2d>(static_cast<gl::image_2d*>(load_image(*ctx, 2, 1).release()));
 	
 	// Determine cube map layout
 	const auto layout = gl::infer_cube_map_layout(cube_map->get_dimensions()[0], cube_map->get_dimensions()[1]);

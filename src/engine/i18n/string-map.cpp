@@ -109,11 +109,11 @@ void deserializer<i18n::string_map>::deserialize(i18n::string_map& map, deserial
 }
 
 template <>
-std::unique_ptr<i18n::string_map> resource_loader<i18n::string_map>::load([[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<i18n::string_map> resource_loader<i18n::string_map>::load([[maybe_unused]] ::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	auto resource = std::make_unique<i18n::string_map>();
 	
-	deserializer<i18n::string_map>().deserialize(*resource, ctx);
+	deserializer<i18n::string_map>().deserialize(*resource, *ctx);
 	
 	return resource;
 }

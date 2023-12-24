@@ -16,11 +16,11 @@ void load_ant_diet_phene([[maybe_unused]] ant_diet_phene& phene, [[maybe_unused]
 } // namespace
 
 template <>
-std::unique_ptr<ant_diet_gene> resource_loader<ant_diet_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<ant_diet_gene> resource_loader<ant_diet_gene>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	std::unique_ptr<ant_diet_gene> gene = std::make_unique<ant_diet_gene>();
 	
-	load_ant_gene(*gene, resource_manager, ctx, &load_ant_diet_phene);
+	load_ant_gene(*gene, resource_manager, *ctx, &load_ant_diet_phene);
 	
 	return gene;
 }

@@ -32,11 +32,11 @@ void load_ant_pupa_phene(ant_pupa_phene& phene, ::resource_manager& resource_man
 } // namespace
 
 template <>
-std::unique_ptr<ant_pupa_gene> resource_loader<ant_pupa_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<ant_pupa_gene> resource_loader<ant_pupa_gene>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	std::unique_ptr<ant_pupa_gene> gene = std::make_unique<ant_pupa_gene>();
 	
-	load_ant_gene(*gene, resource_manager, ctx, &load_ant_pupa_phene);
+	load_ant_gene(*gene, resource_manager, *ctx, &load_ant_pupa_phene);
 	
 	return gene;
 }

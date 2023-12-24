@@ -162,7 +162,7 @@ void ft_typeface::set_face_pixel_size(float size) const
 } // namespace type
 
 template <>
-std::unique_ptr<type::typeface> resource_loader<type::typeface>::load([[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<type::typeface> resource_loader<type::typeface>::load([[maybe_unused]] ::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	// Init FreeType library object
 	FT_Library ft_library;
@@ -172,12 +172,12 @@ std::unique_ptr<type::typeface> resource_loader<type::typeface>::load([[maybe_un
 	}
 	
 	// Read file into file buffer
-	auto file_buffer = std::make_unique<std::byte[]>(ctx.size());
-	ctx.read8(file_buffer.get(), ctx.size());
+	auto file_buffer = std::make_unique<std::byte[]>(ctx->size());
+	ctx->read8(file_buffer.get(), ctx->size());
 	
 	// Load FreeType face from file buffer
 	FT_Face ft_face;
-	if (const FT_Error error = FT_New_Memory_Face(ft_library, reinterpret_cast<const FT_Byte*>(file_buffer.get()), static_cast<FT_Long>(ctx.size()), 0, &ft_face))
+	if (const FT_Error error = FT_New_Memory_Face(ft_library, reinterpret_cast<const FT_Byte*>(file_buffer.get()), static_cast<FT_Long>(ctx->size()), 0, &ft_face))
 	{
 		FT_Done_FreeType(ft_library);
 		throw deserialize_error(std::format("Failed to load FreeType face (error code \"{}\")", error));

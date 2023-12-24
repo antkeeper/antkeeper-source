@@ -268,7 +268,7 @@ static bool load_component(entity::archetype& archetype, resource_manager& resou
 }
 
 template <>
-std::unique_ptr<entity::archetype> resource_loader<entity::archetype>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<entity::archetype> resource_loader<entity::archetype>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	// Load JSON data
 	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);

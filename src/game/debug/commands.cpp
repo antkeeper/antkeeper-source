@@ -116,6 +116,12 @@ namespace {
 		
 		return 1;
 	}
+	
+	int command_sound([[maybe_unused]] std::span<const std::string> arguments, [[maybe_unused]] std::istream& cin, [[maybe_unused]] std::ostream& cout, [[maybe_unused]] std::ostream& cerr, ::game* ctx)
+	{
+		ctx->test_sound->play();
+		return 0;
+	}
 }
 
 void register_commands(::shell& shell, ::game& ctx)
@@ -126,4 +132,5 @@ void register_commands(::shell& shell, ::game& ctx)
 	shell.set_command("string", std::bind_back(command_string, &ctx));
 	shell.set_command("time", std::bind_back(command_time, &ctx));
 	shell.set_command("timescale", std::bind_back(command_timescale, &ctx));
+	shell.set_command("sound", std::bind_back(command_sound, &ctx));
 }

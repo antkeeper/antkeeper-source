@@ -136,6 +136,11 @@ void enable_menu_controls(::game& ctx)
 			{
 				if (y >= min_y && y <= max_y)
 				{
+					if (*ctx.menu_item_index != static_cast<int>(i))
+					{
+						ctx.test_sound->play();
+					}
+					
 					*ctx.menu_item_index = static_cast<int>(i);
 					::menu::update_text_color(ctx);
 					return true;

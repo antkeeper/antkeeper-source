@@ -161,11 +161,11 @@ void deserializer<dict<hash::fnv1a32_t>>::deserialize(dict<hash::fnv1a32_t>& dic
 }
 
 template <>
-std::unique_ptr<dict<hash::fnv1a32_t>> resource_loader<dict<hash::fnv1a32_t>>::load([[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<dict<hash::fnv1a32_t>> resource_loader<dict<hash::fnv1a32_t>>::load([[maybe_unused]] ::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	auto resource = std::make_unique<dict<hash::fnv1a32_t>>();
 	
-	deserializer<dict<hash::fnv1a32_t>>().deserialize(*resource, ctx);
+	deserializer<dict<hash::fnv1a32_t>>().deserialize(*resource, *ctx);
 	
 	return resource;
 }

@@ -163,11 +163,11 @@ void deserializer<::control_profile>::deserialize(::control_profile& profile, de
 }
 
 template <>
-std::unique_ptr<control_profile> resource_loader<control_profile>::load([[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<control_profile> resource_loader<control_profile>::load([[maybe_unused]] ::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	std::unique_ptr<control_profile> profile = std::make_unique<control_profile>();
 	
-	deserializer<control_profile>().deserialize(*profile, ctx);
+	deserializer<control_profile>().deserialize(*profile, *ctx);
 	
 	return profile;
 }

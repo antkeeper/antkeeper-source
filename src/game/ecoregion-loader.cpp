@@ -9,7 +9,7 @@
 #include <stdexcept>
 
 template <>
-std::unique_ptr<ecoregion> resource_loader<ecoregion>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<ecoregion> resource_loader<ecoregion>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	// Load JSON data
 	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);

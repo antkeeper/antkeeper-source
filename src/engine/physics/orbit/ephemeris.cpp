@@ -229,11 +229,11 @@ void deserializer<physics::orbit::ephemeris<double>>::deserialize(physics::orbit
 }
 
 template <>
-std::unique_ptr<physics::orbit::ephemeris<double>> resource_loader<physics::orbit::ephemeris<double>>::load([[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<physics::orbit::ephemeris<double>> resource_loader<physics::orbit::ephemeris<double>>::load([[maybe_unused]] ::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	auto resource = std::make_unique<physics::orbit::ephemeris<double>>();
 	
-	deserializer<physics::orbit::ephemeris<double>>().deserialize(*resource, ctx);
+	deserializer<physics::orbit::ephemeris<double>>().deserialize(*resource, *ctx);
 	
 	return resource;
 }

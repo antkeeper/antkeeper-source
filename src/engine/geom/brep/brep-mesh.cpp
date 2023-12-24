@@ -159,9 +159,9 @@ void deserializer<geom::brep_mesh>::deserialize(geom::brep_mesh& mesh, deseriali
 }
 
 template <>
-std::unique_ptr<geom::brep_mesh> resource_loader<geom::brep_mesh>::load([[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<geom::brep_mesh> resource_loader<geom::brep_mesh>::load([[maybe_unused]] ::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	auto resource = std::make_unique<geom::brep_mesh>();
-	deserializer<geom::brep_mesh>().deserialize(*resource, ctx);
+	deserializer<geom::brep_mesh>().deserialize(*resource, *ctx);
 	return resource;
 }

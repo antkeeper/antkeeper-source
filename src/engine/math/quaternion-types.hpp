@@ -195,6 +195,25 @@ struct quaternion
 	{
 		return {r, i.x(), i.y(), i.z()};
 	}
+	
+	/// @name Comparison
+	/// @{
+	
+	/**
+	 * Tests two quaternions for equality.
+	 *
+	 * @return `true` if the two quaternions are equivalent, `false` otherwise.
+	 */
+	[[nodiscard]] inline constexpr friend bool operator==(const quaternion&, const quaternion&) noexcept = default;
+	
+	/**
+	 * Compares the elements of two quaternions lexicographically.
+	 *
+	 * @return Lexicographical ordering of the two quaternions.
+	 */
+	[[nodiscard]] inline constexpr friend auto operator<=>(const quaternion&, const quaternion&) noexcept = default; 
+	
+	/// @}
 };
 
 /// @name Tuple-like interface

@@ -6,8 +6,6 @@
 
 #include "game/ecoregion.hpp"
 #include "game/states/game-state.hpp"
-#include <AL/al.h>
-#include <AL/alc.h>
 #include <engine/animation/tween.hpp>
 #include <engine/app/input-manager.hpp>
 #include <engine/app/window-manager.hpp>
@@ -39,6 +37,8 @@
 #include <engine/scene/collection.hpp>
 #include <engine/scene/text.hpp>
 #include <engine/math/functions.hpp>
+#include <engine/audio/sound-system.hpp>
+#include <engine/audio/sound-que.hpp>
 #include <entt/entt.hpp>
 #include <filesystem>
 #include <memory>
@@ -367,14 +367,14 @@ public:
 	std::unique_ptr<animation<float>> unequip_tool_animation;
 	
 	// Sound
-	ALCdevice* alc_device;
-	ALCcontext* alc_context;
+	std::unique_ptr<audio::sound_system> sound_system;
 	float master_volume;
 	float ambience_volume;
 	float effects_volume;
 	bool mono_audio;
 	bool captions;
 	float captions_size;
+	std::shared_ptr<audio::sound_que> test_sound;
 	
 	// Random number generation
 	std::mt19937 rng;

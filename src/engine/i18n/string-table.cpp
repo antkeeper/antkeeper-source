@@ -54,11 +54,11 @@ void deserializer<i18n::string_table>::deserialize(i18n::string_table& table, de
 }
 
 template <>
-std::unique_ptr<i18n::string_table> resource_loader<i18n::string_table>::load([[maybe_unused]] ::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<i18n::string_table> resource_loader<i18n::string_table>::load([[maybe_unused]] ::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	auto resource = std::make_unique<i18n::string_table>();
 	
-	deserializer<i18n::string_table>().deserialize(*resource, ctx);
+	deserializer<i18n::string_table>().deserialize(*resource, *ctx);
 	
 	return resource;
 }

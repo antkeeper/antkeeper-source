@@ -380,7 +380,7 @@ static bool load_matrix_property(render::material& material, hash::fnv1a32_t key
 }
 
 template <>
-std::unique_ptr<render::material> resource_loader<render::material>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<render::material> resource_loader<render::material>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	auto material = std::make_unique<render::material>();
 	

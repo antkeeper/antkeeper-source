@@ -468,61 +468,26 @@ void game::setup_audio()
 	read_or_write_setting(*this, "captions", captions);
 	read_or_write_setting(*this, "captions_size", captions_size);
 	
-	// Open audio device
-	debug::log_trace("Opening audio device...");
-	alc_device = alcOpenDevice(nullptr);
-	if (!alc_device)
-	{
-		debug::log_error("Failed to open audio device: AL error code {}", alGetError());
-		return;
-	}
-	else
-	{
-		// Get audio device name
-		const ALCchar* alc_device_name = nullptr;
-		if (alcIsExtensionPresent(alc_device, "ALC_ENUMERATE_ALL_EXT"))
-		{
-			alc_device_name = alcGetString(alc_device, ALC_ALL_DEVICES_SPECIFIER);
-		}
-		if (alcGetError(alc_device) != AL_NO_ERROR || !alc_device_name)
-		{
-			alc_device_name = alcGetString(alc_device, ALC_DEVICE_SPECIFIER);
-		}
-		
-		// Log audio device name
-		debug::log_info("Opened audio device \"{}\"", alc_device_name);
-	}
+	// Init sound system
+	debug::log_trace("Constructing sound system...");
+	sound_system = std::make_unique<audio::sound_system>();
+	debug::log_trace("Constructed sound system");
 	
-	// Create audio context
-	debug::log_trace("Creating audio context...");
-	alc_context = alcCreateContext(alc_device, nullptr);
-	if (!alc_context)
-	{
-		debug::log_error("Failed to create audio context: ALC error code {}", alcGetError(alc_device));
-		alcCloseDevice(alc_device);
-		return;
-	}
-	else
-	{
-		debug::log_trace("Created audio context");
-	}
+	// Print sound system info
+	debug::log_info("Audio playback device: {}", sound_system->get_playback_device_name());
 	
-	// Make audio context current
-	debug::log_trace("Making audio context current...");
-	if (alcMakeContextCurrent(alc_context) == ALC_FALSE)
-	{
-		debug::log_error("Failed to make audio context current: ALC error code {}", alcGetError(alc_device));
-		if (alc_context != nullptr)
-		{
-			alcDestroyContext(alc_context);
-		}
-		alcCloseDevice(alc_device);
-		return;
-	}
-	else
-	{
-		debug::log_trace("Made audio context current");
-	}
+	// Load test sound
+	test_sound = std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/countdown.ogg"));
+	test_sound->seek_seconds(5.0f);
+	test_sound->set_pitch(2.0f);
+	test_sound->set_position({3.0f, 1.0f, 0.0f});
+	
+	// sound_system->get_listener().set_gain(0.1f);
+	// test_sound->set_looping(true);
+	
+	debug::log_info("sound duration: {} seconds", test_sound->get_sound_wave()->get_duration());
+	debug::log_info("sound size: {} kB", test_sound->get_sound_wave()->get_size() / 1024);
+	debug::log_info("sound sample rate: {} Hz", test_sound->get_sound_wave()->get_sample_rate());
 	
 	debug::log_trace("Set up audio");
 }
@@ -1183,16 +1148,8 @@ void game::shutdown_audio()
 {
 	debug::log_trace("Shutting down audio...");
 	
-	if (alc_context)
-	{
-		alcMakeContextCurrent(nullptr);
-		alcDestroyContext(alc_context);
-	}
-	
-	if (alc_device)
-	{
-		alcCloseDevice(alc_device);
-	}
+	test_sound.reset();
+	sound_system.reset();
 	
 	debug::log_trace("Shut down audio");
 }

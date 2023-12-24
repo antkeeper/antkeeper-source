@@ -20,22 +20,22 @@ inline constexpr std::uint16_t vertex_attribute_bone_weight  = 0b000000000100000
 inline constexpr std::uint16_t vertex_attribute_morph_target = 0b0000000010000000;
 
 template <>
-std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	// Read vertex format
 	std::uint16_t vertex_format_flags = 0;
-	ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&vertex_format_flags), 1);
+	ctx->read16<std::endian::little>(reinterpret_cast<std::byte*>(&vertex_format_flags), 1);
 	
 	// Read bones per vertex (if any)
 	std::uint8_t bones_per_vertex = 0;
 	if ((vertex_format_flags & vertex_attribute_bone_index) || (vertex_format_flags & vertex_attribute_bone_weight))
 	{
-		ctx.read8(reinterpret_cast<std::byte*>(&bones_per_vertex), 1);
+		ctx->read8(reinterpret_cast<std::byte*>(&bones_per_vertex), 1);
 	}
 	
 	// Read vertex count
 	std::uint32_t vertex_count = 0;
-	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&vertex_count), 1);
+	ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(&vertex_count), 1);
 	
 	// Determine vertex stride
 	std::size_t vertex_stride = 0;
@@ -78,7 +78,7 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 	// Read vertices
 	if constexpr (std::endian::native == std::endian::little)
 	{
-		ctx.read8(vertex_data.data(), vertex_count * vertex_stride);
+		ctx->read8(vertex_data.data(), vertex_count * vertex_stride);
 	}
 	else
 	{
@@ -87,42 +87,42 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 		{
 			if (vertex_format_flags & vertex_attribute_position)
 			{
-				ctx.read32<std::endian::little>(vertex_data_offset, 3);
+				ctx->read32<std::endian::little>(vertex_data_offset, 3);
 				vertex_data_offset += sizeof(float) * 3;
 			}
 			if (vertex_format_flags & vertex_attribute_uv)
 			{
-				ctx.read32<std::endian::little>(vertex_data_offset, 2);
+				ctx->read32<std::endian::little>(vertex_data_offset, 2);
 				vertex_data_offset += sizeof(float) * 2;
 			}
 			if (vertex_format_flags & vertex_attribute_normal)
 			{
-				ctx.read32<std::endian::little>(vertex_data_offset, 3);
+				ctx->read32<std::endian::little>(vertex_data_offset, 3);
 				vertex_data_offset += sizeof(float) * 3;
 			}
 			if (vertex_format_flags & vertex_attribute_tangent)
 			{
-				ctx.read32<std::endian::little>(vertex_data_offset, 4);
+				ctx->read32<std::endian::little>(vertex_data_offset, 4);
 				vertex_data_offset += sizeof(float) * 4;
 			}
 			if (vertex_format_flags & vertex_attribute_color)
 			{
-				ctx.read32<std::endian::little>(vertex_data_offset, 4);
+				ctx->read32<std::endian::little>(vertex_data_offset, 4);
 				vertex_data_offset += sizeof(float) * 4;
 			}
 			if (vertex_format_flags & vertex_attribute_bone_index)
 			{
-				ctx.read16<std::endian::little>(vertex_data_offset, bones_per_vertex);
+				ctx->read16<std::endian::little>(vertex_data_offset, bones_per_vertex);
 				vertex_data_offset += sizeof(std::uint16_t) * bones_per_vertex;
 			}
 			if (vertex_format_flags & vertex_attribute_bone_weight)
 			{
-				ctx.read32<std::endian::little>(vertex_data_offset, bones_per_vertex);
+				ctx->read32<std::endian::little>(vertex_data_offset, bones_per_vertex);
 				vertex_data_offset += sizeof(float) * bones_per_vertex;
 			}
 			if (vertex_format_flags & vertex_attribute_morph_target)
 			{
-				ctx.read32<std::endian::little>(vertex_data_offset, 3);
+				ctx->read32<std::endian::little>(vertex_data_offset, 3);
 				vertex_data_offset += sizeof(float) * 3;
 			}
 		}
@@ -272,11 +272,11 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 	model->get_vertex_array() = std::make_shared<gl::vertex_array>(attributes);
 	
 	// Read model bounds
-	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&model->get_bounds()), 6);
+	ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(&model->get_bounds()), 6);
 	
 	// Read material count
 	std::uint16_t material_count = 0;
-	ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&material_count), 1);
+	ctx->read16<std::endian::little>(reinterpret_cast<std::byte*>(&material_count), 1);
 	
 	// Allocate material groups
 	model->get_groups().resize(material_count);
@@ -286,11 +286,11 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 	{
 		// Read material name length
 		std::uint8_t material_name_length = 0;
-		ctx.read8(reinterpret_cast<std::byte*>(&material_name_length), 1);
+		ctx->read8(reinterpret_cast<std::byte*>(&material_name_length), 1);
 		
 		// Read material name
 		std::string material_name(static_cast<std::size_t>(material_name_length), '\0');
-		ctx.read8(reinterpret_cast<std::byte*>(material_name.data()), material_name_length);
+		ctx->read8(reinterpret_cast<std::byte*>(material_name.data()), material_name_length);
 		
 		// Generate group ID by hashing material name
 		group.id = hash::fnv1a32<char>(material_name);
@@ -299,10 +299,10 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 		group.primitive_topology = gl::primitive_topology::triangle_list;
 		
 		// Read index of first vertex
-		ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&group.first_vertex), 1);
+		ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(&group.first_vertex), 1);
 		
 		// Read vertex count
-		ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&group.vertex_count), 1);
+		ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(&group.vertex_count), 1);
 		
 		// Slugify material filename
 		std::string material_filename = material_name + ".mtl";
@@ -319,7 +319,7 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 		
 		// Read bone count
 		std::uint16_t bone_count = 0;
-		ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&bone_count), 1);
+		ctx->read16<std::endian::little>(reinterpret_cast<std::byte*>(&bone_count), 1);
 		
 		// Resize skeleton
 		skeleton.add_bones(bone_count);
@@ -329,28 +329,28 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 		{
 			// Read bone name
 			hash::fnv1a32_t bone_name = {};
-			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_name), 1);
+			ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_name), 1);
 			
 			// Read bone parent index
 			std::uint16_t bone_parent_index = i;
-			ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&bone_parent_index), 1);
+			ctx->read16<std::endian::little>(reinterpret_cast<std::byte*>(&bone_parent_index), 1);
 			
 			// Construct bone transform
 			bone_transform_type bone_transform;
 			
 			// Read bone translation
-			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(bone_transform.translation.data()), 3);
+			ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(bone_transform.translation.data()), 3);
 			
 			// Read bone rotation
-			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_transform.rotation.r), 1);
-			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(bone_transform.rotation.i.data()), 3);
+			ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_transform.rotation.r), 1);
+			ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(bone_transform.rotation.i.data()), 3);
 			
 			// Set bone scale
 			bone_transform.scale = {1, 1, 1};
 			
 			// Read bone length
 			float bone_length = 0.0f;
-			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_length), 1);
+			ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_length), 1);
 			
 			// Set bone properties
 			skeleton.set_bone_name(i, bone_name);

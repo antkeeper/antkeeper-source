@@ -30,11 +30,11 @@ void load_ant_legs_phene(ant_legs_phene& phene, ::resource_manager& resource_man
 } // namespace
 
 template <>
-std::unique_ptr<ant_legs_gene> resource_loader<ant_legs_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<ant_legs_gene> resource_loader<ant_legs_gene>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	std::unique_ptr<ant_legs_gene> gene = std::make_unique<ant_legs_gene>();
 	
-	load_ant_gene(*gene, resource_manager, ctx, &load_ant_legs_phene);
+	load_ant_gene(*gene, resource_manager, *ctx, &load_ant_legs_phene);
 	
 	return gene;
 }

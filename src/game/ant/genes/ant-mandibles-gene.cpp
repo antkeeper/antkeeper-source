@@ -26,11 +26,11 @@ void load_ant_mandibles_phene(ant_mandibles_phene& phene, ::resource_manager& re
 } // namespace
 
 template <>
-std::unique_ptr<ant_mandibles_gene> resource_loader<ant_mandibles_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<ant_mandibles_gene> resource_loader<ant_mandibles_gene>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	std::unique_ptr<ant_mandibles_gene> gene = std::make_unique<ant_mandibles_gene>();
 	
-	load_ant_gene(*gene, resource_manager, ctx, &load_ant_mandibles_phene);
+	load_ant_gene(*gene, resource_manager, *ctx, &load_ant_mandibles_phene);
 	
 	return gene;
 }

@@ -99,6 +99,15 @@ FetchContent_Declare(tinyexr
 	GIT_REPOSITORY https://github.com/syoyo/tinyexr.git
 	GIT_TAG 6e8cac308cdf4d717078f3f37c4aa39bf3b356b4 # v1.0.7
 )
+FetchContent_Declare(ogg
+	GIT_REPOSITORY https://github.com/xiph/ogg.git
+	GIT_TAG e1774cd77f471443541596e09078e78fdc342e4f # v1.3.5
+	OVERRIDE_FIND_PACKAGE
+)
+FetchContent_Declare(vorbis
+	GIT_REPOSITORY https://github.com/xiph/vorbis.git
+	GIT_TAG 0657aee69dec8508a0011f47f3b69d7538e9d262 # v1.3.7
+)
 
 # Configure cxxopts
 set(CXXOPTS_BUILD_EXAMPLES OFF)
@@ -173,6 +182,9 @@ add_compile_definitions(
 	TINYEXR_USE_STB_ZLIB=1
 )
 
+# Configure Ogg
+set(BUILD_TESTING OFF)
+
 # Make dependencies available
 FetchContent_MakeAvailable(
 	cxxopts
@@ -186,6 +198,8 @@ FetchContent_MakeAvailable(
 	SDL2
 	stb
 	tinyexr
+	ogg
+	vorbis
 )
 
 # Build dr_wav static library
@@ -195,7 +209,7 @@ add_library(dr_wav STATIC ${dr_libs_BINARY_DIR}/src/dr_wav.c)
 target_compile_definitions(dr_wav
 	PRIVATE
 		DR_WAV_IMPLEMENTATION
-		DR_WAV_NO_CONVERSION_API
+		# DR_WAV_NO_CONVERSION_API
 		DR_WAV_NO_STDIO
 )
 target_include_directories(dr_wav
@@ -391,6 +405,7 @@ target_link_libraries(${PROJECT_NAME}
 		physfs-static
 		freetype
 		${OPENGL_gl_LIBRARY}
+		vorbisfile
 )
 
 # Determine data output directory

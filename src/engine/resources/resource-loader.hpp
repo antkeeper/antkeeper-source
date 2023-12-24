@@ -26,7 +26,7 @@ public:
 	 *
 	 * @return Unique pointer to the loaded resource.
 	 */
-	[[nodiscard]] static std::unique_ptr<T> load(::resource_manager& resource_manager, deserialize_context& ctx);
+	[[nodiscard]] static std::unique_ptr<T> load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx);
 };
 
 #endif // ANTKEEPER_RESOURCES_RESOURCE_LOADER_HPP

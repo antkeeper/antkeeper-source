@@ -17,11 +17,11 @@ void load_ant_foraging_time_phene(ant_foraging_time_phene& phene, [[maybe_unused
 } // namespace
 
 template <>
-std::unique_ptr<ant_foraging_time_gene> resource_loader<ant_foraging_time_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+std::unique_ptr<ant_foraging_time_gene> resource_loader<ant_foraging_time_gene>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 {
 	std::unique_ptr<ant_foraging_time_gene> gene = std::make_unique<ant_foraging_time_gene>();
 	
-	load_ant_gene(*gene, resource_manager, ctx, &load_ant_foraging_time_phene);
+	load_ant_gene(*gene, resource_manager, *ctx, &load_ant_foraging_time_phene);
 	
 	return gene;
 }
