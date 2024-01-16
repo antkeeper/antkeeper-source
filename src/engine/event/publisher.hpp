@@ -57,12 +57,12 @@ public:
 	
 	/// @{
 	/** Returns the channel through which messages are published. */
-	[[nodiscard]] inline const channel_type& channel() const noexcept
+	[[nodiscard]] inline const auto& channel() const noexcept
 	{
 		return m_channel;
 	}
 	
-	[[nodiscard]] inline channel_type& channel() noexcept
+	[[nodiscard]] inline auto& channel() noexcept
 	{
 		return m_channel;
 	}

@@ -23,7 +23,7 @@ public:
 	 *
 	 * @param wave Sound wave to emit.
 	 */
-	sound_que(std::shared_ptr<sound_wave> wave);
+	explicit sound_que(std::shared_ptr<sound_wave> wave = nullptr);
 	
 	/** Destructs a sound que. */
 	~sound_que();
@@ -318,6 +318,13 @@ public:
 	
 	/// @name Sound wave
 	/// @{
+	
+	/**
+	 * Sets the sound wave emitted by the sound que.
+	 *
+	 * @param wave Sound wave to emit. If `nullptr`, no sound will be emitted.
+	 */
+	void set_sound_wave(std::shared_ptr<sound_wave> wave);
 	
 	/** Returns the sound wave with which the sound que is associated. */
 	[[nodiscard]] inline constexpr const auto& get_sound_wave() const noexcept

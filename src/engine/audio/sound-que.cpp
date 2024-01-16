@@ -11,11 +11,6 @@ namespace audio {
 
 sound_que::sound_que(std::shared_ptr<sound_wave> wave)
 {
-	if (!wave)
-	{
-		throw std::invalid_argument("Sound queue has null sound wave.");
-	}
-	
 	// Generate source
 	alGenSources(1, &m_al_source);
 	if (auto error = alGetError(); error != AL_NO_ERROR)
@@ -23,15 +18,16 @@ sound_que::sound_que(std::shared_ptr<sound_wave> wave)
 		throw std::runtime_error(std::format("OpenAL failed to generate source: {}", alGetString(error)));
 	}
 	
-	// Attach buffer to source
-	alSourcei(m_al_source, AL_BUFFER, wave->m_al_buffer);
-	if (auto error = alGetError(); error != AL_NO_ERROR)
+	// Set sound wave
+	try
+	{
+		set_sound_wave(std::move(wave));
+	}
+	catch (...)
 	{
 		alDeleteSources(1, &m_al_source);
-		throw std::runtime_error(std::format("OpenAL failed to attach buffer to source: {}", alGetString(error)));
+		throw;
 	}
-	
-	m_sound_wave = std::move(wave);
 }
 
 sound_que::~sound_que()
@@ -46,7 +42,7 @@ void sound_que::play()
 
 void sound_que::stop()
 {
-	alSourcePlay(m_al_source);
+	alSourceStop(m_al_source);
 }
 
 void sound_que::rewind()
@@ -259,6 +255,41 @@ void sound_que::set_pitch(float pitch)
 		m_pitch = pitch;
 		alSourcef(m_al_source, AL_PITCH, m_pitch);
 	}
+}
+
+void sound_que::set_sound_wave(std::shared_ptr<sound_wave> wave)
+{
+	if (m_sound_wave == wave)
+	{
+		return;
+	}
+	
+	// Stop que if currently playing
+	if (m_sound_wave && is_playing())
+	{
+		stop();
+	}
+	
+	if (wave)
+	{
+		// Attach buffer to source
+		alSourcei(m_al_source, AL_BUFFER, wave->m_al_buffer);
+		if (auto error = alGetError(); error != AL_NO_ERROR)
+		{
+			throw std::runtime_error(std::format("OpenAL failed to attach buffer to source: {}", alGetString(error)));
+		}
+	}
+	else
+	{
+		// Detach buffer from source
+		alSourcei(m_al_source, AL_BUFFER, AL_NONE);
+		if (auto error = alGetError(); error != AL_NO_ERROR)
+		{
+			throw std::runtime_error(std::format("OpenAL failed to detach buffer from source: {}", alGetString(error)));
+		}
+	}
+	
+	m_sound_wave = std::move(wave);
 }
 
 } // namespace audio

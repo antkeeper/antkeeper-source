@@ -52,15 +52,15 @@ void setup_window_controls(::game& ctx)
 						disable_menu_controls(ctx);
 					}
 					
-					ctx.ui_scene->add_object(*ctx.command_line_text);
-					ctx.ui_scene->add_object(*ctx.shell_buffer_text);
+					ctx.ui_canvas->get_scene().add_object(*ctx.command_line_text);
+					ctx.ui_canvas->get_scene().add_object(*ctx.shell_buffer_text);
 					ctx.input_manager->start_text_input({0, 0, 0, 0});
 					enable_terminal_controls(ctx);
 				}
 				else
 				{
-					ctx.ui_scene->remove_object(*ctx.command_line_text);
-					ctx.ui_scene->remove_object(*ctx.shell_buffer_text);
+					ctx.ui_canvas->get_scene().remove_object(*ctx.command_line_text);
+					ctx.ui_canvas->get_scene().remove_object(*ctx.shell_buffer_text);
 					ctx.input_manager->stop_text_input();
 					disable_terminal_controls(ctx);
 					

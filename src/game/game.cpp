@@ -74,6 +74,7 @@
 #include <engine/utility/dict.hpp>
 #include <engine/hash/fnv1a.hpp>
 #include <engine/utility/paths.hpp>
+#include <engine/ui/label.hpp>
 #include <entt/entt.hpp>
 #include <execution>
 #include <filesystem>
@@ -477,17 +478,21 @@ void game::setup_audio()
 	debug::log_info("Audio playback device: {}", sound_system->get_playback_device_name());
 	
 	// Load test sound
-	test_sound = std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/countdown.ogg"));
-	test_sound->seek_seconds(5.0f);
-	test_sound->set_pitch(2.0f);
-	test_sound->set_position({3.0f, 1.0f, 0.0f});
-	
-	// sound_system->get_listener().set_gain(0.1f);
+	test_sound = std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/test.wav"));
+	// test_sound->set_gain(0.15f);
+	// test_sound->set_pitch(0.5f);
+	// test_sound->set_position({3.0f, 1.0f, 0.0f});
 	// test_sound->set_looping(true);
 	
-	debug::log_info("sound duration: {} seconds", test_sound->get_sound_wave()->get_duration());
-	debug::log_info("sound size: {} kB", test_sound->get_sound_wave()->get_size() / 1024);
-	debug::log_info("sound sample rate: {} Hz", test_sound->get_sound_wave()->get_sample_rate());
+
+	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-c3-soft.wav")));
+	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-d3-soft.wav")));
+	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-e3-soft.wav")));
+	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-f3-soft.wav")));
+	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-g3-soft.wav")));
+	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-a3-soft.wav")));
+	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-b3-soft.wav")));
+	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-c4-soft.wav")));
 	
 	debug::log_trace("Set up audio");
 }
@@ -736,6 +741,8 @@ void game::setup_animation()
 
 void game::setup_ui()
 {
+	debug::log_trace("Setting up UI...");
+	
 	// Default UI settings
 	font_scale = 1.0f;
 	debug_font_size_pt = 11.0f;
@@ -770,8 +777,9 @@ void game::setup_ui()
 	// Get default framebuffer
 	const auto& viewport_size = window->get_viewport_size();
 	
-	// Setup UI scene
-	ui_scene = std::make_unique<scene::collection>();
+	// Setup UI canvas
+	ui_canvas = std::make_shared<ui::canvas>();
+	ui_canvas->set_margins(0.0f, 0.0f, static_cast<float>(viewport_size.x()), static_cast<float>(viewport_size.y()));
 	
 	// Setup UI camera
 	ui_camera = std::make_unique<scene::camera>();
@@ -832,7 +840,7 @@ void game::setup_ui()
 			(
 				[&, menu_bg_tint]()
 				{
-					ui_scene->add_object(*menu_bg_billboard);
+					ui_canvas->get_scene().add_object(*menu_bg_billboard);
 					
 					menu_bg_tint->set(math::fvec4{0.0f, 0.0f, 0.0f, 0.0f});
 					//menu_bg_billboard->set_active(true);
@@ -852,7 +860,7 @@ void game::setup_ui()
 			(
 				[&]()
 				{
-					ui_scene->remove_object(*menu_bg_billboard);
+					ui_canvas->get_scene().remove_object(*menu_bg_billboard);
 					//menu_bg_billboard->set_active(false);
 				}
 			);
@@ -860,13 +868,49 @@ void game::setup_ui()
 	}
 	
 	// Add UI scene objects to UI scene
-	ui_scene->add_object(*ui_camera);
-	ui_scene->add_object(*fade_transition->get_billboard());
+	ui_canvas->get_scene().add_object(*ui_camera);
+	ui_canvas->get_scene().add_object(*fade_transition->get_billboard());
 	
 	// Add UI animations to animator
 	animator->add_animation(fade_transition->get_animation());
 	animator->add_animation(menu_bg_fade_in_animation.get());
 	animator->add_animation(menu_bg_fade_out_animation.get());
+	
+	
+	auto version_label = std::make_shared<ui::label>();
+	version_label->set_font(debug_font);
+	version_label->set_material(debug_font_material);
+	version_label->set_text(std::format("v{}", config::application_version_string));
+	version_label->set_anchors(0.0f, 0.0f, 1.0f, 1.0f);
+	version_label->set_margin_left(50.0f);
+	version_label->set_margin_bottom(50.0f);
+	version_label->set_color(math::fvec4{1.0f, 1.0f, 1.0f, 1.0f});
+	
+	version_label->set_mouse_entered_callback
+	(
+		[](const auto& event)
+		{
+			static_cast<ui::label*>(event.element)->set_color(math::fvec4{1.0f, 0.0f, 1.0f, 1.0f});
+		}
+	);
+	version_label->set_mouse_exited_callback
+	(
+		[](const auto& event)
+		{
+			static_cast<ui::label*>(event.element)->set_color(math::fvec4{1.0f, 1.0f, 1.0f, 1.0f});
+		}
+	);
+	version_label->set_mouse_button_pressed_callback
+	(
+		[&]([[maybe_unused]] const auto& event)
+		{
+			test_sound->play();
+		}
+	);
+	
+	ui_canvas->add_child(version_label);
+	
+	
 	
 	// Setup window resized callback
 	window_resized_subscription = window->get_resized_channel().subscribe
@@ -878,6 +922,9 @@ void game::setup_ui()
 			
 			// Resize framebuffers
 			::graphics::change_render_resolution(*this, render_scale);
+			
+			// Resize UI canvas
+			ui_canvas->set_margins(0.0f, 0.0f, static_cast<float>(viewport_size.x()), static_cast<float>(viewport_size.y()));
 			
 			// Update camera projection matrix
 			surface_camera->set_aspect_ratio(viewport_aspect_ratio);
@@ -904,6 +951,48 @@ void game::setup_ui()
 			::menu::align_text(*this);
 		}
 	);
+	
+	// Setup mouse moved subscription
+	mouse_moved_subscription = input_manager->get_event_dispatcher().subscribe<input::mouse_moved_event>
+	(
+		[&](const auto& event)
+		{
+			// Flip mouse Y-coordinate
+			auto event_flipped_y = event;
+			event_flipped_y.position.y() = window->get_size().y() - event.position.y() - 1;
+			event_flipped_y.difference.y() = -event.difference.y();
+			
+			ui_canvas->handle_mouse_moved(event_flipped_y);
+		}
+	);
+	
+	// Setup mouse buttton pressed subscription
+	mouse_button_pressed_subscription = input_manager->get_event_dispatcher().subscribe<input::mouse_button_pressed_event>
+	(
+		[&](const auto& event)
+		{
+			// Flip mouse Y-coordinate
+			auto event_flipped_y = event;
+			event_flipped_y.position.y() = window->get_size().y() - event.position.y() - 1;
+			
+			ui_canvas->handle_mouse_button_pressed(event_flipped_y);
+		}
+	);
+	
+	// Setup mouse buttton released subscription
+	mouse_button_released_subscription = input_manager->get_event_dispatcher().subscribe<input::mouse_button_released_event>
+	(
+		[&](const auto& event)
+		{
+			// Flip mouse Y-coordinate
+			auto event_flipped_y = event;
+			event_flipped_y.position.y() = window->get_size().y() - event.position.y() - 1;
+			
+			ui_canvas->handle_mouse_button_released(event_flipped_y);
+		}
+	);
+	
+	debug::log_trace("Set up UI");
 }
 
 void game::setup_rng()
@@ -991,7 +1080,7 @@ void game::setup_systems()
 	render_system->set_renderer(renderer.get());
 	render_system->add_layer(surface_scene.get());
 	render_system->add_layer(underground_scene.get());
-	render_system->add_layer(ui_scene.get());
+	render_system->add_layer(&ui_canvas->get_scene());
 }
 
 void game::setup_controls()

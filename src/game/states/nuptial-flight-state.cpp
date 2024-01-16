@@ -129,7 +129,7 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	selection_text.set_translation({std::round(viewport_size.x() * 0.5f - text_w * 0.5f), std::round(ctx.menu_font->get_metrics().size), 0.0f});
 	
 	// Add text to UI
-	ctx.ui_scene->add_object(selection_text);
+	ctx.ui_canvas->get_scene().add_object(selection_text);
 	
 	// Select random alate
 	entity::id random_alate_eid;
@@ -169,7 +169,7 @@ nuptial_flight_state::~nuptial_flight_state()
 	::disable_game_controls(ctx);
 	
 	// Remove text from UI
-	ctx.ui_scene->remove_object(selection_text);
+	ctx.ui_canvas->get_scene().remove_object(selection_text);
 	
 	// Deselect selected entity
 	select_entity(entt::null);

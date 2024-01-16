@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_EVENT_HPP
 #define ANTKEEPER_EVENT_HPP
 
-/// Publish-subscribe messaging.
+/** Publish-subscribe messaging. */
 namespace event {}
 
 #include <engine/event/channel.hpp>

@@ -117,7 +117,7 @@ void text::set_direction(type::text_direction direction)
 	}
 }
 
-void text::set_content(const std::string_view& content)
+void text::set_content(std::string_view content)
 {
 	if (m_content_u8 != content)
 	{

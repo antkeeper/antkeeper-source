@@ -169,9 +169,9 @@ void add_text_to_ui(::game& ctx)
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
 		if (name)
-			ctx.ui_scene->add_object(*name);
+			ctx.ui_canvas->get_scene().add_object(*name);
 		if (value)
-			ctx.ui_scene->add_object(*value);
+			ctx.ui_canvas->get_scene().add_object(*value);
 	}
 }
 
@@ -180,9 +180,9 @@ void remove_text_from_ui(::game& ctx)
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
 		if (name)
-			ctx.ui_scene->remove_object(*name);
+			ctx.ui_canvas->get_scene().remove_object(*name);
 		if (value)
-			ctx.ui_scene->remove_object(*value);
+			ctx.ui_canvas->get_scene().remove_object(*value);
 	}
 }
 

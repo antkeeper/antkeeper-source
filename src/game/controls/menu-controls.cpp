@@ -138,7 +138,9 @@ void enable_menu_controls(::game& ctx)
 				{
 					if (*ctx.menu_item_index != static_cast<int>(i))
 					{
-						ctx.test_sound->play();
+						// ctx.test_sound->play();
+						
+						ctx.kalimba_sounds[static_cast<int>(i) % ctx.kalimba_sounds.size()]->play();
 					}
 					
 					*ctx.menu_item_index = static_cast<int>(i);

@@ -17,11 +17,11 @@ void setup_debug_controls(::game& ctx)
 				ctx.debug_ui_visible = !ctx.debug_ui_visible;
 				if (ctx.debug_ui_visible)
 				{
-					ctx.ui_scene->add_object(*ctx.frame_time_text);
+					ctx.ui_canvas->get_scene().add_object(*ctx.frame_time_text);
 				}
 				else
 				{
-					ctx.ui_scene->remove_object(*ctx.frame_time_text);
+					ctx.ui_canvas->get_scene().remove_object(*ctx.frame_time_text);
 				}
 			}
 		)

@@ -39,6 +39,7 @@
 #include <engine/math/functions.hpp>
 #include <engine/audio/sound-system.hpp>
 #include <engine/audio/sound-que.hpp>
+#include <engine/ui/canvas.hpp>
 #include <entt/entt.hpp>
 #include <filesystem>
 #include <memory>
@@ -155,8 +156,10 @@ public:
 	std::shared_ptr<::event::subscription> application_quit_subscription;
 	std::shared_ptr<::event::subscription> gamepad_axis_moved_subscription;
 	std::shared_ptr<::event::subscription> gamepad_button_pressed_subscription;
-	std::shared_ptr<::event::subscription> mouse_button_pressed_subscription;
 	std::shared_ptr<::event::subscription> mouse_moved_subscription;
+	std::shared_ptr<::event::subscription> mouse_button_pressed_subscription;
+	std::shared_ptr<::event::subscription> mouse_button_released_subscription;
+
 	std::shared_ptr<::event::subscription> mouse_scrolled_subscription;
 	bool gamepad_active;
 	
@@ -321,7 +324,7 @@ public:
 	std::unique_ptr<render::renderer> renderer;
 	
 	// UI
-	std::unique_ptr<scene::collection> ui_scene;
+	std::shared_ptr<ui::canvas> ui_canvas;
 	std::unique_ptr<scene::camera> ui_camera;
 	std::unique_ptr<scene::billboard> menu_bg_billboard;
 	std::shared_ptr<render::material> menu_bg_material;
@@ -375,6 +378,7 @@ public:
 	bool captions;
 	float captions_size;
 	std::shared_ptr<audio::sound_que> test_sound;
+	std::vector<std::shared_ptr<audio::sound_que>> kalimba_sounds;
 	
 	// Random number generation
 	std::mt19937 rng;

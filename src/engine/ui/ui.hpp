@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_UI_HPP
 #define ANTKEEPER_UI_HPP
 
-/// UI elements.
+/** UI elements. */
 namespace ui {}
 
 #endif // ANTKEEPER_UI_HPP

@@ -6,16 +6,16 @@
 
 namespace audio {
 
-/** Playback statse of a sound queue. */
+/** Playback states of a sound. */
 enum class playback_state
 {
-	/** Sound que is stopped. */
+	/** Sound is stopped. */
 	stopped,
 	
-	/** Sound que is playing. */
+	/** Sound is playing. */
 	playing,
 	
-	/** Sound que is paused. */
+	/** Sound is paused. */
 	paused
 };
 

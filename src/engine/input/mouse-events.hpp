@@ -8,7 +8,6 @@
 #include <engine/input/mouse-motion-axis.hpp>
 #include <engine/input/mouse-scroll-axis.hpp>
 #include <engine/math/vector.hpp>
-#include <cstdint>
 
 namespace input {
 
@@ -19,14 +18,14 @@ class mouse;
  */
 struct mouse_moved_event
 {
-	/// Mouse that generated the event.
+	/** Mouse that generated the event. */
 	mouse* mouse{nullptr};
 	
-	/// Mouse position, in pixels, relative to the window.
-	math::vec2<std::int32_t> position{0, 0};
+	/** Mouse position, in pixels, relative to the window. */
+	math::ivec2 position{0, 0};
 	
-	/// Relative movement of the mouse, in pixels.
-	math::vec2<std::int32_t> difference{0, 0};
+	/** Relative movement of the mouse, in pixels. */
+	math::ivec2 difference{0, 0};
 };
 
 /**
@@ -34,13 +33,13 @@ struct mouse_moved_event
  */
 struct mouse_button_pressed_event
 {
-	/// Mouse that generated the event.
+	/** Mouse that generated the event. */
 	mouse* mouse{nullptr};
 	
-	/// Mouse position, in pixels, relative to the window, when the button was pressed.
-	math::vec2<std::int32_t> position{0, 0};
+	/** Mouse position, in pixels, relative to the window, when the button was pressed. */
+	math::ivec2 position{0, 0};
 	
-	/// Mouse button being pressed.
+	/** Mouse button being pressed. */
 	mouse_button button{0};
 };
 
@@ -49,13 +48,13 @@ struct mouse_button_pressed_event
  */
 struct mouse_button_released_event
 {
-	/// Mouse that generated the event.
+	/** Mouse that generated the event. */
 	mouse* mouse{nullptr};
 	
-	/// Mouse position, in pixels, relative to the window, when the button was released.
-	math::vec2<std::int32_t> position{0, 0};
+	/** Mouse position, in pixels, relative to the window, when the button was released. */
+	math::ivec2 position{0, 0};
 	
-	/// Mouse button being released.
+	/** Mouse button being released. */
 	mouse_button button{0};
 };
 
@@ -64,13 +63,13 @@ struct mouse_button_released_event
  */
 struct mouse_scrolled_event
 {
-	/// Mouse that generated the event.
+	/** Mouse that generated the event. */
 	mouse* mouse{nullptr};
 	
-	/// Mouse position, in pixels, relative to the window, when the mouse was scrolled.
-	math::vec2<std::int32_t> position{0, 0};
+	/** Mouse position, in pixels, relative to the window, when the mouse was scrolled. */
+	math::ivec2 position{0, 0};
 	
-	/// Scroll velocity.
+	/** Scroll velocity. */
 	math::fvec2 velocity{0.0f, 0.0f};
 };
 

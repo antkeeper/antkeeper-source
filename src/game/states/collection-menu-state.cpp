@@ -40,8 +40,8 @@ collection_menu_state::collection_menu_state(::game& ctx):
 	selection_billboard.set_material(selection_material);
 	
 	// Add box and selection billboard to UI scene
-	ctx.ui_scene->add_object(box_billboard);
-	ctx.ui_scene->add_object(selection_billboard);
+	ctx.ui_canvas->get_scene().add_object(box_billboard);
+	ctx.ui_canvas->get_scene().add_object(selection_billboard);
 	
 	row_count = 64;
 	column_count = 6;

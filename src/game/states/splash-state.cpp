@@ -43,7 +43,7 @@ splash_state::splash_state(::game& ctx):
 	splash_billboard.set_translation({std::round(viewport_center.x()), std::round(viewport_center.y()), 0.0f});
 	
 	// Add splash billboard to UI scene
-	ctx.ui_scene->add_object(splash_billboard);
+	ctx.ui_canvas->get_scene().add_object(splash_billboard);
 	
 	// Load animation timing configuration
 	const float splash_fade_in_duration = 0.5;
@@ -181,7 +181,7 @@ splash_state::~splash_state()
 	ctx.animator->remove_animation(&splash_fade_out_animation);
 	
 	// Remove splash billboard from UI scene
-	ctx.ui_scene->remove_object(splash_billboard);
+	ctx.ui_canvas->get_scene().remove_object(splash_billboard);
 	
 	debug::log_trace("Exited splash state");
 }

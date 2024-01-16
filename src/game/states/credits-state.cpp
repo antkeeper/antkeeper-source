@@ -114,7 +114,7 @@ credits_state::credits_state(::game& ctx):
 		}
 	);
 	
-	ctx.ui_scene->add_object(credits_text);
+	ctx.ui_canvas->get_scene().add_object(credits_text);
 	
 	debug::log_trace("Entered credits state");
 }
@@ -128,7 +128,7 @@ credits_state::~credits_state()
 	input_mapped_subscriptions.clear();
 	
 	// Destruct credits text
-	ctx.ui_scene->remove_object(credits_text);
+	ctx.ui_canvas->get_scene().remove_object(credits_text);
 	
 	// Destruct credits animations
 	ctx.animator->remove_animation(&credits_fade_in_animation);

@@ -29,8 +29,8 @@ struct window_focus_changed_event
 	/// Pointer to the window that has gained or lost focus.
 	window* window{nullptr};
 	
-	/// `true` if the window is in focus, `false` otherwise.
-	bool in_focus{false};
+	/// `true` if the window has focus, `false` otherwise.
+	bool has_focus{false};
 };
 
 /**

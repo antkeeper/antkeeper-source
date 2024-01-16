@@ -58,17 +58,17 @@ public:
 		return m_bounds;
 	}
 	
-	[[nodiscard]] inline std::shared_ptr<render::material> get_material() const noexcept
+	[[nodiscard]] inline const auto& get_material() const noexcept
 	{
 		return m_render_op.material;
 	}
 	
-	[[nodiscard]] inline billboard_type get_billboard_type() const noexcept
+	[[nodiscard]] inline auto get_billboard_type() const noexcept
 	{
 		return m_billboard_type;
 	}
 	
-	[[nodiscard]] inline const math::fvec3& get_alignment_axis() const noexcept
+	[[nodiscard]] inline const auto& get_alignment_axis() const noexcept
 	{
 		return m_alignment_axis;
 	}

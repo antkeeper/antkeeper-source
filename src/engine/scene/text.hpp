@@ -62,14 +62,12 @@ public:
 	 *
 	 * @param content UTF-8 string of text.
 	 */
-	void set_content(const std::string_view& content);
+	void set_content(std::string_view content);
 	
 	/**
-	 * Sets the text color.
+	 * Sets the text color and opacity.
 	 *
-	 * Text color is passed to the text's material shader as a vertex color.
-	 *
-	 * @param color RGBA color.
+	 * @param color Text color and opacity.
 	 */
 	void set_color(const math::fvec4& color);
 	
