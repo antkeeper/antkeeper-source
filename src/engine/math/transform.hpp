@@ -53,7 +53,7 @@ struct transform
 	/// @{
 	[[nodiscard]] constexpr explicit operator matrix_type() const noexcept
 	{
-		matrix_type matrix = matrix_type(quaternion_type::matrix_type(rotation));
+		auto matrix = mat4<T>(mat3<T>(rotation));
 		
 		matrix[0][0] *= scale[0];
 		matrix[0][1] *= scale[0];

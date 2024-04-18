@@ -36,6 +36,8 @@
 #include <limits>
 #include <print>
 
+#include <engine/color/color.hpp>
+
 main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	game_state(ctx)
 {
@@ -278,6 +280,9 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	ctx.function_queue.push(std::bind(::enable_menu_controls, std::ref(ctx)));
 	
 	debug::log_trace("Entered main menu state");
+
+	debug::log_debug("0.18 encode = {}", color::rgb_to_rgb(math::dvec3{0.18, 0.18, 0.18}, color::srgb<double>, color::srgb<double>, false, true));
+	debug::log_debug("0.50 decode = {}", color::rgb_to_rgb(math::dvec3{0.5, 0.5, 0.5}, color::srgb<double>, color::srgb<double>, true, false));
 }
 
 main_menu_state::~main_menu_state()

@@ -244,7 +244,7 @@ void create_stars(::game& ctx)
 		math::fvec3 color_xyz = color::cct_to_xyz(cct);
 		
 		// Transform XYZ color to RGB
-		math::fvec3 color_rgb =  color::aces_ap1<float>.from_xyz * color_xyz;
+		math::fvec3 color_rgb =  color::aces_ap1<float>.xyz_to_rgb(color_xyz);
 		
 		// Convert apparent magnitude to brightness factor relative to a 0th magnitude star
 		float brightness = physics::light::vmag::to_brightness(vmag);

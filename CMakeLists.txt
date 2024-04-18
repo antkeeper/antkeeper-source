@@ -9,6 +9,7 @@ endif()
 cmake_minimum_required(VERSION 3.27)
 include(FetchContent)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(Antkeeper
 	VERSION 0.0.1
@@ -354,7 +355,7 @@ target_compile_definitions(${PROJECT_NAME}
 # Set compile options
 target_compile_options(${PROJECT_NAME}
 	PRIVATE
-		$<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -pedantic>
+		$<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Wpedantic -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-c++11-compat -Wno-c++11-compat-pedantic -Wno-c++14-compat -Wno-c++14-compat-pedantic -Wno-c++17-compat -Wno-c++17-compat-pedantic -Wno-c++20-compat -Wno-c++20-compat-pedantic>
 		$<$<CXX_COMPILER_ID:MSVC>:
 			/W4 /we4265 /we5204 /we5263 /we4946 /we4822 /we4355 /we4061 /we4062 /EHsc /GR-
 			$<$<NOT:$<CONFIG:Debug>>:/GL>

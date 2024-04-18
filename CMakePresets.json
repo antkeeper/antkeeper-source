@@ -15,9 +15,16 @@
 			"architecture":
 			{
 				"value": "x64",
-				"strategy": "set"
+				"strategy": "external"
 			},
 			"binaryDir": "${sourceDir}/build/windows-x64"
+		},
+		{
+			"name": "windows-clang-x64",
+			"inherits": "windows-x64",
+			"hidden": true,
+			"toolset": "ClangCL",
+			"binaryDir": "${sourceDir}/build/windows-clang-x64"
 		},
 		{
 			"name": "linux-x64",
@@ -43,6 +50,24 @@
 			"name": "windows-x64-release",
 			"displayName": "Windows 64-bit Release",
 			"inherits": "windows-x64",
+			"cacheVariables":
+			{
+				"CMAKE_BUILD_TYPE": "Release"
+			}
+		},
+		{
+			"name": "windows-clang-x64-debug",
+			"displayName": "Windows Clang 64-bit Debug",
+			"inherits": "windows-clang-x64",
+			"cacheVariables":
+			{
+				"CMAKE_BUILD_TYPE": "Debug"
+			}
+		},
+		{
+			"name": "windows-clang-x64-release",
+			"displayName": "Windows Clang 64-bit Release",
+			"inherits": "windows-clang-x64",
 			"cacheVariables":
 			{
 				"CMAKE_BUILD_TYPE": "Release"
@@ -79,6 +104,18 @@
 			"name": "windows-x64-release",
 			"displayName": "Windows 64-bit Release",
 			"configurePreset": "windows-x64-release",
+			"configuration": "Release"
+		},
+		{
+			"name": "windows-clang-x64-debug",
+			"displayName": "Windows Clang 64-bit Debug",
+			"configurePreset": "windows-clang-x64-debug",
+			"configuration": "Debug"
+		},
+		{
+			"name": "windows-clang-x64-release",
+			"displayName": "Windows Clang 64-bit Release",
+			"configurePreset": "windows-clang-x64-release",
 			"configuration": "Release"
 		},
 		{

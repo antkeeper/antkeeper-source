@@ -25,13 +25,13 @@ inline constexpr math::vec2<T> deg2_d50  = {T{0.34567}, T{0.35850}};
 template <class T>
 inline constexpr math::vec2<T> deg2_d55  = {T{0.33242}, T{0.34743}};
 template <class T>
-inline constexpr math::vec2<T> deg2_d65  = {T{0.31271}, T{0.32902}};
+inline constexpr math::vec2<T> deg2_d65  = {T{0.31270}, T{0.32900}};
 template <class T>
 inline constexpr math::vec2<T> deg2_d75  = {T{0.29902}, T{0.31485}};
 template <class T>
 inline constexpr math::vec2<T> deg2_d93  = {T{0.28315}, T{0.29711}};
 template <class T>
-inline constexpr math::vec2<T> deg2_e    = {T{0.33333}, T{0.33333}};
+inline constexpr math::vec2<T> deg2_e    = {T{1} / T{3}, T{1} / T{3}};
 template <class T>
 inline constexpr math::vec2<T> deg2_f1   = {T{0.31310}, T{0.33727}};
 template <class T>
@@ -97,7 +97,7 @@ inline constexpr math::vec2<T> deg10_d75 = {T{0.29968}, T{0.31740}};
 template <class T>
 inline constexpr math::vec2<T> deg10_d93 = {T{0.28327}, T{0.30043}};
 template <class T>
-inline constexpr math::vec2<T> deg10_e   = {T{0.33333}, T{0.33333}};
+inline constexpr math::vec2<T> deg10_e   = {T{1} / T{3}, T{1} / T{3}};
 template <class T>
 inline constexpr math::vec2<T> deg10_f1  = {T{0.31811}, T{0.33559}};
 template <class T>

@@ -7,6 +7,7 @@
 #include <engine/math/quadrature.hpp>
 #include <engine/color/xyz.hpp>
 #include <engine/color/aces.hpp>
+#include <engine/color/illuminants.hpp>
 #include <numeric>
 
 blackbody_system::blackbody_system(entity::registry& registry):
@@ -31,6 +32,8 @@ void blackbody_system::update([[maybe_unused]] float t, [[maybe_unused]] float d
 
 void blackbody_system::update_blackbody(entity::id entity_id)
 {
+	constexpr auto illuminant_e_to_aces = color::cat_matrix<double>(color::deg2_e<double>, color::aces_ap1<double>.white_point);
+	
 	// Get blackbody component
 	auto& blackbody = m_registry.get<blackbody_component>(entity_id);
 	
@@ -48,7 +51,7 @@ void blackbody_system::update_blackbody(entity::id entity_id)
 		
 		// Calculate the XYZ color of the wavelength using CIE color matching functions then transform to RGB
 		const auto color_xyz = color::xyz_match(wavelength_nm);
-		const auto color_rgb = color::aces_ap1<double>.from_xyz * color_xyz;
+		const auto color_rgb = color::aces_ap1<double>.xyz_to_rgb(illuminant_e_to_aces * color_xyz);
 		
 		// Scale RGB color by spectral luminance
 		return color_rgb * spectral_luminance;

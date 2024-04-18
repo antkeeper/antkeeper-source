@@ -84,6 +84,11 @@ sdl_window_manager::sdl_window_manager()
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, config::opengl_min_depth_size);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, config::opengl_min_stencil_size);
 	SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 0);
+	
+	// for HDR support
+	// SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 16);
+	// SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 16);
+	// SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 16);
 }
 
 sdl_window_manager::~sdl_window_manager()

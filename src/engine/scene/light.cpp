@@ -15,7 +15,7 @@ void light::set_color(const math::fvec3& color)
 
 void light::set_color_temperature(float temperature)
 {
-	set_color(color::aces_ap1<float>.from_xyz * color::cct_to_xyz(temperature));
+	set_color(color::aces_ap1<float>.xyz_to_rgb(color::cct_to_xyz(temperature)));
 }
 
 void light::transformed()

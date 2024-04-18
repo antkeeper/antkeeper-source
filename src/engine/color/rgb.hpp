@@ -5,6 +5,7 @@
 #define ANTKEEPER_COLOR_RGB_HPP
 
 #include <engine/color/cat.hpp>
+#include <engine/color/xyy.hpp>
 #include <engine/math/matrix.hpp>
 #include <engine/math/vector.hpp>
 
@@ -14,73 +15,68 @@ namespace color {
 /// @{
 
 /**
- * Constructs a matrix which transforms an RGB color into a CIE XYZ color.
+ * Constructs a normalized primary matrix, which transforms a linear RGB color into a linear CIE XYZ color.
  *
  * @param r CIE xy chromaticity coordinates of the red primary.
  * @param g CIE xy chromaticity coordinates of the green primary.
  * @param b CIE xy chromaticity coordinates of the blue primary.
  * @param w CIE xy chromaticity coordinates of the white point.
  *
- * @return Matrix which transforms an RGB color into a CIE XYZ color.
+ * @return Matrix which transforms a linear RGB color into a linear CIE XYZ color.
  *
- * @see https://www.ryanjuckett.com/rgb-color-space-conversion/
- * @see https://mina86.com/2019/srgb-xyz-matrix/
+ * @see SMPTE RP-177:1993
  */
 template <class T>
-[[nodiscard]] constexpr math::mat3<T> rgb_to_xyz(const math::vec2<T>& r, const math::vec2<T>& g, const math::vec2<T>& b, const math::vec2<T>& w)
+[[nodiscard]] constexpr math::mat3<T> normalized_primary_matrix(const math::vec2<T>& r, const math::vec2<T>& g, const math::vec2<T>& b, const math::vec2<T>& w)
 {
-	const math::mat3<T> m = 
+	const math::mat3<T> primaries = 
 	{
-		r[0], r[1], T{1} - r[0] - r[1],
-		g[0], g[1], T{1} - g[0] - g[1],
-		b[0], b[1], T{1} - b[0] - b[1]
+		r.x(), r.y(), T{1} - r.x() - r.y(),
+		g.x(), g.y(), T{1} - g.x() - g.y(),
+		b.x(), b.y(), T{1} - b.x() - b.y()
 	};
 	
-	const math::vec3<T> scale = math::inverse(m) * math::vec3<T>{w[0] / w[1], T{1}, (T{1} - w[0] - w[1]) / w[1]};
+	const math::vec3<T> scale = math::inverse(primaries) * xyy_to_xyz<T>({w.x(), w.y(), T{1}});
 	
-	return math::mat3<T>
+	return
 	{
-		m[0][0] * scale[0], m[0][1] * scale[0], m[0][2] * scale[0],
-		m[1][0] * scale[1], m[1][1] * scale[1], m[1][2] * scale[1],
-		m[2][0] * scale[2], m[2][1] * scale[2], m[2][2] * scale[2],
+		primaries[0][0] * scale[0], primaries[0][1] * scale[0], primaries[0][2] * scale[0],
+		primaries[1][0] * scale[1], primaries[1][1] * scale[1], primaries[1][2] * scale[1],
+		primaries[2][0] * scale[2], primaries[2][1] * scale[2], primaries[2][2] * scale[2],
 	};
 }
 
 /**
  * RGB color space.
+ *
+ * @see https://en.wikipedia.org/wiki/RGB_color_spaces
  */
 template <class T>
 struct rgb_color_space
 {
-	/// Transfer function function pointer type.
+	/** Transfer function function pointer type. */
 	using transfer_function_type = math::vec3<T> (*)(const math::vec3<T>&);
 	
-	/// CIE xy chromaticity coordinates of the red primary.
-	const math::vec2<T> r;
+	/** CIE xy chromaticity coordinates of the red, green, and blue primaries. */
+	const math::mat3x2<T> primaries;
 	
-	/// CIE xy chromaticity coordinates of the green primary.
-	const math::vec2<T> g;
+	/** CIE xy chromaticity coordinates of the white point. */
+	const math::vec2<T> white_point;
+
+	/** Encoding Color Component Transfer Function (CCTF). Encodes a linear tristimulus to a non-linear signal. */
+	const transfer_function_type encoding_cctf;
 	
-	/// CIE xy chromaticity coordinates of the blue primary.
-	const math::vec2<T> b;
+	/** Decoding Color Component Transfer Function (CCTF). Decodes a linear tristimulus from a non-linear signal. */
+	const transfer_function_type decoding_cctf;
 	
-	/// CIE xy chromaticity coordinates of the white point.
-	const math::vec2<T> w;
+	/** Normalized primary matrix, which transforms a linear RGB color into a linear CIE XYZ color. */
+	const math::mat3<T> rgb_to_xyz_matrix;
 	
-	/// Function pointer to the electro-optical transfer function.
-	const transfer_function_type eotf;
+	/** Inverse normalized primary matrix, which transforms a linear CIE XYZ color into a linear RGB color. */
+	const math::mat3<T> xyz_to_rgb_matrix;
 	
-	/// Function pointer to the opto-electrical transfer function.
-	const transfer_function_type oetf;
-	
-	/// Matrix which transforms an RGB color to a CIE XYZ color.
-	const math::mat3<T> to_xyz;
-	
-	/// Matrix which transforms a CIE XYZ color to an RGB color.
-	const math::mat3<T> from_xyz;
-	
-	/// Vector which gives the luminance of an RGB color via dot product.
-	const math::vec3<T> to_y;
+	/** Luminance coefficients. */
+	const math::vec3<T> luma_coefficients;
 	
 	/**
 	 * Constructs an RGB color space.
@@ -89,44 +85,130 @@ struct rgb_color_space
 	 * @param g CIE xy chromaticity coordinates of the green primary.
 	 * @param b CIE xy chromaticity coordinates of the blue primary.
 	 * @param w CIE xy chromaticity coordinates of the white point.
+	 * @param encoding_cctf Encoding Color Component Transfer Function (CCTF).
+	 * @param decoding_cctf Decoding Color Component Transfer Function (CCTF).
 	 */
-	constexpr rgb_color_space(const math::vec2<T>& r, const math::vec2<T>& g, const math::vec2<T>& b, const math::vec2<T>& w, transfer_function_type eotf, transfer_function_type oetf):
-		r(r),
-		g(g),
-		b(b),
-		w(w),
-		eotf(eotf),
-		oetf(oetf),
-		to_xyz(rgb_to_xyz<T>(r, g, b, w)),
-		from_xyz(math::inverse(to_xyz)),
-		to_y{to_xyz[0][1], to_xyz[1][1], to_xyz[2][1]}
+	constexpr rgb_color_space(const math::vec2<T>& r, const math::vec2<T>& g, const math::vec2<T>& b, const math::vec2<T>& w, transfer_function_type encoding_cctf, transfer_function_type decoding_cctf):
+		primaries{r, g, b},
+		white_point{w},
+		encoding_cctf{encoding_cctf},
+		decoding_cctf{decoding_cctf},
+		rgb_to_xyz_matrix{normalized_primary_matrix<T>(r, g, b, w)},
+		xyz_to_rgb_matrix{math::inverse(rgb_to_xyz_matrix)},
+		luma_coefficients{rgb_to_xyz_matrix[0][1], rgb_to_xyz_matrix[1][1], rgb_to_xyz_matrix[2][1]}
 	{}
+
+	/**
+	 * Encodes a linear tristimulus to a non-linear signal.
+	 *
+	 * @param x Linear tristimulus.
+	 *
+	 * @return Non-linear signal.
+	 */
+	[[nodiscard]] inline math::vec3<T> cctf_encode(const math::vec3<T>& x) const
+	{
+		return encoding_cctf ? encoding_cctf(x) : x;
+	}
+
+	/**
+	 * Decodes a linear tristimulus from a non-linear signal.
+	 *
+	 * @param x Linear tristimulus.
+	 *
+	 * @return Non-linear signal.
+	 */
+	[[nodiscard]] inline math::vec3<T> cctf_decode(const math::vec3<T>& x) const
+	{
+		return decoding_cctf ? decoding_cctf(x) : x;
+	}
+	
+	/**
+	 * Transforms a linear RGB color into a linear CIE XYZ color.
+	 *
+	 * @param x Linear RGB color.
+	 *
+	 * @return Linear CIE XYZ color.
+	 */
+	[[nodiscard]] inline constexpr math::vec3<T> rgb_to_xyz(const math::vec3<T>& x) const noexcept
+	{
+		return rgb_to_xyz_matrix * x;
+	}
+	
+	/**
+	 * Transforms a linear CIE XYZ color into a linear RGB color.
+	 *
+	 * @param x Linear CIE XYZ color.
+	 *
+	 * @return Linear RGB color.
+	 */
+	[[nodiscard]] inline constexpr math::vec3<T> xyz_to_rgb(const math::vec3<T>& x) const noexcept
+	{
+		return xyz_to_rgb_matrix * x;
+	}
 	
 	/**
 	 * Measures the luminance of a linear RGB color.
 	 *
 	 * @param x Linear RGB color.
+	 *
 	 * @return return Luminance of @p x.
 	 */
 	[[nodiscard]] inline constexpr T luminance(const math::vec3<T>& x) const noexcept
 	{
-		return math::dot(x, to_y);
+		return math::dot(x, luma_coefficients);
 	}
 };
 
 /**
- * Constructs a matrix which transforms a color from one RGB color space to another RGB color space.
+ * Constructs a matrix which transforms a linear tristimulus from one RGB color space to another RGB color space.
  *
- * @param s0 Source color space.
- * @param s1 Destination color space.
+ * @param src Source color space.
+ * @param dst Destination color space.
  * @param cone_response Chromatic adaptation transform cone response matrix.
  * 
  * @return Color space transformation matrix.
  */
 template <class T>
-[[nodiscard]] constexpr math::mat3<T> rgb_to_rgb(const rgb_color_space<T>& s0, const rgb_color_space<T>& s1, const math::mat3<T>& cone_response = bradford_cone_response<T>)
+[[nodiscard]] constexpr math::mat3<T> rgb_to_rgb_matrix(const rgb_color_space<T>& src, const rgb_color_space<T>& dst, const math::mat3<T>& cone_response = bradford_cone_response<T>)
 {
-	return s1.from_xyz * cat_matrix(s0.w, s1.w, cone_response) * s0.to_xyz;
+	if (src.white_point == dst.white_point)
+	{
+		return dst.xyz_to_rgb_matrix * src.rgb_to_xyz_matrix;
+	}
+	else
+	{
+		return dst.xyz_to_rgb_matrix * (cat_matrix(src.white_point, dst.white_point, cone_response) * src.rgb_to_xyz_matrix);
+	}
+}
+
+/**
+ * Transforms a color from one RGB color space to another RGB color space.
+ *
+ * @param rgb Input RGB values.
+ * @param src_color_space Source color space.
+ * @param dst_color_space Destination color space.
+ * @param cctf_decode Decode input with the decoding CCTF of the source color space.
+ * @param cctf_encode Encode output with the encoding CCTF of the destination color space.
+ * @param cone_response Chromatic adaption transform cone response matrix.
+ *
+ * @return Output RGB values.
+ */
+template <class T>
+[[nodiscard]] math::vec3<T> rgb_to_rgb(math::vec3<T> rgb, const rgb_color_space<T>& src_color_space, const rgb_color_space<T>& dst_color_space, bool cctf_decode = false, bool cctf_encode = false, const math::mat3<T>& cone_response = bradford_cone_response<T>)
+{
+	if (cctf_decode)
+	{
+		rgb = src_color_space.cctf_decode(rgb);
+	}
+
+	rgb = rgb_to_rgb_matrix(src_color_space, dst_color_space, cone_response) * rgb;
+
+	if (cctf_encode)
+	{
+		rgb = dst_color_space.cctf_encode(rgb);
+	}
+
+	return rgb;
 }
 
 /// @}

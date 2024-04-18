@@ -63,18 +63,18 @@ template <class T>
 [[nodiscard]] constexpr math::mat3<T> cat_matrix(const math::vec2<T>& w0, const math::vec2<T>& w1, const math::mat3<T>& cone_response = bradford_cone_response<T>) noexcept
 {
 	// Convert CIE xy chromaticity coordinates to CIE XYZ colors
-	const math::vec3<T> w0_xyz = {w0[0] / w0[1], T{1}, (T{1} - w0[0] - w0[1]) / w0[1]};
-	const math::vec3<T> w1_xyz = {w1[0] / w1[1], T{1}, (T{1} - w1[0] - w1[1]) / w1[1]};
+	const math::vec3<T> w0_xyz = {w0.x() / w0.y(), T{1}, (T{1} - w0.x() - w0.y()) / w0.y()};
+	const math::vec3<T> w1_xyz = {w1.x() / w1.y(), T{1}, (T{1} - w1.x() - w1.y()) / w1.y()};
 	
 	// Calculate cone response of CIE XYZ colors
-	const math::vec3<T> w0_cone_response = cone_response * w0_xyz;
-	const math::vec3<T> w1_cone_response = cone_response * w1_xyz;
+	const auto cone_response_w0 = cone_response * w0_xyz;
+	const auto cone_response_w1 = cone_response * w1_xyz;
 	
 	const math::mat3<T> scale =
 	{
-		w1_cone_response[0] / w0_cone_response[0], T{0}, T{0},
-		T{0}, w1_cone_response[1] / w0_cone_response[1], T{0},
-		T{0}, T{0}, w1_cone_response[2] / w0_cone_response[2],
+		cone_response_w1.x() / cone_response_w0.x(), T{0}, T{0},
+		T{0}, cone_response_w1.y() / cone_response_w0.y(), T{0},
+		T{0}, T{0}, cone_response_w1.z() / cone_response_w0.z(),
 	};
 	
 	return math::inverse(cone_response) * scale * cone_response;

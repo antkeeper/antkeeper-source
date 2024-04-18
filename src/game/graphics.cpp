@@ -100,7 +100,7 @@ static void rebuild_ldr_framebuffers(::game& ctx)
 		(
 			std::make_shared<gl::image_2d>
 			(
-				gl::format::r8g8b8_unorm,
+				gl::format::r8g8b8_unorm, // HDR support: gl::format::r16g16b16_unorm,
 				ctx.render_resolution.x(),
 				ctx.render_resolution.y()
 			)
@@ -126,7 +126,7 @@ static void rebuild_ldr_framebuffers(::game& ctx)
 		(
 			std::make_shared<gl::image_2d>
 			(
-				gl::format::r8g8b8_unorm,
+				gl::format::r8g8b8_unorm, // HDR support: gl::format::r16g16b16_unorm,
 				ctx.render_resolution.x(),
 				ctx.render_resolution.y()
 			)
