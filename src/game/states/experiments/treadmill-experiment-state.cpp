@@ -79,9 +79,9 @@
 treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log_trace("Entering nest view state...");
+	debug::log_trace("Entering treadmill experiment state...");
 	
-	ctx.active_scene = ctx.surface_scene.get();
+	ctx.active_scene = ctx.exterior_scene.get();
 	
 	ctx.active_ecoregion = ctx.resource_manager->load<::ecoregion>("seedy-scrub.eco");
 	::world::enter_ecoregion(ctx, *ctx.active_ecoregion);
@@ -184,7 +184,7 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 		area_light->set_rotation(math::fquat::rotate_x(math::radians(90.0f)));
 		area_light->set_size({1.0f, 2.0f});
 		area_light->set_layer_mask(0b10);
-		ctx.surface_scene->add_object(*area_light);
+		ctx.interior_scene->add_object(*area_light);
 		
 		// Create light rectangle
 		auto light_rectangle_model = ctx.resource_manager->load<render::model>("light-rectangle.mdl");
@@ -304,7 +304,6 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
-	ctx.ui_material_pass->set_clear_mask(gl::depth_clear_bit);
 	
 	sky_probe = std::make_shared<scene::light_probe>();
 	const std::uint32_t sky_probe_face_size = 128;
@@ -337,11 +336,11 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	);
 	
 	ctx.sky_pass->set_sky_probe(sky_probe);
-	ctx.surface_scene->add_object(*sky_probe);
+	ctx.exterior_scene->add_object(*sky_probe);
 	
 	// Set camera exposure
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
-	ctx.surface_camera->set_exposure_value(ev100_sunny16);
+	ctx.exterior_camera->set_exposure_value(ev100_sunny16);
 	
 	// Create third person camera rig
 	create_third_person_camera_rig();
@@ -367,7 +366,7 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	// Refresh frame scheduler
 	ctx.frame_scheduler.refresh();
 	
-	debug::log_trace("Entered nest view state");
+	debug::log_trace("Entered treadmill experiment state");
 }
 
 treadmill_experiment_state::~treadmill_experiment_state()
@@ -411,7 +410,7 @@ void treadmill_experiment_state::create_third_person_camera_rig()
 	spring_arm.max_angles.x() = 0.0;
 	
 	third_person_camera_rig_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<scene_component>(third_person_camera_rig_eid, ctx.surface_camera, std::uint8_t{1});
+	ctx.entity_registry->emplace_or_replace<scene_component>(third_person_camera_rig_eid, ctx.exterior_camera, std::uint8_t{1});
 	ctx.entity_registry->emplace<spring_arm_component>(third_person_camera_rig_eid, std::move(spring_arm));
 	ctx.active_camera_eid = third_person_camera_rig_eid;
 }
@@ -423,7 +422,7 @@ void treadmill_experiment_state::destroy_third_person_camera_rig()
 
 void treadmill_experiment_state::handle_mouse_motion(const input::mouse_moved_event& event)
 {
-	ctx.surface_material_pass->set_mouse_position(math::fvec2(event.position));
+	ctx.scene_material_pass->set_mouse_position(math::fvec2(event.position));
 	
 	if (!mouse_look && !mouse_grip && !mouse_zoom)
 	{

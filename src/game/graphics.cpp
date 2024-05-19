@@ -8,8 +8,7 @@
 #include <engine/gl/texture.hpp>
 #include <engine/render/passes/clear-pass.hpp>
 #include <engine/render/passes/bloom-pass.hpp>
-#include <engine/render/passes/final-pass.hpp>
-#include <engine/render/passes/resample-pass.hpp>
+#include <engine/render/passes/composite-pass.hpp>
 #include <engine/render/passes/sky-pass.hpp>
 #include <engine/render/passes/material-pass.hpp>
 #include <chrono>
@@ -23,10 +22,10 @@ namespace graphics {
 
 static void reroute_framebuffers(::game& ctx);
 
-static void rebuild_hdr_framebuffer(::game& ctx)
+static void rebuild_scene_framebuffer(::game& ctx)
 {
-	// Construct HDR framebuffer sampler
-	auto hdr_sampler = std::make_shared<gl::sampler>
+	// Construct scene framebuffer sampler
+	auto scene_sampler = std::make_shared<gl::sampler>
 	(
 		gl::sampler_filter::linear,
 		gl::sampler_filter::linear,
@@ -35,8 +34,8 @@ static void rebuild_hdr_framebuffer(::game& ctx)
 		gl::sampler_address_mode::clamp_to_edge
 	);
 	
-	// Construct HDR framebuffer color texture
-	ctx.hdr_color_texture = std::make_shared<gl::texture_2d>
+	// Construct scene framebuffer color texture
+	ctx.scene_color_texture = std::make_shared<gl::texture_2d>
 	(
 		std::make_shared<gl::image_view_2d>
 		(
@@ -47,11 +46,11 @@ static void rebuild_hdr_framebuffer(::game& ctx)
 				ctx.render_resolution.y()
 			)
 		),
-		hdr_sampler
+		scene_sampler
 	);
 	
-	// Construct HDR framebuffer depth texture
-	ctx.hdr_depth_texture = std::make_shared<gl::texture_2d>
+	// Construct scene framebuffer depth texture
+	ctx.scene_depth_stencil_texture = std::make_shared<gl::texture_2d>
 	(
 		std::make_shared<gl::image_view_2d>
 		(
@@ -62,29 +61,29 @@ static void rebuild_hdr_framebuffer(::game& ctx)
 				ctx.render_resolution.y()
 			)
 		),
-		hdr_sampler
+		scene_sampler
 	);
 	
-	// Construct HDR framebuffer
-	const gl::framebuffer_attachment hdr_attachments[2] =
+	// Construct scene framebuffer
+	const gl::framebuffer_attachment attachments[2] =
 	{
 		{
 			gl::color_attachment_bit,
-			ctx.hdr_color_texture->get_image_view(),
+			ctx.scene_color_texture->get_image_view(),
 			0
 		},
 		{
 			gl::depth_stencil_attachment_bits,
-			ctx.hdr_depth_texture->get_image_view(),
+			ctx.scene_depth_stencil_texture->get_image_view(),
 			0
 		}
 	};
-	ctx.hdr_framebuffer = std::make_shared<gl::framebuffer>(hdr_attachments, ctx.render_resolution.x(), ctx.render_resolution.y());
+	ctx.scene_framebuffer = std::make_shared<gl::framebuffer>(attachments, ctx.render_resolution.x(), ctx.render_resolution.y());
 }
 
-static void rebuild_ldr_framebuffers(::game& ctx)
+static void rebuild_ui_framebuffer(::game& ctx)
 {
-	auto ldr_sampler = std::make_shared<gl::sampler>
+	auto ui_sampler = std::make_shared<gl::sampler>
 	(
 		gl::sampler_filter::linear,
 		gl::sampler_filter::linear,
@@ -93,57 +92,51 @@ static void rebuild_ldr_framebuffers(::game& ctx)
 		gl::sampler_address_mode::clamp_to_edge
 	);
 	
-	// Construct LDR framebuffer A color texture
-	ctx.ldr_color_texture_a = std::make_shared<gl::texture_2d>
+	// Construct UI color texture
+	ctx.ui_color_texture = std::make_shared<gl::texture_2d>
 	(
 		std::make_shared<gl::image_view_2d>
 		(
 			std::make_shared<gl::image_2d>
 			(
-				gl::format::r8g8b8_unorm, // HDR support: gl::format::r16g16b16_unorm,
+				gl::format::r8g8b8a8_srgb,
 				ctx.render_resolution.x(),
 				ctx.render_resolution.y()
 			)
 		),
-		ldr_sampler
+		ui_sampler
 	);
+
+	// Construct UI depth-stencil texture
+	// ctx.ui_depth_stencil_texture = std::make_shared<gl::texture_2d>
+	// (
+	// 	std::make_shared<gl::image_view_2d>
+	// 	(
+	// 		std::make_shared<gl::image_2d>
+	// 		(
+	// 			gl::format::d24_unorm_s8_uint,
+	// 			ctx.render_resolution.x(),
+	// 			ctx.render_resolution.y()
+	// 		)
+	// 	),
+	// 	ui_sampler
+	// );
 	
-	// Construct LDR framebuffer A
-	const gl::framebuffer_attachment ldr_attachments_a[1] =
+	// Construct UI framebuffer
+	const gl::framebuffer_attachment ui_attachments[1] =
 	{
 		{
 			gl::color_attachment_bit,
-			ctx.ldr_color_texture_a->get_image_view(),
+			ctx.ui_color_texture->get_image_view(),
 			0
 		}
+		// {
+		// 	gl::depth_stencil_attachment_bits,
+		// 	ctx.ui_depth_stencil_texture->get_image_view(),
+		// 	0
+		// }
 	};
-	ctx.ldr_framebuffer_a = std::make_shared<gl::framebuffer>(ldr_attachments_a, ctx.render_resolution.x(), ctx.render_resolution.y());
-	
-	// Construct LDR framebuffer B color texture
-	ctx.ldr_color_texture_b = std::make_shared<gl::texture_2d>
-	(
-		std::make_shared<gl::image_view_2d>
-		(
-			std::make_shared<gl::image_2d>
-			(
-				gl::format::r8g8b8_unorm, // HDR support: gl::format::r16g16b16_unorm,
-				ctx.render_resolution.x(),
-				ctx.render_resolution.y()
-			)
-		),
-		ldr_sampler
-	);
-	
-	// Construct LDR framebuffer B
-	const gl::framebuffer_attachment ldr_attachments_b[1] =
-	{
-		{
-			gl::color_attachment_bit,
-			ctx.ldr_color_texture_b->get_image_view(),
-			0
-		}
-	};
-	ctx.ldr_framebuffer_b = std::make_shared<gl::framebuffer>(ldr_attachments_b, ctx.render_resolution.x(), ctx.render_resolution.y());
+	ctx.ui_framebuffer = std::make_shared<gl::framebuffer>(ui_attachments, ctx.render_resolution.x(), ctx.render_resolution.y());
 }
 
 void rebuild_shadow_framebuffer(::game& ctx)
@@ -201,8 +194,8 @@ void create_framebuffers(::game& ctx)
 	const math::ivec2& viewport_size = ctx.window->get_viewport_size();
 	ctx.render_resolution = {static_cast<int>(viewport_size.x() * ctx.render_scale + 0.5f), static_cast<int>(viewport_size.y() * ctx.render_scale + 0.5f)};
 	
-	rebuild_hdr_framebuffer(ctx);
-	rebuild_ldr_framebuffers(ctx);
+	rebuild_scene_framebuffer(ctx);
+	rebuild_ui_framebuffer(ctx);
 	rebuild_shadow_framebuffer(ctx);
 	
 	debug::log_trace("Created framebuffers");
@@ -212,17 +205,15 @@ void destroy_framebuffers(::game& ctx)
 {
 	debug::log_trace("Destroying framebuffers...");
 	
-	// Delete HDR framebuffer and its attachments
-	ctx.hdr_framebuffer.reset();
-	ctx.hdr_color_texture.reset();
-	ctx.hdr_depth_texture.reset();
+	// Delete scene framebuffer and attachments
+	ctx.scene_framebuffer.reset();
+	ctx.scene_color_texture.reset();
+	ctx.scene_depth_stencil_texture.reset();
 	
-	// Delete LDR framebuffers and attachments
-	ctx.ldr_framebuffer_a.reset();
-	ctx.ldr_color_texture_a.reset();
-	
-	ctx.ldr_framebuffer_b.reset();
-	ctx.ldr_color_texture_b.reset();
+	// Delete UI framebuffer and attachments
+	ctx.ui_framebuffer.reset();
+	ctx.ui_color_texture.reset();
+	ctx.ui_depth_stencil_texture.reset();
 	
 	// Delete shadow map framebuffer and its attachments
 	ctx.shadow_map_framebuffer.reset();
@@ -248,20 +239,8 @@ void change_render_resolution(::game& ctx, float scale)
 	ctx.render_scale = scale;
 	ctx.render_resolution = render_resolution;
 	
-	rebuild_hdr_framebuffer(ctx);
-	rebuild_ldr_framebuffers(ctx);
-	
-	// Enable or disable resample pass
-	if (viewport_size.x() != ctx.render_resolution.x() || viewport_size.y() != ctx.render_resolution.y())
-	{
-		ctx.resample_pass->set_enabled(true);
-		debug::log_debug("Resample pass enabled");
-	}
-	else
-	{
-		ctx.resample_pass->set_enabled(false);
-		debug::log_debug("Resample pass disabled");
-	}
+	rebuild_scene_framebuffer(ctx);
+	rebuild_ui_framebuffer(ctx);
 	
 	reroute_framebuffers(ctx);
 	
@@ -326,23 +305,14 @@ void select_anti_aliasing_method(::game& ctx, render::anti_aliasing_method metho
 
 void reroute_framebuffers(::game& ctx)
 {
-	if (ctx.resample_pass->is_enabled())
-	{
-		ctx.common_final_pass->set_framebuffer(ctx.ldr_framebuffer_a.get());
-		ctx.resample_pass->set_source_texture(ctx.ldr_color_texture_a);
-	}
-	else
-	{
-		ctx.common_final_pass->set_framebuffer(nullptr);
-		ctx.resample_pass->set_source_texture(nullptr);
-	}
-	
-	ctx.clear_pass->set_framebuffer(ctx.hdr_framebuffer.get());
-	ctx.sky_pass->set_framebuffer(ctx.hdr_framebuffer.get());
-	ctx.surface_material_pass->set_framebuffer(ctx.hdr_framebuffer.get());
-	ctx.bloom_pass->set_source_texture(ctx.hdr_color_texture);
-	ctx.common_final_pass->set_color_texture(ctx.hdr_color_texture);
-	ctx.common_final_pass->set_bloom_texture(ctx.bloom_pass->get_bloom_texture());
+	ctx.ui_material_pass->set_framebuffer(ctx.ui_framebuffer.get());
+	ctx.clear_pass->set_framebuffer(ctx.scene_framebuffer.get());
+	ctx.sky_pass->set_framebuffer(ctx.scene_framebuffer.get());
+	ctx.scene_material_pass->set_framebuffer(ctx.scene_framebuffer.get());
+	ctx.bloom_pass->set_source_texture(ctx.scene_color_texture);
+	ctx.composite_pass->set_luminance_texture(ctx.scene_color_texture);
+	ctx.composite_pass->set_bloom_texture(ctx.bloom_pass->get_bloom_texture());
+	ctx.composite_pass->set_overlay_texture(ctx.ui_color_texture);
 }
 
 } // namespace graphics

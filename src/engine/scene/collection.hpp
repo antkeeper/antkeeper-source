@@ -7,6 +7,7 @@
 #include <engine/scene/object.hpp>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace scene {
 
@@ -78,6 +79,7 @@ public:
 
 private:
 	std::vector<object_base*> m_objects;
+	std::unordered_set<const object_base*> m_object_set;
 	mutable std::unordered_map<std::size_t, std::vector<object_base*>> m_object_map;
 	float m_scale{1.0f};
 };

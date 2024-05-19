@@ -15,8 +15,6 @@
 #include "game/states/collection-menu-state.hpp"
 #include "game/states/extras-menu-state.hpp"
 #include "game/states/nuptial-flight-state.hpp"
-#include "game/states/nest-selection-state.hpp"
-#include "game/states/nest-view-state.hpp"
 #include "game/states/options-menu-state.hpp"
 #include "game/states/experiments/treadmill-experiment-state.hpp"
 #include "game/strings.hpp"
@@ -36,12 +34,13 @@
 #include <limits>
 #include <print>
 
-#include <engine/color/color.hpp>
-
 main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	game_state(ctx)
 {
 	debug::log_trace("Entering main menu state...");
+
+	// Add camera to scene
+	ctx.exterior_scene->add_object(*ctx.exterior_camera);
 	
 	const math::fvec2 viewport_size = math::fvec2(ctx.window->get_viewport_size());
 	const math::fvec2 viewport_center = viewport_size * 0.5f;
@@ -115,10 +114,6 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 				[&ctx]()
 				{
 					ctx.state_machine.pop();
-					// ctx.state_machine.emplace(std::make_unique<nuptial_flight_state>(ctx));
-					// ctx.state_machine.emplace(std::make_unique<collection_menu_state>(ctx));
-					// ctx.state_machine.emplace(std::make_unique<nest_selection_state>(ctx));
-					// ctx.state_machine.emplace(std::make_unique<nest_view_state>(ctx));
 					ctx.state_machine.emplace(std::make_unique<treadmill_experiment_state>(ctx));
 				}
 			);
@@ -252,11 +247,10 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	::world::set_time_scale(ctx, 0.0);
 	
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
-	ctx.surface_camera->set_exposure_value(ev100_sunny16);
+	ctx.exterior_camera->set_exposure_value(ev100_sunny16);
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(false);
-	ctx.ui_material_pass->set_clear_mask(gl::color_clear_bit | gl::depth_clear_bit);
 	
 	// Setup window resized callback
 	window_resized_subscription = ctx.window->get_resized_channel().subscribe
@@ -280,14 +274,13 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	ctx.function_queue.push(std::bind(::enable_menu_controls, std::ref(ctx)));
 	
 	debug::log_trace("Entered main menu state");
-
-	debug::log_debug("0.18 encode = {}", color::rgb_to_rgb(math::dvec3{0.18, 0.18, 0.18}, color::srgb<double>, color::srgb<double>, false, true));
-	debug::log_debug("0.50 decode = {}", color::rgb_to_rgb(math::dvec3{0.5, 0.5, 0.5}, color::srgb<double>, color::srgb<double>, true, false));
 }
 
 main_menu_state::~main_menu_state()
 {
 	debug::log_trace("Exiting main menu state...");
+
+	//ctx.exterior_scene->remove_object(*ctx.exterior_camera);
 	
 	// Destruct menu
 	::disable_menu_controls(ctx);

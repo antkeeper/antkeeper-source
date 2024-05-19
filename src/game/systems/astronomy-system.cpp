@@ -20,7 +20,8 @@
 #include <engine/geom/solid-angle.hpp>
 #include <engine/math/transform.hpp>
 #include <engine/math/polynomial.hpp>
-#include <engine/debug/log.hpp>
+#include <engine/debug/log.hpp>
+
 astronomy_system::astronomy_system(entity::registry& registry):
 	updatable_system(registry)
 {

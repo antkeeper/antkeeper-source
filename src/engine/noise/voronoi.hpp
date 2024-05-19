@@ -35,7 +35,7 @@ namespace noise {
  * @private
  */
 template <std::size_t N>
-constexpr std::size_t kernel_size = 4 << std::max<std::size_t>(0, (2 * (N - 1)));
+constexpr std::size_t voronoi_kernel_size = 4 << std::max<std::size_t>(0, (2 * (N - 1)));
 
 /**
  * Generates an kernel offset vector for a given index.
@@ -51,7 +51,7 @@ constexpr std::size_t kernel_size = 4 << std::max<std::size_t>(0, (2 * (N - 1)))
  * @private
  */
 template <class T, std::size_t N, std::size_t... I>
-[[nodiscard]] constexpr math::vector<T, N> kernel_offset(std::size_t i, std::index_sequence<I...>)
+[[nodiscard]] constexpr math::vector<T, N> voronoi_kernel_offset(std::size_t i, std::index_sequence<I...>)
 {
 	return {static_cast<T>((I ? (i / (2 << std::max<std::size_t>(0, 2 * I - 1))) : i) % 4)...};
 }
@@ -68,9 +68,9 @@ template <class T, std::size_t N, std::size_t... I>
  * @private
  */
 template <class T, std::size_t N, std::size_t... I>
-[[nodiscard]] constexpr std::array<math::vector<T, N>, kernel_size<N>> generate_kernel(std::index_sequence<I...>)
+[[nodiscard]] constexpr std::array<math::vector<T, N>, voronoi_kernel_size<N>> voronoi_generate_kernel(std::index_sequence<I...>)
 {
-	return {kernel_offset<T, N>(I, std::make_index_sequence<N>{})...};
+	return {voronoi_kernel_offset<T, N>(I, std::make_index_sequence<N>{})...};
 }
 
 /**
@@ -82,7 +82,7 @@ template <class T, std::size_t N, std::size_t... I>
  * @private
  */
 template <class T, std::size_t N>
-constexpr auto kernel = generate_kernel<T, N>(std::make_index_sequence<kernel_size<N>>{});
+constexpr auto voronoi_kernel = voronoi_generate_kernel<T, N>(std::make_index_sequence<voronoi_kernel_size<N>>{});
 
 /**
  * Finds the Voronoi cell (F1) containing the input position.
@@ -109,7 +109,7 @@ template <class T, std::size_t N>
 	// F1 hash
 	hash::make_uint_t<T>
 >
-f1
+voronoi_f1
 (
 	const math::vector<T, N>& position,
 	T randomness = T{1},
@@ -121,17 +121,17 @@ f1
 	T hash_scale = (T{1} / static_cast<T>(std::numeric_limits<hash::make_uint_t<T>>::max())) * randomness;
 	
 	// Get integer and fractional parts
-	math::vector<T, N> position_i = floor(position - T{1.5});
+	math::vector<T, N> position_i = math::floor(position - T{1.5});
 	math::vector<T, N> position_f = position - position_i;
 	
 	// Find the F1 cell 
 	T f1_sqr_distance = std::numeric_limits<T>::infinity();
 	math::vector<T, N> f1_displacement;
 	hash::make_uint_t<T> f1_hash;
-	for (std::size_t i = 0; i < kernel_size<N>; ++i)
+	for (std::size_t i = 0; i < voronoi_kernel_size<N>; ++i)
 	{
 		// Get kernel offset for current cell
-		const math::vector<T, N>& offset_i = kernel<T, N>[i];
+		const math::vector<T, N>& offset_i = voronoi_kernel<T, N>[i];
 		
 		// Calculate hash input position, tiling where specified
 		math::vector<T, N> hash_position = position_i + offset_i;
@@ -155,7 +155,7 @@ f1
 		math::vector<T, N> displacement = (offset_i + offset_f) - position_f;
 		
 		// Calculate square distance to the current cell center
-		T sqr_distance = sqr_length(displacement);
+		T sqr_distance = math::sqr_length(displacement);
 		
 		// Update F1 cell
 		if (sqr_distance < f1_sqr_distance)
@@ -202,7 +202,7 @@ template <class T, std::size_t N>
 	// Edge square distance
 	T
 >
-f1_edge
+voronoi_f1_edge
 (
 	const math::vector<T, N>& position,
 	T randomness = T{1},
@@ -214,18 +214,18 @@ f1_edge
 	T hash_scale = (T{1} / static_cast<T>(std::numeric_limits<hash::make_uint_t<T>>::max())) * randomness;
 	
 	// Get integer and fractional parts
-	math::vector<T, N> position_i = floor(position - T{1.5});
+	math::vector<T, N> position_i = math::floor(position - T{1.5});
 	math::vector<T, N> position_f = position - position_i;
 	
 	// Find F1 cell
 	T f1_sqr_distance_center = std::numeric_limits<T>::infinity();
-	math::vector<T, N> displacement_cache[kernel_size<N>];
+	math::vector<T, N> displacement_cache[voronoi_kernel_size<N>];
 	std::size_t f1_i = 0;
 	hash::make_uint_t<T> f1_hash;
-	for (std::size_t i = 0; i < kernel_size<N>; ++i)
+	for (std::size_t i = 0; i < voronoi_kernel_size<N>; ++i)
 	{
 		// Get kernel offset for current cell
-		const math::vector<T, N>& offset_i = kernel<T, N>[i];
+		const math::vector<T, N>& offset_i = voronoi_kernel<T, N>[i];
 		
 		// Calculate hash input position, tiling where specified
 		math::vector<T, N> hash_position = position_i + offset_i;
@@ -249,7 +249,7 @@ f1_edge
 		displacement_cache[i] = (offset_i + offset_f) - position_f;
 		
 		// Calculate square distance to the current cell center
-		T sqr_distance = sqr_length(displacement_cache[i]);
+		T sqr_distance = math::sqr_length(displacement_cache[i]);
 		
 		// Update F1 cell
 		if (sqr_distance < f1_sqr_distance_center)
@@ -265,7 +265,7 @@ f1_edge
 	
    // Find distance to the closest edge
 	T edge_sqr_distance_edge = std::numeric_limits<T>::infinity();
-	for (std::size_t i = 0; i < kernel_size<N>; ++i)
+	for (std::size_t i = 0; i < voronoi_kernel_size<N>; ++i)
 	{
 		// Skip F1 cell
 		if (i == f1_i)
@@ -331,7 +331,7 @@ template <class T, std::size_t N>
 	// F2 hash
 	hash::make_uint_t<T>
 >
-f1_f2
+voronoi_f1_f2
 (
 	const math::vector<T, N>& position,
 	T randomness = T{1},
@@ -343,7 +343,7 @@ f1_f2
 	T hash_scale = (T{1} / static_cast<T>(std::numeric_limits<hash::make_uint_t<T>>::max())) * randomness;
 	
 	// Get integer and fractional parts
-	math::vector<T, N> position_i = floor(position - T{1.5});
+	math::vector<T, N> position_i = math::floor(position - T{1.5});
 	math::vector<T, N> position_f = position - position_i;
 	
 	// Find the F1 and F2 cells
@@ -353,10 +353,10 @@ f1_f2
 	T f2_sqr_distance_center = std::numeric_limits<T>::infinity();
 	math::vector<T, N> f2_displacement = {0, 0};
 	hash::make_uint_t<T> f2_hash = 0;
-	for (std::size_t i = 0; i < kernel_size<N>; ++i)
+	for (std::size_t i = 0; i < voronoi_kernel_size<N>; ++i)
 	{
 		// Get kernel offset for current cell
-		const math::vector<T, N>& offset_i = kernel<T, N>[i];
+		const math::vector<T, N>& offset_i = voronoi_kernel<T, N>[i];
 		
 		// Calculate hash input position, tiling where specified
 		math::vector<T, N> hash_position = position_i + offset_i;
@@ -380,7 +380,7 @@ f1_f2
 		math::vector<T, N> displacement = (offset_i + offset_f) - position_f;
 		
 		// Calculate square distance to the current cell center
-		T sqr_distance = sqr_length(displacement);
+		T sqr_distance = math::sqr_length(displacement);
 		
 		// Update F1 and F2 cells
 		if (sqr_distance < f1_sqr_distance_center)

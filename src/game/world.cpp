@@ -244,7 +244,7 @@ void create_stars(::game& ctx)
 		math::fvec3 color_xyz = color::cct_to_xyz(cct);
 		
 		// Transform XYZ color to RGB
-		math::fvec3 color_rgb =  color::aces_ap1<float>.xyz_to_rgb(color_xyz);
+		math::fvec3 color_rgb =  color::bt2020<float>.xyz_to_rgb(color_xyz);
 		
 		// Convert apparent magnitude to brightness factor relative to a 0th magnitude star
 		float brightness = physics::light::vmag::to_brightness(vmag);
@@ -331,8 +331,8 @@ void create_sun(::game& ctx)
 		ctx.sun_light->set_shadow_cascade_count(4);
 		ctx.sun_light->set_shadow_cascade_distribution(0.8f);
 		
-		// Add sun light scene objects to surface scene
-		ctx.surface_scene->add_object(*ctx.sun_light);
+		// Add sun light to exterior scene
+		ctx.exterior_scene->add_object(*ctx.sun_light);
 		
 		// Pass direct sun light scene object to shadow map pass and astronomy system
 		ctx.astronomy_system->set_sun_light(ctx.sun_light.get());
@@ -397,8 +397,8 @@ void create_moon(::game& ctx)
 		// Create moon directional light scene object
 		ctx.moon_light = std::make_unique<scene::directional_light>();
 		
-		// Add moon light scene objects to surface scene
-		ctx.surface_scene->add_object(*ctx.moon_light);
+		// Add moon light scene objects to exterior scene
+		ctx.exterior_scene->add_object(*ctx.moon_light);
 		
 		// Pass moon light scene object to astronomy system
 		ctx.astronomy_system->set_moon_light(ctx.moon_light.get());

@@ -6,6 +6,6 @@
 
 #include <filesystem>
 
-void generate_rgb_voronoi_noise(std::filesystem::path path);
+void generate_rgb_voronoi_noise(std::filesystem::path path, float frequency);
 
 #endif // ANTKEEPER_RGB_VORONOI_NOISE_HPP

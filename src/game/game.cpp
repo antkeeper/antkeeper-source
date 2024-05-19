@@ -62,9 +62,8 @@
 #include <engine/render/material-flags.hpp>
 #include <engine/render/material-variable.hpp>
 #include <engine/render/passes/bloom-pass.hpp>
-#include <engine/render/passes/final-pass.hpp>
+#include <engine/render/passes/composite-pass.hpp>
 #include <engine/render/passes/material-pass.hpp>
-#include <engine/render/passes/resample-pass.hpp>
 #include <engine/render/passes/sky-pass.hpp>
 #include <engine/render/passes/clear-pass.hpp>
 #include <engine/render/renderer.hpp>
@@ -627,59 +626,57 @@ void game::setup_rendering()
 	// Load fallback material
 	auto fallback_material = resource_manager->load<render::material>("fallback.mtl");
 	
-	// Setup common render passes
+	// Setup UI render passes
 	{
-		// Construct bloom pass
-		bloom_pass = std::make_unique<render::bloom_pass>(&window->get_graphics_pipeline(), resource_manager.get());
-		bloom_pass->set_source_texture(hdr_color_texture);
-		bloom_pass->set_mip_chain_length(5);
-		bloom_pass->set_filter_radius(0.005f);
-		
-		common_final_pass = std::make_unique<render::final_pass>(&window->get_graphics_pipeline(), nullptr, resource_manager.get());
-		common_final_pass->set_color_texture(hdr_color_texture);
-		common_final_pass->set_bloom_texture(bloom_pass->get_bloom_texture());
-		common_final_pass->set_bloom_weight(0.04f);
-		//common_final_pass->set_bloom_weight(0.0f);
-		common_final_pass->set_blue_noise_texture(resource_manager->load<gl::texture_2d>("blue-noise.tex"));
-		
-		resample_pass = std::make_unique<render::resample_pass>(&window->get_graphics_pipeline(), nullptr, resource_manager.get());
-		resample_pass->set_source_texture(ldr_color_texture_a);
-		resample_pass->set_enabled(false);
-	}
-	
-	// Setup UI compositor
-	{
-		ui_material_pass = std::make_unique<render::material_pass>(&window->get_graphics_pipeline(), nullptr, resource_manager.get());
+		ui_material_pass = std::make_unique<render::material_pass>(&window->get_graphics_pipeline(), ui_framebuffer.get(), resource_manager.get());
 		ui_material_pass->set_fallback_material(fallback_material);
 		
-		ui_material_pass->set_clear_mask(gl::depth_clear_bit);
+		ui_material_pass->set_clear_mask(gl::color_clear_bit | gl::depth_clear_bit | gl::stencil_clear_bit);
 		ui_material_pass->set_clear_value({{0.0f, 0.0f, 0.0f, 0.0f}, 0.0f, 0});
 		
 		ui_compositor = std::make_unique<render::compositor>();
 		ui_compositor->add_pass(ui_material_pass.get());
 	}
 	
-	// Setup surface compositor
+	// Setup scene render passes
 	{
-		clear_pass = std::make_unique<render::clear_pass>(&window->get_graphics_pipeline(), hdr_framebuffer.get());
+		// Copnstruct clear pass
+		clear_pass = std::make_unique<render::clear_pass>(&window->get_graphics_pipeline(), scene_framebuffer.get());
 		clear_pass->set_clear_mask(gl::color_clear_bit | gl::depth_clear_bit | gl::stencil_clear_bit);
 		clear_pass->set_clear_value({{0.0f, 0.0f, 0.0f, 0.0f}, 0.0f, 0});
 		
-		sky_pass = std::make_unique<render::sky_pass>(&window->get_graphics_pipeline(), hdr_framebuffer.get(), resource_manager.get());
+		// Construct sky pass
+		sky_pass = std::make_unique<render::sky_pass>(&window->get_graphics_pipeline(), scene_framebuffer.get(), resource_manager.get());
 		// sky_pass->set_clear_mask(gl::color_clear_bit | gl::depth_clear_bit | gl::stencil_clear_bit);
 		// sky_pass->set_clear_value({{0.0f, 0.0f, 0.0f, 0.0f}, 0.0f, 0});
 		// sky_pass->set_magnification(3.0f);
 		
-		surface_material_pass = std::make_unique<render::material_pass>(&window->get_graphics_pipeline(), hdr_framebuffer.get(), resource_manager.get());
-		surface_material_pass->set_fallback_material(fallback_material);
+		// Construct material pass
+		scene_material_pass = std::make_unique<render::material_pass>(&window->get_graphics_pipeline(), scene_framebuffer.get(), resource_manager.get());
+		scene_material_pass->set_fallback_material(fallback_material);
+
+		// Construct bloom pass
+		bloom_pass = std::make_unique<render::bloom_pass>(&window->get_graphics_pipeline(), resource_manager.get());
+		bloom_pass->set_source_texture(scene_color_texture);
+		bloom_pass->set_mip_chain_length(5);
+		bloom_pass->set_filter_radius(0.005f);
 		
-		surface_compositor = std::make_unique<render::compositor>();
-		surface_compositor->add_pass(clear_pass.get());
-		surface_compositor->add_pass(sky_pass.get());
-		surface_compositor->add_pass(surface_material_pass.get());
-		surface_compositor->add_pass(bloom_pass.get());
-		surface_compositor->add_pass(common_final_pass.get());
-		surface_compositor->add_pass(resample_pass.get());
+		// Construct composite pass
+		composite_pass = std::make_unique<render::composite_pass>(&window->get_graphics_pipeline(), nullptr, resource_manager.get());
+		composite_pass->set_luminance_texture(scene_color_texture);
+		composite_pass->set_bloom_texture(bloom_pass->get_bloom_texture());
+		composite_pass->set_bloom_strength(0.03f);
+		composite_pass->set_noise_texture(resource_manager->load<gl::texture_2d>("blue-noise.tex"));
+		composite_pass->set_noise_strength(1.0f / 255.0f);
+		composite_pass->set_overlay_texture(ui_color_texture);
+		
+		// Construct compositor and add passes
+		scene_compositor = std::make_unique<render::compositor>();
+		scene_compositor->add_pass(clear_pass.get());
+		scene_compositor->add_pass(sky_pass.get());
+		scene_compositor->add_pass(scene_material_pass.get());
+		scene_compositor->add_pass(bloom_pass.get());
+		scene_compositor->add_pass(composite_pass.get());
 	}
 	
 	// Configure anti-aliasing according to settings
@@ -705,23 +702,19 @@ void game::setup_scenes()
 	const auto& viewport_size = window->get_viewport_size();
 	const float viewport_aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
 	
-	// Allocate and init surface scene
-	surface_scene = std::make_unique<scene::collection>();
-	surface_scene->set_scale(scene_scale);
+	// Allocate and init exterior scene
+	exterior_scene = std::make_unique<scene::collection>();
+	exterior_scene->set_scale(scene_scale);
 	
-	// Allocate and init surface camera
-	surface_camera = std::make_shared<scene::camera>();
-	surface_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.5f);
-	surface_camera->set_compositor(surface_compositor.get());
-	surface_camera->set_composite_index(0);
+	// Allocate and init exterior camera
+	exterior_camera = std::make_shared<scene::camera>();
+	exterior_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.5f);
+	exterior_camera->set_compositor(scene_compositor.get());
+	exterior_camera->set_composite_index(0);
 	
-	// Allocate and init underground scene
-	underground_scene = std::make_unique<scene::collection>();
-	underground_scene->set_scale(scene_scale);
-	
-	// Allocate and init underground camera
-	underground_camera = std::make_shared<scene::camera>();
-	underground_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.5f);
+	// Allocate and init interior scene
+	interior_scene = std::make_unique<scene::collection>();
+	interior_scene->set_scale(scene_scale);
 	
 	// Clear active scene
 	active_scene = nullptr;
@@ -927,7 +920,7 @@ void game::setup_ui()
 			ui_canvas->set_margins(0.0f, 0.0f, static_cast<float>(viewport_size.x()), static_cast<float>(viewport_size.y()));
 			
 			// Update camera projection matrix
-			surface_camera->set_aspect_ratio(viewport_aspect_ratio);
+			exterior_camera->set_aspect_ratio(viewport_aspect_ratio);
 			
 			// Update UI camera projection matrix
 			ui_camera->set_orthographic
@@ -1078,8 +1071,8 @@ void game::setup_systems()
 	// Setup render system
 	render_system = std::make_unique<::render_system>(*entity_registry);
 	render_system->set_renderer(renderer.get());
-	render_system->add_layer(surface_scene.get());
-	render_system->add_layer(underground_scene.get());
+	render_system->add_layer(exterior_scene.get());
+	render_system->add_layer(interior_scene.get());
 	render_system->add_layer(&ui_canvas->get_scene());
 }
 

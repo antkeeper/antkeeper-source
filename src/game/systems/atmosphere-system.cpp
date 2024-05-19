@@ -14,6 +14,9 @@ atmosphere_system::atmosphere_system(entity::registry& registry):
 	m_registry.on_destroy<::atmosphere_component>().connect<&atmosphere_system::on_atmosphere_destroy>(this);
 	
 	set_rgb_wavelengths({680, 550, 440});
+
+	// Wavelengths of the ITU-R BT.2020 primaries
+	// set_rgb_wavelengths({630, 532, 467});
 }
 
 atmosphere_system::~atmosphere_system()

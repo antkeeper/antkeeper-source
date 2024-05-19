@@ -2,19 +2,36 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/scene/collection.hpp>
+#include <engine/debug/log.hpp>
 
 namespace scene {
 
 void collection::add_object(object_base& object)
 {
-	m_objects.emplace_back(&object);
-	m_object_map[object.get_object_type_id()].emplace_back(&object);
+	if (m_object_set.contains(&object))
+	{
+		debug::log_warning("Ignoring request to add existing object ({}) to scene collection.", static_cast<const void*>(&object));
+	}
+	else
+	{
+		m_objects.emplace_back(&object);
+		m_object_set.emplace(&object);
+		m_object_map[object.get_object_type_id()].emplace_back(&object);
+	}
 }
 
 void collection::remove_object(const object_base& object)
 {
-	std::erase(m_objects, &object);
-	std::erase(m_object_map[object.get_object_type_id()], &object);
+	if (!m_object_set.contains(&object))
+	{
+		debug::log_warning("Ignoring request to remove non-existing object ({}) from scene collection.", static_cast<const void*>(&object));
+	}
+	else
+	{
+		std::erase(m_objects, &object);
+		m_object_set.erase(&object);
+		std::erase(m_object_map[object.get_object_type_id()], &object);
+	}
 }
 
 void collection::remove_objects()

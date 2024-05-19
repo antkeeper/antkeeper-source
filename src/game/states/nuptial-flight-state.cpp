@@ -3,7 +3,6 @@
 
 #include "game/states/nuptial-flight-state.hpp"
 #include "game/states/pause-menu-state.hpp"
-#include "game/states/nest-selection-state.hpp"
 #include "game/ant/ant-swarm.hpp"
 #include <engine/entity/archetype.hpp>
 #include "game/systems/camera-system.hpp"
@@ -100,7 +99,7 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	
 	// Set camera exposure
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
-	ctx.surface_camera->set_exposure_value(ev100_sunny16);
+	ctx.exterior_camera->set_exposure_value(ev100_sunny16);
 	
 	const auto& viewport_size = ctx.window->get_viewport_size();
 	const float aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
@@ -277,7 +276,7 @@ void nuptial_flight_state::create_camera_rig()
 	
 	// Construct camera rig camera component
 	scene_component camera_rig_camera;
-	camera_rig_camera.object = ctx.surface_camera;
+	camera_rig_camera.object = ctx.exterior_camera;
 	
 	// Construct camera rig entity
 	camera_rig_eid = ctx.entity_registry->create();
@@ -428,7 +427,7 @@ void nuptial_flight_state::select_nearest_entity(const math::fvec3& direction)
 		return;
 	
 	// Construct picking plane
-	const math::fvec3 picking_normal = math::normalize(ctx.surface_camera->get_rotation() * direction);
+	const math::fvec3 picking_normal = math::normalize(ctx.exterior_camera->get_rotation() * direction);
 	const math::fvec3 picking_origin = selected_eid_transform->world.translation;
 	
 	// Pick entity

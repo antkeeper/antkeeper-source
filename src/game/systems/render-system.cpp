@@ -56,9 +56,9 @@ void render_system::draw(float alpha)
 {
 	if (m_renderer)
 	{
-		for (scene::collection* collection: m_layers)
+		for (auto it = m_layers.rbegin(); it != m_layers.rend(); ++it)
 		{
-			m_renderer->render(m_t + m_dt * alpha, m_dt, alpha, *collection);
+			m_renderer->render(m_t + m_dt * alpha, m_dt, alpha, **it);
 		}
 	}
 }

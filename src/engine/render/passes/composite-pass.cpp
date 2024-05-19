@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2023 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/render/passes/final-pass.hpp>
+#include <engine/render/passes/composite-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/gl/pipeline.hpp>
 #include <engine/gl/framebuffer.hpp>
@@ -19,23 +19,23 @@
 
 namespace render {
 
-final_pass::final_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
+composite_pass::composite_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	pass(pipeline, framebuffer)
 {
 	// Construct empty vertex array
 	m_vertex_array = std::make_unique<gl::vertex_array>();
 	
 	// Load shader template and build shader program
-	auto shader_template = resource_manager->load<gl::shader_template>("final.glsl");
+	auto shader_template = resource_manager->load<gl::shader_template>("composite.glsl");
 	m_shader_program = shader_template->build();
 	if (!m_shader_program->linked())
 	{
-		debug::log_error("Failed to final pass shader program: {}", m_shader_program->info());
+		debug::log_error("Failed to composite pass shader program: {}", m_shader_program->info());
 		debug::log_warning("{}", shader_template->configure(gl::shader_stage::vertex));
 	}
 }
 
-void final_pass::render(render::context& ctx)
+void composite_pass::render(render::context& ctx)
 {
 	// Update resolution
 	const auto& viewport_dimensions = (m_framebuffer) ? m_framebuffer->dimensions() : m_pipeline->get_default_framebuffer_dimensions();
@@ -54,31 +54,41 @@ void final_pass::render(render::context& ctx)
 	++m_frame;
 }
 
-void final_pass::set_color_texture(std::shared_ptr<gl::texture_2d> texture)
+void composite_pass::set_luminance_texture(std::shared_ptr<gl::texture_2d> texture)
 {
-	m_color_texture = texture;
+	m_luminance_texture = texture;
 	rebuild_command_buffer();
 }
 
-void final_pass::set_bloom_texture(std::shared_ptr<gl::texture_2d> texture) noexcept
+void composite_pass::set_bloom_texture(std::shared_ptr<gl::texture_2d> texture) noexcept
 {
 	m_bloom_texture = texture;
 	rebuild_command_buffer();
 }
 
-void final_pass::set_bloom_weight(float weight) noexcept
+void composite_pass::set_bloom_strength(float strength) noexcept
 {
-	m_bloom_weight = weight;
+	m_bloom_strength = strength;
 }
 
-void final_pass::set_blue_noise_texture(std::shared_ptr<gl::texture_2d> texture)
+void composite_pass::set_noise_texture(std::shared_ptr<gl::texture_2d> texture)
 {
-	m_blue_noise_texture = texture;
-	m_blue_noise_scale = 1.0f / static_cast<float>(texture->get_image_view()->get_image()->get_dimensions()[0]);
+	m_noise_texture = texture;
 	rebuild_command_buffer();
 }
 
-void final_pass::rebuild_command_buffer()
+void composite_pass::set_noise_strength(float strength) noexcept
+{
+	m_noise_strength = strength;
+}
+
+void composite_pass::set_overlay_texture(std::shared_ptr<gl::texture_2d> texture)
+{
+	m_overlay_texture = texture;
+	rebuild_command_buffer();
+}
+
+void composite_pass::rebuild_command_buffer()
 {
 	m_command_buffer.clear();
 	
@@ -99,13 +109,15 @@ void final_pass::rebuild_command_buffer()
 		}
 	);
 	
-	if (m_color_texture)
+	if (m_luminance_texture)
 	{
-		if (const auto var = m_shader_program->variable("color_texture"))
+		if (const auto var = m_shader_program->variable("luminance_texture"))
 		{
-			m_command_buffer.emplace_back([&, var](){var->update(*m_color_texture);});
+			m_command_buffer.emplace_back([&, var](){var->update(*m_luminance_texture);});
 		}
 	}
+
+	// Bloom
 	if (m_bloom_texture)
 	{
 		if (const auto var = m_shader_program->variable("bloom_texture"))
@@ -113,22 +125,33 @@ void final_pass::rebuild_command_buffer()
 			m_command_buffer.emplace_back([&, var](){var->update(*m_bloom_texture);});
 		}
 	}
-	if (m_blue_noise_texture)
+	if (const auto var = m_shader_program->variable("bloom_strength"))
 	{
-		if (const auto var = m_shader_program->variable("blue_noise_texture"))
+		m_command_buffer.emplace_back([&, var](){var->update(m_bloom_strength);});
+	}
+
+	// Noise
+	if (m_noise_texture)
+	{
+		if (const auto var = m_shader_program->variable("noise_texture"))
 		{
-			m_command_buffer.emplace_back([&, var](){var->update(*m_blue_noise_texture);});
+			m_command_buffer.emplace_back([&, var](){var->update(*m_noise_texture);});
 		}
 	}
-	
-	if (const auto var = m_shader_program->variable("bloom_weight"))
+	if (const auto var = m_shader_program->variable("noise_strength"))
 	{
-		m_command_buffer.emplace_back([&, var](){var->update(m_bloom_weight);});
+		m_command_buffer.emplace_back([&, var](){var->update(m_noise_strength);});
 	}
-	if (const auto var = m_shader_program->variable("blue_noise_scale"))
+
+	// Overlay
+	if (m_overlay_texture)
 	{
-		m_command_buffer.emplace_back([&, var](){var->update(m_blue_noise_scale);});
+		if (const auto var = m_shader_program->variable("overlay_texture"))
+		{
+			m_command_buffer.emplace_back([&, var](){var->update(*m_overlay_texture);});
+		}
 	}
+
 	if (const auto var = m_shader_program->variable("resolution"))
 	{
 		m_command_buffer.emplace_back([&, var](){var->update(m_resolution);});

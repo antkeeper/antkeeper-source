@@ -64,8 +64,7 @@ namespace render
 {
 	class bloom_pass;
 	class compositor;
-	class final_pass;
-	class resample_pass;
+	class composite_pass;
 	class material_pass;
 	class renderer;
 	class simple_render_pass;
@@ -296,13 +295,14 @@ public:
 	std::queue<std::function<void()>> function_queue;
 	
 	// Framebuffers
-	std::shared_ptr<gl::texture_2d> hdr_color_texture;
-	std::shared_ptr<gl::texture_2d> hdr_depth_texture;
-	std::shared_ptr<gl::framebuffer> hdr_framebuffer;
-	std::shared_ptr<gl::texture_2d> ldr_color_texture_a;
-	std::shared_ptr<gl::framebuffer> ldr_framebuffer_a;
-	std::shared_ptr<gl::texture_2d> ldr_color_texture_b;
-	std::shared_ptr<gl::framebuffer> ldr_framebuffer_b;
+	std::shared_ptr<gl::texture_2d> scene_color_texture;
+	std::shared_ptr<gl::texture_2d> scene_depth_stencil_texture;
+	std::shared_ptr<gl::framebuffer> scene_framebuffer;
+
+	std::shared_ptr<gl::texture_2d> ui_color_texture;
+	std::shared_ptr<gl::texture_2d> ui_depth_stencil_texture;
+	std::shared_ptr<gl::framebuffer> ui_framebuffer;
+
 	std::shared_ptr<gl::texture_2d> shadow_map_depth_texture;
 	std::shared_ptr<gl::framebuffer> shadow_map_framebuffer;
 	
@@ -313,14 +313,11 @@ public:
 	std::unique_ptr<render::material_pass> ui_material_pass;
 	std::unique_ptr<render::compositor> ui_compositor;
 	std::unique_ptr<render::bloom_pass> bloom_pass;
-	std::unique_ptr<render::final_pass> common_final_pass;
-	std::unique_ptr<render::resample_pass> resample_pass;
-	std::unique_ptr<render::material_pass> underground_material_pass;
-	std::unique_ptr<render::compositor> underground_compositor;
+	std::unique_ptr<render::composite_pass> composite_pass;
 	std::unique_ptr<render::clear_pass> clear_pass;
 	std::unique_ptr<render::sky_pass> sky_pass;
-	std::unique_ptr<render::material_pass> surface_material_pass;
-	std::unique_ptr<render::compositor> surface_compositor;
+	std::unique_ptr<render::material_pass> scene_material_pass;
+	std::unique_ptr<render::compositor> scene_compositor;
 	std::unique_ptr<render::renderer> renderer;
 	
 	// UI
@@ -347,14 +344,13 @@ public:
 	int* menu_item_index;
 	
 	// Scene
-	std::unique_ptr<scene::collection> surface_scene;
-	std::shared_ptr<scene::camera> surface_camera;
+	std::unique_ptr<scene::collection> exterior_scene;
+	std::shared_ptr<scene::camera> exterior_camera;
 	std::unique_ptr<scene::directional_light> sun_light;
 	std::unique_ptr<scene::directional_light> moon_light;
-	std::unique_ptr<scene::collection> underground_scene;
-	std::shared_ptr<scene::camera> underground_camera;
-	std::unique_ptr<scene::directional_light> underground_directional_light;
-	std::unique_ptr<scene::rectangle_light> underground_rectangle_light;
+	std::unique_ptr<scene::collection> interior_scene;
+	std::unique_ptr<scene::directional_light> interior_directional_light;
+	std::unique_ptr<scene::rectangle_light> interior_rectangle_light;
 	scene::collection* active_scene;
 	
 	// Animation

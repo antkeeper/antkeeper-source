@@ -42,20 +42,12 @@ void setup_debug_controls(::game& ctx)
 				
 				if (ctx.adjust_exposure_action.is_active())
 				{
-					scene::camera* camera{};
-					if (ctx.active_scene == ctx.surface_scene.get())
-					{
-						camera = ctx.surface_camera.get();
-					}
-					else if (ctx.active_scene == ctx.underground_scene.get())
-					{
-						camera = ctx.underground_camera.get();
-					}
+					scene::camera* camera = ctx.exterior_camera.get();
 					
 					if (camera)
 					{
 						const float sensitivity = 8.0f / static_cast<float>(ctx.window->get_viewport_size().y());
-						ctx.surface_camera->set_exposure_value(ctx.surface_camera->get_exposure_value() + static_cast<float>(event.difference.y()) * sensitivity);
+						camera->set_exposure_value(camera->get_exposure_value() + static_cast<float>(event.difference.y()) * sensitivity);
 					}
 				}
 			}
