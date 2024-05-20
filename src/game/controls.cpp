@@ -148,6 +148,10 @@ void reset_control_profile(::control_profile& profile)
 	
 	// Oviposit
 	mappings.emplace("oviposit", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_alt, input::modifier_key::none, false));
+
+	// Stridulate
+	mappings.emplace("stridulate", std::make_unique<input::key_mapping>(nullptr, input::scancode::f, input::modifier_key::none, false));
+	mappings.emplace("stridulate", std::make_unique<input::gamepad_button_mapping>(nullptr, input::gamepad_button::x));
 	
 	// Pause
 	mappings.emplace("pause", std::make_unique<input::key_mapping>(nullptr, input::scancode::escape, input::modifier_key::none, false));
@@ -237,6 +241,7 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	add_mappings(ctx.ant_action_map, ctx.ant_move_slow_action, "move_slow");
 	add_mappings(ctx.ant_action_map, ctx.ant_interact_action, "interact");
 	add_mappings(ctx.ant_action_map, ctx.ant_oviposit_action, "oviposit");
+	add_mappings(ctx.ant_action_map, ctx.ant_stridulate_action, "stridulate");
 	
 	// Debug controls
 	add_mappings(ctx.debug_action_map, ctx.toggle_debug_ui_action, "toggle_debug");
@@ -327,6 +332,7 @@ void update_control_profile(::game& ctx, ::control_profile& profile)
 	add_mappings(ctx.ant_action_map, ctx.ant_move_slow_action, "move_slow");
 	add_mappings(ctx.ant_action_map, ctx.ant_interact_action, "interact");
 	add_mappings(ctx.ant_action_map, ctx.ant_oviposit_action, "oviposit");
+	add_mappings(ctx.ant_action_map, ctx.ant_stridulate_action, "stridulate");
 	
 	// Camera controls
 	add_mappings(ctx.camera_action_map, ctx.camera_mouse_pick_action, "camera_mouse_pick");

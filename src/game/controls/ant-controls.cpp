@@ -9,12 +9,21 @@
 #include "game/components/ovary-component.hpp"
 #include "game/components/spring-arm-component.hpp"
 #include "game/components/scene-component.hpp"
+#include "game/components/pose-component.hpp"
 #include <engine/math/functions.hpp>
 #include <engine/math/euler-angles.hpp>
 #include <engine/debug/log.hpp>
 
 namespace {
 	
+	void handle_mouse_motion(::game& ctx, [[maybe_unused]] const input::mouse_moved_event& event)
+	{
+		if (ctx.controlled_ant_eid == entt::null)
+		{
+			return;
+		}
+	}
+
 	/**
 	 * Updates the locomotive speed of the controlled ant.
 	 *
@@ -118,6 +127,21 @@ namespace {
 
 void setup_ant_controls(::game& ctx)
 {	
+	// Ant mouse motion
+	ctx.event_subscriptions.emplace_back
+	(
+		ctx.input_manager->get_event_dispatcher().subscribe<input::mouse_moved_event>
+		(
+			[&](const auto& event)
+			{
+				if (ctx.ant_action_map.is_enabled())
+				{
+					handle_mouse_motion(ctx, event);
+				}
+			}
+		)
+	);
+
 	// Ant move forward
 	ctx.event_subscriptions.emplace_back
 	(
@@ -258,6 +282,104 @@ void setup_ant_controls(::game& ctx)
 				if (auto ovary_component = ctx.entity_registry->try_get<ovary_component>(ctx.controlled_ant_eid))
 				{
 					ovary_component->ovipositing = false;
+				}
+			}
+		)
+	);
+
+	// Ant stridulate
+	ctx.event_subscriptions.emplace_back
+	(
+		ctx.ant_stridulate_action.get_active_channel().subscribe
+		(
+			[&]([[maybe_unused]] const auto& event)
+			{
+				if (ctx.controlled_ant_eid == entt::null)
+				{
+					return;
+				}
+
+				auto mouse_position = (*ctx.input_manager->get_mice().begin())->get_position();
+				if (mouse_position == ctx.old_mouse_position)
+				{
+					if (ctx.stridulation_sounds[0]->is_playing())
+					{
+						ctx.stridulation_sounds[0]->pause();
+					}
+					else if (ctx.stridulation_sounds[1]->is_playing())
+					{
+						ctx.stridulation_sounds[1]->pause();
+					}
+				}
+				else
+				{
+					auto& pose_component = ctx.entity_registry->get<::pose_component>(ctx.controlled_ant_eid);
+
+					bone_index_type gaster_bone_index = *pose_component.current_pose.get_skeleton()->get_bone_index("gaster");
+
+					auto gaster_transform = pose_component.current_pose.get_relative_transform(gaster_bone_index);
+					pose_component.previous_pose.set_relative_transform(gaster_bone_index, gaster_transform);
+
+					math::fvec3 previous_gaster_angles = math::euler_xyz_from_quat(gaster_transform.rotation);
+					math::fvec3 current_gaster_angles = previous_gaster_angles;
+
+					auto mouse_difference = mouse_position - ctx.old_mouse_position;
+
+					current_gaster_angles.x() -= mouse_difference.y() * math::radians(0.1f);
+
+					gaster_transform.rotation = math::euler_xyz_to_quat(current_gaster_angles);
+					pose_component.current_pose.set_relative_transform(gaster_bone_index, gaster_transform);
+
+					pose_component.current_pose.update();
+
+					if (mouse_difference.y() != 0)
+					{
+						// Determine index of sound to play (forward or reverse)
+						int sound_index = (mouse_difference.y() < 0.0f);
+
+						// Get sound wave duration
+						const auto duration_seconds = ctx.stridulation_sounds[sound_index]->get_sound_wave()->get_duration();
+						const auto duration_samples = ctx.stridulation_sounds[sound_index]->get_sound_wave()->get_size() / (ctx.stridulation_sounds[sound_index]->get_sound_wave()->get_bits_per_sample() / 8);
+
+						// Seek based on mouse position
+						float seek_factor = static_cast<float>(mouse_position.y()) / static_cast<float>(ctx.window->get_viewport_size().y());
+						ctx.stridulation_sounds[sound_index]->seek_samples(static_cast<std::size_t>(seek_factor * static_cast<double>(duration_samples - 1)));
+
+						// Modulate pitch based on mouse speed
+						float pitch = ((static_cast<float>(mouse_difference.y()) / static_cast<float>(ctx.window->get_viewport_size().y())) * duration_seconds) * ctx.fixed_update_rate;
+						ctx.stridulation_sounds[sound_index]->set_pitch(std::abs(pitch));
+
+						// Play sound if not playing
+						if (!ctx.stridulation_sounds[sound_index]->is_playing())
+						{
+							ctx.stridulation_sounds[(sound_index + 1) % 2]->stop();
+							ctx.stridulation_sounds[sound_index]->play();
+						}
+					}
+				}
+
+				ctx.old_mouse_position = mouse_position;
+			}
+		)
+	);
+	ctx.event_subscriptions.emplace_back
+	(
+		ctx.ant_stridulate_action.get_deactivated_channel().subscribe
+		(
+			[&]([[maybe_unused]] const auto& event)
+			{
+				if (ctx.controlled_ant_eid == entt::null)
+				{
+					return;
+				}
+
+				if (ctx.stridulation_sounds[0]->is_playing())
+				{
+					ctx.stridulation_sounds[0]->stop();
+				}
+				else if (ctx.stridulation_sounds[1]->is_playing())
+				{
+					ctx.stridulation_sounds[1]->stop();
 				}
 			}
 		)

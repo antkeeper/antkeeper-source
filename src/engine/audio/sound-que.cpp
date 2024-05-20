@@ -252,6 +252,11 @@ void sound_que::set_pitch(float pitch)
 {
 	if (m_pitch != pitch)
 	{
+		if (pitch <= 0.0f)
+		{
+			throw std::out_of_range("Sound que pitch out of range (0, inf].");
+		}
+
 		m_pitch = pitch;
 		alSourcef(m_al_source, AL_PITCH, m_pitch);
 	}

@@ -476,22 +476,16 @@ void game::setup_audio()
 	// Print sound system info
 	debug::log_info("Audio playback device: {}", sound_system->get_playback_device_name());
 	
-	// Load test sound
-	test_sound = std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/test.wav"));
-	// test_sound->set_gain(0.15f);
-	// test_sound->set_pitch(0.5f);
-	// test_sound->set_position({3.0f, 1.0f, 0.0f});
-	// test_sound->set_looping(true);
-	
-
-	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-c3-soft.wav")));
-	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-d3-soft.wav")));
-	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-e3-soft.wav")));
-	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-f3-soft.wav")));
-	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-g3-soft.wav")));
-	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-a3-soft.wav")));
-	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-b3-soft.wav")));
-	kalimba_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/kalimba/kalimba-c4-soft.wav")));
+	// Load stridulation sounds
+	stridulation_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/stridulate-forward.wav")));
+	stridulation_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/stridulate-reverse.wav")));
+	for (auto& sound: stridulation_sounds)
+	{
+		sound->set_gain(1.0f);
+		sound->set_pitch(1.0f);
+		// sound->set_position({3.0f, 1.0f, 0.0f});
+		sound->set_looping(true);
+	}
 	
 	debug::log_trace("Set up audio");
 }
@@ -897,7 +891,7 @@ void game::setup_ui()
 	(
 		[&]([[maybe_unused]] const auto& event)
 		{
-			test_sound->play();
+			// test_sound->play();
 		}
 	);
 	
@@ -1230,7 +1224,6 @@ void game::shutdown_audio()
 {
 	debug::log_trace("Shutting down audio...");
 	
-	test_sound.reset();
 	sound_system.reset();
 	
 	debug::log_trace("Shut down audio");
@@ -1254,7 +1247,7 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 		function_queue.pop();
 	}
 	
-	// Advance tline
+	// Advance timeline
 	//timeline->advance(dt);
 	
 	// Update entity systems

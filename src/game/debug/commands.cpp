@@ -117,9 +117,9 @@ namespace {
 		return 1;
 	}
 	
-	int command_sound([[maybe_unused]] std::span<const std::string> arguments, [[maybe_unused]] std::istream& cin, [[maybe_unused]] std::ostream& cout, [[maybe_unused]] std::ostream& cerr, ::game* ctx)
+	int command_sound([[maybe_unused]] std::span<const std::string> arguments, [[maybe_unused]] std::istream& cin, [[maybe_unused]] std::ostream& cout, [[maybe_unused]] std::ostream& cerr, [[maybe_unused]] ::game* ctx)
 	{
-		ctx->test_sound->play();
+		// ctx->test_sound->play();
 		return 0;
 	}
 }

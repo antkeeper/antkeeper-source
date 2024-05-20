@@ -231,6 +231,8 @@ public:
 	input::action ant_move_slow_action;
 	input::action ant_interact_action;
 	input::action ant_oviposit_action;
+	input::action ant_stridulate_action;
+	math::ivec2 old_mouse_position{};
 	
 	input::action_map debug_action_map;
 	input::action toggle_debug_ui_action;
@@ -373,8 +375,7 @@ public:
 	bool mono_audio;
 	bool captions;
 	float captions_size;
-	std::shared_ptr<audio::sound_que> test_sound;
-	std::vector<std::shared_ptr<audio::sound_que>> kalimba_sounds;
+	std::vector<std::shared_ptr<audio::sound_que>> stridulation_sounds;
 	
 	// Random number generation
 	std::mt19937 rng;

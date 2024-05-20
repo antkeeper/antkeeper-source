@@ -304,7 +304,9 @@ public:
 	/**
 	 * Sets the pitch of the sound que.
 	 *
-	 * @param pitch Pitch multiplier.
+	 * @param pitch Pitch multiplier, on (0, inf].
+	 *
+	 * @exception std::out_of_range Sound que pitch out of range (0, inf].
 	 */
 	void set_pitch(float pitch);
 	
