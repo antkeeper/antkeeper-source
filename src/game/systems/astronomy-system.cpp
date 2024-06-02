@@ -160,7 +160,7 @@ void astronomy_system::update([[maybe_unused]] float t, float dt)
 			
 			// Integrate atmospheric spectral transmittance factor between observer and blackbody
 			math::dvec3 transmittance = integrate_transmittance(*observer, *reference_body, *reference_atmosphere, ray);
-			
+
 			// Attenuate illuminance from blackbody reaching observer by spectral transmittance factor
 			observer_blackbody_transmitted_illuminance *= transmittance;
 		}
@@ -592,5 +592,6 @@ math::dvec3 astronomy_system::integrate_transmittance(const ::observer_component
 		transmittance = {std::exp(-extinction.x()), std::exp(-extinction.y()), std::exp(-extinction.z())};
 	}
 	
-	return transmittance;
+	// Scatter in BT.709, then convert to BT.2020
+	return color::bt2020<double>.xyz_to_rgb(color::bt709<double>.rgb_to_xyz(transmittance));
 }

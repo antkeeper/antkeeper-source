@@ -103,13 +103,13 @@ public:
 	/// @name Element access
 	/// @{
 	
-	/// Returns the first edge.
+	/** Returns the first edge. */
 	[[nodiscard]] inline brep_edge* front() const noexcept
 	{
 		return m_head;
 	}
 	
-	/// Returns the last edge.
+	/** Returns the last edge. */
 	[[nodiscard]] inline brep_edge* back() const noexcept
 	{
 		return m_head->m_vertex_previous[m_head->vertices()[1] == m_vertex];
@@ -119,8 +119,8 @@ public:
 	/// @name Iterators
 	/// @{
 	
-	/// Returns an iterator to the first edge.
 	/// @{
+	/** Returns an iterator to the first edge. */
 	[[nodiscard]] inline constexpr const_iterator begin() const noexcept
 	{
 		const_iterator it;
@@ -136,8 +136,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns an iterator to the edge following the last edge.
 	/// @{
+	/** Returns an iterator to the edge following the last edge. */
 	[[nodiscard]] inline constexpr const_iterator end() const noexcept
 	{
 		const_iterator it;
@@ -153,8 +153,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns a reverse iterator to the first edge of the reversed list.
 	/// @{
+	/** Returns a reverse iterator to the first edge of the reversed list. */
 	[[nodiscard]] inline constexpr const_reverse_iterator rbegin() const noexcept
 	{
 		return std::make_reverse_iterator(end());
@@ -165,8 +165,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns a reverse iterator to the edge following the last edge of the reversed list.
 	/// @{
+	/** Returns a reverse iterator to the edge following the last edge of the reversed list. */
 	[[nodiscard]] inline constexpr const_reverse_iterator rend() const noexcept
 	{
 		return std::make_reverse_iterator(begin());
@@ -181,13 +181,13 @@ public:
 	/// @name Capacity
 	/// @{
 	
-	/// Returns `true` if the list is empty, `false` otherwise.
+	/** Returns `true` if the list is empty, `false` otherwise. */
 	[[nodiscard]] inline constexpr bool empty() const noexcept
 	{
 		return !m_size;
 	}
 	
-	/// Returns the number of edges in the list.
+	/** Returns the number of edges in the list. */
 	[[nodiscard]] inline constexpr std::size_t size() const noexcept
 	{
 		return m_size;
@@ -240,7 +240,7 @@ public:
 		return m_index;
 	}
 	
-	/// Returns the list of edges bounded by this vertex.
+	/** Returns the list of edges bounded by this vertex. */
 	[[nodiscard]] inline constexpr const brep_vertex_edge_list& edges() const noexcept
 	{
 		return m_edges;

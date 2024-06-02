@@ -475,17 +475,14 @@ void game::setup_audio()
 	
 	// Print sound system info
 	debug::log_info("Audio playback device: {}", sound_system->get_playback_device_name());
+
+	// Load UI sounds
+	menu_up_sound = std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/menu-up.wav"));
+	menu_down_sound = std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/menu-down.wav"));
 	
 	// Load stridulation sounds
 	stridulation_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/stridulate-forward.wav")));
 	stridulation_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/stridulate-reverse.wav")));
-	for (auto& sound: stridulation_sounds)
-	{
-		sound->set_gain(1.0f);
-		sound->set_pitch(1.0f);
-		// sound->set_position({3.0f, 1.0f, 0.0f});
-		sound->set_looping(true);
-	}
 	
 	debug::log_trace("Set up audio");
 }

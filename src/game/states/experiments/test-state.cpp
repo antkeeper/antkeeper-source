@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2023 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "game/states/experiments/treadmill-experiment-state.hpp"
+#include "game/states/experiments/test-state.hpp"
 
 #include "game/ant/ant-cladogenesis.hpp"
 #include "game/ant/ant-genome.hpp"
@@ -76,14 +76,14 @@
 #include <engine/ai/navmesh.hpp>
 #include <engine/animation/ik/constraints/euler-ik-constraint.hpp>
 
-treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
+test_state::test_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log_trace("Entering treadmill experiment state...");
+	debug::log_trace("Entering test state...");
 	
 	ctx.active_scene = ctx.exterior_scene.get();
 	
-	ctx.active_ecoregion = ctx.resource_manager->load<::ecoregion>("seedy-scrub.eco");
+	ctx.active_ecoregion = ctx.resource_manager->load<::ecoregion>("debug.eco");
 	::world::enter_ecoregion(ctx, *ctx.active_ecoregion);
 	
 	debug::log_trace("Generating genome...");
@@ -101,10 +101,10 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	// Create nest exterior
 	{
 		scene_component nest_exterior_scene_component;
-		nest_exterior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube-nest-200mm-exterior.mdl"));
+		nest_exterior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere-nest-200mm-exterior.mdl"));
 		nest_exterior_scene_component.layer_mask = 1;
 		
-		auto nest_exterior_mesh = ctx.resource_manager->load<geom::brep_mesh>("cube-nest-200mm-exterior.msh");
+		auto nest_exterior_mesh = ctx.resource_manager->load<geom::brep_mesh>("sphere-nest-200mm-exterior.msh");
 		
 		auto nest_exterior_rigid_body = std::make_unique<physics::rigid_body>();
 		nest_exterior_rigid_body->set_mass(0.0f);
@@ -139,64 +139,16 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	
 	// Generate terrain
 	{
-		auto heightmap = ctx.resource_manager->load<gl::image_2d>("chiricahua-s.png");
+		auto heightmap = ctx.resource_manager->load<gl::image_2d>("grid-heightmap.tga");
 		auto subdivisions = math::uvec2{0, 0};
 		// auto subdivisions = math::uvec2{3, 3};
 		auto transform = math::identity<math::transform<float>>;
-		transform.scale.x() = 2000.0f;
-		transform.scale.y() = 400.0f;
+		transform.scale.x() = 100.0f;
+		transform.scale.y() = 100.0f;
 		transform.scale.z() = transform.scale.x();
-		// transform.scale *= 0.001f;
 		transform.translation.y() = -transform.scale.y() * 0.5f;
-		// transform.rotation = math::angle_axis(math::radians(45.0f), math::fvec3{0, 0, 1});
-		auto material = ctx.resource_manager->load<render::material>("desert-sand.mtl");
+		auto material = ctx.resource_manager->load<render::material>("grid-terrain-cm-middle-gray.mtl");
 		ctx.terrain_system->generate(heightmap, subdivisions, transform, material);
-	}
-	
-	// Generate vegetation
-	{
-		auto planet_eid = ctx.entity_registry->create();
-		scene_component scene;
-		scene.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("yucca-plant-l.mdl"));
-		scene.object->set_translation({0, 0, 0});
-		scene.layer_mask = 1;
-		
-		const auto placement_ray = geom::ray<float, 3>{{50.0f, 0.0f, 70.0f}, {0.0f, -1.0f, 0.0f}};
-		if (auto trace = ctx.physics_system->trace(placement_ray, entt::null, 1u))
-		{
-			const auto hit_distance = std::get<1>(*trace);
-			const auto& hit_normal = std::get<3>(*trace);
-			
-			scene.object->set_translation(placement_ray.extrapolate(hit_distance));
-			scene.object->set_rotation(math::rotation(math::fvec3{0, 1, 0}, hit_normal));
-		}
-		
-		ctx.entity_registry->emplace<scene_component>(planet_eid, std::move(scene));
-	}
-	
-	
-	// Create rectangle light
-	{
-		area_light = std::make_unique<scene::rectangle_light>();
-		area_light->set_luminous_flux(12.57f * 100.0f);
-		area_light->set_color_temperature(20000.0f);
-		area_light->set_translation({0.0f, 0.0f, 0.0f});
-		area_light->set_rotation(math::fquat::rotate_x(math::radians(90.0f)));
-		area_light->set_size({1.0f, 2.0f});
-		area_light->set_layer_mask(0b10);
-		ctx.interior_scene->add_object(*area_light);
-		
-		// Create light rectangle
-		auto light_rectangle_model = ctx.resource_manager->load<render::model>("light-rectangle.mdl");
-		auto light_rectangle_material = std::make_shared<render::material>(*light_rectangle_model->get_groups().front().material);
-		light_rectangle_emissive = std::static_pointer_cast<render::matvar_fvec3>(light_rectangle_material->get_variable("emissive"));
-		light_rectangle_emissive->set(area_light->get_colored_luminance());
-		auto light_rectangle_static_mesh = std::make_shared<scene::static_mesh>(light_rectangle_model);
-		light_rectangle_static_mesh->set_material(0, light_rectangle_material);
-		light_rectangle_static_mesh->set_transform(area_light->get_transform());
-		light_rectangle_static_mesh->set_layer_mask(area_light->get_layer_mask());
-		auto light_rectangle_eid = ctx.entity_registry->create();
-		ctx.entity_registry->emplace<scene_component>(light_rectangle_eid, std::move(light_rectangle_static_mesh), std::uint8_t{1});
 	}
 	
 	// Create worker
@@ -365,13 +317,16 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	
 	// Refresh frame scheduler
 	ctx.frame_scheduler.refresh();
+
+	// auto test_skeleton = ctx.resource_manager->load<skeleton>("test.skl.json");
+	// debug::log_debug("test skeleton name: {}; size: {}", test_skeleton->get_name(), test_skeleton->get_bone_count());
 	
-	debug::log_trace("Entered treadmill experiment state");
+	debug::log_trace("Entered test experiment state");
 }
 
-treadmill_experiment_state::~treadmill_experiment_state()
+test_state::~test_state()
 {
-	debug::log_trace("Exiting nest view state...");
+	debug::log_trace("Exiting test state...");
 	
 	// Disable game controls
 	::disable_game_controls(ctx);
@@ -382,10 +337,10 @@ treadmill_experiment_state::~treadmill_experiment_state()
 	
 	destroy_third_person_camera_rig();
 	
-	debug::log_trace("Exited nest view state");
+	debug::log_trace("Exited test state");
 }
 
-void treadmill_experiment_state::create_third_person_camera_rig()
+void test_state::create_third_person_camera_rig()
 {
 	const auto& subject_rigid_body = *ctx.entity_registry->get<rigid_body_component>(ctx.controlled_ant_eid).body;
 	const auto subject_scale = static_cast<double>(subject_rigid_body.get_transform().scale.x());
@@ -415,12 +370,12 @@ void treadmill_experiment_state::create_third_person_camera_rig()
 	ctx.active_camera_eid = third_person_camera_rig_eid;
 }
 
-void treadmill_experiment_state::destroy_third_person_camera_rig()
+void test_state::destroy_third_person_camera_rig()
 {
 	ctx.entity_registry->destroy(third_person_camera_rig_eid);
 }
 
-void treadmill_experiment_state::handle_mouse_motion(const input::mouse_moved_event& event)
+void test_state::handle_mouse_motion(const input::mouse_moved_event& event)
 {
 	ctx.scene_material_pass->set_mouse_position(math::fvec2(event.position));
 	
@@ -449,7 +404,7 @@ void treadmill_experiment_state::handle_mouse_motion(const input::mouse_moved_ev
 	}
 }
 
-geom::ray<float, 3> treadmill_experiment_state::get_mouse_ray(const math::vec2<std::int32_t>& mouse_position) const
+geom::ray<float, 3> test_state::get_mouse_ray(const math::vec2<std::int32_t>& mouse_position) const
 {
 	// Get window viewport size
 	const auto& viewport_size = ctx.window->get_viewport_size();
@@ -467,7 +422,7 @@ geom::ray<float, 3> treadmill_experiment_state::get_mouse_ray(const math::vec2<s
 	return camera.pick(mouse_ndc);
 }
 
-void treadmill_experiment_state::setup_controls()
+void test_state::setup_controls()
 {
 	// Enable/toggle mouse grip
 	action_subscriptions.emplace_back

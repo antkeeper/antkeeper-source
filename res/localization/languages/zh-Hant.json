@@ -5,8 +5,8 @@
 	"name":"繁體中文",
 	"direction":"ltr",
 	
-	"font_serif":"noto-serif-tc-regular.woff",
-	"font_sans_serif":"noto-sans-tc-regular.woff",
+	"font_serif":"fonts/noto-serif-tc-regular.otf",
+	"font_sans_serif":"fonts/noto-sans-tc-regular.otf",
 	"font_monospace":"fonts/sarasa-term-tc-regular.ttf",
 	"font_dyslexia":null
 }

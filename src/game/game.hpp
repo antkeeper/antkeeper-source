@@ -376,6 +376,12 @@ public:
 	bool captions;
 	float captions_size;
 	std::vector<std::shared_ptr<audio::sound_que>> stridulation_sounds;
+	std::shared_ptr<audio::sound_que> menu_left_sound;
+	std::shared_ptr<audio::sound_que> menu_right_sound;
+	std::shared_ptr<audio::sound_que> menu_up_sound;
+	std::shared_ptr<audio::sound_que> menu_down_sound;
+	std::shared_ptr<audio::sound_que> menu_select_sound;
+	std::shared_ptr<audio::sound_que> menu_back_sound;
 	
 	// Random number generation
 	std::mt19937 rng;

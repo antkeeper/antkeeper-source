@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2023 C. J. Howard
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+
 # Prevent in-source builds
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 	message(FATAL_ERROR "In-source builds prohibited.")
@@ -260,24 +261,6 @@ glad_add_library(glad STATIC
 # Make tinyexr.h available
 file(COPY ${tinyexr_SOURCE_DIR}/tinyexr.h DESTINATION ${tinyexr_BINARY_DIR}/include)
 
-# Build antkeeper-data module (if exists)
-# if(EXISTS ${PROJECT_SOURCE_DIR}/modules/antkeeper-data/CMakeLists.txt)
-	# ExternalProject_Add(antkeeper-data
-		# SOURCE_DIR ${MODULE_SOURCE_DIR}/antkeeper-data
-		# BINARY_DIR ${MODULE_BUILD_DIR}/antkeeper-data
-		# INSTALL_DIR ${PACKAGE_INSTALL_DIR}
-		# CMAKE_ARGS
-			# "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
-			# "-DCMAKE_INSTALL_PREFIX=${PACKAGE_INSTALL_DIR}"
-			# "-DCMAKE_PREFIX_PATH=${MODULE_INSTALL_DIR}"
-			# "-DAPPLICATION_NAME=${APPLICATION_NAME}"
-			# "-DAPPLICATION_VERSION=${APPLICATION_VERSION}"
-			# "-DAPPLICATION_AUTHOR=${APPLICATION_AUTHOR}"
-			# "-DCMAKE_TOOLCHAIN_FILE='${CMAKE_TOOLCHAIN_FILE}'"
-			# "-DBLENDER=${BLENDER}"
-		# BUILD_ALWAYS 1)
-# endif()
-
 # Generate configuration header file
 configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.hpp.in ${PROJECT_BINARY_DIR}/src/engine/config.hpp)
 
@@ -418,3 +401,23 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/res/localization)
 
 # Add documentation CMakeLists
 add_subdirectory(${PROJECT_SOURCE_DIR}/docs)
+
+# Build antkeeper-data module (if exists)
+if(EXISTS ${PROJECT_SOURCE_DIR}/res/data/CMakeLists.txt)
+	ExternalProject_Add(antkeeper-data
+		SOURCE_DIR ${PROJECT_SOURCE_DIR}/res/data
+		# BINARY_DIR ${MODULE_BUILD_DIR}/antkeeper-data
+		# INSTALL_DIR ${PROJECT_SOURCE_DIR}/bin/$<LOWER_CASE:${PROJECT_NAME}-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_GENERATOR_PLATFORM}-$<CONFIG>>
+		CMAKE_ARGS
+			"-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+			# "-DCMAKE_INSTALL_PREFIX=${RUNTIME_OUTPUT_DIRECTORY}"
+			# "-DCMAKE_PREFIX_PATH=${MODULE_INSTALL_DIR}"
+			"-DAPPLICATION_NAME=${APPLICATION_NAME}"
+			"-DAPPLICATION_VERSION=${APPLICATION_VERSION}"
+			"-DAPPLICATION_AUTHOR=${APPLICATION_AUTHOR}"
+			"-DCMAKE_TOOLCHAIN_FILE='${CMAKE_TOOLCHAIN_FILE}'"
+			"-DBLENDER=${BLENDER}"
+			"-DRUNTIME_OUTPUT_DIRECTORY='${PROJECT_SOURCE_DIR}/bin/$<LOWER_CASE:${PROJECT_NAME}-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_GENERATOR_PLATFORM}-$<CONFIG>>'"
+		INSTALL_COMMAND ""
+		BUILD_ALWAYS 1)
+endif()

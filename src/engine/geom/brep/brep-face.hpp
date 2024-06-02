@@ -100,13 +100,13 @@ public:
 	/// @name Element access
 	/// @{
 	
-	/// Returns the first loop.
+	/** Returns the first loop. */
 	[[nodiscard]] inline brep_loop* front() const noexcept
 	{
 		return m_head;
 	}
 	
-	/// Returns the last loop.
+	/** Returns the last loop. */
 	[[nodiscard]] inline brep_loop* back() const noexcept
 	{
 		return m_head->m_face_previous;
@@ -116,8 +116,8 @@ public:
 	/// @name Iterators
 	/// @{
 	
-	/// Returns an iterator to the first loop.
 	/// @{
+	/** Returns an iterator to the first loop. */
 	[[nodiscard]] inline constexpr const_iterator begin() const noexcept
 	{
 		const_iterator it;
@@ -132,8 +132,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns an iterator to the loop following the last loop.
 	/// @{
+	/** Returns an iterator to the loop following the last loop. */
 	[[nodiscard]] inline constexpr const_iterator end() const noexcept
 	{
 		const_iterator it;
@@ -148,8 +148,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns a reverse iterator to the first loop of the reversed list.
 	/// @{
+	/** Returns a reverse iterator to the first loop of the reversed list. */
 	[[nodiscard]] inline constexpr const_reverse_iterator rbegin() const noexcept
 	{
 		return std::make_reverse_iterator(end());
@@ -160,8 +160,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns a reverse iterator to the loop following the last loop of the reversed list.
 	/// @{
+	/** Returns a reverse iterator to the loop following the last loop of the reversed list. */
 	[[nodiscard]] inline constexpr const_reverse_iterator rend() const noexcept
 	{
 		return std::make_reverse_iterator(begin());
@@ -176,13 +176,13 @@ public:
 	/// @name Capacity
 	/// @{
 	
-	/// Returns `true` if the list is empty, `false` otherwise.
+	/** Returns `true` if the list is empty, `false` otherwise. */
 	[[nodiscard]] inline constexpr bool empty() const noexcept
 	{
 		return !m_size;
 	}
 	
-	/// Returns the number of loops in the list.
+	/** Returns the number of loops in the list. */
 	[[nodiscard]] inline constexpr std::size_t size() const noexcept
 	{
 		return m_size;
@@ -241,7 +241,7 @@ public:
 		return m_index;
 	}
 	
-	/// Returns the list of loops associated with this face.
+	/** Returns the list of loops associated with this face. */
 	[[nodiscard]] inline constexpr const brep_face_loop_list& loops() const noexcept
 	{
 		return m_loops;

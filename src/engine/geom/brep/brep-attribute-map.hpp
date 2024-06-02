@@ -5,10 +5,10 @@
 #define ANTKEEPER_GEOM_BREP_ATTRIBUTE_MAP_HPP
 
 #include <engine/geom/brep/brep-attribute.hpp>
-#include <engine/hash/fnv1a.hpp>
 #include <iterator>
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
@@ -127,14 +127,14 @@ public:
 		iterator_type m_it;
 	};
 	
-	using iterator = iterator_template<std::unordered_map<hash::fnv1a32_t, std::unique_ptr<brep_attribute_base>>::iterator, false>;
-	using const_iterator = iterator_template<std::unordered_map<hash::fnv1a32_t, std::unique_ptr<brep_attribute_base>>::const_iterator, true>;
+	using iterator = iterator_template<std::unordered_map<std::string, std::unique_ptr<brep_attribute_base>>::iterator, false>;
+	using const_iterator = iterator_template<std::unordered_map<std::string, std::unique_ptr<brep_attribute_base>>::const_iterator, true>;
 	
 	/// @name Iterators
 	/// @{
 	
-	/// Returns an iterator to the first attribute.
 	/// @{
+	/** Returns an iterator to the first attribute. */
 	[[nodiscard]] inline const_iterator begin() const noexcept
 	{
 		const_iterator it;
@@ -153,8 +153,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns an iterator to the attribute following the last attribute.
 	/// @{
+	/** Returns an iterator to the attribute following the last attribute. */
 	[[nodiscard]] inline const_iterator end() const noexcept
 	{
 		const_iterator it;
@@ -177,13 +177,13 @@ public:
 	/// @name Capacity
 	/// @{
 	
-	/// Returns `true` if the container is empty, `false` otherwise.
+	/** Returns `true` if the container is empty, `false` otherwise. */
 	[[nodiscard]] inline bool empty() const noexcept
 	{
 		return m_attributes.empty();
 	}
 	
-	/// Returns the number of attributes in the container.
+	/** Returns the number of attributes in the container. */
 	[[nodiscard]] inline std::size_t size() const noexcept
 	{
 		return m_attributes.size();
@@ -193,9 +193,7 @@ public:
 	/// @name Modifiers
 	/// @{
 	
-	/**
-	 * Removes all attributes from the container.
-	 */
+	/** Removes all attributes from the container. */
 	inline void clear() noexcept
 	{
 		m_attributes.clear();
@@ -211,7 +209,7 @@ public:
 	 * @return Iterator to the new attribute.
 	 */
 	template <class T>
-	iterator emplace(hash::fnv1a32_t name)
+	iterator emplace(const std::string& name)
 	{
 		if (auto i = m_attributes.find(name); i != m_attributes.end())
 		{
@@ -249,7 +247,7 @@ public:
 	 *
 	 * @return Number of attributes removed (0 or 1).
 	 */
-	inline std::size_t erase(hash::fnv1a32_t name)
+	inline std::size_t erase(const std::string& name)
 	{
 		return m_attributes.erase(name);
 	}
@@ -264,7 +262,7 @@ public:
 	 * @return Pair consisting of an iterator to the new or pre-existing attribute, and a Boolean value that's `true` if the new attribute was constructed, or `false` if an attribute with the given name pre-existed.
 	 */
 	template <class T>
-	std::pair<iterator, bool> try_emplace(hash::fnv1a32_t name)
+	std::pair<iterator, bool> try_emplace(const std::string& name)
 	{
 		if (auto i = m_attributes.find(name); i != m_attributes.end())
 		{
@@ -283,6 +281,7 @@ public:
 	/// @name Lookup
 	/// @{
 	
+	/// @{
 	/**
 	 * Returns a reference to the attribute with the given name. If no such attribute exists, an exception of type std::out_of_range is thrown.
 	 *
@@ -292,9 +291,8 @@ public:
 	 *
 	 * @exception std::out_of_range B-rep attribute not found.
 	 */
-	/// @{
 	template <class T>
-	[[nodiscard]] const brep_attribute<T>& at(hash::fnv1a32_t name) const
+	[[nodiscard]] const brep_attribute<T>& at(const std::string& name) const
 	{
 		auto it = find(name);
 		if (it == end())
@@ -305,7 +303,7 @@ public:
 		return static_cast<const brep_attribute<T>&>(*it);
 	}
 	template <class T>
-	[[nodiscard]] brep_attribute<T>& at(hash::fnv1a32_t name)
+	[[nodiscard]] brep_attribute<T>& at(const std::string& name)
 	{
 		auto it = find(name);
 		if (it == end())
@@ -317,6 +315,7 @@ public:
 	}
 	/// @}
 	
+	/// @{
 	/**
 	 * Finds an attribute with the given name.
 	 *
@@ -324,14 +323,13 @@ public:
 	 *
 	 * @return Iterator to the attribute with the given name. If no such attribute is found, an end iterator is returned.
 	 */
-	/// @{
-	[[nodiscard]] inline const_iterator find(hash::fnv1a32_t name) const
+	[[nodiscard]] inline const_iterator find(const std::string& name) const
 	{
 		const_iterator it;
 		it.m_it = m_attributes.find(name);
 		return it;
 	}
-	[[nodiscard]] inline iterator find(hash::fnv1a32_t name)
+	[[nodiscard]] inline iterator find(const std::string& name)
 	{
 		iterator it;
 		it.m_it = m_attributes.find(name);
@@ -346,7 +344,7 @@ public:
 	 *
 	 * @return `true` if an attribute with the given name was found, `false` otherwise.
 	 */
-	[[nodiscard]] inline bool contains(hash::fnv1a32_t name) const
+	[[nodiscard]] inline bool contains(const std::string& name) const
 	{
 		return m_attributes.contains(name);
 	}
@@ -371,7 +369,7 @@ private:
 	}
 	
 	std::size_t m_element_count{};
-	std::unordered_map<hash::fnv1a32_t, std::unique_ptr<brep_attribute_base>> m_attributes;
+	std::unordered_map<std::string, std::unique_ptr<brep_attribute_base>> m_attributes;
 };
 
 } // namespace geom

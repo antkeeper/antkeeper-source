@@ -327,9 +327,13 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 		// Read bones
 		for (std::uint16_t i = 0; i < bone_count; ++i)
 		{
-			// Read bone name
-			hash::fnv1a32_t bone_name = {};
-			ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_name), 1);
+			// Read bone name length
+			std::uint8_t bone_name_length = 0;
+			ctx->read8(reinterpret_cast<std::byte*>(&bone_name_length), 1);
+
+			// Read material name
+			std::string bone_name(static_cast<std::size_t>(bone_name_length), '\0');
+			ctx->read8(reinterpret_cast<std::byte*>(bone_name.data()), bone_name_length);
 			
 			// Read bone parent index
 			std::uint16_t bone_parent_index = i;

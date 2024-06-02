@@ -7,6 +7,7 @@
 #include <engine/entity/id.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/geom/brep/brep-mesh.hpp>
+#include <engine/geom/brep/brep-feature.hpp>
 
 /**
  * 
@@ -19,8 +20,8 @@ struct navmesh_agent_component
 	/// Pointer to the current mesh through which the agent is navigating.
 	geom::brep_mesh* mesh{};
 	
-	/// Pointer to the current mesh face on which the agent is located.
-	geom::brep_face* face{};
+	/// Current mesh feature on which the agent is located.
+	geom::brep_feature feature{};
 	
 	/// Smooth interpolated surface normal at the agent position.
 	math::fvec3 surface_normal{};

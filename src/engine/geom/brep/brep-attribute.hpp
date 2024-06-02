@@ -4,8 +4,8 @@
 #ifndef ANTKEEPER_GEOM_BREP_ATTRIBUTE_HPP
 #define ANTKEEPER_GEOM_BREP_ATTRIBUTE_HPP
 
-#include <engine/hash/fnv1a.hpp>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace geom {
@@ -20,13 +20,13 @@ public:
 	virtual ~brep_attribute_base() = default;
 	
 	/// Returns the name of the attribute.
-	[[nodiscard]] inline constexpr hash::fnv1a32_t name() const noexcept
+	[[nodiscard]] inline constexpr const std::string& name() const noexcept
 	{
 		return m_name;
 	}
 
 protected:
-	inline explicit constexpr brep_attribute_base(hash::fnv1a32_t name) noexcept:
+	inline explicit constexpr brep_attribute_base(const std::string_view& name) noexcept:
 		m_name(name)
 	{}
 	
@@ -50,7 +50,7 @@ private:
 	/// Returns a copy of this attribute.
 	[[nodiscard]] virtual std::unique_ptr<brep_attribute_base> clone() const = 0;
 	
-	hash::fnv1a32_t m_name;
+	std::string m_name;
 };
 
 /**
@@ -78,7 +78,7 @@ public:
 	 * @param name Name of the attribute.
 	 * @param element_count Number of elements.
 	 */
-	brep_attribute(hash::fnv1a32_t name, std::size_t element_count):
+	brep_attribute(const std::string_view& name, std::size_t element_count):
 		brep_attribute_base(name),
 		m_values(element_count)
 	{}
@@ -89,6 +89,7 @@ public:
 	/// @name Attribute access
 	/// @{
 	
+	/// @{
 	/**
 	 * Returns a reference to the attribute value of an element.
 	 *
@@ -96,7 +97,6 @@ public:
 	 *
 	 * @return Reference to the attribute value of the element at index @p i.
 	 */
-	/// @{
 	[[nodiscard]] inline constexpr const_reference operator[](std::size_t i) const
 	{
 		return m_values[i];
@@ -107,8 +107,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns a reference to the attribute value of the first element.
 	/// @{
+	/** Returns a reference to the attribute value of the first element. */
 	[[nodiscard]] inline constexpr const_reference front() const
 	{
 		return m_values.front();
@@ -119,8 +119,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns a reference to the attribute value of the last element.
 	/// @{
+	/** Returns a reference to the attribute value of the last element. */
 	[[nodiscard]] inline constexpr const_reference back() const
 	{
 		return m_values.back();
@@ -131,8 +131,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns a pointer to the underlying array serving as attribute value storage.
 	/// @{
+	/** Returns a pointer to the underlying array serving as attribute value storage. */
 	[[nodiscard]] inline constexpr const value_type* data() const noexcept
 	{
 		return m_values.data();
@@ -147,8 +147,8 @@ public:
 	/// @name Iterators
 	/// @{
 	
-	/// Returns an iterator to the attribute value of the first element.
 	/// @{
+	/** Returns an iterator to the attribute value of the first element. */
 	[[nodiscard]] inline constexpr const_iterator begin() const noexcept
 	{
 		return m_values.begin();
@@ -163,8 +163,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns an iterator to the attribute value of the element following the last element.
 	/// @{
+	/** Returns an iterator to the attribute value of the element following the last element. */
 	[[nodiscard]] inline constexpr const_iterator end() const noexcept
 	{
 		return m_values.end();
@@ -179,8 +179,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns a reverse iterator to the attribute value of the first element of the reversed container.
 	/// @{
+	/** Returns a reverse iterator to the attribute value of the first element of the reversed container. */
 	[[nodiscard]] inline constexpr const_reverse_iterator rbegin() const noexcept
 	{
 		return m_values.rbegin();
@@ -195,8 +195,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns a reverse iterator to the attribute value of the element following the last element of the reversed container.
 	/// @{
+	/** Returns a reverse iterator to the attribute value of the element following the last element of the reversed container. */
 	[[nodiscard]] inline constexpr const_reverse_iterator rend() const noexcept
 	{
 		return m_values.rend();
@@ -215,13 +215,13 @@ public:
 	/// @name Capacity
 	/// @{
 	
-	/// Returns `true` if the container is empty, `false` otherwise.
+	/** Returns `true` if the container is empty, `false` otherwise. */
 	[[nodiscard]] inline constexpr bool empty() const noexcept
 	{
 		return m_values.empty();
 	}
 	
-	/// Returns the number of attribute values in the container.
+	/** Returns the number of attribute values in the container. */
 	[[nodiscard]] inline constexpr std::size_t size() const noexcept
 	{
 		return m_values.size();

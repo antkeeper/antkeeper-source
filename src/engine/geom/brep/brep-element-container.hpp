@@ -146,13 +146,13 @@ public:
 		return m_elements[i].get();
 	}
 	
-	/// Returns the first element.
+	/** Returns the first element. */
 	[[nodiscard]] inline constexpr element_type* front() const noexcept
 	{
 		return m_elements.front().get();
 	}
 	
-	/// Returns the last element.
+	/** Returns the last element. */
 	[[nodiscard]] inline constexpr element_type* back() const noexcept
 	{
 		return m_elements.back().get();
@@ -162,8 +162,8 @@ public:
 	/// @name Iterators
 	/// @{
 	
-	/// Returns an iterator to the first element.
 	/// @{
+	/** Returns an iterator to the first element. */
 	[[nodiscard]] inline constexpr const_iterator begin() const noexcept
 	{
 		const_iterator it;
@@ -176,8 +176,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns an iterator to the element following the last element.
 	/// @{
+	/** Returns an iterator to the element following the last element. */
 	[[nodiscard]] inline constexpr const_iterator end() const noexcept
 	{
 		const_iterator it;
@@ -190,8 +190,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns a reverse iterator to the first element of the reversed container.
 	/// @{
+	/** Returns a reverse iterator to the first element of the reversed container. */
 	[[nodiscard]] inline constexpr const_reverse_iterator rbegin() const noexcept
 	{
 		return std::make_reverse_iterator(end());
@@ -202,8 +202,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns a reverse iterator to the element following the last element of the reversed container.
 	/// @{
+	/** Returns a reverse iterator to the element following the last element of the reversed container. */
 	[[nodiscard]] inline constexpr const_reverse_iterator rend() const noexcept
 	{
 		return std::make_reverse_iterator(begin());
@@ -218,13 +218,13 @@ public:
 	/// @name Capacity
 	/// @{
 	
-	/// Returns `true` if the container is empty, `false` otherwise.
+	/** Returns `true` if the container is empty, `false` otherwise. */
 	[[nodiscard]] inline constexpr bool empty() const noexcept
 	{
 		return m_elements.empty();
 	}
 	
-	/// Returns the number of elements in the container.
+	/** Returns the number of elements in the container. */
 	[[nodiscard]] inline constexpr std::size_t size() const noexcept
 	{
 		return m_elements.size();
@@ -234,8 +234,8 @@ public:
 	/// @name Attributes
 	/// @{
 	
-	/// Returns the element attribute map.
 	/// @{
+	/** Returns the element attribute map. */
 	[[nodiscard]] const brep_attribute_map& attributes() const noexcept
 	{
 		return m_attribute_map;

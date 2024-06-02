@@ -14,6 +14,8 @@ void setup_menu_controls(::game& ctx)
 		(
 			[&ctx]([[maybe_unused]] const auto& event)
 			{
+				ctx.menu_up_sound->play();
+
 				--(*ctx.menu_item_index);
 				if (*ctx.menu_item_index < 0)
 					*ctx.menu_item_index = static_cast<int>(ctx.menu_item_texts.size()) - 1;
@@ -28,6 +30,8 @@ void setup_menu_controls(::game& ctx)
 		(
 			[&ctx]([[maybe_unused]] const auto& event)
 			{
+				ctx.menu_down_sound->play();
+
 				++(*ctx.menu_item_index);
 				if (*ctx.menu_item_index >= ctx.menu_item_texts.size())
 					*ctx.menu_item_index = 0;
@@ -136,9 +140,13 @@ void enable_menu_controls(::game& ctx)
 			{
 				if (y >= min_y && y <= max_y)
 				{
-					if (*ctx.menu_item_index != static_cast<int>(i))
+					if (*ctx.menu_item_index > static_cast<int>(i))
 					{
-						// ctx.test_sound->play();
+						ctx.menu_down_sound->play();
+					}
+					else if (*ctx.menu_item_index < static_cast<int>(i))
+					{
+						ctx.menu_up_sound->play();
 					}
 					
 					*ctx.menu_item_index = static_cast<int>(i);

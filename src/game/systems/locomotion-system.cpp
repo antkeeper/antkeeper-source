@@ -62,10 +62,12 @@ void locomotion_system::update_legged([[maybe_unused]] float t, float dt)
 				rigid_body.set_orientation(math::normalize(steering_rotation * rigid_body.get_orientation()));
 			}
 			
+			auto& navmesh_agent = legged_group.get<navmesh_agent_component>(entity_id);
+
+			geom::brep_face** face = std::get_if<geom::brep_face*>(&navmesh_agent.feature);
 			
 			// Traverse navmesh
-			auto& navmesh_agent = legged_group.get<navmesh_agent_component>(entity_id);
-			if (locomotion.speed != 0.0f/* && cos_target_direction >= 0.0f*/ && navmesh_agent.face)
+			if (locomotion.speed != 0.0f/* && cos_target_direction >= 0.0f*/ && face)
 			{
 				// Get agent rigid body
 				auto& agent_rigid_body = *legged_group.get<rigid_body_component>(entity_id).body;
@@ -86,25 +88,29 @@ void locomotion_system::update_legged([[maybe_unused]] float t, float dt)
 				
 				// Traverse navmesh
 				// NOTE: if the navmesh has a nonuniform scale, the traversal will be skewed
-				auto traversal = ai::traverse_navmesh(*navmesh_agent.mesh, navmesh_agent.face, traversal_start, traversal_end);
+				auto traversal = ai::traverse_navmesh(*navmesh_agent.mesh, *face, traversal_start, traversal_end);
 				
 				// Transform traversal end point from navmesh-space world-space
 				traversal.closest_point = navmesh_transform.translation + (navmesh_transform.rotation * (navmesh_transform.scale * traversal.closest_point));
 				
 				// Update navmesh agent face
-				navmesh_agent.face = traversal.face;
-				
-				// Interpolate navmesh vertex normals
-				const auto& vertex_normals = navmesh_agent.mesh->vertices().attributes().at<math::fvec3>("normal");
-				auto loop = navmesh_agent.face->loops().begin();
-				const auto& na = vertex_normals[loop->vertex()->index()];
-				const auto& nb = vertex_normals[(++loop)->vertex()->index()];
-				const auto& nc = vertex_normals[(++loop)->vertex()->index()];
-				const auto& uvw = traversal.barycentric;
-				navmesh_agent.surface_normal = math::normalize(na * uvw.x() + nb * uvw.y() + nc * uvw.z());
-				
-				// Transform surface normal from navmesh-space to world-space
-				navmesh_agent.surface_normal = math::normalize(navmesh_transform.rotation * (navmesh_agent.surface_normal / navmesh_transform.scale));
+				navmesh_agent.feature = traversal.feature;
+
+				face = std::get_if<geom::brep_face*>(&navmesh_agent.feature);
+				if (face)
+				{
+					// Interpolate navmesh vertex normals
+					const auto& vertex_normals = navmesh_agent.mesh->vertices().attributes().at<math::fvec3>("normal");
+					auto loop = (*face)->loops().begin();
+					const auto& na = vertex_normals[loop->vertex()->index()];
+					const auto& nb = vertex_normals[(++loop)->vertex()->index()];
+					const auto& nc = vertex_normals[(++loop)->vertex()->index()];
+					const auto& uvw = traversal.barycentric;
+					navmesh_agent.surface_normal = math::normalize(na * uvw.x() + nb * uvw.y() + nc * uvw.z());
+					
+					// Transform surface normal from navmesh-space to world-space
+					navmesh_agent.surface_normal = math::normalize(navmesh_transform.rotation * (navmesh_agent.surface_normal / navmesh_transform.scale));
+				}
 				
 				// const auto& face_normals = navmesh_agent.mesh->faces().attributes().at<math::fvec3>("normal");
 				// navmesh_agent.surface_normal = face_normals[navmesh_agent.face->index()];

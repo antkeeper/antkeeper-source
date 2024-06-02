@@ -6,7 +6,9 @@
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/deserialize-error.hpp>
 #include <engine/resources/deserializer.hpp>
+#include <engine/debug/log.hpp>
 #include <array>
+#include <nlohmann/json.hpp>
 
 namespace geom {
 
@@ -103,6 +105,43 @@ void brep_mesh::clear() noexcept
 
 } // namespace geom
 
+namespace
+{
+	template <class T>
+	void make_brep_attribute(geom::brep_attribute_map& attribute_map, const std::string& attribute_name, std::size_t domain_size, const auto& data_element)
+	{
+		const std::size_t vector_size = data_element.size() / domain_size;
+
+		T* attribute_data = nullptr;
+		if (vector_size == 1)
+		{
+			attribute_data = static_cast<geom::brep_attribute<T>&>(*attribute_map.emplace<T>(attribute_name)).data();
+		}
+		else if (vector_size == 2)
+		{
+			attribute_data = static_cast<geom::brep_attribute<math::vector<T, 2>>&>(*attribute_map.emplace<math::vector<T, 2>>(attribute_name)).data()->data();
+		}
+		else if (vector_size == 3)
+		{
+			attribute_data = static_cast<geom::brep_attribute<math::vector<T, 3>>&>(*attribute_map.emplace<math::vector<T, 3>>(attribute_name)).data()->data();
+		}
+		else if (vector_size == 4)
+		{
+			attribute_data = static_cast<geom::brep_attribute<math::vector<T, 4>>&>(*attribute_map.emplace<math::vector<T, 4>>(attribute_name)).data()->data();
+		}
+		else
+		{
+			throw deserialize_error(std::format("B-rep mesh attribute type has unsupported vector size ({}).", vector_size));
+		}
+
+		for (std::size_t i = 0; i < data_element.size(); ++i)
+		{
+			*attribute_data = data_element[i].get<T>();
+			++attribute_data;
+		}
+	}
+}
+
 /**
  * Deserializes a mesh.
  *
@@ -114,48 +153,129 @@ void brep_mesh::clear() noexcept
 template <>
 void deserializer<geom::brep_mesh>::deserialize(geom::brep_mesh& mesh, deserialize_context& ctx)
 {
-	// Read vertex, edge, and face counts
-	std::uint32_t vertex_count = 0;
-	std::uint32_t edge_count = 0;
-	std::uint32_t face_count = 0;
-	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&vertex_count), 1);
-	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&edge_count), 1);
-	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&face_count), 1);
-	
+	// Read file into buffer
+	std::vector<std::byte> file_buffer(ctx.size());
+	ctx.read8(file_buffer.data(), ctx.size());
+
+	// Parse msgpack from file buffer
+	const auto msgpack = nlohmann::json::from_msgpack(file_buffer.begin(), file_buffer.end());
+
+	// Validate edge data
+	const auto& edges_element = msgpack.at("edges");
+	if (edges_element.size() % 2 != 0)
+	{
+		throw deserialize_error("B-rep mesh edge data is missing a vertex.");
+	}
+
 	// Make vertices
+	const auto vertex_count = msgpack.at("vertices").get<std::size_t>();
 	for (std::size_t i = 0; i < vertex_count; ++i)
 	{
 		mesh.vertices().emplace_back();
 	}
-	
-	// Read edge vertex indices into buffer
-	std::vector<std::array<std::uint32_t, 2>> edges(edge_count);
-	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(edges.data()), edge_count * 2);
-	
+
 	// Make edges
-	for (const auto& e: edges)
+	for (std::size_t i = 0; i < edges_element.size(); i += 2)
 	{
-		mesh.edges().emplace_back(mesh.vertices()[e[0]], mesh.vertices()[e[1]]);
+		const auto vertex_a = mesh.vertices()[edges_element[i].get<std::size_t>()];
+		const auto vertex_b = mesh.vertices()[edges_element[i + 1].get<std::size_t>()];
+		mesh.edges().emplace_back(vertex_a, vertex_b);
 	}
-	edges.clear();
-	
-	// Read face vertex indices into buffer
-	std::vector<std::array<std::uint32_t, 3>> faces(face_count);
-	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(faces.data()), face_count * 3);
-	
+
 	// Make faces
-	for (const auto& f: faces)
+	for (const auto& face_element: msgpack.at("faces"))
 	{
-		geom::brep_vertex* vertices[3] = {mesh.vertices()[f[0]], mesh.vertices()[f[1]], mesh.vertices()[f[2]]};
+		std::vector<geom::brep_vertex*> vertices(face_element.size(), nullptr);
+		for (std::size_t i = 0; i < face_element.size(); ++i)
+		{
+			vertices[i] = mesh.vertices()[face_element[i].get<std::size_t>()];
+		}
+
 		mesh.faces().emplace_back(vertices);
 	}
-	faces.clear();
-	
-	// Make vertex attributes
-	auto& vertex_positions = static_cast<geom::brep_attribute<math::fvec3>&>(*mesh.vertices().attributes().emplace<math::fvec3>("position"));
-	
-	// Read vertex attributes
-	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(vertex_positions.data()), vertex_count * 3);
+
+	// Attributes
+	if (auto attributes_element = msgpack.find("attributes"); attributes_element != msgpack.end())
+	{
+		for (const auto& [attribute_name, attribute_element]: attributes_element->items())
+		{
+			const auto& attribute_type = attribute_element.at("type").get_ref<const std::string&>();
+			const auto& attribute_domain = attribute_element.at("domain").get_ref<const std::string&>();
+			const auto& attribute_data_element = attribute_element.at("data");
+
+			std::size_t domain_size = 0;
+			geom::brep_attribute_map* domain_attribute_map = nullptr;
+			if (attribute_domain == "vertex")
+			{
+				domain_size = mesh.vertices().size();
+				domain_attribute_map = &mesh.vertices().attributes();
+			}
+			else if (attribute_domain == "edge")
+			{
+				domain_size = mesh.edges().size();
+				domain_attribute_map = &mesh.edges().attributes();
+			}
+			else if (attribute_domain == "loop")
+			{
+				domain_size = mesh.loops().size();
+				domain_attribute_map = &mesh.loops().attributes();
+			}
+			else if (attribute_domain == "face")
+			{
+				domain_size = mesh.faces().size();
+				domain_attribute_map = &mesh.faces().attributes();
+			}
+			else
+			{
+				throw deserialize_error(std::format("B-rep mesh attribute has unsupported domain (\"{}\").", attribute_domain));
+			}
+			
+			if (attribute_type == "float64")
+			{
+				make_brep_attribute<double>(*domain_attribute_map, attribute_name, domain_size, attribute_data_element);
+			}
+			else if (attribute_type == "float32")
+			{
+				make_brep_attribute<float>(*domain_attribute_map, attribute_name, domain_size, attribute_data_element);
+			}
+			else if (attribute_type == "uint64")
+			{
+				make_brep_attribute<std::uint64_t>(*domain_attribute_map, attribute_name, domain_size, attribute_data_element);
+			}
+			else if (attribute_type == "uint32")
+			{
+				make_brep_attribute<std::uint32_t>(*domain_attribute_map, attribute_name, domain_size, attribute_data_element);
+			}
+			else if (attribute_type == "uint16")
+			{
+				make_brep_attribute<std::uint16_t>(*domain_attribute_map, attribute_name, domain_size, attribute_data_element);
+			}
+			else if (attribute_type == "uint8")
+			{
+				make_brep_attribute<std::uint8_t>(*domain_attribute_map, attribute_name, domain_size, attribute_data_element);
+			}
+			else if (attribute_type == "int64")
+			{
+				make_brep_attribute<std::int64_t>(*domain_attribute_map, attribute_name, domain_size, attribute_data_element);
+			}
+			else if (attribute_type == "int32")
+			{
+				make_brep_attribute<std::int32_t>(*domain_attribute_map, attribute_name, domain_size, attribute_data_element);
+			}
+			else if (attribute_type == "int16")
+			{
+				make_brep_attribute<std::int16_t>(*domain_attribute_map, attribute_name, domain_size, attribute_data_element);
+			}
+			else if (attribute_type == "int8")
+			{
+				make_brep_attribute<std::int8_t>(*domain_attribute_map, attribute_name, domain_size, attribute_data_element);
+			}
+			else
+			{
+				throw deserialize_error(std::format("B-rep mesh attribute has unsupported type (\"{}\").", attribute_type));
+			}
+		}
+	}
 }
 
 template <>

@@ -5,18 +5,18 @@
 #define ANTKEEPER_AI_NAVMESH_HPP
 
 #include <engine/geom/brep/brep-mesh.hpp>
+#include <engine/geom/brep/brep-feature.hpp>
 #include <engine/geom/primitives/point.hpp>
 #include <engine/geom/primitives/ray.hpp>
 #include <engine/geom/coordinates.hpp>
-#include <vector>
 #include <engine/math/vector.hpp>
+#include <vector>
 
 namespace ai {
 
 struct navmesh_traversal
 {
-	geom::brep_face* face;
-	geom::brep_edge* edge;
+	geom::brep_feature feature;
 	geom::point<float, 3> barycentric;
 	
 	geom::point<float, 3> target_point;

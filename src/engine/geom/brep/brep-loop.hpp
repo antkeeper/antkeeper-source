@@ -38,31 +38,31 @@ public:
 		return m_index;
 	}
 	
-	/// Returns a pointer to the loop vertex.
+	/** Returns a pointer to the loop vertex. */
 	[[nodiscard]] inline constexpr brep_vertex* vertex() const noexcept
 	{
 		return m_vertex;
 	}
 	
-	/// Returns a pointer to the loop edge.
+	/** Returns a pointer to the loop edge. */
 	[[nodiscard]] inline constexpr brep_edge* edge() const noexcept
 	{
 		return m_edge;
 	}
 	
-	/// Returns a pointer to the loop face.
+	/** Returns a pointer to the loop face. */
 	[[nodiscard]] inline constexpr brep_face* face() const noexcept
 	{
 		return m_face;
 	}
 	
-	/// Returns a pointer to the next loop.
+	/** Returns a pointer to the next loop. */
 	[[nodiscard]] inline constexpr brep_loop* next() const noexcept
 	{
 		return m_face_next;
 	}
 	
-	/// Returns a pointer to the previous loop.
+	/** Returns a pointer to the previous loop. */
 	[[nodiscard]] inline constexpr brep_loop* previous() const noexcept
 	{
 		return m_face_previous;

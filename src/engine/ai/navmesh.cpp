@@ -17,7 +17,6 @@ navmesh_traversal traverse_navmesh(const geom::brep_mesh& mesh, geom::brep_face*
 	
 	// Init traversal result
 	navmesh_traversal traversal;
-	traversal.edge = nullptr;
 	
 	geom::triangle_region region;
 	
@@ -62,7 +61,7 @@ navmesh_traversal traverse_navmesh(const geom::brep_mesh& mesh, geom::brep_face*
 			if (closest_loop->edge()->loops().size() == 1)
 			{
 				// Abort traversal
-				traversal.edge = closest_loop->edge();
+				traversal.feature = closest_loop->edge();
 				break;
 			}
 		}
@@ -83,7 +82,7 @@ navmesh_traversal traverse_navmesh(const geom::brep_mesh& mesh, geom::brep_face*
 				if (loop->edge()->loops().size() == 1)
 				{
 					// Abort traversal
-					traversal.edge = loop->edge();
+					traversal.feature = loop->edge();
 					break;
 				}
 				
@@ -133,7 +132,7 @@ navmesh_traversal traverse_navmesh(const geom::brep_mesh& mesh, geom::brep_face*
 		if (closest_edge == previous_closest_edge)
 		{
 			// Abort traversal
-			traversal.edge = closest_edge;
+			traversal.feature = closest_edge;
 			break;
 		}
 		
@@ -164,7 +163,7 @@ navmesh_traversal traverse_navmesh(const geom::brep_mesh& mesh, geom::brep_face*
 	}
 	while (true);
 	
-	traversal.face = face;
+	traversal.feature = face;
 	traversal.target_point = target_point;
 	traversal.closest_point = closest_point;
 	

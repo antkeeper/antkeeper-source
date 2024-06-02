@@ -16,7 +16,7 @@
 #include "game/states/extras-menu-state.hpp"
 #include "game/states/nuptial-flight-state.hpp"
 #include "game/states/options-menu-state.hpp"
-#include "game/states/experiments/treadmill-experiment-state.hpp"
+#include "game/states/experiments/test-state.hpp"
 #include "game/strings.hpp"
 #include "game/world.hpp"
 #include "game/debug/shell.hpp"
@@ -114,7 +114,7 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 				[&ctx]()
 				{
 					ctx.state_machine.pop();
-					ctx.state_machine.emplace(std::make_unique<treadmill_experiment_state>(ctx));
+					ctx.state_machine.emplace(std::make_unique<test_state>(ctx));
 				}
 			);
 		};

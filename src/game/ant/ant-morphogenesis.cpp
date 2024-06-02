@@ -452,7 +452,7 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	const ::skeleton* ocelli_skeleton = (phenome.ocelli->lateral_ocelli_present || phenome.ocelli->median_ocellus_present) ? &phenome.ocelli->model->get_skeleton() : nullptr;
 	const ::skeleton* wings_skeleton = (phenome.wings->present) ? &phenome.wings->model->get_skeleton() : nullptr;
 	
-	auto get_bone_transform = [](const ::skeleton& skeleton, hash::fnv1a32_t bone_name)
+	auto get_bone_transform = [](const ::skeleton& skeleton, const std::string& bone_name)
 	{
 		return skeleton.get_rest_pose().get_relative_transform(*skeleton.get_bone_index(bone_name));
 	};
@@ -591,11 +591,8 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 		const std::string antennomere_l_name = std::format("antennomere{}_l", i);
 		const std::string antennomere_r_name = std::format("antennomere{}_r", i);
 		
-		const hash::fnv1a32_t antennomere_l_key = hash::fnv1a32<char>(antennomere_l_name);
-		const hash::fnv1a32_t antennomere_r_key = hash::fnv1a32<char>(antennomere_r_name);
-		
-		antennae_reskin_map.emplace(*antennae_skeleton.get_bone_index(antennomere_l_key), std::tuple(bones.antennomere2_l, &antenna_l_to_body));
-		antennae_reskin_map.emplace(*antennae_skeleton.get_bone_index(antennomere_r_key), std::tuple(bones.antennomere2_r, &antenna_r_to_body));
+		antennae_reskin_map.emplace(*antennae_skeleton.get_bone_index(antennomere_l_name), std::tuple(bones.antennomere2_l, &antenna_l_to_body));
+		antennae_reskin_map.emplace(*antennae_skeleton.get_bone_index(antennomere_r_name), std::tuple(bones.antennomere2_r, &antenna_r_to_body));
 	}
 	
 	// Build waist vertex reskin map

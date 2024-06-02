@@ -17,9 +17,7 @@ namespace geom {
 class brep_mesh
 {
 public:
-	/**
-	 * Constructs an empty mesh.
-	 */
+	/** Constructs an empty mesh. */
 	brep_mesh() noexcept;
 	
 	/**
@@ -41,15 +39,15 @@ public:
 	/// @name Modifiers
 	/// @{
 	
-	/// Erases all vertices, edges, loops, and faces.
+	/** Erases all vertices, edges, loops, and faces. */
 	void clear() noexcept;
 	
 	/// @}
 	/// @name Element access
 	/// @{
 	
-	/// Returns the mesh vertices.
 	/// @{
+	/** Returns the mesh vertices. */
 	[[nodiscard]] inline const brep_vertex_container& vertices() const noexcept
 	{
 		return m_vertices;
@@ -60,8 +58,8 @@ public:
 	}
 	///@}
 	
-	/// Returns the mesh edges.
 	/// @{
+	/** Returns the mesh edges. */
 	[[nodiscard]] inline const brep_edge_container& edges() const noexcept
 	{
 		return m_edges;
@@ -72,8 +70,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns the mesh loops.
 	/// @{
+	/** Returns the mesh loops. */
 	[[nodiscard]] inline const brep_loop_container& loops() const noexcept
 	{
 		return m_loops;
@@ -84,8 +82,8 @@ public:
 	}
 	/// @}
 	
-	/// Returns the mesh faces.
 	/// @{
+	/** Returns the mesh faces. */
 	[[nodiscard]] inline const brep_face_container& faces() const noexcept
 	{
 		return m_faces;

@@ -28,7 +28,7 @@ void generate_ant_rest_pose(::skeleton& skeleton, const ant_bone_set& bones, con
 	const ::skeleton* sting_skeleton = (phenome.sting->present) ? &phenome.sting->model->get_skeleton() : nullptr;
 	const ::skeleton* wings_skeleton = (phenome.wings->present) ? &phenome.wings->model->get_skeleton() : nullptr;
 	
-	auto get_bone_transform = [](const ::skeleton& skeleton, hash::fnv1a32_t bone_name)
+	auto get_bone_transform = [](const ::skeleton& skeleton, const std::string& bone_name)
 	{
 		return skeleton.get_rest_pose().get_relative_transform(*skeleton.get_bone_index(bone_name));
 	};
