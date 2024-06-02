@@ -73,7 +73,7 @@ constexpr T desegregate(T x) noexcept;
  *
  * @param x First value.
  * @param y Second value.
- * @return Hamming distance between @px and @p y.
+ * @return Hamming distance between @p x and @p y.
  */	
 template <class T>
 constexpr int difference(T x, T y) noexcept;

@@ -4,10 +4,10 @@
 #ifndef ANTKEEPER_GEOM_BREP_MESH_HPP
 #define ANTKEEPER_GEOM_BREP_MESH_HPP
 
-#include <engine/geom/brep/brep-vertex.hpp>
-#include <engine/geom/brep/brep-edge.hpp>
-#include <engine/geom/brep/brep-loop.hpp>
-#include <engine/geom/brep/brep-face.hpp>
+#include <engine/geom/brep/brep-vertex-container.hpp>
+#include <engine/geom/brep/brep-edge-container.hpp>
+#include <engine/geom/brep/brep-loop-container.hpp>
+#include <engine/geom/brep/brep-face-container.hpp>
 
 namespace geom {
 

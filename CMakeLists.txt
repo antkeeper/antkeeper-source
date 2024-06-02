@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2023 C. J. Howard
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-
 # Prevent in-source builds
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 	message(FATAL_ERROR "In-source builds prohibited.")

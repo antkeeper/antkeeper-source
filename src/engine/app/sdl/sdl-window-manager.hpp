@@ -6,16 +6,16 @@
 
 #include <engine/app/window-manager.hpp>
 #include <engine/app/display.hpp>
-#include <SDL2/SDL.h>
 #include <unordered_map>
 #include <vector>
+#include <SDL2/SDL.h>
 
 namespace app {
 
 class sdl_window;
 
 /**
- * 
+ * SDL-based window manager.
  */
 class sdl_window_manager: public window_manager
 {
@@ -32,7 +32,6 @@ public:
 	
 	void update() override;
 	
-	/// @copydoc window::window()
 	[[nodiscard]] std::shared_ptr<window> create_window
 	(
 		const std::string& title,
@@ -44,6 +43,7 @@ public:
 	) override;
 	
 	[[nodiscard]] std::size_t get_display_count() const override;
+
 	[[nodiscard]] const display& get_display(std::size_t index) const override;
 	
 private:

@@ -345,6 +345,7 @@ struct vector
 };
 
 /// @name Tuple-like interface
+/// @relates vector
 /// @{
 /**
  * Extracts the *i*-th element from a vector using a tuple-like interface.

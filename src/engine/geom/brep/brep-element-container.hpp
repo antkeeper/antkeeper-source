@@ -5,7 +5,6 @@
 #define ANTKEEPER_GEOM_BREP_ELEMENT_CONTAINER_HPP
 
 #include <engine/geom/brep/brep-attribute-map.hpp>
-#include <engine/hash/fnv1a.hpp>
 #include <cstddef>
 #include <iterator>
 #include <memory>
@@ -21,8 +20,6 @@ template <class T>
 class brep_element_container
 {
 public:
-	friend class brep_mesh;
-	
 	using element_type = T;
 	
 	struct const_iterator
@@ -133,6 +130,20 @@ public:
 	
 	/// @name Element access
 	/// @{
+
+	/**
+	 * Returns a pointer to the element at the specified index, with bounds checking.
+	 *
+	 * @param i Index of an element.
+	 *
+	 * @return Pointer to the element at index @p i.
+	 *
+	 * @exception std::out_of_range if @p i >= size().
+	 */
+	[[nodiscard]] inline constexpr element_type* at(std::size_t i) const
+	{
+		return m_elements.at(i).get();
+	}
 	
 	/**
 	 * Returns a pointer to the element at the specified index.
