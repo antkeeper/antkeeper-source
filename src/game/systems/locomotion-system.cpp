@@ -146,38 +146,38 @@ void locomotion_system::update_legged([[maybe_unused]] float t, float dt)
 					float step_phase = locomotion.gait->steps[i].phase(locomotion.gait_phase);
 					
 					// Determine leg pose
-					const ::pose* pose_a;
-					const ::pose* pose_b;
+					const skeleton_pose* pose_a;
+					const skeleton_pose* pose_b;
 					float t;
 					if (step_phase < 0.0f)
 					{
-						pose_b = locomotion.touchdown_pose;
-						pose_a = locomotion.liftoff_pose;
+						pose_b = locomotion.touchdown_pose.get();
+						pose_a = locomotion.liftoff_pose.get();
 						t = std::abs(step_phase);
 					}
 					else
 					{
 						if (step_phase < 0.5f)
 						{
-							pose_a = locomotion.liftoff_pose;
-							pose_b = locomotion.midswing_pose;
+							pose_a = locomotion.liftoff_pose.get();
+							pose_b = locomotion.midswing_pose.get();
 							t = step_phase * 2.0f;
 						}
 						else
 						{
-							pose_a = locomotion.midswing_pose;
-							pose_b = locomotion.touchdown_pose;
+							pose_a = locomotion.midswing_pose.get();
+							pose_b = locomotion.touchdown_pose.get();
 							t = (step_phase - 0.5f) * 2.0f;
 						}
 					}
 					
 					// Update leg bones
-					bone_index_type bone_index = locomotion.tip_bones[i];
+					auto bone_index = locomotion.tip_bones[i];
 					for (std::uint8_t j = 0; j < locomotion.leg_bone_count; ++j)
 					{
 						if (j)
 						{
-							bone_index = pose_component.current_pose.get_skeleton()->get_bone_parent(bone_index);
+							bone_index = pose_component.current_pose.get_skeleton()->bones()[bone_index].parent()->index();
 						}
 						
 						// Update previous pose of leg bone
@@ -191,8 +191,6 @@ void locomotion_system::update_legged([[maybe_unused]] float t, float dt)
 						pose_component.current_pose.set_relative_transform(bone_index, transform);
 					}
 				}
-				
-				pose_component.current_pose.update();
 			}
 			
 			// Apply locomotive force

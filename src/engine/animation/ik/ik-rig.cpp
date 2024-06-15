@@ -5,10 +5,10 @@
 
 ik_rig::ik_rig(scene::skeletal_mesh& skeletal_mesh):
 	m_skeletal_mesh(&skeletal_mesh),
-	m_constraints(skeletal_mesh.get_pose().get_skeleton()->get_bone_count())
+	m_constraints(skeletal_mesh.get_pose().get_skeleton()->bones().size())
 {}
 
-void ik_rig::set_constraint(bone_index_type index, std::shared_ptr<ik_constraint> constraint)
+void ik_rig::set_constraint(std::size_t index, std::shared_ptr<ik_constraint> constraint)
 {
 	m_constraints[index] = std::move(constraint);
 }

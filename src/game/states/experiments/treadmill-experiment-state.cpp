@@ -6,6 +6,7 @@
 #include "game/ant/ant-cladogenesis.hpp"
 #include "game/ant/ant-genome.hpp"
 #include "game/ant/ant-morphogenesis.hpp"
+#include "game/ant/ant-skeleton.hpp"
 #include "game/ant/ant-phenome.hpp"
 #include "game/commands/commands.hpp"
 #include "game/components/pose-component.hpp"
@@ -209,16 +210,16 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	auto mesocoxa_ik_constraint = std::make_shared<euler_ik_constraint>();
 	mesocoxa_ik_constraint->set_min_angles({-math::pi<float>, -math::pi<float>, -math::pi<float>});
 	mesocoxa_ik_constraint->set_max_angles({ math::pi<float>,  math::pi<float>,  math::pi<float>});
-	worker_ik_rig->set_constraint(*worker_skeleton.get_bone_index("mesocoxa_l"), std::move(mesocoxa_ik_constraint));
+	worker_ik_rig->set_constraint(worker_skeleton.bones().at("mesocoxa_l").index(), std::move(mesocoxa_ik_constraint));
 	
 	// Pose worker
-	worker_skeletal_mesh->get_pose() = *worker_model->get_skeleton().get_pose("midswing");
+	worker_skeletal_mesh->get_pose() = worker_model->get_skeleton().rest_pose();
 	
 	worker_eid = ctx.entity_registry->create();
 
 
 	pose_component worker_pose_component;
-	worker_pose_component.current_pose = worker_skeletal_mesh->get_skeleton()->get_rest_pose();
+	worker_pose_component.current_pose = worker_skeletal_mesh->get_skeleton()->rest_pose();
 	worker_pose_component.previous_pose = worker_pose_component.current_pose;
 	
 
@@ -235,19 +236,19 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	worker_rigid_body_component.body->set_transform(rigid_body_transform);
 	
 	legged_locomotion_component worker_locomotion_component;
-	worker_locomotion_component.midstance_pose = worker_model->get_skeleton().get_pose("midstance");
-	worker_locomotion_component.midswing_pose = worker_model->get_skeleton().get_pose("midswing");
-	worker_locomotion_component.liftoff_pose = worker_model->get_skeleton().get_pose("liftoff");
-	worker_locomotion_component.touchdown_pose = worker_model->get_skeleton().get_pose("touchdown");
-	worker_locomotion_component.body_bone = *worker_skeleton.get_bone_index("mesosoma");
+	worker_locomotion_component.midstance_pose = generate_ant_midstance_pose(worker_model->get_skeleton());
+	worker_locomotion_component.midswing_pose = generate_ant_midswing_pose(worker_model->get_skeleton());
+	worker_locomotion_component.liftoff_pose = generate_ant_liftoff_pose(worker_model->get_skeleton());
+	worker_locomotion_component.touchdown_pose = generate_ant_touchdown_pose(worker_model->get_skeleton());
+	worker_locomotion_component.body_bone = worker_skeleton.bones().at("mesosoma").index();
 	worker_locomotion_component.tip_bones =
 	{
-		*worker_skeleton.get_bone_index("protarsomere1_l"),
-		*worker_skeleton.get_bone_index("mesotarsomere1_l"),
-		*worker_skeleton.get_bone_index("metatarsomere1_l"),
-		*worker_skeleton.get_bone_index("protarsomere1_r"),
-		*worker_skeleton.get_bone_index("mesotarsomere1_r"),
-		*worker_skeleton.get_bone_index("metatarsomere1_r")
+		worker_skeleton.bones().at("protarsomere1_l").index(),
+		worker_skeleton.bones().at("mesotarsomere1_l").index(),
+		worker_skeleton.bones().at("metatarsomere1_l").index(),
+		worker_skeleton.bones().at("protarsomere1_r").index(),
+		worker_skeleton.bones().at("mesotarsomere1_r").index(),
+		worker_skeleton.bones().at("metatarsomere1_r").index()
 	};
 	worker_locomotion_component.leg_bone_count = 4;
 	worker_locomotion_component.gait = std::make_shared<::gait>();
@@ -270,7 +271,7 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	worker_ovary_component.egg_capacity = 4;
 	worker_ovary_component.egg_production_duration = 1.0f;
 	worker_ovary_component.oviposition_duration = 3.0f;
-	worker_ovary_component.ovipositor_bone = *worker_skeleton.get_bone_index("gaster");
+	worker_ovary_component.ovipositor_bone = worker_skeleton.bones().at("gaster").index();
 	worker_ovary_component.oviposition_path = {{0.0f, -0.141708f, -0.799793f}, {0.0f, -0.187388f, -1.02008f}};
 	
 	ctx.entity_registry->emplace<scene_component>(worker_eid, std::move(worker_skeletal_mesh), std::uint8_t{1});

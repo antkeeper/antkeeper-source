@@ -5,8 +5,10 @@
 #define ANTKEEPER_GAME_ANT_SKELETON_HPP
 
 #include <engine/animation/skeleton.hpp>
+#include <engine/animation/skeleton-pose.hpp>
 #include "game/ant/ant-phenome.hpp"
 #include "game/ant/ant-bone-set.hpp"
+#include <memory>
 
 /**
  * Generates a skeleton for an ant model.
@@ -64,6 +66,12 @@
  *
  * * pupa
  */
-void generate_ant_skeleton(skeleton& skeleton, ant_bone_set& bones, const ant_phenome& phenome);
+void generate_ant_skeleton(::skeleton& skeleton, ant_bone_set& bones, const ant_phenome& phenome);
+
+[[nodiscard]] std::unique_ptr<skeleton_pose> generate_ant_midstance_pose(::skeleton& skeleton);
+[[nodiscard]] std::unique_ptr<skeleton_pose> generate_ant_midswing_pose(::skeleton& skeleton);
+[[nodiscard]] std::unique_ptr<skeleton_pose> generate_ant_liftoff_pose(::skeleton& skeleton);
+[[nodiscard]] std::unique_ptr<skeleton_pose> generate_ant_touchdown_pose(::skeleton& skeleton);
+[[nodiscard]] std::unique_ptr<skeleton_pose> generate_ant_pupa_pose(::skeleton& skeleton);
 
 #endif // ANTKEEPER_GAME_ANT_SKELETON_HPP

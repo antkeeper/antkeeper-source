@@ -287,7 +287,7 @@ void material_pass::render(render::context& ctx)
 		model_view = view_rotation * model_view;
 		// model_view = (*view) * (*model);
 		
-		matrix_palette = operation->matrix_palette;
+		skinning_matrices = operation->skinning_matrices;
 		
 		// Update geometry-dependent shader variables
 		for (const auto& command: active_cache_entry->geometry_command_buffer)
@@ -842,10 +842,10 @@ void material_pass::build_geometry_command_buffer(std::vector<std::function<void
 		command_buffer.emplace_back([&, model_view_projection_var](){model_view_projection_var->update((*projection) * model_view);});
 	}
 	
-	// Update matrix palette variable
-	if (auto matrix_palette_var = shader_program.variable("matrix_palette"))
+	// Update skinning matrices variable
+	if (auto skinning_matrices_var = shader_program.variable("skinning_matrices"))
 	{
-		command_buffer.emplace_back([&, matrix_palette_var](){matrix_palette_var->update(matrix_palette);});
+		command_buffer.emplace_back([&, skinning_matrices_var](){skinning_matrices_var->update(skinning_matrices);});
 	}
 }
 

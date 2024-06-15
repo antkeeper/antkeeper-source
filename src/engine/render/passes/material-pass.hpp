@@ -138,7 +138,7 @@ private:
 	
 	// Geometry
 	const math::fmat4* model;
-	std::span<const math::fmat4> matrix_palette;
+	std::span<const math::fmat4> skinning_matrices;
 	
 	/// Hash of the lighting state.
 	std::size_t lighting_state_hash;

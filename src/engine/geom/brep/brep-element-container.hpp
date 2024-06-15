@@ -173,7 +173,6 @@ public:
 	/// @name Iterators
 	/// @{
 	
-	/// @{
 	/** Returns an iterator to the first element. */
 	[[nodiscard]] inline constexpr const_iterator begin() const noexcept
 	{
@@ -181,13 +180,13 @@ public:
 		it.m_it = m_elements.begin();
 		return it;
 	}
+
+	/** @copydoc begin() */
 	[[nodiscard]] inline constexpr const_iterator cbegin() const noexcept
 	{
 		return begin();
 	}
-	/// @}
 	
-	/// @{
 	/** Returns an iterator to the element following the last element. */
 	[[nodiscard]] inline constexpr const_iterator end() const noexcept
 	{
@@ -195,35 +194,36 @@ public:
 		it.m_it = m_elements.end();
 		return it;
 	}
+
+	/** @copydoc end() */
 	[[nodiscard]] inline constexpr const_iterator cend() const noexcept
 	{
 		return end();
 	}
-	/// @}
 	
-	/// @{
 	/** Returns a reverse iterator to the first element of the reversed container. */
 	[[nodiscard]] inline constexpr const_reverse_iterator rbegin() const noexcept
 	{
 		return std::make_reverse_iterator(end());
 	}
+
+	/** @copydoc rbegin() */
 	[[nodiscard]] inline constexpr const_reverse_iterator crbegin() const noexcept
 	{
 		return rbegin();
 	}
-	/// @}
 	
-	/// @{
 	/** Returns a reverse iterator to the element following the last element of the reversed container. */
 	[[nodiscard]] inline constexpr const_reverse_iterator rend() const noexcept
 	{
 		return std::make_reverse_iterator(begin());
 	}
+
+	/** @copydoc rend() */
 	[[nodiscard]] inline constexpr const_reverse_iterator crend() const noexcept
 	{
 		return rend();
 	}
-	/// @}
 	
 	/// @}
 	/// @name Capacity
@@ -245,17 +245,17 @@ public:
 	/// @name Attributes
 	/// @{
 	
-	/// @{
 	/** Returns the element attribute map. */
-	[[nodiscard]] const brep_attribute_map& attributes() const noexcept
-	{
-		return m_attribute_map;
-	}
 	[[nodiscard]] brep_attribute_map& attributes() noexcept
 	{
 		return m_attribute_map;
 	}
-	/// @}
+
+	/** @copydoc attributes() */
+	[[nodiscard]] const brep_attribute_map& attributes() const noexcept
+	{
+		return m_attribute_map;
+	}
 	
 	/// @}
 	

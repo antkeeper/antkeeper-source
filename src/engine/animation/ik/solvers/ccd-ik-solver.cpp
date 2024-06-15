@@ -6,7 +6,7 @@
 #include <engine/debug/log.hpp>
 #include <stdexcept>
 
-ccd_ik_solver::ccd_ik_solver(ik_rig& ik_rig, bone_index_type root_bone_index, bone_index_type effector_bone_index):
+ccd_ik_solver::ccd_ik_solver(ik_rig& ik_rig, std::size_t root_bone_index, std::size_t effector_bone_index):
 	m_ik_rig{&ik_rig}
 {
 	// Get reference to skeleton
@@ -14,15 +14,15 @@ ccd_ik_solver::ccd_ik_solver(ik_rig& ik_rig, bone_index_type root_bone_index, bo
 	
 	// Validate and count number of bones in bone chain
 	std::size_t bone_count = 1;
-	for (bone_index_type bone_index = effector_bone_index; bone_index != root_bone_index; ++bone_count)
+	for (auto bone_index = effector_bone_index; bone_index != root_bone_index; ++bone_count)
 	{
-		const auto parent_bone = skeleton.get_bone_parent(bone_index);
-		if (parent_bone == bone_index)
+		const auto parent_bone = skeleton.bones()[bone_index].parent();
+		if (!parent_bone)
 		{
 			throw std::invalid_argument("Invalid bone chain");
 		}
 		
-		bone_index = parent_bone;
+		bone_index = parent_bone->index();
 	}
 	
 	// Allocate and store bone indices
@@ -30,7 +30,7 @@ ccd_ik_solver::ccd_ik_solver(ik_rig& ik_rig, bone_index_type root_bone_index, bo
 	m_bone_indices.front() = effector_bone_index;
 	for (std::size_t i = 1; i < bone_count; ++i)
 	{
-		m_bone_indices[i] = skeleton.get_bone_parent(m_bone_indices[i - 1]);
+		m_bone_indices[i] = skeleton.bones()[m_bone_indices[i - 1]].parent()->index();
 	}
 }
 
@@ -84,10 +84,6 @@ void ccd_ik_solver::solve()
 			
 			// Rotate current bone
 			pose.set_relative_rotation(bone_index, bone_rotation);
-			
-			// Update pose
-			//pose.update(bone_index, j + 1);
-			pose.update();
 		}
 	}
 }

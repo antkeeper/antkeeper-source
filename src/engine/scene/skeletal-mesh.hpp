@@ -7,7 +7,7 @@
 #include <engine/scene/object.hpp>
 #include <engine/render/model.hpp>
 #include <engine/render/operation.hpp>
-#include <engine/animation/animation-pose.hpp>
+#include <engine/animation/skeleton-pose.hpp>
 #include <vector>
 
 namespace scene {
@@ -74,14 +74,14 @@ public:
 		return m_pose.get_skeleton();
 	}
 	
-	/// Returns the animation pose of the skeletal mesh.
+	/// Returns the pose of the skeletal mesh.
 	/// @{
-	[[nodiscard]] inline const animation_pose& get_pose() const noexcept
+	[[nodiscard]] inline const skeleton_pose& get_pose() const noexcept
 	{
 		return m_pose;
 	}
 	
-	[[nodiscard]] inline animation_pose& get_pose() noexcept
+	[[nodiscard]] inline skeleton_pose& get_pose() noexcept
 	{
 		return m_pose;
 	}
@@ -94,7 +94,7 @@ private:
 	std::shared_ptr<render::model> m_model;
 	mutable std::vector<render::operation> m_operations;
 	aabb_type m_bounds{{0, 0, 0}, {0, 0, 0}};
-	animation_pose m_pose;
+	skeleton_pose m_pose;
 };
 
 } // namespace scene

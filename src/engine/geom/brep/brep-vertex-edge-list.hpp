@@ -118,7 +118,6 @@ public:
 	/// @name Iterators
 	/// @{
 	
-	/// @{
 	/** Returns an iterator to the first edge. */
 	[[nodiscard]] inline constexpr const_iterator begin() const noexcept
 	{
@@ -129,13 +128,13 @@ public:
 		
 		return it;
 	}
+
+	/** @copydoc begin() */
 	[[nodiscard]] inline constexpr const_iterator cbegin() const noexcept
 	{
 		return begin();
 	}
-	/// @}
 	
-	/// @{
 	/** Returns an iterator to the edge following the last edge. */
 	[[nodiscard]] inline constexpr const_iterator end() const noexcept
 	{
@@ -146,35 +145,36 @@ public:
 		
 		return it;
 	}
+
+	/** @copydoc end() */
 	[[nodiscard]] inline constexpr const_iterator cend() const noexcept
 	{
 		return end();
 	}
-	/// @}
 	
-	/// @{
 	/** Returns a reverse iterator to the first edge of the reversed list. */
 	[[nodiscard]] inline constexpr const_reverse_iterator rbegin() const noexcept
 	{
 		return std::make_reverse_iterator(end());
 	}
+
+	/** @copydoc rbegin() */
 	[[nodiscard]] inline constexpr const_reverse_iterator crbegin() const noexcept
 	{
 		return rbegin();
 	}
-	/// @}
 	
-	/// @{
 	/** Returns a reverse iterator to the edge following the last edge of the reversed list. */
 	[[nodiscard]] inline constexpr const_reverse_iterator rend() const noexcept
 	{
 		return std::make_reverse_iterator(begin());
 	}
+
+	/** @copydoc rend() */
 	[[nodiscard]] inline constexpr const_reverse_iterator crend() const noexcept
 	{
 		return rend();
 	}
-	/// @}
 	
 	/// @}
 	/// @name Capacity

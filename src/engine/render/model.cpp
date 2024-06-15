@@ -7,6 +7,7 @@
 #include <engine/render/vertex-attribute-location.hpp>
 #include <engine/math/constants.hpp>
 #include <engine/hash/fnv1a.hpp>
+#include <engine/debug/log.hpp>
 #include <bit>
 #include <cstdint>
 
@@ -321,49 +322,53 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 		std::uint16_t bone_count = 0;
 		ctx->read16<std::endian::little>(reinterpret_cast<std::byte*>(&bone_count), 1);
 		
-		// Resize skeleton
-		skeleton.add_bones(bone_count);
-		
+		// Allocate bones
+		skeleton = ::skeleton(bone_count);
+
 		// Read bones
-		for (std::uint16_t i = 0; i < bone_count; ++i)
+		for (auto& bone: skeleton.bones())
 		{
 			// Read bone name length
 			std::uint8_t bone_name_length = 0;
 			ctx->read8(reinterpret_cast<std::byte*>(&bone_name_length), 1);
 
-			// Read material name
+			// Read bone name
 			std::string bone_name(static_cast<std::size_t>(bone_name_length), '\0');
 			ctx->read8(reinterpret_cast<std::byte*>(bone_name.data()), bone_name_length);
 			
 			// Read bone parent index
-			std::uint16_t bone_parent_index = i;
+			std::uint16_t bone_parent_index = 0;
 			ctx->read16<std::endian::little>(reinterpret_cast<std::byte*>(&bone_parent_index), 1);
 			
-			// Construct bone transform
-			bone_transform_type bone_transform;
+			// Construct bone pose
+			math::transform<float> bone_pose;
 			
 			// Read bone translation
-			ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(bone_transform.translation.data()), 3);
+			ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(bone_pose.translation.data()), 3);
 			
 			// Read bone rotation
-			ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_transform.rotation.r), 1);
-			ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(bone_transform.rotation.i.data()), 3);
+			ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_pose.rotation.r), 1);
+			ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(bone_pose.rotation.i.data()), 3);
 			
 			// Set bone scale
-			bone_transform.scale = {1, 1, 1};
+			bone_pose.scale = {1, 1, 1};
 			
 			// Read bone length
 			float bone_length = 0.0f;
 			ctx->read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_length), 1);
-			
-			// Set bone properties
-			skeleton.set_bone_name(i, bone_name);
-			skeleton.set_bone_parent(i, bone_parent_index);
-			skeleton.set_bone_transform(i, bone_transform);
+
+			// Construct bone
+			bone.rename(bone_name);
+			bone.length() = bone_length;
+			if (bone.index() != bone_parent_index)
+			{
+				bone.reparent(&skeleton.bones().at(bone_parent_index));
+			}
+			skeleton.rest_pose().set_relative_transform(bone.index(), bone_pose);
 		}
-		
-		// Update skeleton's rest pose
-		skeleton.update_rest_pose();
+
+		// Update rest pose
+		skeleton.rest_pose().update();
 	}
 	
 	return model;

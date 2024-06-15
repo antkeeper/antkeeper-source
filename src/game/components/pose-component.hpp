@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_POSE_COMPONENT_HPP
 #define ANTKEEPER_GAME_POSE_COMPONENT_HPP
 
-#include <engine/animation/pose.hpp>
+#include <engine/animation/skeleton-pose.hpp>
 
 /**
  * 
@@ -12,10 +12,10 @@
 struct pose_component
 {
 	/// Pose of the current state.
-	pose current_pose;
+	skeleton_pose current_pose;
 	
 	/// Pose of the previous state
-	pose previous_pose;
+	skeleton_pose previous_pose;
 };
 
 #endif // ANTKEEPER_GAME_POSE_COMPONENT_HPP

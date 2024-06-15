@@ -6,6 +6,7 @@
 
 #include <engine/animation/ik/ik-solver.hpp>
 #include <engine/animation/bone.hpp>
+#include <engine/math/vector.hpp>
 #include <vector>
 
 class ik_rig;
@@ -24,7 +25,7 @@ public:
 	 * @param effector_bone_index Index of the last bone in the bone chain.
 	 * @param chain_length Number of bones in the IK chain.
 	 */
-	ccd_ik_solver(ik_rig& ik_rig, bone_index_type root_bone_index, bone_index_type effector_bone_index);
+	ccd_ik_solver(ik_rig& ik_rig, std::size_t root_bone_index, std::size_t effector_bone_index);
 	
 	/** Destructs a CCD IK solver. */
 	~ccd_ik_solver() override = default;
@@ -107,7 +108,7 @@ public:
 private:
 	ik_rig* m_ik_rig{nullptr};
 	std::size_t m_max_iterations{10};
-	std::vector<bone_index_type> m_bone_indices;
+	std::vector<std::size_t> m_bone_indices;
 	math::fvec3 m_effector_position{0.0f, 0.0f, 0.0f};
 	math::fvec3 m_goal_center{0.0f, 0.0f, 0.0f};
 	float m_sqr_goal_radius{1e-5f};

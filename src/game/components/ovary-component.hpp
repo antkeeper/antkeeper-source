@@ -37,7 +37,7 @@ struct ovary_component
 	bool ovipositing{};
 	
 	/// Bone of the ovipositor.
-	bone_index_type ovipositor_bone{};
+	std::size_t ovipositor_bone{};
 	
 	/// Path along which eggs travel while being oviposited, relative to the ovipositor bone.
 	geom::line_segment<float, 3> oviposition_path{};

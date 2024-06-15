@@ -6,134 +6,63 @@
 #include <engine/resources/deserialize-error.hpp>
 #include <engine/resources/resource-loader.hpp>
 #include <stdexcept>
+#include <format>
 #include <nlohmann/json.hpp>
 
-skeleton::skeleton(std::size_t bone_count):
-	m_bone_parents(bone_count, 0)
+skeleton::skeleton(std::size_t bone_count)
 {
-	m_rest_pose.set_skeleton(*this);
+	m_bones = bone_container(*this, bone_count);
+	m_rest_pose = skeleton_rest_pose(*this);
 }
 
-skeleton::skeleton():
-	skeleton(0)
-{}
-
-void skeleton::update_rest_pose()
+skeleton::skeleton(const skeleton& other)
 {
-	m_rest_pose.update();
+	*this = other;
 }
 
-bone_index_type skeleton::add_bones(std::size_t bone_count)
+skeleton::skeleton(skeleton&& other)
 {
-	const bone_index_type first_bone_index = static_cast<bone_index_type>(m_bone_parents.size());
-	
-	m_bone_parents.resize(m_bone_parents.size() + bone_count, 0);
-	m_rest_pose.resize();
-	
-	return first_bone_index;
+	*this = other;
 }
 
-bone_index_type skeleton::add_bone(const std::string& name)
+skeleton& skeleton::operator=(const skeleton& other)
 {
-	const bone_index_type bone_index = add_bone();
-	
-	set_bone_name(bone_index, name);
-	
-	return bone_index;
-}
+	m_name = other.m_name;
+	m_bones = other.m_bones;
+	m_rest_pose = other.m_rest_pose;
 
-void skeleton::remove_bones()
-{
-	m_bone_parents.clear();
-	m_bone_map.clear();
-	m_rest_pose.resize();
-}
-
-animation_pose& skeleton::add_pose(const std::string& name)
-{
-	const auto [iterator, inserted] = m_pose_map.emplace(name, *this);
-	
-	if (!inserted)
+	// Fix skeleton pointers
+	m_bones.m_skeleton = this;
+	for (auto& bone: m_bones.m_bones)
 	{
-		throw std::invalid_argument("Duplicate pose name");
+		bone.m_skeleton = this;
 	}
-	
-	return iterator->second;
+	m_rest_pose.m_skeleton = this;
+
+	return *this;
 }
 
-void skeleton::remove_pose(const std::string& name)
+skeleton& skeleton::operator=(skeleton&& other)
 {
-	if (!m_pose_map.erase(name))
+	m_name = std::move(other.m_name);
+	m_bones = std::move(other.m_bones);
+	m_rest_pose = std::move(other.m_rest_pose);
+
+	// Fix skeleton pointers
+	m_bones.m_skeleton = this;
+	for (auto& bone: m_bones.m_bones)
 	{
-		throw std::invalid_argument("Pose not found");
-	}	
+		bone.m_skeleton = this;
+	}
+	m_rest_pose.m_skeleton = this;
+
+	return *this;
 }
 
-void skeleton::remove_poses()
-{
-	m_pose_map.clear();
-}
-
-void skeleton::set_name(const std::string& name)
+void skeleton::rename(const std::string& name)
 {
 	m_name = name;
 }
-
-void skeleton::set_bone_parent(bone_index_type child_index, bone_index_type parent_index)
-{
-	if (child_index < parent_index)
-	{
-		throw std::invalid_argument("Child bone index precedes parent bone index");
-	}
-	
-	m_bone_parents[child_index] = parent_index;
-}
-
-void skeleton::set_bone_name(bone_index_type index, const std::string& name)
-{
-	if (auto i = m_bone_map.find(name); i != m_bone_map.end())
-	{
-		if (i->second != index)
-		{
-			throw std::invalid_argument("Duplicate bone name");
-		}
-	}
-	else
-	{
-		m_bone_map[name] = index;
-	}
-}
-
-std::optional<bone_index_type> skeleton::get_bone_index(const std::string& name) const
-{
-	if (auto i = m_bone_map.find(name); i != m_bone_map.end())
-	{
-		return i->second;
-	}
-	
-	return std::nullopt;
-}
-
-const animation_pose* skeleton::get_pose(const std::string& name) const
-{
-	if (auto i = m_pose_map.find(name); i != m_pose_map.end())
-	{
-		return &i->second;
-	}
-	
-	return nullptr;
-}
-
-animation_pose* skeleton::get_pose(const std::string& name)
-{
-	if (auto i = m_pose_map.find(name); i != m_pose_map.end())
-	{
-		return &i->second;
-	}
-	
-	return nullptr;
-}
-
 
 /**
  * Deserializes a skeleton.
@@ -152,38 +81,63 @@ void deserializer<skeleton>::deserialize(skeleton& skeleton, deserialize_context
 	
 	// Parse JSON from file buffer
 	const auto json = nlohmann::json::parse(file_buffer, nullptr, true, true);
-	
-	// Set skeleton name
-	skeleton.set_name(json.at("name"));
+
+	// Check version string
+	const auto& version = json.at("version").get_ref<const std::string&>();
+	if (version != "1.0.0")
+	{
+		throw deserialize_error(std::format("Unsupported skeleton format (version {}).", version));
+	}
 
 	// Allocate bones
-	skeleton.add_bones(json.at("bones").size());
+	skeleton = ::skeleton(json.at("bones").size());
+	
+	// Set skeleton name
+	skeleton.rename(json.at("name"));
 
-	// Set bone names
-	bone_index_type bone_index = 0;
-	for (const auto& element: json.at("bones"))
+	// Initialize bones
+	const auto& bones_element = json.at("bones");
+	for (auto& bone: skeleton.bones())
 	{
-		skeleton.set_bone_name(bone_index, element.at("name").get<std::string>());
-		++bone_index;
+		const auto& bone_element = bones_element.at(bone.index());
+
+		bone.rename(bone_element.at("name").get_ref<const std::string&>());
+		bone.length() = bone_element.at("length").get<float>();
+
+		math::transform<float> bone_pose;
+
+		const auto& translation_element = bone_element.at("translation");
+		bone_pose.translation.x() = translation_element.at(0).get<float>();
+		bone_pose.translation.y() = translation_element.at(1).get<float>();
+		bone_pose.translation.z() = translation_element.at(2).get<float>();
+
+		const auto& rotation_element = bone_element.at("rotation");
+		bone_pose.rotation.w() = rotation_element.at(0).get<float>();
+		bone_pose.rotation.x() = rotation_element.at(1).get<float>();
+		bone_pose.rotation.y() = rotation_element.at(2).get<float>();
+		bone_pose.rotation.z() = rotation_element.at(3).get<float>();
+
+		bone_pose.scale.x() = 1.0f;
+		bone_pose.scale.y() = 1.0f;
+		bone_pose.scale.z() = 1.0f;
+
+		skeleton.rest_pose().set_relative_transform(bone.index(), bone_pose);
 	}
 
-	// Set bone parents
-	bone_index = 0;
-	for (const auto& element: json.at("bones"))
+	// Build bone hierarchy
+	for (auto& bone: skeleton.bones())
 	{
-		const auto& parent = element.at("parent");
+		const auto& bone_element = bones_element.at(bone.index());
+		const auto& parent_element = bone_element.at("parent");
 
-		if (parent.is_null())
+		if (!parent_element.is_null())
 		{
-			skeleton.set_bone_parent(bone_index, bone_index);
+			bone.reparent(&skeleton.bones().at(parent_element.get_ref<const std::string&>()));
 		}
-		else
-		{
-			skeleton.set_bone_parent(bone_index, *skeleton.get_bone_index(parent.get<std::string>()));
-		}
-
-		++bone_index;
 	}
+
+	// Update rest post
+	skeleton.rest_pose().update();
 }
 
 template <>

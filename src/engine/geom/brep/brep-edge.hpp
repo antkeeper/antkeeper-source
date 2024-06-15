@@ -36,13 +36,13 @@ public:
 		return m_index;
 	}
 	
-	/// Returns the pair of vertices that bound this edge.
+	/** Returns the pair of vertices that bound this edge. */
 	[[nodiscard]] inline constexpr const std::array<brep_vertex*, 2>& vertices() const noexcept
 	{
 		return m_vertices;
 	}
 	
-	/// Returns the list of loops that share this edge.
+	/** Returns the list of loops that share this edge. */
 	[[nodiscard]] inline constexpr const brep_edge_loop_list& loops() const noexcept
 	{
 		return m_loops;

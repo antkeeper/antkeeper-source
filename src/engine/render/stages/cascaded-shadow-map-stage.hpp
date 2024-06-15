@@ -84,7 +84,7 @@ private:
 	std::shared_ptr<gl::shader_template> m_skeletal_mesh_shader_template;
 	std::unique_ptr<gl::shader_program> m_skeletal_mesh_shader_program;
 	const gl::shader_variable* m_skeletal_mesh_model_view_projection_var;
-	const gl::shader_variable* m_skeletal_mesh_matrix_palette_var;
+	const gl::shader_variable* m_skeletal_mesh_skinning_matrices_var;
 };
 
 } // namespace render

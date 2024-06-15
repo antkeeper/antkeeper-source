@@ -315,7 +315,7 @@ void setup_ant_controls(::game& ctx)
 				{
 					auto& pose_component = ctx.entity_registry->get<::pose_component>(ctx.controlled_ant_eid);
 
-					bone_index_type gaster_bone_index = *pose_component.current_pose.get_skeleton()->get_bone_index("gaster");
+					const auto gaster_bone_index = pose_component.current_pose.get_skeleton()->bones().at("gaster").index();
 
 					auto gaster_transform = pose_component.current_pose.get_relative_transform(gaster_bone_index);
 					pose_component.previous_pose.set_relative_transform(gaster_bone_index, gaster_transform);
@@ -329,8 +329,6 @@ void setup_ant_controls(::game& ctx)
 
 					gaster_transform.rotation = math::euler_xyz_to_quat(current_gaster_angles);
 					pose_component.current_pose.set_relative_transform(gaster_bone_index, gaster_transform);
-
-					pose_component.current_pose.update();
 
 					if (mouse_difference.y() != 0)
 					{

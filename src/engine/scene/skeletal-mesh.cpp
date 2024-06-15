@@ -17,7 +17,7 @@ void skeletal_mesh::set_model(std::shared_ptr<render::model> model)
 	
 	if (m_model)
 	{
-		m_pose = animation_pose(model->get_skeleton());
+		m_pose = skeleton_pose(model->get_skeleton());
 		
 		m_operations.resize(m_model->get_groups().size());
 		for (std::size_t i = 0; i < m_operations.size(); ++i)
@@ -35,7 +35,7 @@ void skeletal_mesh::set_model(std::shared_ptr<render::model> model)
 			operation.first_instance = 0;
 			operation.instance_count = 1;
 			operation.material = group.material;
-			operation.matrix_palette = m_pose.get_matrix_palette();
+			operation.skinning_matrices = m_pose.get_skinning_matrices();
 		}
 		
 	}
@@ -100,7 +100,11 @@ void skeletal_mesh::transformed()
 
 void skeletal_mesh::render(render::context& ctx) const
 {
+	// Update skinning matrices
+	m_pose.update_skinning_matrices();
+
 	const float depth = ctx.camera->get_view_frustum().near().distance(get_translation());
+
 	for (auto& operation: m_operations)
 	{
 		operation.depth = depth;

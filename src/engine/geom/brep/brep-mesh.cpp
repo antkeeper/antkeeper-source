@@ -8,6 +8,7 @@
 #include <engine/resources/deserializer.hpp>
 #include <engine/debug/log.hpp>
 #include <array>
+#include <format>
 #include <nlohmann/json.hpp>
 
 namespace geom {
@@ -159,6 +160,13 @@ void deserializer<geom::brep_mesh>::deserialize(geom::brep_mesh& mesh, deseriali
 
 	// Parse msgpack from file buffer
 	const auto msgpack = nlohmann::json::from_msgpack(file_buffer.begin(), file_buffer.end());
+
+	// Check version string
+	const auto& version = msgpack.at("version").get_ref<const std::string&>();
+	if (version != "1.0.0")
+	{
+		throw deserialize_error(std::format("Unsupported mesh format (version {}).", version));
+	}
 
 	// Validate edge data
 	const auto& edges_element = msgpack.at("edges");

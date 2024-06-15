@@ -133,45 +133,49 @@ public:
 	/// @name Iterators
 	/// @{
 	
-	/// @{
 	/** Returns an iterator to the first attribute. */
-	[[nodiscard]] inline const_iterator begin() const noexcept
-	{
-		const_iterator it;
-		it.m_it = m_attributes.begin();
-		return it;
-	}
 	[[nodiscard]] inline iterator begin() noexcept
 	{
 		iterator it;
 		it.m_it = m_attributes.begin();
 		return it;
 	}
+
+	/** @copydoc begin() */
+	[[nodiscard]] inline const_iterator begin() const noexcept
+	{
+		const_iterator it;
+		it.m_it = m_attributes.begin();
+		return it;
+	}
+
+	/** @copydoc begin() */
 	[[nodiscard]] inline const_iterator cbegin() const noexcept
 	{
 		return begin();
 	}
-	/// @}
 	
-	/// @{
 	/** Returns an iterator to the attribute following the last attribute. */
-	[[nodiscard]] inline const_iterator end() const noexcept
-	{
-		const_iterator it;
-		it.m_it = m_attributes.end();
-		return it;
-	}
 	[[nodiscard]] inline iterator end() noexcept
 	{
 		iterator it;
 		it.m_it = m_attributes.end();
 		return it;
 	}
+
+	/** @copydoc end() */
+	[[nodiscard]] inline const_iterator end() const noexcept
+	{
+		const_iterator it;
+		it.m_it = m_attributes.end();
+		return it;
+	}
+
+	/** @copydoc end() */
 	[[nodiscard]] inline const_iterator cend() const noexcept
 	{
 		return end();
 	}
-	/// @}
 	
 	/// @}
 	/// @name Capacity
@@ -281,7 +285,6 @@ public:
 	/// @name Lookup
 	/// @{
 	
-	/// @{
 	/**
 	 * Returns a reference to the attribute with the given name. If no such attribute exists, an exception of type std::out_of_range is thrown.
 	 *
@@ -291,17 +294,6 @@ public:
 	 *
 	 * @exception std::out_of_range B-rep attribute not found.
 	 */
-	template <class T>
-	[[nodiscard]] const brep_attribute<T>& at(const std::string& name) const
-	{
-		auto it = find(name);
-		if (it == end())
-		{
-			throw std::out_of_range("B-rep attribute not found");
-		}
-		
-		return static_cast<const brep_attribute<T>&>(*it);
-	}
 	template <class T>
 	[[nodiscard]] brep_attribute<T>& at(const std::string& name)
 	{
@@ -313,9 +305,20 @@ public:
 		
 		return static_cast<brep_attribute<T>&>(*it);
 	}
-	/// @}
+
+	/** @copydoc at(const std::string&) */
+	template <class T>
+	[[nodiscard]] const brep_attribute<T>& at(const std::string& name) const
+	{
+		auto it = find(name);
+		if (it == end())
+		{
+			throw std::out_of_range("B-rep attribute not found");
+		}
+		
+		return static_cast<const brep_attribute<T>&>(*it);
+	}
 	
-	/// @{
 	/**
 	 * Finds an attribute with the given name.
 	 *
@@ -323,19 +326,20 @@ public:
 	 *
 	 * @return Iterator to the attribute with the given name. If no such attribute is found, an end iterator is returned.
 	 */
-	[[nodiscard]] inline const_iterator find(const std::string& name) const
-	{
-		const_iterator it;
-		it.m_it = m_attributes.find(name);
-		return it;
-	}
 	[[nodiscard]] inline iterator find(const std::string& name)
 	{
 		iterator it;
 		it.m_it = m_attributes.find(name);
 		return it;
 	}
-	/// @}
+
+	/** @copydoc find(const std::string&) */
+	[[nodiscard]] inline const_iterator find(const std::string& name) const
+	{
+		const_iterator it;
+		it.m_it = m_attributes.find(name);
+		return it;
+	}
 	
 	/**
 	 * Checks if there is an attribute with a given name in the container.

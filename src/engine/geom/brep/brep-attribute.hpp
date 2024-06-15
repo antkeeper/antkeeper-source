@@ -19,7 +19,7 @@ public:
 	/** Destructs a B-rep attribute base. */
 	virtual ~brep_attribute_base() = default;
 	
-	/// Returns the name of the attribute.
+	/** Returns the name of the attribute. */
 	[[nodiscard]] inline constexpr const std::string& name() const noexcept
 	{
 		return m_name;
@@ -47,7 +47,7 @@ private:
 	 */
 	virtual void emplace_back() = 0;
 	
-	/// Returns a copy of this attribute.
+	/** Returns a copy of this attribute. */
 	[[nodiscard]] virtual std::unique_ptr<brep_attribute_base> clone() const = 0;
 	
 	std::string m_name;
@@ -89,7 +89,6 @@ public:
 	/// @name Attribute access
 	/// @{
 	
-	/// @{
 	/**
 	 * Returns a reference to the attribute value of an element.
 	 *
@@ -97,119 +96,128 @@ public:
 	 *
 	 * @return Reference to the attribute value of the element at index @p i.
 	 */
-	[[nodiscard]] inline constexpr const_reference operator[](std::size_t i) const
-	{
-		return m_values[i];
-	}
 	[[nodiscard]] inline constexpr reference operator[](std::size_t i)
 	{
 		return m_values[i];
 	}
-	/// @}
-	
-	/// @{
-	/** Returns a reference to the attribute value of the first element. */
-	[[nodiscard]] inline constexpr const_reference front() const
+
+	/** @copydoc operator[](std::size_t) */
+	[[nodiscard]] inline constexpr const_reference operator[](std::size_t i) const
 	{
-		return m_values.front();
+		return m_values[i];
 	}
+	
+	/** Returns a reference to the attribute value of the first element. */
 	[[nodiscard]] inline constexpr reference front()
 	{
 		return m_values.front();
 	}
-	/// @}
-	
-	/// @{
-	/** Returns a reference to the attribute value of the last element. */
-	[[nodiscard]] inline constexpr const_reference back() const
+
+	/** @copydoc front() */
+	[[nodiscard]] inline constexpr const_reference front() const
 	{
-		return m_values.back();
+		return m_values.front();
 	}
+	
+	/** Returns a reference to the attribute value of the last element. */
 	[[nodiscard]] inline constexpr reference back()
 	{
 		return m_values.back();
 	}
-	/// @}
-	
-	/// @{
-	/** Returns a pointer to the underlying array serving as attribute value storage. */
-	[[nodiscard]] inline constexpr const value_type* data() const noexcept
+
+	/** @copydoc back() */
+	[[nodiscard]] inline constexpr const_reference back() const
 	{
-		return m_values.data();
+		return m_values.back();
 	}
+	
+	/** Returns a pointer to the underlying array serving as attribute value storage. */
 	[[nodiscard]] inline constexpr value_type* data() noexcept
 	{
 		return m_values.data();
 	}
-	/// @}
+
+	/** @copydoc data() */
+	[[nodiscard]] inline constexpr const value_type* data() const noexcept
+	{
+		return m_values.data();
+	}
 	
 	/// @}
 	/// @name Iterators
 	/// @{
 	
-	/// @{
 	/** Returns an iterator to the attribute value of the first element. */
-	[[nodiscard]] inline constexpr const_iterator begin() const noexcept
-	{
-		return m_values.begin();
-	}
 	[[nodiscard]] inline constexpr iterator begin() noexcept
 	{
 		return m_values.begin();
 	}
+
+	/** @copydoc begin() */
+	[[nodiscard]] inline constexpr const_iterator begin() const noexcept
+	{
+		return m_values.begin();
+	}
+
+	/** @copydoc begin() */
 	[[nodiscard]] inline constexpr const_iterator cbegin() const noexcept
 	{
 		return m_values.begin();
 	}
-	/// @}
 	
-	/// @{
 	/** Returns an iterator to the attribute value of the element following the last element. */
-	[[nodiscard]] inline constexpr const_iterator end() const noexcept
-	{
-		return m_values.end();
-	}
 	[[nodiscard]] inline constexpr iterator end() noexcept
 	{
 		return m_values.end();
 	}
+
+	/** @copydoc end() */
+	[[nodiscard]] inline constexpr const_iterator end() const noexcept
+	{
+		return m_values.end();
+	}
+
+	/** @copydoc end() */
 	[[nodiscard]] inline constexpr const_iterator cend() const noexcept
 	{
 		return m_values.end();
 	}
-	/// @}
 	
-	/// @{
 	/** Returns a reverse iterator to the attribute value of the first element of the reversed container. */
-	[[nodiscard]] inline constexpr const_reverse_iterator rbegin() const noexcept
-	{
-		return m_values.rbegin();
-	}
 	[[nodiscard]] inline constexpr reverse_iterator rbegin() noexcept
 	{
 		return m_values.rbegin();
 	}
+
+	/** @copydoc rbegin() */
+	[[nodiscard]] inline constexpr const_reverse_iterator rbegin() const noexcept
+	{
+		return m_values.rbegin();
+	}
+
+	/** @copydoc rbegin() */
 	[[nodiscard]] inline constexpr const_reverse_iterator crbegin() const noexcept
 	{
 		return m_values.rbegin();
 	}
-	/// @}
 	
-	/// @{
 	/** Returns a reverse iterator to the attribute value of the element following the last element of the reversed container. */
-	[[nodiscard]] inline constexpr const_reverse_iterator rend() const noexcept
-	{
-		return m_values.rend();
-	}
 	[[nodiscard]] inline constexpr reverse_iterator rend() noexcept
 	{
 		return m_values.rend();
 	}
+
+	/** @copydoc rend() */
+	[[nodiscard]] inline constexpr const_reverse_iterator rend() const noexcept
+	{
+		return m_values.rend();
+	}
+
+	/** @copydoc rend() */
 	[[nodiscard]] inline constexpr const_reverse_iterator crend() const noexcept
 	{
 		return m_values.rend();
 	}
-	/// @}
 	
 	/// @}
 	/// @name Capacity

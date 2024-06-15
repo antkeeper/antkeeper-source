@@ -35,7 +35,7 @@ struct operation
 	math::fmat4 transform{math::identity<math::fmat4>};
 	float depth{};
 	
-	std::span<const math::fmat4> matrix_palette{};
+	std::span<const math::fmat4> skinning_matrices{};
 	
 	std::uint32_t layer_mask{};
 };

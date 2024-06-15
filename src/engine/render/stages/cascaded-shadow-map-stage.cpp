@@ -341,7 +341,7 @@ void cascaded_shadow_map_stage::render_shadow_atlas(render::context& ctx, scene:
 			}
 			
 			// Switch shader programs if necessary
-			gl::shader_program* shader_program = (operation->matrix_palette.empty()) ? m_static_mesh_shader_program.get() : m_skeletal_mesh_shader_program.get();
+			gl::shader_program* shader_program = (operation->skinning_matrices.empty()) ? m_static_mesh_shader_program.get() : m_skeletal_mesh_shader_program.get();
 			if (active_shader_program != shader_program)
 			{
 				active_shader_program = shader_program;
@@ -363,7 +363,7 @@ void cascaded_shadow_map_stage::render_shadow_atlas(render::context& ctx, scene:
 			else if (active_shader_program == m_skeletal_mesh_shader_program.get())
 			{
 				m_skeletal_mesh_model_view_projection_var->update(model_view_projection);
-				m_skeletal_mesh_matrix_palette_var->update(operation->matrix_palette);
+				m_skeletal_mesh_skinning_matrices_var->update(operation->skinning_matrices);
 			}
 			
 			// Draw geometry
@@ -403,19 +403,19 @@ void cascaded_shadow_map_stage::rebuild_skeletal_mesh_shader_program()
 		debug::log_warning("{}", m_skeletal_mesh_shader_template->configure(gl::shader_stage::vertex));
 		
 		m_skeletal_mesh_model_view_projection_var = nullptr;
-		m_skeletal_mesh_matrix_palette_var = nullptr;
+		m_skeletal_mesh_skinning_matrices_var = nullptr;
 	}
 	else
 	{
 		m_skeletal_mesh_model_view_projection_var = m_skeletal_mesh_shader_program->variable("model_view_projection");
-		m_skeletal_mesh_matrix_palette_var = m_skeletal_mesh_shader_program->variable("matrix_palette");
+		m_skeletal_mesh_skinning_matrices_var = m_skeletal_mesh_shader_program->variable("skinning_matrices");
 	}
 }
 
 bool operation_compare(const render::operation* a, const render::operation* b)
 {
-	const bool skinned_a = !a->matrix_palette.empty();
-	const bool skinned_b = !b->matrix_palette.empty();
+	const bool skinned_a = !a->skinning_matrices.empty();
+	const bool skinned_b = !b->skinning_matrices.empty();
 	const bool two_sided_a = (a->material) ? a->material->is_two_sided() : false;
 	const bool two_sided_b = (b->material) ? b->material->is_two_sided() : false;
 	

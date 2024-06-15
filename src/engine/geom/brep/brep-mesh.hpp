@@ -46,53 +46,54 @@ public:
 	/// @name Element access
 	/// @{
 	
-	/// @{
 	/** Returns the mesh vertices. */
-	[[nodiscard]] inline const brep_vertex_container& vertices() const noexcept
-	{
-		return m_vertices;
-	}
 	[[nodiscard]] inline brep_vertex_container& vertices() noexcept
 	{
 		return m_vertices;
 	}
-	///@}
-	
-	/// @{
-	/** Returns the mesh edges. */
-	[[nodiscard]] inline const brep_edge_container& edges() const noexcept
+
+	/** @copydoc vertices() */
+	[[nodiscard]] inline const brep_vertex_container& vertices() const noexcept
 	{
-		return m_edges;
+		return m_vertices;
 	}
+
+	
+	/** Returns the mesh edges. */
 	[[nodiscard]] inline brep_edge_container& edges() noexcept
 	{
 		return m_edges;
 	}
-	/// @}
-	
-	/// @{
-	/** Returns the mesh loops. */
-	[[nodiscard]] inline const brep_loop_container& loops() const noexcept
+
+	/** @copydoc edges() */
+	[[nodiscard]] inline const brep_edge_container& edges() const noexcept
 	{
-		return m_loops;
+		return m_edges;
 	}
+
+	/** Returns the mesh loops. */
 	[[nodiscard]] inline brep_loop_container& loops() noexcept
 	{
 		return m_loops;
 	}
-	/// @}
-	
-	/// @{
-	/** Returns the mesh faces. */
-	[[nodiscard]] inline const brep_face_container& faces() const noexcept
+
+	/** @copydoc loops() **/
+	[[nodiscard]] inline const brep_loop_container& loops() const noexcept
 	{
-		return m_faces;
+		return m_loops;
 	}
+	
+	/** Returns the mesh faces. */
 	[[nodiscard]] inline brep_face_container& faces() noexcept
 	{
 		return m_faces;
 	}
-	/// @}
+
+	/** @copydoc faces() */
+	[[nodiscard]] inline const brep_face_container& faces() const noexcept
+	{
+		return m_faces;
+	}
 	
 	/// @}
 	

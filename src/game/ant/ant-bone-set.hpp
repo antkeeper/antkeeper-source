@@ -5,53 +5,52 @@
 #define ANTKEEPER_GAME_ANT_BONE_SET_HPP
 
 #include <engine/animation/bone.hpp>
-#include <optional>
 
 /**
  * Set of bone indices for all possible bones in an ant skeleotn.
  */
 struct ant_bone_set
 {
-	bone_index_type mesosoma;
-	bone_index_type procoxa_l;
-	bone_index_type profemur_l;
-	bone_index_type protibia_l;
-	bone_index_type protarsomere1_l;
-	bone_index_type procoxa_r;
-	bone_index_type profemur_r;
-	bone_index_type protibia_r;
-	bone_index_type protarsomere1_r;
-	bone_index_type mesocoxa_l;
-	bone_index_type mesofemur_l;
-	bone_index_type mesotibia_l;
-	bone_index_type mesotarsomere1_l;
-	bone_index_type mesocoxa_r;
-	bone_index_type mesofemur_r;
-	bone_index_type mesotibia_r;
-	bone_index_type mesotarsomere1_r;
-	bone_index_type metacoxa_l;
-	bone_index_type metafemur_l;
-	bone_index_type metatibia_l;
-	bone_index_type metatarsomere1_l;
-	bone_index_type metacoxa_r;
-	bone_index_type metafemur_r;
-	bone_index_type metatibia_r;
-	bone_index_type metatarsomere1_r;
-	bone_index_type head;
-	bone_index_type mandible_l;
-	bone_index_type mandible_r;
-	bone_index_type antennomere1_l;
-	bone_index_type antennomere2_l;
-	bone_index_type antennomere1_r;
-	bone_index_type antennomere2_r;
-	std::optional<bone_index_type> petiole;
-	std::optional<bone_index_type> postpetiole;
-	bone_index_type gaster;
-	std::optional<bone_index_type> sting;
-	std::optional<bone_index_type> forewing_l;
-	std::optional<bone_index_type> forewing_r;
-	std::optional<bone_index_type> hindwing_l;
-	std::optional<bone_index_type> hindwing_r;
+	bone* mesosoma{};
+	bone* procoxa_l{};
+	bone* profemur_l{};
+	bone* protibia_l{};
+	bone* protarsomere1_l{};
+	bone* procoxa_r{};
+	bone* profemur_r{};
+	bone* protibia_r{};
+	bone* protarsomere1_r{};
+	bone* mesocoxa_l{};
+	bone* mesofemur_l{};
+	bone* mesotibia_l{};
+	bone* mesotarsomere1_l{};
+	bone* mesocoxa_r{};
+	bone* mesofemur_r{};
+	bone* mesotibia_r{};
+	bone* mesotarsomere1_r{};
+	bone* metacoxa_l{};
+	bone* metafemur_l{};
+	bone* metatibia_l{};
+	bone* metatarsomere1_l{};
+	bone* metacoxa_r{};
+	bone* metafemur_r{};
+	bone* metatibia_r{};
+	bone* metatarsomere1_r{};
+	bone* head{};
+	bone* mandible_l{};
+	bone* mandible_r{};
+	bone* antennomere1_l{};
+	bone* antennomere2_l{};
+	bone* antennomere1_r{};
+	bone* antennomere2_r{};
+	bone* petiole{};     // optional
+	bone* postpetiole{}; // optional
+	bone* gaster{};
+	bone* sting{};       // optional
+	bone* forewing_l{};  // optional
+	bone* forewing_r{};  // optional
+	bone* hindwing_l{};  // optional
+	bone* hindwing_r{};  // optional
 };
 
 #endif // ANTKEEPER_GAME_ANT_BONE_SET_HPP

@@ -13,7 +13,7 @@
 struct allometric_growth_component
 {
 	/// Growth rates of each bone.
-	std::unordered_map<bone_index_type, float> rates;
+	std::unordered_map<std::size_t, float> rates;
 };
 
 #endif // ANTKEEPER_GAME_ALLOMETRIC_GROWTH_COMPONENT_HPP

@@ -44,7 +44,7 @@ public:
 	 * @param index Index of a bone.
 	 * @param constraint IK constraint of the bone.
 	 */
-	void set_constraint(bone_index_type index, std::shared_ptr<ik_constraint> constraint);
+	void set_constraint(std::size_t index, std::shared_ptr<ik_constraint> constraint);
 	
 	/// Removes all constraints from the IK rig.
 	void clear_constraints();
@@ -57,11 +57,11 @@ public:
 	 * @return Pointer to the IK constraint of the bone, or `nullptr` if the bone is unconstrained.
 	 */
 	/// @{
-	[[nodiscard]] inline const ik_constraint* get_constraint(bone_index_type index) const
+	[[nodiscard]] inline const ik_constraint* get_constraint(std::size_t index) const
 	{
 		return m_constraints[index].get();
 	}
-	[[nodiscard]] inline ik_constraint* get_constraint(bone_index_type index)
+	[[nodiscard]] inline ik_constraint* get_constraint(std::size_t index)
 	{
 		return m_constraints[index].get();
 	}
