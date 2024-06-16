@@ -81,7 +81,7 @@ test_state::test_state(::game& ctx):
 	game_state(ctx)
 {
 	debug::log_trace("Entering test state...");
-	
+
 	ctx.active_scene = ctx.exterior_scene.get();
 	
 	ctx.active_ecoregion = ctx.resource_manager->load<::ecoregion>("debug.eco");

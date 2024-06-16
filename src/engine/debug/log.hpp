@@ -47,21 +47,21 @@ struct log_message
 	 */
 	log_message
 	(
-		[[maybe_unused]] std::string_view format,
+		[[maybe_unused]] std::format_string<Args...> format,
 		[[maybe_unused]] Args&&... args,
 		[[maybe_unused]] std::source_location&& location = std::source_location::current()
 	)
 	{
 		if constexpr (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= static_cast<std::underlying_type_t<log_message_severity>>(Severity))
 		{
-			default_logger().log(std::vformat(format, std::make_format_args(std::forward<Args>(args)...)), Severity, std::forward<std::source_location>(location));
+			default_logger().log(std::format(format, std::forward<Args>(args)...), Severity, std::forward<std::source_location>(location));
 		}
 	}
 };
 
 // Use class template argument deduction (CTAD) to capture source location as a default argument following variadic format arguments.
 template <log_message_severity Severity, class... Args>
-log_message(std::string_view, Args&&...) -> log_message<Severity, Args...>;
+log_message(std::format_string<Args...>, Args&&...) -> log_message<Severity, Args...>;
 
 #if (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_TRACE)
 	/**
