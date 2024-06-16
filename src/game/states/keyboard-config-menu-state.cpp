@@ -151,8 +151,11 @@ std::string keyboard_config_menu_state::get_mapping_string(const input::action_m
 			
 			default:
 			{
-				std::string format_string = get_string(ctx, "mouse_button_n_format");
-				mapping_string = std::vformat(format_string, std::make_format_args(std::to_underlying(mouse_button_mapping.button)));
+				const auto format_string = get_string(ctx, "mouse_button_n_format");
+
+				auto button = std::to_underlying(mouse_button_mapping.button);
+
+				mapping_string = std::vformat(format_string, std::make_format_args(button));
 				break;
 			}
 		}

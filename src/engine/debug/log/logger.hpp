@@ -16,7 +16,7 @@ namespace debug {
 /// @{
 
 /**
- * Generates an event each time a message logged.
+ * Generates an event each time a message is logged.
  */
 class logger
 {
@@ -35,7 +35,7 @@ public:
 		std::source_location&& location = std::source_location::current()
 	);
 	
-	/// Returns the channel through which message logged events are published.
+	/** Returns the channel through which message logged events are published. */
 	[[nodiscard]] inline ::event::channel<message_logged_event>& get_message_logged_channel() noexcept
 	{
 		return m_message_logged_publisher.channel();
