@@ -184,7 +184,7 @@ std::string gamepad_config_menu_state::get_mapping_string(const input::action_ma
 			{
 				const auto format_string = get_string(ctx, "gamepad_axis_n_format");
 
-				auto axis = std::to_underlying(gamepad_axis_mapping.axis);
+				auto axis = static_cast<int>(gamepad_axis_mapping.axis);
 				auto sign = (gamepad_axis_mapping.direction) ? '-' : '+';
 
 				mapping_string = std::vformat(format_string, std::make_format_args(axis, sign));
