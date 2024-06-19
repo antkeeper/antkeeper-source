@@ -6,7 +6,6 @@
 
 #include "game/ecoregion.hpp"
 #include "game/states/game-state.hpp"
-#include <engine/animation/tween.hpp>
 #include <engine/app/input-manager.hpp>
 #include <engine/app/window-manager.hpp>
 #include <engine/entity/id.hpp>

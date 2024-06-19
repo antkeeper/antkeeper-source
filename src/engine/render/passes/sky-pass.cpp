@@ -28,33 +28,32 @@ namespace render {
 
 sky_pass::sky_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	pass(pipeline, framebuffer),
-	mouse_position({0.0f, 0.0f}),
-	sky_model(nullptr),
-	sky_material(nullptr),
-	sky_model_vao(nullptr),
-	moon_model(nullptr),
-	moon_model_vao(nullptr),
-	moon_material(nullptr),
-	moon_shader_program(nullptr),
-	stars_model(nullptr),
-	stars_model_vao(nullptr),
-	star_material(nullptr),
-	star_shader_program(nullptr),
-	observer_position_tween({0, 0, 0}, math::lerp<float, 3>),
-	sun_position_tween(math::fvec3{1.0f, 0.0f, 0.0f}, math::lerp<float, 3>),
-	sun_luminance_tween(math::fvec3{0.0f, 0.0f, 0.0f}, math::lerp<float, 3>),
-	sun_illuminance_tween(math::fvec3{0.0f, 0.0f, 0.0f}, math::lerp<float, 3>),
-	icrf_to_eus_translation({0, 0, 0}, math::lerp<float, 3>),
-	icrf_to_eus_rotation(math::identity<math::fquat>, math::nlerp<float>),
-	moon_position_tween(math::fvec3{0, 0, 0}, math::lerp<float, 3>),
-	moon_rotation_tween(math::identity<math::fquat>, math::nlerp<float>),
-	moon_angular_radius_tween(0.0f, [](const float& a, const float& b, float t)->float{return math::lerp(a, b, t);}),
-	moon_sunlight_direction_tween(math::fvec3{0, 0, 0}, math::lerp<float, 3>),
-	moon_sunlight_illuminance_tween(math::fvec3{0, 0, 0}, math::lerp<float, 3>),
-	moon_planetlight_direction_tween(math::fvec3{0, 0, 0}, math::lerp<float, 3>),
-	moon_planetlight_illuminance_tween(math::fvec3{0, 0, 0}, math::lerp<float, 3>),
-	moon_illuminance_tween(math::fvec3{0.0f, 0.0f, 0.0f}, math::lerp<float, 3>),
-	magnification(1.0f)
+	mouse_position{0.0f, 0.0f},
+	sky_model{nullptr},
+	sky_material{nullptr},
+	sky_model_vao{nullptr},
+	moon_model{nullptr},
+	moon_model_vao{nullptr},
+	moon_material{nullptr},
+	moon_shader_program{nullptr},
+	stars_model{nullptr},
+	stars_model_vao{nullptr},
+	star_material{nullptr},
+	star_shader_program{nullptr},
+	m_observer_position{0, 0, 0},
+	m_sun_position{1.0f, 0.0f, 0.0f},
+	m_sun_luminance{0.0f, 0.0f, 0.0f},
+	m_sun_illuminance{0.0f, 0.0f, 0.0f},
+	m_icrf_to_eus{math::identity<math::se3<float>>},
+	m_moon_position{0, 0, 0},
+	m_moon_rotation{math::identity<math::fquat>},
+	m_moon_angular_radius{0.0f},
+	m_moon_sunlight_direction{0, 0, 0},
+	m_moon_sunlight_illuminance{0, 0, 0},
+	m_moon_planetlight_direction{0, 0, 0},
+	m_moon_planetlight_illuminance{0, 0, 0},
+	m_moon_illuminance{0.0f, 0.0f, 0.0f},
+	magnification{1.0f}
 {
 	// Construct LUT sampler
 	m_lut_sampler = std::make_shared<gl::sampler>
@@ -174,38 +173,26 @@ void sky_pass::render(render::context& ctx)
 	math::fmat4 model_view_projection = projection * model_view;
 	camera_exposure = camera.get_exposure_normalization();
 	
-	// Interpolate observer position
-	observer_position = observer_position_tween.interpolate(ctx.alpha);
-	
-	// Construct tweened ICRF to EUS transformation
-	math::se3<float> icrf_to_eus =
-	{
-		icrf_to_eus_translation.interpolate(ctx.alpha),
-		icrf_to_eus_rotation.interpolate(ctx.alpha)
-	};
-	
 	// Get EUS direction to sun
-	math::fvec3 sun_position = sun_position_tween.interpolate(ctx.alpha);
-	math::fvec3 sun_direction = math::normalize(sun_position);
+	math::fvec3 sun_direction = math::normalize(m_sun_position);
 	
 	// Interpolate and expose sun luminance and illuminance
-	math::fvec3 sun_illuminance = sun_illuminance_tween.interpolate(ctx.alpha) * camera_exposure;
-	math::fvec3 sun_luminance = sun_luminance_tween.interpolate(ctx.alpha) * camera_exposure;
+	math::fvec3 exposed_sun_illuminance = m_sun_illuminance * camera_exposure;
+	math::fvec3 exposed_sun_luminance = m_sun_luminance * camera_exposure;
 	
-	math::fvec3 moon_position = moon_position_tween.interpolate(ctx.alpha);
-	math::fvec3 moon_direction = math::normalize(moon_position);
-	math::fvec3 moon_illuminance = moon_illuminance_tween.interpolate(ctx.alpha) * camera_exposure;
-	float moon_angular_radius = moon_angular_radius_tween.interpolate(ctx.alpha) * magnification;
+	math::fvec3 moon_direction = math::normalize(m_moon_position);
+	math::fvec3 exposed_moon_illuminance = m_moon_illuminance * camera_exposure;
+	float moon_angular_radius = m_moon_angular_radius * magnification;
 	
 	// if (math::max(sun_illuminance) > math::max(moon_illuminance))
 	// {
 		dominant_light_direction = sun_direction;
-		dominant_light_illuminance = sun_illuminance;
+		dominant_light_illuminance = exposed_sun_illuminance;
 	// }
 	// else
 	// {
 		// dominant_light_direction = moon_direction;
-		// dominant_light_illuminance = moon_illuminance;
+		// dominant_light_illuminance = exposed_moon_illuminance;
 	// }
 	
 	
@@ -283,13 +270,13 @@ void sky_pass::render(render::context& ctx)
 		if (sky_light_direction_var)
 			sky_light_direction_var->update(dominant_light_direction);
 		if (sky_sun_luminance_var)
-			sky_sun_luminance_var->update(sun_luminance);
+			sky_sun_luminance_var->update(m_sun_luminance);
 		if (sky_sun_angular_radius_var)
 			sky_sun_angular_radius_var->update(sun_angular_radius * magnification);
 		if (sky_atmosphere_radii_var)
 			sky_atmosphere_radii_var->update(atmosphere_radii);
 		if (sky_observer_position_var)
-			sky_observer_position_var->update(observer_position);
+			sky_observer_position_var->update(m_observer_position);
 		if (sky_transmittance_lut_var)
 			sky_transmittance_lut_var->update(*m_transmittance_lut_texture);
 		if (sky_transmittance_lut_resolution_var)
@@ -339,8 +326,8 @@ void sky_pass::render(render::context& ctx)
 		float moon_radius = moon_angular_radius * moon_distance;
 		
 		math::transform<float> moon_transform;
-		moon_transform.translation = math::normalize(moon_position) * moon_distance;
-		moon_transform.rotation = moon_rotation_tween.interpolate(ctx.alpha);
+		moon_transform.translation = math::normalize(m_moon_position) * moon_distance;
+		moon_transform.rotation = m_moon_rotation;
 		moon_transform.scale = {moon_radius, moon_radius, moon_radius};
 		
 		model = moon_transform.matrix();		
@@ -356,19 +343,19 @@ void sky_pass::render(render::context& ctx)
 		if (moon_camera_position_var)
 			moon_camera_position_var->update(camera.get_translation());
 		if (moon_sunlight_direction_var)
-			moon_sunlight_direction_var->update(math::normalize(moon_sunlight_direction_tween.interpolate(ctx.alpha)));
+			moon_sunlight_direction_var->update(m_moon_sunlight_direction);
 		if (moon_sunlight_illuminance_var)
-			moon_sunlight_illuminance_var->update(moon_sunlight_illuminance_tween.interpolate(ctx.alpha) * camera_exposure);
+			moon_sunlight_illuminance_var->update(m_moon_sunlight_illuminance * camera_exposure);
 		if (moon_planetlight_direction_var)
-			moon_planetlight_direction_var->update(math::normalize(moon_planetlight_direction_tween.interpolate(ctx.alpha)));
+			moon_planetlight_direction_var->update(m_moon_planetlight_direction);
 		if (moon_planetlight_illuminance_var)
-			moon_planetlight_illuminance_var->update(moon_planetlight_illuminance_tween.interpolate(ctx.alpha) * camera_exposure);
+			moon_planetlight_illuminance_var->update(m_moon_planetlight_illuminance * camera_exposure);
 		if (moon_albedo_map_var && m_moon_albedo_map)
 			moon_albedo_map_var->update(*m_moon_albedo_map);
 		if (moon_normal_map_var && m_moon_normal_map)
 			moon_normal_map_var->update(*m_moon_normal_map);
 		if (moon_observer_position_var)
-			moon_observer_position_var->update(observer_position);
+			moon_observer_position_var->update(m_observer_position);
 		if (moon_sky_transmittance_lut_var)
 			moon_sky_transmittance_lut_var->update(*m_transmittance_lut_texture);
 		if (moon_atmosphere_radii_var)
@@ -396,7 +383,7 @@ void sky_pass::render(render::context& ctx)
 	{
 		float star_distance = camera.get_clip_near() * 2.0f;
 		
-		model = math::fmat4(math::fmat3(icrf_to_eus.r)) * math::scale(math::fvec3{star_distance, star_distance, star_distance});
+		model = math::fmat4(math::fmat3(m_icrf_to_eus.r)) * math::scale(math::fvec3{star_distance, star_distance, star_distance});
 		
 		model_view_projection = view_projection * model;
 		
@@ -668,25 +655,6 @@ void sky_pass::set_stars_model(std::shared_ptr<render::model> model)
 	}
 }
 
-void sky_pass::update_tweens()
-{
-	observer_position_tween.update();
-	sun_position_tween.update();
-	sun_luminance_tween.update();
-	sun_illuminance_tween.update();
-	icrf_to_eus_translation.update();
-	icrf_to_eus_rotation.update();
-
-	moon_position_tween.update();
-	moon_rotation_tween.update();
-	moon_angular_radius_tween.update();
-	moon_sunlight_direction_tween.update();
-	moon_sunlight_illuminance_tween.update();
-	moon_planetlight_direction_tween.update();
-	moon_planetlight_illuminance_tween.update();
-	moon_illuminance_tween.update();
-}
-
 void sky_pass::set_magnification(float scale)
 {
 	this->magnification = scale;
@@ -694,24 +662,23 @@ void sky_pass::set_magnification(float scale)
 
 void sky_pass::set_icrf_to_eus(const math::se3<float>& transformation)
 {
-	icrf_to_eus_translation[1] = transformation.t;
-	icrf_to_eus_rotation[1] = transformation.r;
+	m_icrf_to_eus = transformation;
 }
 
 void sky_pass::set_sun_position(const math::fvec3& position)
 {
-	sun_position_tween[1] = position;
+	m_sun_position = position;
 }
 
 void sky_pass::set_sun_illuminance(const math::fvec3& illuminance, const math::fvec3& transmitted_illuminance)
 {
-	sun_illuminance_tween[1] = illuminance;
+	m_sun_illuminance = illuminance;
 	sun_transmitted_illuminance = transmitted_illuminance;
 }
 
 void sky_pass::set_sun_luminance(const math::fvec3& luminance)
 {
-	sun_luminance_tween[1] = luminance;
+	m_sun_luminance = luminance;
 }
 
 void sky_pass::set_sun_angular_radius(float radius)
@@ -726,7 +693,7 @@ void sky_pass::set_planet_radius(float radius)
 	atmosphere_radii[2] = atmosphere_radii[0] * atmosphere_radii[0];
 	atmosphere_radii[3] = atmosphere_radii[1] * atmosphere_radii[1];
 	
-	observer_position_tween[1] = {0.0f, atmosphere_radii.x() + observer_elevation, 0.0f};
+	m_observer_position = {0.0f, atmosphere_radii.x() + observer_elevation, 0.0f};
 	
 	// Trigger transmittance and multiscattering LUT render
 	m_render_transmittance_lut = true;
@@ -747,7 +714,7 @@ void sky_pass::set_atmosphere_upper_limit(float limit)
 void sky_pass::set_observer_elevation(float elevation)
 {
 	observer_elevation = elevation;
-	observer_position_tween[1] = {0.0f, atmosphere_radii.x() + observer_elevation, 0.0f};
+	m_observer_position = {0.0f, atmosphere_radii.x() + observer_elevation, 0.0f};
 }
 
 void sky_pass::set_rayleigh_parameters(float scale_height, const math::fvec3& scattering)
@@ -810,42 +777,42 @@ void sky_pass::set_ground_albedo(const math::fvec3& albedo)
 
 void sky_pass::set_moon_position(const math::fvec3& position)
 {
-	moon_position_tween[1] = position;
+	m_moon_position = position;
 }
 
 void sky_pass::set_moon_rotation(const math::fquat& rotation)
 {
-	moon_rotation_tween[1] = rotation;
+	m_moon_rotation = rotation;
 }
 
 void sky_pass::set_moon_angular_radius(float angular_radius)
 {
-	moon_angular_radius_tween[1] = angular_radius;
+	m_moon_angular_radius = angular_radius;
 }
 
 void sky_pass::set_moon_sunlight_direction(const math::fvec3& direction)
 {
-	moon_sunlight_direction_tween[1] = direction;
+	m_moon_sunlight_direction = direction;
 }
 
 void sky_pass::set_moon_sunlight_illuminance(const math::fvec3& illuminance)
 {
-	moon_sunlight_illuminance_tween[1] = illuminance;
+	m_moon_sunlight_illuminance = illuminance;
 }
 
 void sky_pass::set_moon_planetlight_direction(const math::fvec3& direction)
 {
-	moon_planetlight_direction_tween[1] = direction;
+	m_moon_planetlight_direction = direction;
 }
 
 void sky_pass::set_moon_planetlight_illuminance(const math::fvec3& illuminance)
 {
-	moon_planetlight_illuminance_tween[1] = illuminance;
+	m_moon_planetlight_illuminance = illuminance;
 }
 
 void sky_pass::set_moon_illuminance(const math::fvec3& illuminance, const math::fvec3& transmitted_illuminance)
 {
-	moon_illuminance_tween[1] = illuminance;
+	m_moon_illuminance = illuminance;
 	moon_transmitted_illuminance = transmitted_illuminance;
 }
 
@@ -1190,7 +1157,7 @@ void sky_pass::rebuild_luminance_lut_command_buffer()
 	}
 	if (auto observer_position_var = m_luminance_lut_shader_program->variable("observer_position"))
 	{
-		m_luminance_lut_command_buffer.emplace_back([&, observer_position_var](){observer_position_var->update(observer_position);});
+		m_luminance_lut_command_buffer.emplace_back([&, observer_position_var](){observer_position_var->update(m_observer_position);});
 	}
 	if (auto rayleigh_parameters_var = m_luminance_lut_shader_program->variable("rayleigh_parameters"))
 	{
@@ -1281,7 +1248,7 @@ void sky_pass::rebuild_sky_probe_command_buffer()
 	}
 	if (auto observer_position_var = m_sky_probe_shader_program->variable("observer_position"))
 	{
-		m_sky_probe_command_buffer.emplace_back([&, observer_position_var](){observer_position_var->update(observer_position);});
+		m_sky_probe_command_buffer.emplace_back([&, observer_position_var](){observer_position_var->update(m_observer_position);});
 	}
 	if (auto atmosphere_radii_var = m_sky_probe_shader_program->variable("atmosphere_radii"))
 	{

@@ -1231,9 +1231,6 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 	const float t = std::chrono::duration<float>(fixed_update_time).count();
 	const float dt = std::chrono::duration<float>(fixed_update_interval).count();
 	
-	// Update tweens
-	sky_pass->update_tweens();
-	
 	// Process window events
 	window_manager->update();
 	

@@ -7,7 +7,6 @@
 #include <engine/render/pass.hpp>
 #include <engine/gl/shader-template.hpp>
 #include <engine/math/vector.hpp>
-#include <engine/animation/tween.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-variable.hpp>
@@ -17,6 +16,7 @@
 #include <engine/math/se3.hpp>
 #include <engine/scene/object.hpp>
 #include <engine/scene/light-probe.hpp>
+#include <functional>
 
 class resource_manager;
 
@@ -162,8 +162,6 @@ public:
 	
 	/// @}
 	
-	void update_tweens();
-	
 	void set_magnification(float scale);
 	
 	void set_sky_model(std::shared_ptr<render::model> model);
@@ -265,7 +263,6 @@ private:
 	
 	math::fvec3 dominant_light_direction;
 	math::fvec3 dominant_light_illuminance;
-	math::fvec3 observer_position;
 	float camera_exposure;
 
 	std::shared_ptr<gl::shader_program> sky_shader_program;
@@ -339,28 +336,27 @@ private:
 
 	math::fvec2 mouse_position;
 	
-	tween<math::fvec3> sun_position_tween;
-	tween<math::fvec3> sun_luminance_tween;
-	tween<math::fvec3> sun_illuminance_tween;
+	math::fvec3 m_sun_position;
+	math::fvec3 m_sun_luminance;
+	math::fvec3 m_sun_illuminance;
 	math::fvec3 sun_transmitted_illuminance;
-	tween<math::fvec3> icrf_to_eus_translation;
-	tween<math::fquat> icrf_to_eus_rotation;
+	math::se3<float> m_icrf_to_eus;
 	
-	tween<math::fvec3> moon_position_tween;
-	tween<math::fquat> moon_rotation_tween;
-	tween<float> moon_angular_radius_tween;
-	tween<math::fvec3> moon_sunlight_direction_tween;
-	tween<math::fvec3> moon_sunlight_illuminance_tween;
-	tween<math::fvec3> moon_planetlight_direction_tween;
-	tween<math::fvec3> moon_planetlight_illuminance_tween;
-	tween<math::fvec3> moon_illuminance_tween;
+	math::fvec3 m_moon_position;
+	math::fquat m_moon_rotation;
+	float m_moon_angular_radius;
+	math::fvec3 m_moon_sunlight_direction;
+	math::fvec3 m_moon_sunlight_illuminance;
+	math::fvec3 m_moon_planetlight_direction;
+	math::fvec3 m_moon_planetlight_illuminance;
+	math::fvec3 m_moon_illuminance;
 	math::fvec3 moon_transmitted_illuminance;
 	
 	float sun_angular_radius;
 	float atmosphere_upper_limit;
 	math::fvec4 atmosphere_radii;
 	float observer_elevation;
-	tween<math::fvec3> observer_position_tween;
+	math::fvec3 m_observer_position;
 	math::fvec4 rayleigh_parameters;
 	math::fvec4 mie_parameters;
 	math::fvec3 ozone_distribution;
