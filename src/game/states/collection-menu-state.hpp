@@ -24,7 +24,6 @@ private:
 	
 	std::shared_ptr<render::material> selection_material;
 	scene::billboard selection_billboard;
-	animation<float> selection_snap_animation;
 	
 	std::shared_ptr<render::material> box_material;
 	scene::billboard box_billboard;

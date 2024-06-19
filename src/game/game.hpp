@@ -53,7 +53,6 @@
 class animator;
 class resource_manager;
 class screen_transition;
-class timeline;
 class shell;
 class shell_buffer;
 
@@ -355,16 +354,9 @@ public:
 	scene::collection* active_scene;
 	
 	// Animation
-	std::unique_ptr<timeline> timeline;
 	std::unique_ptr<animator> animator;
-	std::unique_ptr<animation<float>> radial_transition_in;
-	std::unique_ptr<animation<float>> radial_transition_out;
 	std::unique_ptr<screen_transition> fade_transition;
 	std::shared_ptr<render::matvar_fvec3> fade_transition_color;
-	std::unique_ptr<screen_transition> radial_transition_inner;
-	std::unique_ptr<screen_transition> radial_transition_outer;
-	std::unique_ptr<animation<float>> equip_tool_animation;
-	std::unique_ptr<animation<float>> unequip_tool_animation;
 	
 	// Sound
 	std::unique_ptr<audio::sound_system> sound_system;

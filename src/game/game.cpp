@@ -42,7 +42,6 @@
 #include <engine/animation/animator.hpp>
 #include <engine/animation/ease.hpp>
 #include <engine/animation/screen-transition.hpp>
-#include <engine/animation/timeline.hpp>
 #include <engine/color/color.hpp>
 #include <engine/config.hpp>
 #include <engine/debug/log.hpp>
@@ -715,10 +714,6 @@ void game::setup_scenes()
 
 void game::setup_animation()
 {
-	// Setup timeline system
-	timeline = std::make_unique<::timeline>();
-	timeline->set_autoremove(true);
-
 	// Setup animator
 	animator = std::make_unique<::animator>();
 }
@@ -796,14 +791,6 @@ void game::setup_ui()
 	fade_transition_color = std::make_shared<render::matvar_fvec3>(1, math::fvec3{0, 0, 0});
 	fade_transition->get_material()->set_variable("color", fade_transition_color);
 	fade_transition->get_billboard()->set_translation({0, 0, 98});
-	
-	// Create inner radial transition
-	radial_transition_inner = std::make_unique<screen_transition>();
-	radial_transition_inner->get_material()->set_shader_template(resource_manager->load<gl::shader_template>("radial-transition-inner.glsl"));
-	
-	// Create outer radial transition
-	radial_transition_outer = std::make_unique<screen_transition>();
-	radial_transition_outer->get_material()->set_shader_template(resource_manager->load<gl::shader_template>("radial-transition-outer.glsl"));
 	
 	// Menu BG animations
 	{
@@ -1240,9 +1227,6 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 		function_queue.front()();
 		function_queue.pop();
 	}
-	
-	// Advance timeline
-	//timeline->advance(dt);
 	
 	// Update entity systems
 	animation_system->update(t, dt);

@@ -9,7 +9,6 @@
 #include "game/fonts.hpp"
 #include "game/menu.hpp"
 #include "game/graphics.hpp"
-#include <engine/animation/timeline.hpp>
 #include "game/strings.hpp"
 #include <engine/hash/fnv1a.hpp>
 
