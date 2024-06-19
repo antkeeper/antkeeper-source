@@ -4,8 +4,12 @@
 #include <engine/animation/keyframe-interpolation.hpp>
 #include <engine/animation/keyframe.hpp>
 
-float interpolate_keyframes_linear(const keyframe& a, const keyframe& b, float t) noexcept
+float interpolate_keyframes_linear(const keyframe& a, const keyframe& b, float time) noexcept
 {
+	// Calculate normalized interpolation factor
+	const auto t = (time - a.time) / (b.time - a.time);
+
+	// Lerp
 	return (b.value - a.value) * t + a.value;
 }
 

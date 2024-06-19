@@ -23,7 +23,7 @@ public:
 	 */
 	void sample(void* context, float time) const;
 
-	/** Returns a referemce tp the channels of the track. */
+	/** Returns a reference to the channels of the track. */
 	[[nodiscard]] inline constexpr auto& channels() noexcept
 	{
 		return m_channels;

@@ -44,7 +44,7 @@ public:
 		return m_name;
 	}
 
-	/** Returns a reference the animation tracks of the sequence. */
+	/** Returns a reference to the animation tracks of the sequence. */
 	[[nodiscard]] inline constexpr auto& tracks() noexcept
 	{
 		return m_tracks;

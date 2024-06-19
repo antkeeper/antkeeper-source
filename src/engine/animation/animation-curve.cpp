@@ -8,47 +8,29 @@ float animation_curve::evaluate(float time) const
 {
 	if (m_keyframes.empty())
 	{
-		throw std::runtime_error("Animation curve evaluation failed: no keyframes.");
+		throw std::runtime_error("Failed to evaluate animation curve: no keyframes.");
 	}
 
-	if (m_keyframes.size() == 1)
+	// Check if time is outside keyframe range
+	if (time < m_keyframes.begin()->time || time > m_keyframes.rbegin()->time)
 	{
-		// One keyframe, curve is constant
-		return m_keyframes.begin()->value;
+		// Extrapolate outside keyframe range
+		return m_extrapolator(m_keyframes, time);
 	}
 
-	// Get first and last keyframes
-	const auto& first = *m_keyframes.begin();
-	const auto& last = *m_keyframes.rbegin();
-
-	// Check if time is within keyframe range
-	if (time <= first.time || time >= last.time)
-	{
-		// Extrapolate outside of keyframe range
-		return extrapolate(first, last, time);
-	}
-
-	// Find boundary keyframes
+	// Find first keyframe at or after given time
 	const auto next = m_keyframes.lower_bound({time, 0.0f});
+
+	// Check if next keyframe is the first keyframe
+	if (next == m_keyframes.begin())
+	{
+		return next->value;
+	}
+
+	// Find preceding keyframe
 	const auto previous = std::prev(next);
 
-	// Calculate interpolation factor
-	const auto t = (time - previous->time) / (next->time - previous->time);
-
 	// Interpolate between keyframes
-	return m_interpolator(*previous, *next, t);
-}
-
-float animation_curve::extrapolate(const keyframe& a, const keyframe& b, float time) const
-{
-	// Clamp
-	if (time <= a.time)
-	{
-		return a.value;
-	}
-	else
-	{
-		return b.value;
-	}
+	return m_interpolator(*previous, *next, time);
 }
 
