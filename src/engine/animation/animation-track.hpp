@@ -16,9 +16,9 @@ class animation_track
 {
 public:
 	/**
-	 * Evaluates each channel in the track at a given time, passing the evaluated sample to the sampler function.
+	 * Samples each channel in the track at a given time, passing the evaluated sample data to the sampler function object.
 	 *
-	 * @param context User-defined sampling context.
+	 * @param context User-defined animation context.
 	 * @param time Time at which to sample the track.
 	 */
 	void sample(void* context, float time) const;
@@ -35,7 +35,11 @@ public:
 		return m_channels;
 	}
 
-	/** Returns a reference to the track sampler function object. */
+	/**
+	 * Returns a reference to the track sampler function object.
+	 *
+	 * The sampler function object takes two parameters: a void pointer to a user-defined animation context, and a span containing floating-point sample data.
+	 */
 	[[nodiscard]] inline constexpr auto& sampler() noexcept
 	{
 		return m_sampler;
