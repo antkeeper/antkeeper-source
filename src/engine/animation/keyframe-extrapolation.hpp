@@ -14,7 +14,7 @@
  *
  * @return Extrapolated value.
  *
- * @warning @p keyframes must not be empty!
+ * @exception std::runtime_error Failed clamp extrapolation of keyframes: no keyframes provided.
  */
 [[nodiscard]] float extrapolate_keyframes_clamp(const keyframe_container& keyframes, float time);
 

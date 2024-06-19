@@ -27,6 +27,8 @@ public:
 	 * Keyframe extrapolator function type.
 	 *
 	 * An extrapolator function takes two parameters: a reference to the keyframe container, and a time outside the interval formed by the first and last keyframe times. An extrapolator function should return an extrapolated value according to the given time.
+	 *
+	 * @warning Keyframe container may be empty.
 	 */
 	using keyframe_extrapolator_type = std::function<float(const keyframe_container&, float)>;
 
@@ -63,7 +65,11 @@ public:
 		return m_interpolator;
 	}
 
-	/** Returns a reference to the keyframe extrapolator function object. */
+	/**
+	 * Returns a reference to the keyframe extrapolator function object.
+	 *
+	 * @note The extrapolator may be utilized as a source of procedural animation: if a curve with no keyframes is evaluated, the extrapolator will be called with the empty keyframe container and evaluation time as parameters.
+	 */
 	[[nodiscard]] inline constexpr auto& extrapolator() noexcept
 	{
 		return m_extrapolator;

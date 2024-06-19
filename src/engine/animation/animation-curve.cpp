@@ -2,17 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/animation/animation-curve.hpp>
-#include <stdexcept>
 
 float animation_curve::evaluate(float time) const
 {
-	if (m_keyframes.empty())
-	{
-		throw std::runtime_error("Failed to evaluate animation curve: no keyframes.");
-	}
-
 	// Check if time is outside keyframe range
-	if (time < m_keyframes.begin()->time || time > m_keyframes.rbegin()->time)
+	if (m_keyframes.empty() || time < m_keyframes.begin()->time || time > m_keyframes.rbegin()->time)
 	{
 		// Extrapolate outside keyframe range
 		return m_extrapolator(m_keyframes, time);
