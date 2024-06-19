@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/animation/animation-sequence.hpp>
+#include <engine/animation/keyframe-interpolation.hpp>
 #include <engine/resources/deserializer.hpp>
 #include <engine/resources/deserialize-error.hpp>
 #include <engine/resources/resource-loader.hpp>
@@ -63,7 +64,15 @@ void deserializer<animation_sequence>::deserialize(animation_sequence& sequence,
 			
 			// Determine interpolation mode
 			const auto& interpolation_mode = channel_element.at("interpolation").get_ref<const std::string&>();
-			if (interpolation_mode != "linear")
+			if (interpolation_mode == "linear")
+			{
+				channel.interpolator() = interpolate_keyframes_linear;
+			}
+			else if (interpolation_mode == "constant")
+			{
+				channel.interpolator() = interpolate_keyframes_constant;
+			}
+			else
 			{
 				throw deserialize_error(std::format("Animation channel has unsupported interpolation mode (\"{}\").", interpolation_mode));
 			}

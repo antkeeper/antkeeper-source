@@ -10,7 +10,7 @@
 #include <vector>
 
 /**
- * Set of related animation curves.
+ * Set of related animation channels.
  */
 class animation_track
 {
@@ -23,7 +23,7 @@ public:
 	 */
 	void sample(void* context, float time) const;
 
-	/** Returns the channels of the track. */
+	/** Returns a referemce tp the channels of the track. */
 	[[nodiscard]] inline constexpr auto& channels() noexcept
 	{
 		return m_channels;
@@ -35,7 +35,7 @@ public:
 		return m_channels;
 	}
 
-	/** Returns the track sampler function. */
+	/** Returns a reference to the track sampler function object. */
 	[[nodiscard]] inline constexpr auto& sampler() noexcept
 	{
 		return m_sampler;

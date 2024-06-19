@@ -36,13 +36,7 @@ float animation_curve::evaluate(float time) const
 	const auto t = (time - previous->time) / (next->time - previous->time);
 
 	// Interpolate between keyframes
-	return interpolate(*previous, *next, t);
-}
-
-float animation_curve::interpolate(const keyframe& a, const keyframe& b, float t) const
-{
-	// Lerp
-	return (b.value - a.value) * t + a.value;
+	return m_interpolator(*previous, *next, t);
 }
 
 float animation_curve::extrapolate(const keyframe& a, const keyframe& b, float time) const

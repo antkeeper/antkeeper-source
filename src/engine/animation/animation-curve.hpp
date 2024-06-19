@@ -5,7 +5,10 @@
 #define ANTKEEPER_ANIMATION_ANIMATION_CURVE_HPP
 
 #include <engine/animation/keyframe.hpp>
+#include <engine/animation/keyframe-time-comparator.hpp>
+#include <engine/animation/keyframe-interpolation.hpp>
 #include <set>
+#include <functional>
 
 /**
  * Keyframe animation curve.
@@ -22,7 +25,7 @@ public:
 	 */
 	[[nodiscard]] float evaluate(float time) const;
 
-	/** Returns the keyframes of the track. */
+	/** Returns a reference the keyframes of the curve. */
 	[[nodiscard]] inline constexpr auto& keyframes() noexcept
 	{
 		return m_keyframes;
@@ -34,18 +37,19 @@ public:
 		return m_keyframes;
 	}
 
-private:
-	/**
-	 * Interpolates between two keyframes.
-	 *
-	 * @param a First keyframe.
-	 * @param b Second keyframe.
-	 * @param t Interpolation factor.
-	 *
-	 * @return Interpolated value between @p a and @p b.
-	 */
-	[[nodiscard]] float interpolate(const keyframe& a, const keyframe& b, float t) const;
+	/** Returns a reference to the keyframe interpolator function object. */
+	[[nodiscard]] inline constexpr auto& interpolator() noexcept
+	{
+		return m_interpolator;
+	}
 
+	/** @copydoc interpolator() */
+	[[nodiscard]] inline constexpr const auto& interpolator() const noexcept
+	{
+		return m_interpolator;
+	}
+
+private:
 	/**
 	 * Extrapolates outside of the keyframe range.
 	 *
@@ -56,6 +60,7 @@ private:
 	[[nodiscard]] float extrapolate(const keyframe& a, const keyframe& b, float time) const;
 
 	std::set<keyframe, keyframe_time_comparator> m_keyframes;
+	std::function<float(const keyframe&, const keyframe&, float)> m_interpolator{interpolate_keyframes_linear};
 };
 
 #endif // ANTKEEPER_ANIMATION_ANIMATION_CURVE_HPP
