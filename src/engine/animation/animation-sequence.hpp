@@ -5,9 +5,11 @@
 #define ANTKEEPER_ANIMATION_ANIMATION_SEQUENCE_HPP
 
 #include <engine/animation/animation-track.hpp>
+#include <engine/animation/animation-context.hpp>
 #include <functional>
 #include <map>
 #include <string>
+#include <utility>
 
 /**
  * Set of related animation tracks.
@@ -16,21 +18,13 @@ class animation_sequence
 {
 public:
 	/**
-	 * Samples all tracks in the animation sequence at a given time.
-	 *
-	 * @param context User-defined animation context.
-	 * @param time Time at which to sample the sequence.
-	 */
-	void sample_tracks(void* context, float time) const;
-
-	/**
 	 * Triggers all cues on the half-open interval [@p start_time, @p end_time).
 	 *
-	 * @param context User-defined animation context.
 	 * @param start_time Start of the interval (inclusive).
 	 * @param end_time End of the interval (exclusive).
+	 * @param context Animation context.
 	 */
-	void trigger_cues(void* context, float start_time, float end_time) const;
+	void trigger_cues(float start_time, float end_time, animation_context& context) const;
 
 	/** Returns a reference to the name of the sequence. */
 	[[nodiscard]] inline constexpr auto& name() noexcept
@@ -72,10 +66,13 @@ public:
 		return m_cues;
 	}
 
+	/** Returns the non-negative duration of the sequence. */
+	[[nodiscard]] float duration() const;
+
 private:
 	std::string m_name;
 	std::map<std::string, animation_track> m_tracks;
-	std::multimap<float, std::function<void(void*)>> m_cues;
+	std::multimap<float, std::function<void(animation_context&)>> m_cues;
 };
 
 #endif // ANTKEEPER_ANIMATION_SEQUENCE_HPP

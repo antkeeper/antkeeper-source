@@ -6,18 +6,11 @@
 #include <engine/resources/deserializer.hpp>
 #include <engine/resources/deserialize-error.hpp>
 #include <engine/resources/resource-loader.hpp>
+#include <algorithm>
 #include <format>
 #include <nlohmann/json.hpp>
 
-void animation_sequence::sample_tracks(void* context, float time) const
-{
-	for (const auto& [key, track]: m_tracks)
-	{
-		track.sample(context, time);
-	}
-}
-
-void animation_sequence::trigger_cues(void* context, float start_time, float end_time) const
+void animation_sequence::trigger_cues(float start_time, float end_time, animation_context& context) const
 {
 	const auto start_it = m_cues.lower_bound(start_time);
 	const auto end_it = m_cues.upper_bound(end_time);
@@ -32,6 +25,17 @@ void animation_sequence::trigger_cues(void* context, float start_time, float end
 
 		it->second(context);
 	}
+}
+
+float animation_sequence::duration() const
+{
+	float max_duration = 0.0f;
+	for (const auto& [path, track]: m_tracks)
+	{
+		max_duration = std::max(max_duration, track.duration());
+	}
+
+	return max_duration;
 }
 
 /**

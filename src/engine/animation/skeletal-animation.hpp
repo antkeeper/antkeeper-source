@@ -10,7 +10,8 @@ class skeleton;
 /**
  * Binds an animation sequence to a skeleton.
  *
- * @note Animation context must be a pointer to a skeleton_pose.
+ * @param sequence Animation sequence to bind.
+ * @parma skeleton Skeleton to which the sequence should be bound.
  */
 void bind_skeletal_animation(animation_sequence& sequence, const ::skeleton& skeleton);
 

@@ -2,28 +2,40 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/animation/animation-track.hpp>
-#include <stdexcept>
+#include <algorithm>
 
-void animation_track::sample(void* context, float time) const
+void animation_track::sample(float time, std::span<float> samples) const
 {
-	if (!m_sampler)
+	const auto min_size = std::min(m_channels.size(), samples.size());
+
+	for (std::size_t i = 0; i < min_size; ++i)
 	{
-		// throw std::runtime_error("Animation track sample failed: no sampler.");
+		samples[i] = m_channels[i].evaluate(time);
+	}
+}
+
+void animation_track::sample(float time, std::size_t first_channel, std::span<float> samples) const
+{
+	if (first_channel >= m_channels.size())
+	{
 		return;
 	}
 
-	if (m_sample_buffer.size() != m_channels.size())
+	const auto min_size = std::min(m_channels.size() - first_channel, samples.size());
+
+	for (std::size_t i = 0; i < min_size; ++i)
 	{
-		// Resize sample buffer to accomodate number of channels
-		m_sample_buffer.resize(m_channels.size());
+		samples[i] = m_channels[i + first_channel].evaluate(time);
+	}
+}
+
+float animation_track::duration() const
+{
+	float max_duration = 0.0f;
+	for (const auto& channel: m_channels)
+	{
+		max_duration = std::max(max_duration, channel.duration());
 	}
 
-	// Sample channels at given time
-	for (std::size_t i = 0; i < m_channels.size(); ++i)
-	{
-		m_sample_buffer[i] = m_channels[i].evaluate(time);
-	}
-
-	// Pass sample buffer to sampler function
-	m_sampler(context, m_sample_buffer);
+	return max_duration;
 }

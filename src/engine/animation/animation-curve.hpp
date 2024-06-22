@@ -81,6 +81,9 @@ public:
 		return m_extrapolator;
 	}
 
+	/** Returns the non-negative duration of the curve, in seconds. */
+	[[nodiscard]] float duration() const;
+
 private:
 	keyframe_container m_keyframes;
 	keyframe_interpolator_type m_interpolator{interpolate_keyframes_linear};

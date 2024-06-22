@@ -4,6 +4,7 @@
 #include "game/systems/animation-system.hpp"
 #include "game/components/pose-component.hpp"
 #include "game/components/scene-component.hpp"
+#include "game/components/animation-component.hpp"
 #include <engine/animation/bone.hpp>
 #include <engine/scene/skeletal-mesh.hpp>
 #include <engine/math/functions.hpp>
@@ -12,11 +13,20 @@
 
 animation_system::animation_system(entity::registry& registry):
 	updatable_system(registry)
-{}
-
-void animation_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
 {
-	
+	m_registry.on_construct<animation_component>().connect<&animation_system::on_animation_construct>(this);
+}
+
+animation_system::~animation_system()
+{
+	m_registry.on_construct<animation_component>().disconnect<&animation_system::on_animation_construct>(this);
+}
+
+void animation_system::update(float t, float dt)
+{
+	m_previous_update_time = m_update_time;
+	m_update_time = t;
+	m_fixed_timestep = dt;
 }
 
 void animation_system::interpolate(float alpha)
@@ -49,5 +59,33 @@ void animation_system::interpolate(float alpha)
 			}
 		}
 	);
+
+	m_previous_render_time = m_render_time;
+	m_render_time = m_previous_update_time + m_fixed_timestep * alpha;
+
+	const auto dt = m_render_time - m_previous_render_time;
+
+	auto animation_view = m_registry.view<animation_component>();
+	std::for_each
+	(
+		std::execution::seq,
+		animation_view.begin(),
+		animation_view.end(),
+		[&](auto entity)
+		{
+			auto& player = animation_view.get<animation_component>(entity).player;
+			if (player.is_playing())
+			{
+				player.advance(dt);
+			}
+		}
+	);
 }
 
+void animation_system::on_animation_construct(entity::registry& registry, entity::id entity)
+{
+	auto& animation = registry.get<animation_component>(entity);
+
+	// Init animation player context
+	animation.player.context() = {entt::handle(registry, entity)};
+}

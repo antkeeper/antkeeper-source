@@ -6,10 +6,13 @@
 #include <engine/animation/skeleton.hpp>
 #include <engine/math/euler-angles.hpp>
 #include <engine/debug/log.hpp>
+#include <engine/scene/skeletal-mesh.hpp>
+#include "game/components/scene-component.hpp"
 #include <filesystem>
 #include <format>
+#include <stdexcept>
 
-void bind_skeletal_animation(animation_sequence& sequence, [[maybe_unused]] const ::skeleton& skeleton)
+void bind_skeletal_animation([[maybe_unused]] animation_sequence& sequence, [[maybe_unused]] const ::skeleton& skeleton)
 {
 	for (auto& [key, track]: sequence.tracks())
 	{
@@ -40,39 +43,53 @@ void bind_skeletal_animation(animation_sequence& sequence, [[maybe_unused]] cons
 			throw std::runtime_error("Failed to bind animation track to bone: invalid data path.");
 		}
 
-		// Set track sampler according to bone and property
+		// Set track output function according to bone and property
 		if (property_name == "translation")
 		{
-			track.sampler() = [bone_index](void* context, auto sample)
+			track.output() = [bone_index](auto samples, auto& context)
 			{
-				const auto translation = math::fvec3{sample[0], sample[1], sample[2]};
-				static_cast<skeleton_pose*>(context)->set_relative_translation(bone_index, translation);
+				auto& scene_object = *(context.handle.get<scene_component>().object);
+				auto& skeletal_mesh = static_cast<scene::skeletal_mesh&>(scene_object);
+
+				const auto translation = math::fvec3{samples[0], samples[1], samples[2]};
+
+				skeletal_mesh.get_pose().set_relative_translation(bone_index, translation);
 			};
 		}
 		else if (property_name == "rotation_quaternion")
 		{
-			track.sampler() = [bone_index](void* context, auto sample)
+			track.output() = [bone_index](auto samples, auto& context)
 			{
-				const auto rotation = math::normalize(math::fquat{sample[0], sample[1], sample[2], sample[3]});
+				auto& scene_object = *(context.handle.get<scene_component>().object);
+				auto& skeletal_mesh = static_cast<scene::skeletal_mesh&>(scene_object);
 
-				debug::log_debug("rotated bone {} to {}", bone_index, rotation);
-				static_cast<skeleton_pose*>(context)->set_relative_rotation(bone_index, rotation);
+				const auto rotation = math::normalize(math::fquat{samples[0], samples[1], samples[2], samples[3]});
+
+				skeletal_mesh.get_pose().set_relative_rotation(bone_index, rotation);
 			};
 		}
 		else if (property_name == "rotation_euler")
 		{
-			track.sampler() = [bone_index](void* context, auto sample)
+			track.output() = [bone_index](auto samples, auto& context)
 			{
-				const auto rotation = math::euler_xyz_to_quat(math::fvec3{sample[0], sample[1], sample[2]});
-				static_cast<skeleton_pose*>(context)->set_relative_rotation(bone_index, rotation);
+				auto& scene_object = *(context.handle.get<scene_component>().object);
+				auto& skeletal_mesh = static_cast<scene::skeletal_mesh&>(scene_object);
+
+				const auto rotation = math::euler_xyz_to_quat(math::fvec3{samples[0], samples[1], samples[2]});
+
+				skeletal_mesh.get_pose().set_relative_rotation(bone_index, rotation);
 			};
 		}
 		else if (property_name == "scale")
 		{
-			track.sampler() = [bone_index](void* context, auto sample)
+			track.output() = [bone_index](auto samples, auto& context)
 			{
-				const auto scale = math::fvec3{sample[0], sample[1], sample[2]};
-				static_cast<skeleton_pose*>(context)->set_relative_scale(bone_index, scale);
+				auto& scene_object = *(context.handle.get<scene_component>().object);
+				auto& skeletal_mesh = static_cast<scene::skeletal_mesh&>(scene_object);
+
+				const auto scale = math::fvec3{samples[0], samples[1], samples[2]};
+
+				skeletal_mesh.get_pose().set_relative_scale(bone_index, scale);
 			};
 		}
 		else

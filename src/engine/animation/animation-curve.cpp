@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/animation/animation-curve.hpp>
+#include <algorithm>
+#include <iterator>
 
 float animation_curve::evaluate(float time) const
 {
@@ -28,3 +30,12 @@ float animation_curve::evaluate(float time) const
 	return m_interpolator(*previous, *next, time);
 }
 
+float animation_curve::duration() const
+{
+	if (m_keyframes.empty())
+	{
+		return 0.0f;
+	}
+
+	return std::max(0.0f, m_keyframes.rbegin()->time);
+}

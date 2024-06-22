@@ -5,6 +5,7 @@
 #define ANTKEEPER_ANIMATION_ANIMATION_TRACK_HPP
 
 #include <engine/animation/animation-curve.hpp>
+#include <engine/animation/animation-context.hpp>
 #include <functional>
 #include <span>
 #include <vector>
@@ -16,12 +17,28 @@ class animation_track
 {
 public:
 	/**
-	 * Samples each channel in the track at a given time, passing the evaluated sample data to the sampler function object.
+	 * Output function type.
 	 *
-	 * @param context User-defined animation context.
-	 * @param time Time at which to sample the track.
+	 * Output functions take two parameters: the track samples, and a reference to an animation context.
 	 */
-	void sample(void* context, float time) const;
+	using output_function_type = std::function<void(std::span<const float>, animation_context&)>;
+
+	/**
+	 * Evaluates the channels of the track at a given time, storing the resulting values in a buffer.
+	 *
+	 * @param[in] time Time at which to sample the track.
+	 * @param[in] first_channel Index of the first channel to sample.
+	 * @param[out] samples Buffer to store the evaluated values of the channels. The number of channels sampled is limited by the size of the buffer.
+	 */
+	void sample(float time, std::size_t first_channel, std::span<float> samples) const;
+
+	/**
+	 * Evaluates the channels of the track at a given time, storing the resulting values in a buffer.
+	 *
+	 * @param[in] time Time at which to sample the track.
+	 * @param[out] samples Buffer to store the evaluated values of the channels. The number of channels sampled is limited by the size of the buffer.
+	 */
+	void sample(float time, std::span<float> samples) const;
 
 	/** Returns a reference to the channels of the track. */
 	[[nodiscard]] inline constexpr auto& channels() noexcept
@@ -35,26 +52,24 @@ public:
 		return m_channels;
 	}
 
-	/**
-	 * Returns a reference to the track sampler function object.
-	 *
-	 * The sampler function object takes two parameters: a void pointer to a user-defined animation context, and a span containing floating-point sample data.
-	 */
-	[[nodiscard]] inline constexpr auto& sampler() noexcept
+	/** Returns a reference to the output function of the track. */
+	[[nodiscard]] inline constexpr auto& output() noexcept
 	{
-		return m_sampler;
+		return m_output_function;
 	}
 
-	/** @copydoc sampler() */
-	[[nodiscard]] inline constexpr const auto& sampler() const noexcept
+	/** @copydoc output() */
+	[[nodiscard]] inline constexpr const auto& output() const noexcept
 	{
-		return m_sampler;
+		return m_output_function;
 	}
+
+	/** Returns the non-negative duration of the track, in seconds. */
+	[[nodiscard]] float duration() const;
 
 private:
 	std::vector<animation_curve> m_channels;
-	std::function<void(void*, std::span<const float>)> m_sampler;
-	mutable std::vector<float> m_sample_buffer;
+	output_function_type m_output_function;
 };
 
 #endif // ANTKEEPER_ANIMATION_ANIMATION_TRACK_HPP

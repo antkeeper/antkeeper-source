@@ -26,6 +26,7 @@
 #include "game/components/ovary-component.hpp"
 #include "game/components/spring-arm-component.hpp"
 #include "game/components/ant-genome-component.hpp"
+#include "game/components/animation-component.hpp"
 #include "game/constraints/child-of-constraint.hpp"
 #include "game/constraints/copy-rotation-constraint.hpp"
 #include "game/constraints/copy-scale-constraint.hpp"
