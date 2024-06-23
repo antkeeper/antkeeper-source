@@ -40,6 +40,7 @@
 #include "game/constraints/track-to-constraint.hpp"
 #include "game/controls.hpp"
 #include "game/spawn.hpp"
+#include "game/screen-transition.hpp"
 #include "game/states/pause-menu-state.hpp"
 #include "game/systems/astronomy-system.hpp"
 #include "game/systems/atmosphere-system.hpp"
@@ -49,7 +50,6 @@
 #include "game/systems/terrain-system.hpp"
 #include "game/world.hpp"
 #include <engine/animation/ease.hpp>
-#include <engine/animation/screen-transition.hpp>
 #include <engine/config.hpp>
 #include <engine/entity/archetype.hpp>
 #include <engine/input/mouse.hpp>
@@ -361,8 +361,7 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	);
 	
 	// Queue fade in
-	ctx.fade_transition_color->set({0, 0, 0});
-	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition.get(), 1.0f, true, ease<float>::out_sine, true, nullptr));
+	fade_in_to(ctx, nullptr);
 	
 	// Refresh frame scheduler
 	ctx.frame_scheduler.refresh();

@@ -2,23 +2,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/states/main-menu-state.hpp"
-#include <engine/animation/animation.hpp>
-#include <engine/animation/animator.hpp>
 #include <engine/animation/ease.hpp>
-#include <engine/animation/screen-transition.hpp>
 #include <engine/config.hpp>
 #include "game/components/steering-component.hpp"
 #include "game/components/transform-component.hpp"
+#include "game/components/animation-component.hpp"
 #include "game/controls.hpp"
 #include "game/ecoregion.hpp"
 #include "game/menu.hpp"
-#include "game/states/collection-menu-state.hpp"
 #include "game/states/extras-menu-state.hpp"
 #include "game/states/nuptial-flight-state.hpp"
 #include "game/states/options-menu-state.hpp"
 #include "game/states/experiments/test-state.hpp"
 #include "game/strings.hpp"
 #include "game/world.hpp"
+#include "game/screen-transition.hpp"
 #include "game/debug/shell.hpp"
 #include <engine/math/vector.hpp>
 #include <engine/math/projection.hpp>
@@ -59,19 +57,35 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	// Add text to UI
 	ctx.ui_canvas->get_scene().add_object(*title_text);
 	
-	// Construct title fade animation
-	title_fade_animation.set_interpolator(ease<float>::out_cubic);
-	[[maybe_unused]] animation_channel<float>* opacity_channel = title_fade_animation.add_channel(0);
-	title_fade_animation.set_frame_callback
-	(
-		[this, &ctx]([[maybe_unused]] int channel, const float& opacity)
+	// Construct title fade in animation
+	{
+		m_title_fade_in_sequence = std::make_shared<animation_sequence>();
+		auto& opacity_track = m_title_fade_in_sequence->tracks()["opacity"];
+		auto& opacity_channel = opacity_track.channels().emplace_back();
+		opacity_channel.keyframes().emplace(0.0f, 0.0f);
+		opacity_channel.keyframes().emplace(config::menu_fade_in_duration, 1.0f);
+		opacity_track.output() = [&](auto samples, auto&)
 		{
-			math::fvec4 color = this->title_text->get_color();
-			color[3] = opacity;
-			this->title_text->set_color(color);
-		}
-	);
-	ctx.animator->add_animation(&title_fade_animation);
+			title_text->set_color({1.0f, 1.0f, 1.0f, samples[0]});
+		};
+	}
+
+	// Construct title fade out animation
+	{
+		m_title_fade_out_sequence = std::make_shared<animation_sequence>();
+		auto& opacity_track = m_title_fade_out_sequence->tracks()["opacity"];
+		auto& opacity_channel = opacity_track.channels().emplace_back();
+		opacity_channel.keyframes().emplace(0.0f, 1.0f);
+		opacity_channel.keyframes().emplace(config::menu_fade_out_duration, 0.0f);
+		opacity_track.output() = [&](auto samples, auto&)
+		{
+			title_text->set_color({1.0f, 1.0f, 1.0f, samples[0]});
+		};
+	}
+
+	// Constructs title entity
+	m_title_entity = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<animation_component>(m_title_entity);
 	
 	// Construct menu item texts
 	start_text = std::make_unique<scene::text>();
@@ -98,7 +112,6 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	::menu::update_text_font(ctx);
 	::menu::align_text(ctx, true, false, (-viewport_size.y() / 3.0f) / 2.0f);
 	::menu::add_text_to_ui(ctx);
-	::menu::setup_animations(ctx);
 	
 	auto select_start_callback = [this, &ctx]()
 	{
@@ -126,9 +139,7 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 		::menu::fade_out(ctx, nullptr);
 		
 		// Start fade out to white
-		//ctx.fade_transition_color->set_value({1, 1, 1});
-		ctx.fade_transition_color->set({0, 0, 0});
-		ctx.fade_transition->transition(config::new_colony_fade_out_duration, false, ease<float>::out_cubic, false, change_state);
+		fade_out_to(ctx, change_state);
 	};
 	auto select_options_callback = [this, &ctx]()
 	{
@@ -194,7 +205,7 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 		::menu::fade_out(ctx, nullptr);
 		
 		// Fade to black then quit
-		ctx.fade_transition->transition(config::quit_fade_out_duration, false, ease<float>::out_cubic, false, [&ctx](){ctx.closed=true;});
+		fade_out_to(ctx, [&ctx](){ctx.closed=true;});
 		
 		// Quit immediately
 		//ctx.function_queue.push([&ctx](){ctx.closed=true;});
@@ -224,7 +235,7 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	if (fade_in)
 	{
 		// Fade in from black
-		ctx.fade_transition->transition(config::title_fade_in_duration, true, ease<float>::out_cubic);
+		fade_in_to(ctx, nullptr);
 	}
 	else
 	{
@@ -285,15 +296,14 @@ main_menu_state::~main_menu_state()
 	// Destruct menu
 	::disable_menu_controls(ctx);
 	::menu::clear_callbacks(ctx);
-	::menu::delete_animations(ctx);
 	::menu::remove_text_from_ui(ctx);
 	::menu::delete_text(ctx);
 	
 	// Hide menu BG
 	//ctx.menu_bg_billboard->set_active(false);
 	
-	// Destruct title animation
-	ctx.animator->remove_animation(&title_fade_animation);
+	// Destruct title entity
+	ctx.entity_registry->destroy(m_title_entity);
 	
 	// Destruct text
 	ctx.ui_canvas->get_scene().remove_object(*title_text);
@@ -303,20 +313,14 @@ main_menu_state::~main_menu_state()
 
 void main_menu_state::fade_in_title()
 {
-	animation_channel<float>* opacity_channel = title_fade_animation.get_channel(0);
-	opacity_channel->remove_keyframes();
-	opacity_channel->insert_keyframe({0.0f, 0.0f});
-	opacity_channel->insert_keyframe({config::menu_fade_in_duration, 1.0f});
-	title_fade_animation.stop();
-	title_fade_animation.play();
+	auto& title_player = ctx.entity_registry->get<animation_component>(m_title_entity).player;
+	title_player.rewind();
+	title_player.play(m_title_fade_in_sequence);
 }
 
 void main_menu_state::fade_out_title()
 {
-	animation_channel<float>* opacity_channel = title_fade_animation.get_channel(0);
-	opacity_channel->remove_keyframes();
-	opacity_channel->insert_keyframe({0.0f, 1.0f});
-	opacity_channel->insert_keyframe({config::menu_fade_out_duration, 0.0f});
-	title_fade_animation.stop();
-	title_fade_animation.play();
+	auto& title_player = ctx.entity_registry->get<animation_component>(m_title_entity).player;
+	title_player.rewind();
+	title_player.play(m_title_fade_out_sequence);
 }

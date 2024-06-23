@@ -63,7 +63,7 @@ void animation_system::interpolate(float alpha)
 	m_previous_render_time = m_render_time;
 	m_render_time = m_previous_update_time + m_fixed_timestep * alpha;
 
-	const auto dt = m_render_time - m_previous_render_time;
+	const auto dt = std::max(0.0f, m_render_time - m_previous_render_time);
 
 	auto animation_view = m_registry.view<animation_component>();
 	std::for_each

@@ -7,12 +7,10 @@
 #include "game/states/nuptial-flight-state.hpp"
 #include "game/menu.hpp"
 #include "game/controls.hpp"
+#include "game/screen-transition.hpp"
 #include <engine/animation/ease.hpp>
-#include <engine/animation/animation.hpp>
-#include <engine/animation/animator.hpp>
 #include <engine/scene/text.hpp>
 #include <engine/debug/log.hpp>
-#include <engine/animation/screen-transition.hpp>
 #include <engine/config.hpp>
 #include "game/strings.hpp"
 #include <engine/hash/fnv1a.hpp>
@@ -49,7 +47,6 @@ pause_menu_state::pause_menu_state(::game& ctx):
 	::menu::update_text_font(ctx);
 	::menu::align_text(ctx, true, false);
 	::menu::add_text_to_ui(ctx);
-	::menu::setup_animations(ctx);
 	
 	// Construct menu item callbacks
 	auto select_resume_callback = [&ctx]()
@@ -132,8 +129,7 @@ pause_menu_state::pause_menu_state(::game& ctx):
 		::menu::fade_out(ctx, nullptr);
 		
 		// Fade out to black then return to main menu
-		ctx.fade_transition_color->set({0, 0, 0});
-		ctx.fade_transition->transition(config::quit_fade_out_duration, false, ease<float>::out_cubic, false, fade_out_callback);
+		fade_out_to(ctx, fade_out_callback);
 	};
 	auto select_quit_callback = [&ctx]()
 	{
@@ -150,8 +146,7 @@ pause_menu_state::pause_menu_state(::game& ctx):
 		::menu::fade_out(ctx, nullptr);
 		
 		// Fade out to black then quit
-		ctx.fade_transition_color->set({0, 0, 0});
-		ctx.fade_transition->transition(config::quit_fade_out_duration, false, ease<float>::out_cubic, false, [&ctx](){ctx.closed=true;});
+		fade_out_to(ctx, [&ctx](){ctx.closed=true;});
 	};
 	
 	// Build list of menu select callbacks
@@ -200,7 +195,6 @@ pause_menu_state::~pause_menu_state()
 	// Destruct menu
 	::disable_menu_controls(ctx);
 	::menu::clear_callbacks(ctx);
-	::menu::delete_animations(ctx);
 	::menu::remove_text_from_ui(ctx);
 	::menu::delete_text(ctx);
 	

@@ -84,7 +84,7 @@ inline constexpr float menu_fade_out_duration = 0.125f;
 inline constexpr float menu_mouseover_padding = 0.1f;
 
 /// Opacity of the menu background.
-inline constexpr float menu_bg_opacity = 2.0f / 4.0f;
+inline constexpr float menu_bg_opacity = 3.0f / 4.0f;
 
 /// RGBA color of active menu items.
 inline constexpr math::vector<float, 4> menu_active_color{1.0f, 1.0f, 1.0f, 1.0f};

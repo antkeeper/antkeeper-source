@@ -14,7 +14,6 @@ void setup_animations(::game& ctx);
 void clear_callbacks(::game& ctx);
 void remove_text_from_ui(::game& ctx);
 void delete_text(::game& ctx);
-void delete_animations(::game& ctx);
 
 
 

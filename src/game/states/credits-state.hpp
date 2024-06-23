@@ -6,8 +6,9 @@
 
 #include "game/states/game-state.hpp"
 #include <engine/scene/text.hpp>
-#include <engine/animation/animation.hpp>
+#include <engine/animation/animation-sequence.hpp>
 #include <engine/event/subscription.hpp>
+#include <engine/entity/id.hpp>
 #include <vector>
 
 
@@ -19,8 +20,9 @@ public:
 	
 private:
 	scene::text credits_text;
-	animation<float> credits_fade_in_animation;
-	animation<float> credits_scroll_animation;
+	entity::id m_credits_entity{entt::null};
+	std::shared_ptr<animation_sequence> m_roll_credits_sequence;
+
 	std::vector<std::shared_ptr<::event::subscription>> input_mapped_subscriptions;
 	std::shared_ptr<event::subscription> window_resized_subscription;
 };

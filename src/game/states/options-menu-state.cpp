@@ -11,8 +11,6 @@
 #include "game/menu.hpp"
 #include "game/controls.hpp"
 #include <engine/animation/ease.hpp>
-#include <engine/animation/animation.hpp>
-#include <engine/animation/animator.hpp>
 #include <engine/scene/text.hpp>
 #include <engine/debug/log.hpp>
 #include "game/strings.hpp"
@@ -53,7 +51,6 @@ options_menu_state::options_menu_state(::game& ctx):
 	::menu::update_text_font(ctx);
 	::menu::align_text(ctx, true);
 	::menu::add_text_to_ui(ctx);
-	::menu::setup_animations(ctx);
 	
 	// Construct menu item callbacks
 	auto select_controls_callback = [&ctx]()
@@ -209,7 +206,6 @@ options_menu_state::~options_menu_state()
 	// Destruct menu
 	::disable_menu_controls(ctx);
 	::menu::clear_callbacks(ctx);
-	::menu::delete_animations(ctx);
 	::menu::remove_text_from_ui(ctx);
 	::menu::delete_text(ctx);
 	

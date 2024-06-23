@@ -5,11 +5,10 @@
 #include "game/states/extras-menu-state.hpp"
 #include "game/game.hpp"
 #include <engine/animation/ease.hpp>
-#include <engine/animation/animation.hpp>
-#include <engine/animation/animator.hpp>
 #include <engine/scene/text.hpp>
 #include <engine/debug/log.hpp>
 #include "game/strings.hpp"
+#include "game/components/animation-component.hpp"
 #include <engine/hash/fnv1a.hpp>
 #include <engine/math/vector.hpp>
 
@@ -36,23 +35,26 @@ credits_state::credits_state(::game& ctx):
 	// Set up animation timing configuration
 	const float credits_fade_in_duration = 0.5;
 	
-	auto set_credits_opacity = [this]([[maybe_unused]] int channel, const float& opacity)
+	// Construct roll credits sequence
 	{
-		this->credits_text.set_color({1.0f, 1.0f, 1.0f, opacity});
-	};
+		m_roll_credits_sequence = std::make_shared<animation_sequence>();
+		auto& opacity_track = m_roll_credits_sequence->tracks()["opacity"];
+		auto& opacity_channel = opacity_track.channels().emplace_back();
+		opacity_channel.keyframes().emplace(0.0f, 0.0f);
+		opacity_channel.keyframes().emplace(credits_fade_in_duration, 1.0f);
+		opacity_track.output() = [&](auto samples, auto&)
+		{
+			credits_text.set_color({1.0f, 1.0f, 1.0f, samples[0]});
+		};
+	}
 	
-	// Build credits fade in animation
-	credits_fade_in_animation.set_interpolator(ease<float>::in_quad);
-	animation_channel<float>* credits_fade_in_opacity_channel = credits_fade_in_animation.add_channel(0);
-	credits_fade_in_opacity_channel->insert_keyframe({0.0f, 0.0f});
-	credits_fade_in_opacity_channel->insert_keyframe({credits_fade_in_duration, 1.0f});
-	credits_fade_in_animation.set_frame_callback(set_credits_opacity);
+	// Constructs credits entity
+	m_credits_entity = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<animation_component>(m_credits_entity);
 	
-	// Add credits animations to animator
-	ctx.animator->add_animation(&credits_fade_in_animation);
-	
-	// Start credits fade in animation
-	credits_fade_in_animation.play();
+	// Start credits roll
+	auto& credits_player = ctx.entity_registry->get<animation_component>(m_credits_entity).player;
+	credits_player.play(m_roll_credits_sequence);
 	
 	// Setup window resized callback
 	window_resized_subscription = ctx.window->get_resized_channel().subscribe
@@ -128,10 +130,8 @@ credits_state::~credits_state()
 	input_mapped_subscriptions.clear();
 	
 	// Destruct credits text
+	ctx.entity_registry->destroy(m_credits_entity);
 	ctx.ui_canvas->get_scene().remove_object(credits_text);
-	
-	// Destruct credits animations
-	ctx.animator->remove_animation(&credits_fade_in_animation);
 	
 	debug::log_trace("Exited credits state");
 }

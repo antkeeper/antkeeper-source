@@ -6,7 +6,7 @@
 
 #include "game/states/game-state.hpp"
 #include <engine/scene/text.hpp>
-#include <engine/animation/animation.hpp>
+#include <engine/animation/animation-sequence.hpp>
 #include <engine/entity/id.hpp>
 #include <engine/event/subscription.hpp>
 #include <memory>
@@ -28,7 +28,9 @@ private:
 	std::unique_ptr<scene::text> extras_text;
 	std::unique_ptr<scene::text> quit_text;
 	
-	animation<float> title_fade_animation;
+	entity::id m_title_entity{entt::null};
+	std::shared_ptr<animation_sequence> m_title_fade_in_sequence;
+	std::shared_ptr<animation_sequence> m_title_fade_out_sequence;
 	
 	std::shared_ptr<event::subscription> window_resized_subscription;
 };

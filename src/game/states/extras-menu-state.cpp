@@ -38,7 +38,6 @@ extras_menu_state::extras_menu_state(::game& ctx):
 	::menu::update_text_font(ctx);
 	::menu::align_text(ctx);
 	::menu::add_text_to_ui(ctx);
-	::menu::setup_animations(ctx);
 	
 	// Construct menu item callbacks
 	auto select_credits_callback = [&ctx]()
@@ -117,7 +116,6 @@ extras_menu_state::~extras_menu_state()
 	// Destruct menu
 	::disable_menu_controls(ctx);
 	::menu::clear_callbacks(ctx);
-	::menu::delete_animations(ctx);
 	::menu::remove_text_from_ui(ctx);
 	::menu::delete_text(ctx);
 	

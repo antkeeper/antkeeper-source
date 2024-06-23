@@ -36,12 +36,11 @@
 #include "game/systems/reproductive-system.hpp"
 #include "game/systems/metabolic-system.hpp"
 #include "game/systems/metamorphosis-system.hpp"
+#include "game/components/animation-component.hpp"
 #include <algorithm>
 #include <cctype>
-#include <engine/animation/animation.hpp>
-#include <engine/animation/animator.hpp>
 #include <engine/animation/ease.hpp>
-#include <engine/animation/screen-transition.hpp>
+#include <engine/animation/animation-sequence.hpp>
 #include <engine/color/color.hpp>
 #include <engine/config.hpp>
 #include <engine/debug/log.hpp>
@@ -105,11 +104,11 @@ game::game(int argc, const char* const* argv)
 	setup_input();
 	load_language();
 	setup_rendering();
+	setup_entities();
 	setup_scenes();
 	setup_animation();
 	setup_ui();
 	setup_rng();
-	setup_entities();
 	setup_systems();
 	setup_controls();
 	setup_debugging();
@@ -714,8 +713,6 @@ void game::setup_scenes()
 
 void game::setup_animation()
 {
-	// Setup animator
-	animator = std::make_unique<::animator>();
 }
 
 void game::setup_ui()
@@ -784,69 +781,105 @@ void game::setup_ui()
 	menu_bg_billboard->set_material(menu_bg_material);
 	menu_bg_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
 	menu_bg_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), -100.0f});
-	
-	// Create fade transition
-	fade_transition = std::make_unique<screen_transition>();
-	fade_transition->get_material()->set_shader_template(resource_manager->load<gl::shader_template>("fade-transition.glsl"));
-	fade_transition_color = std::make_shared<render::matvar_fvec3>(1, math::fvec3{0, 0, 0});
-	fade_transition->get_material()->set_variable("color", fade_transition_color);
-	fade_transition->get_billboard()->set_translation({0, 0, 98});
-	
-	// Menu BG animations
+
+	// Menu BG material
+	screen_transition_material = std::make_shared<render::material>();
+	screen_transition_material->set_shader_template(resource_manager->load<gl::shader_template>("ui-element-untextured.glsl"));
+	std::shared_ptr<render::matvar_fvec4> screen_transition_tint = std::make_shared<render::matvar_fvec4>(1, math::fvec4{0.0f, 0.0f, 0.0f, 1.0f});
+	screen_transition_material->set_variable("tint", screen_transition_tint);
+	screen_transition_material->set_blend_mode(render::material_blend_mode::translucent);
+
+	// Screen transition billboard
+	screen_transition_billboard = std::make_unique<scene::billboard>();
+	screen_transition_billboard->set_material(screen_transition_material);
+	screen_transition_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
+	screen_transition_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), 98.0f});
+	screen_transition_billboard->set_layer_mask(0);
+
+	// Construct menu bg entity
+	menu_bg_entity = entity_registry->create();
+	entity_registry->emplace<animation_component>(menu_bg_entity);
+
+	// Construct menu bg fade in sequence
 	{
-		auto menu_bg_frame_callback = [menu_bg_tint]([[maybe_unused]] int channel, const float& opacity)
+		menu_bg_fade_in_sequence = std::make_shared<animation_sequence>();
+		auto& opacity_track = menu_bg_fade_in_sequence->tracks()["opacity"];
+		auto& opacity_channel = opacity_track.channels().emplace_back();
+		opacity_channel.keyframes().emplace(0.0f, 0.0f);
+		opacity_channel.keyframes().emplace(config::menu_fade_in_duration, config::menu_bg_opacity);
+
+		opacity_track.output() = [menu_bg_tint](auto samples, auto&)
 		{
-			menu_bg_tint->set(math::fvec4{0.0f, 0.0f, 0.0f, opacity});
+			menu_bg_tint->set(math::fvec4{0.0f, 0.0f, 0.0f, samples[0]});
 		};
-		
-		// Menu BG fade in animation
-		menu_bg_fade_in_animation = std::make_unique<animation<float>>();
+
+		menu_bg_fade_in_sequence->cues().emplace(0.0f, [&](auto&)
 		{
-			menu_bg_fade_in_animation->set_interpolator(ease<float>::out_cubic);
-			animation_channel<float>* channel = menu_bg_fade_in_animation->add_channel(0);
-			channel->insert_keyframe({0.0f, 0.0f});
-			channel->insert_keyframe({config::menu_fade_in_duration, config::menu_bg_opacity});
-			menu_bg_fade_in_animation->set_frame_callback(menu_bg_frame_callback);
-			menu_bg_fade_in_animation->set_start_callback
-			(
-				[&, menu_bg_tint]()
-				{
-					ui_canvas->get_scene().add_object(*menu_bg_billboard);
-					
-					menu_bg_tint->set(math::fvec4{0.0f, 0.0f, 0.0f, 0.0f});
-					//menu_bg_billboard->set_active(true);
-				}
-			);
-		}
-		
-		// Menu BG fade out animation
-		menu_bg_fade_out_animation = std::make_unique<animation<float>>();
-		{
-			menu_bg_fade_out_animation->set_interpolator(ease<float>::out_cubic);
-			animation_channel<float>* channel = menu_bg_fade_out_animation->add_channel(0);
-			channel->insert_keyframe({0.0f, config::menu_bg_opacity});
-			channel->insert_keyframe({config::menu_fade_out_duration, 0.0f});
-			menu_bg_fade_out_animation->set_frame_callback(menu_bg_frame_callback);
-			menu_bg_fade_out_animation->set_end_callback
-			(
-				[&]()
-				{
-					ui_canvas->get_scene().remove_object(*menu_bg_billboard);
-					//menu_bg_billboard->set_active(false);
-				}
-			);
-		}
+			ui_canvas->get_scene().add_object(*menu_bg_billboard);
+		});
 	}
+
+	// Construct menu bg fade out sequence
+	{
+		menu_bg_fade_out_sequence = std::make_shared<animation_sequence>();
+		auto& opacity_track = menu_bg_fade_out_sequence->tracks()["opacity"];
+		auto& opacity_channel = opacity_track.channels().emplace_back();
+		opacity_channel.keyframes().emplace(0.0f, config::menu_bg_opacity);
+		opacity_channel.keyframes().emplace(config::menu_fade_out_duration, 0.0f);
+
+		opacity_track.output() = [menu_bg_tint](auto samples, auto&)
+		{
+			menu_bg_tint->set(math::fvec4{0.0f, 0.0f, 0.0f, samples[0]});
+		};
+
+		menu_bg_fade_out_sequence->cues().emplace(1.0f, [&](auto&)
+		{
+			ui_canvas->get_scene().remove_object(*menu_bg_billboard);
+		});
+	}
+
+	// Construct screen fade in sequence
+	{
+		screen_fade_in_sequence = std::make_shared<animation_sequence>();
+		auto& opacity_track = screen_fade_in_sequence->tracks()["opacity"];
+		auto& opacity_channel = opacity_track.channels().emplace_back();
+		opacity_channel.keyframes().emplace(0.0f, 1.0f);
+		opacity_channel.keyframes().emplace(1.0f, 0.0f);
+
+		opacity_track.output() = [screen_transition_tint](auto samples, auto&)
+		{
+			screen_transition_tint->set(math::fvec4{0.0f, 0.0f, 0.0f, samples[0]});
+		};
+	}
+
+	// Construct screen fade out sequence
+	{
+		screen_fade_out_sequence = std::make_shared<animation_sequence>();
+		auto& opacity_track = screen_fade_out_sequence->tracks()["opacity"];
+		auto& opacity_channel = opacity_track.channels().emplace_back();
+		opacity_channel.keyframes().emplace(0.0f, 0.0f);
+		opacity_channel.keyframes().emplace(1.0f, 1.0f);
+
+		opacity_track.output() = [screen_transition_tint](auto samples, auto&)
+		{
+			screen_transition_tint->set(math::fvec4{0.0f, 0.0f, 0.0f, samples[0]});
+		};
+	}
+
+	// Construct screen transition entity
+	screen_transition_entity = entity_registry->create();
+	entity_registry->emplace<animation_component>(screen_transition_entity);
+
+	// Construct menu entity
+	menu_entity = entity_registry->create();
+	entity_registry->emplace<animation_component>(menu_entity);
+
+	// Setup menu animations
+	menu::setup_animations(*this);
 	
 	// Add UI scene objects to UI scene
 	ui_canvas->get_scene().add_object(*ui_camera);
-	ui_canvas->get_scene().add_object(*fade_transition->get_billboard());
-	
-	// Add UI animations to animator
-	animator->add_animation(fade_transition->get_animation());
-	animator->add_animation(menu_bg_fade_in_animation.get());
-	animator->add_animation(menu_bg_fade_out_animation.get());
-	
+	ui_canvas->get_scene().add_object(*screen_transition_billboard);
 	
 	auto version_label = std::make_shared<ui::label>();
 	version_label->set_font(debug_font);
@@ -910,6 +943,10 @@ void game::setup_ui()
 				ui_camera->get_clip_near(),
 				ui_camera->get_clip_far()
 			);
+
+			// Resize screen transition billboard
+			screen_transition_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
+			screen_transition_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), -100.0f});
 			
 			// Resize menu BG billboard
 			menu_bg_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
@@ -1250,7 +1287,6 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 	astronomy_system->update(t, dt);
 	spatial_system->update(t, dt);
 	constraint_system->update(t, dt);
-	animator->animate(dt);
 	camera_system->update(t, dt);
 	render_system->update(t, dt);
 }

@@ -50,13 +50,9 @@
 #include <vector>
 
 // Forward declarations
-class animator;
 class resource_manager;
-class screen_transition;
 class shell;
 class shell_buffer;
-
-template <typename T> class animation;
 
 namespace render
 {
@@ -93,6 +89,7 @@ class physics_system;
 class subterrain_system;
 class terrain_system;
 class ik_system;
+class animation_sequence;
 
 struct control_profile;
 
@@ -325,9 +322,9 @@ public:
 	std::unique_ptr<scene::camera> ui_camera;
 	std::unique_ptr<scene::billboard> menu_bg_billboard;
 	std::shared_ptr<render::material> menu_bg_material;
-	std::unique_ptr<animation<float>> menu_fade_animation;
-	std::unique_ptr<animation<float>> menu_bg_fade_in_animation;
-	std::unique_ptr<animation<float>> menu_bg_fade_out_animation;
+
+	std::unique_ptr<scene::billboard> screen_transition_billboard;
+	std::shared_ptr<render::material> screen_transition_material;
 	
 	float font_scale;
 	bool dyslexia_font;
@@ -354,9 +351,15 @@ public:
 	scene::collection* active_scene;
 	
 	// Animation
-	std::unique_ptr<animator> animator;
-	std::unique_ptr<screen_transition> fade_transition;
-	std::shared_ptr<render::matvar_fvec3> fade_transition_color;
+	entity::id menu_bg_entity{entt::null};
+	entity::id menu_entity{entt::null};
+	std::shared_ptr<animation_sequence> menu_bg_fade_in_sequence;
+	std::shared_ptr<animation_sequence> menu_bg_fade_out_sequence;
+	std::shared_ptr<animation_sequence> menu_fade_in_sequence;
+	std::shared_ptr<animation_sequence> menu_fade_out_sequence;
+	entity::id screen_transition_entity{entt::null};
+	std::shared_ptr<animation_sequence> screen_fade_in_sequence;
+	std::shared_ptr<animation_sequence> screen_fade_out_sequence;
 	
 	// Sound
 	std::unique_ptr<audio::sound_system> sound_system;

@@ -3,12 +3,11 @@
 
 #include "game/menu.hpp"
 #include <engine/scene/text.hpp>
-#include <engine/animation/animation.hpp>
-#include <engine/animation/animator.hpp>
 #include <engine/animation/ease.hpp>
 #include <engine/config.hpp>
 #include <algorithm>
 #include <engine/math/vector.hpp>
+#include "game/components/animation-component.hpp"
 
 namespace menu {
 
@@ -191,12 +190,6 @@ void delete_text(::game& ctx)
 	ctx.menu_item_texts.clear();
 }
 
-void delete_animations(::game& ctx)
-{
-	ctx.animator->remove_animation(ctx.menu_fade_animation.get());
-	ctx.menu_fade_animation.reset();
-}
-
 void clear_callbacks(::game& ctx)
 {
 	// Clear menu item callbacks
@@ -208,86 +201,89 @@ void clear_callbacks(::game& ctx)
 
 void setup_animations(::game& ctx)
 {
-	ctx.menu_fade_animation = std::make_unique<animation<float>>();
-	[[maybe_unused]] animation_channel<float>* opacity_channel = ctx.menu_fade_animation->add_channel(0);
-	
-	ctx.menu_fade_animation->set_frame_callback
-	(
-		[&ctx]([[maybe_unused]] int channel, const float& opacity)
+	auto output_function = [&ctx](auto samples, auto&)
+	{
+		for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 		{
-			for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
-			{
-				auto [name, value] = ctx.menu_item_texts[i];
-				
-				math::fvec4 color = (i == *ctx.menu_item_index) ? config::menu_active_color : config::menu_inactive_color;
-				color[3] = color[3] * opacity;
-				
-				if (name)
-					name->set_color(color);
-				if (value)
-					value->set_color(color);
-			}
+			auto [name, value] = ctx.menu_item_texts[i];
+			
+			math::fvec4 color = (i == *ctx.menu_item_index) ? config::menu_active_color : config::menu_inactive_color;
+			color[3] = color[3] * samples[0];
+			
+			if (name)
+				name->set_color(color);
+			if (value)
+				value->set_color(color);
 		}
-	);
-	
-	ctx.animator->add_animation(ctx.menu_fade_animation.get());
+	};
+
+	// Construct menu fade in sequence
+	{
+		ctx.menu_fade_in_sequence = std::make_shared<animation_sequence>();
+		auto& opacity_track = ctx.menu_fade_in_sequence->tracks()["opacity"];
+		auto& opacity_channel = opacity_track.channels().emplace_back();
+		opacity_channel.keyframes().emplace(0.0f, 0.0f);
+		opacity_channel.keyframes().emplace(config::menu_fade_in_duration, 1.0f);
+		opacity_track.output() = output_function;
+	}
+
+	// Construct menu fade in sequence
+	{
+		ctx.menu_fade_out_sequence = std::make_shared<animation_sequence>();
+		auto& opacity_track = ctx.menu_fade_out_sequence->tracks()["opacity"];
+		auto& opacity_channel = opacity_track.channels().emplace_back();
+		opacity_channel.keyframes().emplace(0.0f, 1.0f);
+		opacity_channel.keyframes().emplace(config::menu_fade_out_duration, 0.0f);
+		opacity_track.output() = output_function;
+	}
 }
 
 void fade_in(::game& ctx, const std::function<void()>& end_callback)
 {
-	ctx.menu_fade_animation->set_interpolator(ease<float>::out_cubic);
-	animation_channel<float>* opacity_channel = ctx.menu_fade_animation->get_channel(0);
-	opacity_channel->remove_keyframes();
-	opacity_channel->insert_keyframe({0.0f, 0.0f});
-	opacity_channel->insert_keyframe({config::menu_fade_in_duration, 1.0f});
-	ctx.menu_fade_animation->set_end_callback(end_callback);
-	
-	for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
+	ctx.menu_fade_in_sequence->cues().clear();
+	if (end_callback)
 	{
-		auto [name, value] = ctx.menu_item_texts[i];
-		
-		math::fvec4 color = (i == *ctx.menu_item_index) ? config::menu_active_color : config::menu_inactive_color;
-		color[3] = 0.0f;
-		
-		if (name)
+		ctx.menu_fade_in_sequence->cues().emplace(config::menu_fade_in_duration, [end_callback](auto&)
 		{
-			name->set_color(color);
-		}
-		if (value)
-		{
-			value->set_color(color);
-		}
+			end_callback();
+		});
 	}
-	
-	ctx.menu_fade_animation->stop();
-	ctx.menu_fade_animation->play();
+
+	auto& player = ctx.entity_registry->get<animation_component>(ctx.menu_entity).player;
+	player.rewind();
+	player.play(ctx.menu_fade_in_sequence);
+	// player.advance(0.0f);
 }
 
 void fade_out(::game& ctx, const std::function<void()>& end_callback)
 {
-	ctx.menu_fade_animation->set_interpolator(ease<float>::out_cubic);
-	animation_channel<float>* opacity_channel = ctx.menu_fade_animation->get_channel(0);
-	opacity_channel->remove_keyframes();
-	opacity_channel->insert_keyframe({0.0f, 1.0f});
-	opacity_channel->insert_keyframe({config::menu_fade_out_duration, 0.0f});
-	ctx.menu_fade_animation->set_end_callback(end_callback);
-	
-	ctx.menu_fade_animation->stop();
-	ctx.menu_fade_animation->play();
+	ctx.menu_fade_out_sequence->cues().clear();
+	if (end_callback)
+	{
+		ctx.menu_fade_out_sequence->cues().emplace(config::menu_fade_out_duration, [end_callback](auto&)
+		{
+			end_callback();
+		});
+	}
+
+	auto& player = ctx.entity_registry->get<animation_component>(ctx.menu_entity).player;
+	player.rewind();
+	player.play(ctx.menu_fade_out_sequence);
+	// player.advance(0.0f);
 }
 
 void fade_in_bg(::game& ctx)
 {
-	ctx.menu_bg_fade_out_animation->stop();
-	ctx.menu_bg_fade_in_animation->stop();
-	ctx.menu_bg_fade_in_animation->play();
+	auto& player = ctx.entity_registry->get<animation_component>(ctx.menu_bg_entity).player;
+	player.rewind();
+	player.play(ctx.menu_bg_fade_in_sequence);
 }
 
 void fade_out_bg(::game& ctx)
 {
-	ctx.menu_bg_fade_in_animation->stop();
-	ctx.menu_bg_fade_out_animation->stop();
-	ctx.menu_bg_fade_out_animation->play();
+	auto& player = ctx.entity_registry->get<animation_component>(ctx.menu_bg_entity).player;
+	player.rewind();
+	player.play(ctx.menu_bg_fade_out_sequence);
 }
 
 } // namespace menu

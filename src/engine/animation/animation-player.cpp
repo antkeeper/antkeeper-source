@@ -2,9 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/animation/animation-player.hpp>
+#include <algorithm>
 
 void animation_player::advance(float seconds)
 {
+	// Prevent negative timesteps
+	seconds = std::max(0.0f, seconds);
+
 	if (!m_sequence)
 	{
 		// No active animation sequence, advance position and return

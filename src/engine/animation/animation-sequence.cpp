@@ -14,7 +14,7 @@ void animation_sequence::trigger_cues(float start_time, float end_time, animatio
 {
 	const auto start_it = m_cues.lower_bound(start_time);
 	const auto end_it = m_cues.upper_bound(end_time);
-	
+
 	for (auto it = start_it; it != end_it; ++it)
 	{
 		// Make end time exclusive

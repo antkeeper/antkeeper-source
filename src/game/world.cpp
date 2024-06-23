@@ -40,7 +40,6 @@
 #include <algorithm>
 #include <execution>
 #include <fstream>
-#include <engine/animation/screen-transition.hpp>
 #include <engine/animation/ease.hpp>
 #include <engine/math/functions.hpp>
 
@@ -449,12 +448,6 @@ void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
 	}
 	
 	debug::log_trace("Entered ecoregion {}", ecoregion.name);
-}
-
-void switch_scene(::game& ctx)
-{
-	ctx.fade_transition_color->set({0, 0, 0});
-	ctx.fade_transition->transition(1.0f, false, ease<float>::out_cubic, false, [](){});
 }
 
 } // namespace world

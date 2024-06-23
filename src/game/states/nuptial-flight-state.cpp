@@ -32,7 +32,7 @@
 #include <engine/math/projection.hpp>
 #include "game/controls.hpp"
 #include "game/commands/commands.hpp"
-#include <engine/animation/screen-transition.hpp>
+#include "game/screen-transition.hpp"
 #include <engine/animation/ease.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include "game/world.hpp"
@@ -151,8 +151,7 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	);
 	
 	// Queue fade in
-	ctx.fade_transition_color->set({0, 0, 0});
-	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition.get(), 1.0f, true, ease<float>::out_sine, true, nullptr));
+	fade_in_to(ctx, nullptr);
 	
 	// Refresh frame scheduler
 	ctx.frame_scheduler.refresh();
