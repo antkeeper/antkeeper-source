@@ -266,6 +266,9 @@ void create_stars(::game& ctx)
 	
 	// Allocate stars model
 	std::shared_ptr<render::model> stars_model = std::make_shared<render::model>();
+
+	// Load star material
+	stars_model->materials().emplace_back(ctx.resource_manager->load<render::material>("fixed-star.mtl"));
 	
 	// Construct stars VAO
 	constexpr gl::vertex_input_attribute star_vertex_attributes[] =
@@ -296,10 +299,10 @@ void create_stars(::game& ctx)
 	stars_model->get_groups().resize(1);
 	render::model_group& stars_model_group = stars_model->get_groups().front();
 	stars_model_group.id = "stars";
-	stars_model_group.material = ctx.resource_manager->load<render::material>("fixed-star.mtl");
 	stars_model_group.primitive_topology = gl::primitive_topology::point_list;
 	stars_model_group.first_vertex = 0;
 	stars_model_group.vertex_count = static_cast<std::uint32_t>(star_count);
+	stars_model_group.material_index = 0;
 	
 	// Pass stars model to sky pass
 	ctx.sky_pass->set_stars_model(stars_model);

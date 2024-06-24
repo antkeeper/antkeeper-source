@@ -299,7 +299,7 @@ private:
 	const gl::shader_variable* moon_atmosphere_radii_var;
 	
 	std::shared_ptr<render::model> sky_model;
-	const material* sky_material;
+	std::shared_ptr<material> m_sky_material;
 	const gl::vertex_array* sky_model_vao;
 	const gl::vertex_buffer* sky_model_vbo;
 	gl::primitive_topology sky_model_primitive_topology;
@@ -309,7 +309,7 @@ private:
 	std::uint32_t sky_model_vertex_count{};
 	
 	std::shared_ptr<render::model> moon_model;
-	const material* moon_material;
+	std::shared_ptr<material> m_moon_material;
 	const gl::vertex_array* moon_model_vao;
 	const gl::vertex_buffer* moon_model_vbo;
 	gl::primitive_topology moon_model_primitive_topology;
@@ -321,7 +321,7 @@ private:
 	std::shared_ptr<gl::texture_2d> m_moon_normal_map;
 	
 	std::shared_ptr<render::model> stars_model;
-	const material* star_material;
+	std::shared_ptr<material> m_stars_material;
 	const gl::vertex_array* stars_model_vao;
 	const gl::vertex_buffer* stars_model_vbo;
 	gl::primitive_topology stars_model_primitive_topology;

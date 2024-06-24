@@ -208,6 +208,9 @@ std::unique_ptr<render::model> terrain_system::generate_terrain_model(const geom
 	
 	// Allocate model
 	auto model = std::make_unique<render::model>();
+
+	// Add material to model
+	model->materials().emplace_back(std::move(material));
 	
 	// Init model bounds
 	auto& bounds = model->get_bounds();
@@ -304,10 +307,10 @@ std::unique_ptr<render::model> terrain_system::generate_terrain_model(const geom
 	render::model_group& model_group = model->get_groups().front();
 	
 	model_group.id = {};
-	model_group.material = material;
 	model_group.primitive_topology = gl::primitive_topology::triangle_strip;
 	model_group.first_vertex = 0;
 	model_group.vertex_count = static_cast<std::uint32_t>(vertex_count);
+	model_group.material_index = 0;
 	
 	return model;
 }

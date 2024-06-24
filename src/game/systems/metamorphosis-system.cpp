@@ -110,7 +110,7 @@ void metamorphosis_system::update([[maybe_unused]] float t, float dt)
 					cocoon_mesh->set_transform(rigid_body.get_transform());
 					
 					// Construct copy of cocoon material
-					auto cocoon_material = std::make_shared<render::material>(*cocoon_mesh->get_model()->get_groups().front().material);
+					auto cocoon_material = std::make_shared<render::material>(*cocoon_mesh->get_model()->materials().front());
 					
 					// Store cocoon material spinning phase variable
 					larva.spinning_phase_matvar = std::static_pointer_cast<render::matvar_float>(cocoon_material->get_variable("spinning_phase"));

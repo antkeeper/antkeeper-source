@@ -5,6 +5,7 @@
 #include <engine/render/model.hpp>
 #include <engine/render/material.hpp>
 #include <engine/scene/camera.hpp>
+#include <engine/debug/log.hpp>
 
 namespace scene {
 
@@ -34,7 +35,16 @@ void static_mesh::set_model(std::shared_ptr<render::model> model)
 			operation.vertex_count = group.vertex_count;
 			operation.first_instance = 0;
 			operation.instance_count = 1;
-			operation.material = group.material;
+
+			if (group.material_index < m_model->materials().size())
+			{
+				operation.material = m_model->materials()[group.material_index];
+			}
+			else
+			{
+				debug::log_error("Model group material index out of bounds.");
+				operation.material = nullptr;
+			}
 		}
 	}
 	else
@@ -47,13 +57,24 @@ void static_mesh::set_model(std::shared_ptr<render::model> model)
 
 void static_mesh::set_material(std::size_t index, std::shared_ptr<render::material> material)
 {
+	auto& operation = m_operations.at(index);
+
 	if (material)
 	{
-		m_operations[index].material = material;
+		operation.material = material;
 	}
 	else
 	{
-		m_operations[index].material = m_model->get_groups()[index].material;
+		const auto default_material_index = m_model->get_groups().at(index).material_index;
+		if (default_material_index < m_model->materials().size())
+		{
+			operation.material = m_model->materials()[default_material_index];
+		}
+		else
+		{
+			debug::log_error("Model group material index out of bounds.");
+			operation.material = nullptr;
+		}
 	}
 }
 
@@ -61,7 +82,16 @@ void static_mesh::reset_materials()
 {
 	for (std::size_t i = 0; i < m_operations.size(); ++i)
 	{
-		m_operations[i].material = m_model->get_groups()[i].material;
+		const auto default_material_index = m_model->get_groups().at(i).material_index;
+		if (default_material_index < m_model->materials().size())
+		{
+			m_operations[i].material = m_model->materials()[default_material_index];
+		}
+		else
+		{
+			debug::log_error("Model group material index out of bounds.");
+			m_operations[i].material = nullptr;
+		}
 	}
 }
 

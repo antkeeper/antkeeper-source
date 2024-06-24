@@ -126,9 +126,9 @@ test_state::test_state(::game& ctx):
 		nest_interior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("soil-nest.mdl"));
 		nest_interior_scene_component.object->set_layer_mask(0b10);
 		nest_interior_scene_component.layer_mask = 1;
-		
+
 		auto nest_interior_mesh = ctx.resource_manager->load<geom::brep_mesh>("soil-nest.msh");
-		
+
 		auto nest_interior_rigid_body = std::make_unique<physics::rigid_body>();
 		nest_interior_rigid_body->set_mass(0.0f);
 		nest_interior_rigid_body->set_collider(std::make_shared<physics::mesh_collider>(std::move(nest_interior_mesh)));
@@ -158,15 +158,15 @@ test_state::test_state(::game& ctx):
 	worker_skeletal_mesh->set_layer_mask(0b11);
 	
 	// Create worker IK rig
-	const auto& worker_skeleton = worker_model->get_skeleton();
+	const auto& worker_skeleton = worker_model->skeleton();
 	worker_ik_rig = std::make_shared<ik_rig>(*worker_skeletal_mesh);
 	auto mesocoxa_ik_constraint = std::make_shared<euler_ik_constraint>();
 	mesocoxa_ik_constraint->set_min_angles({-math::pi<float>, -math::pi<float>, -math::pi<float>});
 	mesocoxa_ik_constraint->set_max_angles({ math::pi<float>,  math::pi<float>,  math::pi<float>});
-	worker_ik_rig->set_constraint(worker_skeleton.bones().at("mesocoxa_l").index(), std::move(mesocoxa_ik_constraint));
+	worker_ik_rig->set_constraint(worker_skeleton->bones().at("mesocoxa_l").index(), std::move(mesocoxa_ik_constraint));
 	
 	// Pose worker
-	worker_skeletal_mesh->get_pose() = worker_model->get_skeleton().rest_pose();
+	worker_skeletal_mesh->get_pose() = worker_model->skeleton()->rest_pose();
 	
 	worker_eid = ctx.entity_registry->create();
 
@@ -189,19 +189,19 @@ test_state::test_state(::game& ctx):
 	worker_rigid_body_component.body->set_transform(rigid_body_transform);
 	
 	legged_locomotion_component worker_locomotion_component;
-	worker_locomotion_component.midstance_pose = generate_ant_midstance_pose(worker_model->get_skeleton());
-	worker_locomotion_component.midswing_pose = generate_ant_midswing_pose(worker_model->get_skeleton());
-	worker_locomotion_component.liftoff_pose = generate_ant_liftoff_pose(worker_model->get_skeleton());
-	worker_locomotion_component.touchdown_pose = generate_ant_touchdown_pose(worker_model->get_skeleton());
-	worker_locomotion_component.body_bone = worker_skeleton.bones().at("mesosoma").index();
+	worker_locomotion_component.midstance_pose = generate_ant_midstance_pose(*worker_model->skeleton());
+	worker_locomotion_component.midswing_pose = generate_ant_midswing_pose(*worker_model->skeleton());
+	worker_locomotion_component.liftoff_pose = generate_ant_liftoff_pose(*worker_model->skeleton());
+	worker_locomotion_component.touchdown_pose = generate_ant_touchdown_pose(*worker_model->skeleton());
+	worker_locomotion_component.body_bone = worker_skeleton->bones().at("mesosoma").index();
 	worker_locomotion_component.tip_bones =
 	{
-		worker_skeleton.bones().at("protarsomere1_l").index(),
-		worker_skeleton.bones().at("mesotarsomere1_l").index(),
-		worker_skeleton.bones().at("metatarsomere1_l").index(),
-		worker_skeleton.bones().at("protarsomere1_r").index(),
-		worker_skeleton.bones().at("mesotarsomere1_r").index(),
-		worker_skeleton.bones().at("metatarsomere1_r").index(),
+		worker_skeleton->bones().at("protarsomere1_l").index(),
+		worker_skeleton->bones().at("mesotarsomere1_l").index(),
+		worker_skeleton->bones().at("metatarsomere1_l").index(),
+		worker_skeleton->bones().at("protarsomere1_r").index(),
+		worker_skeleton->bones().at("mesotarsomere1_r").index(),
+		worker_skeleton->bones().at("metatarsomere1_r").index(),
 	};
 	worker_locomotion_component.leg_bone_count = 4;
 	worker_locomotion_component.gait = std::make_shared<::gait>();
@@ -224,7 +224,7 @@ test_state::test_state(::game& ctx):
 	worker_ovary_component.egg_capacity = 4;
 	worker_ovary_component.egg_production_duration = 1.0f;
 	worker_ovary_component.oviposition_duration = 3.0f;
-	worker_ovary_component.ovipositor_bone = worker_skeleton.bones().at("gaster").index();
+	worker_ovary_component.ovipositor_bone = worker_skeleton->bones().at("gaster").index();
 	worker_ovary_component.oviposition_path = {{0.0f, -0.141708f, -0.799793f}, {0.0f, -0.187388f, -1.02008f}};
 	
 	ctx.entity_registry->emplace<scene_component>(worker_eid, std::move(worker_skeletal_mesh), std::uint8_t{1});

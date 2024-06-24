@@ -6,6 +6,7 @@
 
 #include <engine/animation/skeleton.hpp>
 #include <engine/geom/primitives/box.hpp>
+#include <engine/geom/brep/brep-mesh.hpp>
 #include <engine/gl/primitive-topology.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-buffer.hpp>
@@ -27,7 +28,7 @@ struct model_group
 	gl::primitive_topology primitive_topology{gl::primitive_topology::triangle_list};
 	std::uint32_t first_vertex{};
 	std::uint32_t vertex_count{};
-	std::shared_ptr<render::material> material;
+	std::uint32_t material_index{};
 };
 
 /**
@@ -36,8 +37,18 @@ struct model_group
 class model
 {
 public:
-	/// AABB type.
+	/** AABB type. */
 	using aabb_type = geom::box<float>;
+
+	/**
+	 * Constructs a model from a B-rep mesh.
+	 *
+	 * @param mesh Mesh from which to construct the model.
+	 */
+	explicit model(std::shared_ptr<geom::brep_mesh> mesh);
+
+	/** Constructs an empty model. */
+	model() = default;
 	
 	/**
 	 * Sets the byte offset to the first vertex in the vertex buffer.
@@ -127,28 +138,55 @@ public:
 	}
 	/// @}
 	
-	/**
-	 * Returns the skeleton associated with this model.
-	 */
-	/// @{
-	[[nodiscard]] inline const ::skeleton& get_skeleton() const noexcept
+	/** Returns a reference to the shared mesh with which this model is associated. */
+	[[nodiscard]] inline constexpr auto& mesh() noexcept
+	{
+		return m_mesh;
+	}
+
+	/** @copydoc mesh() */
+	[[nodiscard]] inline constexpr const auto& mesh() const noexcept
+	{
+		return m_mesh;
+	}
+
+	/** Returns a reference to the shared materials of the model. */
+	[[nodiscard]] inline constexpr auto& materials() noexcept
+	{
+		return m_materials;
+	}
+
+	/** @copydoc materials() */
+	[[nodiscard]] inline constexpr const auto& materials() const noexcept
+	{
+		return m_materials;
+	}
+
+	/** Returns a reference to the shared skeleton with which this model is associated. */
+	[[nodiscard]] inline constexpr auto& skeleton() noexcept
 	{
 		return m_skeleton;
 	}
-	[[nodiscard]] inline ::skeleton& get_skeleton() noexcept
+
+	/** @copydoc skeleton() */
+	[[nodiscard]] inline constexpr const auto& skeleton() const noexcept
 	{
 		return m_skeleton;
 	}
-	/// @}
+
+	/** Rebuilds the model from its mesh. */
+	void rebuild();
 	
 private:
+	std::shared_ptr<geom::brep_mesh> m_mesh;
+	std::vector<std::shared_ptr<material>> m_materials;
+	std::shared_ptr<::skeleton> m_skeleton;
 	std::shared_ptr<gl::vertex_array> m_vertex_array;
 	std::shared_ptr<gl::vertex_buffer> m_vertex_buffer;
 	std::size_t m_vertex_offset{};
 	std::size_t m_vertex_stride{};
 	aabb_type m_bounds{{0, 0, 0}, {0, 0, 0}};
 	std::vector<model_group> m_groups;
-	::skeleton m_skeleton;
 };
 
 } // namespace render

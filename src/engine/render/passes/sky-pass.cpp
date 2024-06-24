@@ -30,15 +30,12 @@ sky_pass::sky_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, r
 	pass(pipeline, framebuffer),
 	mouse_position{0.0f, 0.0f},
 	sky_model{nullptr},
-	sky_material{nullptr},
 	sky_model_vao{nullptr},
 	moon_model{nullptr},
 	moon_model_vao{nullptr},
-	moon_material{nullptr},
 	moon_shader_program{nullptr},
 	stars_model{nullptr},
 	stars_model_vao{nullptr},
-	star_material{nullptr},
 	star_shader_program{nullptr},
 	m_observer_position{0, 0, 0},
 	m_sun_position{1.0f, 0.0f, 0.0f},
@@ -512,20 +509,20 @@ void sky_pass::set_sky_model(std::shared_ptr<render::model> model)
 	{
 		sky_model_vao = model->get_vertex_array().get();
 		sky_model_vbo = model->get_vertex_buffer().get();
+		m_sky_material = model->materials().front();
 		
 		for (const auto& group: model->get_groups())
 		{
 			sky_model_primitive_topology = group.primitive_topology;
 			sky_model_first_vertex = group.first_vertex;
 			sky_model_vertex_count = group.vertex_count;
-			sky_material = group.material.get();
 		}
 		sky_model_vertex_offset = sky_model->get_vertex_offset();
 		sky_model_vertex_stride = sky_model->get_vertex_stride();
 		
-		if (sky_material)
+		if (m_sky_material)
 		{
-			sky_shader_program = sky_material->get_shader_template()->build();
+			sky_shader_program = m_sky_material->get_shader_template()->build();
 			
 			if (sky_shader_program->linked())
 			{
@@ -549,7 +546,7 @@ void sky_pass::set_sky_model(std::shared_ptr<render::model> model)
 			else
 			{
 				debug::log_error("Failed to build sky shader program: {}", sky_shader_program->info());
-				debug::log_warning("{}", sky_material->get_shader_template()->configure(gl::shader_stage::vertex));
+				debug::log_warning("{}", m_sky_material->get_shader_template()->configure(gl::shader_stage::vertex));
 			}
 		}
 	}
@@ -568,20 +565,20 @@ void sky_pass::set_moon_model(std::shared_ptr<render::model> model)
 	{
 		moon_model_vao = model->get_vertex_array().get();
 		moon_model_vbo = model->get_vertex_buffer().get();
+		m_moon_material = model->materials().front();
 		
 		for (const auto& group: model->get_groups())
 		{
 			moon_model_primitive_topology = group.primitive_topology;
 			moon_model_first_vertex = group.first_vertex;
 			moon_model_vertex_count = group.vertex_count;
-			moon_material = group.material.get();
 		}
 		moon_model_vertex_offset = moon_model->get_vertex_offset();
 		moon_model_vertex_stride = moon_model->get_vertex_stride();
 		
-		if (moon_material)
+		if (m_moon_material)
 		{
-			moon_shader_program = moon_material->get_shader_template()->build();	
+			moon_shader_program = m_moon_material->get_shader_template()->build();	
 			
 			if (moon_shader_program->linked())
 			{
@@ -602,7 +599,7 @@ void sky_pass::set_moon_model(std::shared_ptr<render::model> model)
 			else
 			{
 				debug::log_error("Failed to build moon shader program: {}", moon_shader_program->info());
-				debug::log_warning("{}", moon_material->get_shader_template()->configure(gl::shader_stage::vertex));
+				debug::log_warning("{}", m_moon_material->get_shader_template()->configure(gl::shader_stage::vertex));
 			}
 		}
 	}
@@ -621,20 +618,20 @@ void sky_pass::set_stars_model(std::shared_ptr<render::model> model)
 	{
 		stars_model_vao = model->get_vertex_array().get();
 		stars_model_vbo = model->get_vertex_buffer().get();
+		m_stars_material = model->materials().front();
 		
 		for (const auto& group: model->get_groups())
 		{
 			stars_model_primitive_topology = group.primitive_topology;
 			stars_model_first_vertex = group.first_vertex;
 			stars_model_vertex_count = group.vertex_count;
-			star_material = group.material.get();
 		}
 		stars_model_vertex_offset = stars_model->get_vertex_offset();
 		stars_model_vertex_stride = stars_model->get_vertex_stride();
 		
-		if (star_material)
+		if (m_stars_material)
 		{
-			star_shader_program = star_material->get_shader_template()->build();
+			star_shader_program = m_stars_material->get_shader_template()->build();
 			
 			if (star_shader_program->linked())
 			{
@@ -645,7 +642,7 @@ void sky_pass::set_stars_model(std::shared_ptr<render::model> model)
 			else
 			{
 				debug::log_error("Failed to build star shader program: {}", star_shader_program->info());
-				debug::log_warning("{}", star_material->get_shader_template()->configure(gl::shader_stage::vertex));
+				debug::log_warning("{}", m_stars_material->get_shader_template()->configure(gl::shader_stage::vertex));
 			}
 		}
 	}

@@ -3,21 +3,26 @@
 
 #include <engine/scene/skeletal-mesh.hpp>
 #include <engine/scene/camera.hpp>
+#include <stdexcept>
 
 namespace scene {
 
 skeletal_mesh::skeletal_mesh(std::shared_ptr<render::model> model)
 {
-	set_model(model);
+	set_model(std::move(model));
 }
 
 void skeletal_mesh::set_model(std::shared_ptr<render::model> model)
 {
-	m_model = model;
-	
-	if (m_model)
+	if (model)
 	{
-		m_pose = skeleton_pose(model->get_skeleton());
+		if (!model->skeleton())
+		{
+			throw std::runtime_error("Failed to set skeletal mesh model: model has no skeleton.");
+		}
+
+		m_model = std::move(model);
+		m_pose = skeleton_pose(*m_model->skeleton());
 		
 		m_operations.resize(m_model->get_groups().size());
 		for (std::size_t i = 0; i < m_operations.size(); ++i)
@@ -34,13 +39,14 @@ void skeletal_mesh::set_model(std::shared_ptr<render::model> model)
 			operation.vertex_count = group.vertex_count;
 			operation.first_instance = 0;
 			operation.instance_count = 1;
-			operation.material = group.material;
+			operation.material = m_model->materials().at(group.material_index);
 			operation.skinning_matrices = m_pose.get_skinning_matrices();
 		}
 		
 	}
 	else
 	{
+		m_model = nullptr;
 		m_operations.clear();
 	}
 	
@@ -51,11 +57,11 @@ void skeletal_mesh::set_material(std::size_t index, std::shared_ptr<render::mate
 {
 	if (material)
 	{
-		m_operations[index].material = material;
+		m_operations.at(index).material = material;
 	}
 	else
 	{
-		m_operations[index].material = m_model->get_groups()[index].material;
+		m_operations.at(index).material = m_model->materials().at(m_model->get_groups().at(index).material_index);
 	}
 }
 
@@ -63,7 +69,7 @@ void skeletal_mesh::reset_materials()
 {
 	for (std::size_t i = 0; i < m_operations.size(); ++i)
 	{
-		m_operations[i].material = m_model->get_groups()[i].material;
+		m_operations[i].material = m_model->materials().at(m_model->get_groups().at(i).material_index);
 	}
 }
 

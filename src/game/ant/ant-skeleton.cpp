@@ -9,15 +9,15 @@
 void generate_ant_rest_pose(::skeleton& skeleton, const ant_bone_set& bones, const ant_phenome& phenome)
 {
 	// Get skeletons of individual body parts
-	const ::skeleton& mesosoma_skeleton = phenome.mesosoma->model->get_skeleton();
-	const ::skeleton& legs_skeleton = phenome.legs->model->get_skeleton();
-	const ::skeleton& head_skeleton = phenome.head->model->get_skeleton();
-	const ::skeleton& mandibles_skeleton = phenome.mandibles->model->get_skeleton();
-	const ::skeleton& antennae_skeleton = phenome.antennae->model->get_skeleton();
-	const ::skeleton& waist_skeleton = phenome.waist->model->get_skeleton();
-	const ::skeleton& gaster_skeleton = phenome.gaster->model->get_skeleton();
-	const ::skeleton* sting_skeleton = (phenome.sting->present) ? &phenome.sting->model->get_skeleton() : nullptr;
-	const ::skeleton* wings_skeleton = (phenome.wings->present) ? &phenome.wings->model->get_skeleton() : nullptr;
+	const ::skeleton& mesosoma_skeleton = *phenome.mesosoma->model->skeleton();
+	const ::skeleton& legs_skeleton = *phenome.legs->model->skeleton();
+	const ::skeleton& head_skeleton = *phenome.head->model->skeleton();
+	const ::skeleton& mandibles_skeleton = *phenome.mandibles->model->skeleton();
+	const ::skeleton& antennae_skeleton = *phenome.antennae->model->skeleton();
+	const ::skeleton& waist_skeleton = *phenome.waist->model->skeleton();
+	const ::skeleton& gaster_skeleton = *phenome.gaster->model->skeleton();
+	const ::skeleton* sting_skeleton = (phenome.sting->present) ? phenome.sting->model->skeleton().get() : nullptr;
+	const ::skeleton* wings_skeleton = (phenome.wings->present) ? phenome.wings->model->skeleton().get() : nullptr;
 	
 	auto get_bone_transform = [](const ::skeleton& skeleton, const std::string& bone_name)
 	{
@@ -800,7 +800,7 @@ std::unique_ptr<skeleton_pose> generate_ant_pupa_pose(::skeleton& skeleton)
 	return pose;
 }
 
-void generate_ant_skeleton(::skeleton& skeleton, ant_bone_set& bones, const ant_phenome& phenome)
+std::unique_ptr<skeleton> generate_ant_skeleton(ant_bone_set& bones, const ant_phenome& phenome)
 {
 	// Count bones
 	std::size_t bone_count = 33;
@@ -826,69 +826,69 @@ void generate_ant_skeleton(::skeleton& skeleton, ant_bone_set& bones, const ant_
 		}
 	}
 	
-	// Allocate bones
-	skeleton = ::skeleton(bone_count);
+	// Allocate skeleton
+	auto skeleton = std::make_unique<::skeleton>(bone_count);
 	
 	// Construct bones
 	{
 		std::size_t i = 0;
 
-		bones.mesosoma = &skeleton.bones().at(i++);
-		bones.procoxa_l = &skeleton.bones().at(i++);
-		bones.profemur_l = &skeleton.bones().at(i++);
-		bones.protibia_l = &skeleton.bones().at(i++);
-		bones.protarsomere1_l = &skeleton.bones().at(i++);
-		bones.procoxa_r = &skeleton.bones().at(i++);
-		bones.profemur_r = &skeleton.bones().at(i++);
-		bones.protibia_r = &skeleton.bones().at(i++);
-		bones.protarsomere1_r = &skeleton.bones().at(i++);
-		bones.mesocoxa_l = &skeleton.bones().at(i++);
-		bones.mesofemur_l = &skeleton.bones().at(i++);
-		bones.mesotibia_l = &skeleton.bones().at(i++);
-		bones.mesotarsomere1_l = &skeleton.bones().at(i++);
-		bones.mesocoxa_r = &skeleton.bones().at(i++);
-		bones.mesofemur_r = &skeleton.bones().at(i++);
-		bones.mesotibia_r = &skeleton.bones().at(i++);
-		bones.mesotarsomere1_r = &skeleton.bones().at(i++);
-		bones.metacoxa_l = &skeleton.bones().at(i++);
-		bones.metafemur_l = &skeleton.bones().at(i++);
-		bones.metatibia_l = &skeleton.bones().at(i++);
-		bones.metatarsomere1_l = &skeleton.bones().at(i++);
-		bones.metacoxa_r = &skeleton.bones().at(i++);
-		bones.metafemur_r = &skeleton.bones().at(i++);
-		bones.metatibia_r = &skeleton.bones().at(i++);
-		bones.metatarsomere1_r = &skeleton.bones().at(i++);
-		bones.head = &skeleton.bones().at(i++);
-		bones.mandible_l = &skeleton.bones().at(i++);
-		bones.mandible_r = &skeleton.bones().at(i++);
-		bones.antennomere1_l = &skeleton.bones().at(i++);
-		bones.antennomere2_l = &skeleton.bones().at(i++);
-		bones.antennomere1_r = &skeleton.bones().at(i++);
-		bones.antennomere2_r = &skeleton.bones().at(i++);
+		bones.mesosoma = &skeleton->bones().at(i++);
+		bones.procoxa_l = &skeleton->bones().at(i++);
+		bones.profemur_l = &skeleton->bones().at(i++);
+		bones.protibia_l = &skeleton->bones().at(i++);
+		bones.protarsomere1_l = &skeleton->bones().at(i++);
+		bones.procoxa_r = &skeleton->bones().at(i++);
+		bones.profemur_r = &skeleton->bones().at(i++);
+		bones.protibia_r = &skeleton->bones().at(i++);
+		bones.protarsomere1_r = &skeleton->bones().at(i++);
+		bones.mesocoxa_l = &skeleton->bones().at(i++);
+		bones.mesofemur_l = &skeleton->bones().at(i++);
+		bones.mesotibia_l = &skeleton->bones().at(i++);
+		bones.mesotarsomere1_l = &skeleton->bones().at(i++);
+		bones.mesocoxa_r = &skeleton->bones().at(i++);
+		bones.mesofemur_r = &skeleton->bones().at(i++);
+		bones.mesotibia_r = &skeleton->bones().at(i++);
+		bones.mesotarsomere1_r = &skeleton->bones().at(i++);
+		bones.metacoxa_l = &skeleton->bones().at(i++);
+		bones.metafemur_l = &skeleton->bones().at(i++);
+		bones.metatibia_l = &skeleton->bones().at(i++);
+		bones.metatarsomere1_l = &skeleton->bones().at(i++);
+		bones.metacoxa_r = &skeleton->bones().at(i++);
+		bones.metafemur_r = &skeleton->bones().at(i++);
+		bones.metatibia_r = &skeleton->bones().at(i++);
+		bones.metatarsomere1_r = &skeleton->bones().at(i++);
+		bones.head = &skeleton->bones().at(i++);
+		bones.mandible_l = &skeleton->bones().at(i++);
+		bones.mandible_r = &skeleton->bones().at(i++);
+		bones.antennomere1_l = &skeleton->bones().at(i++);
+		bones.antennomere2_l = &skeleton->bones().at(i++);
+		bones.antennomere1_r = &skeleton->bones().at(i++);
+		bones.antennomere2_r = &skeleton->bones().at(i++);
 		
 		if (phenome.waist->present)
 		{
-			bones.petiole = &skeleton.bones().at(i++);
+			bones.petiole = &skeleton->bones().at(i++);
 			
 			if (phenome.waist->postpetiole_present)
 			{
-				bones.postpetiole = &skeleton.bones().at(i++);
+				bones.postpetiole = &skeleton->bones().at(i++);
 			}
 		}
 		
-		bones.gaster = &skeleton.bones().at(i++);
+		bones.gaster = &skeleton->bones().at(i++);
 		
 		if (phenome.sting->present)
 		{
-			bones.sting = &skeleton.bones().at(i++);
+			bones.sting = &skeleton->bones().at(i++);
 		}
 		
 		if (phenome.wings->present)
 		{
-			bones.forewing_l = &skeleton.bones().at(i++);
-			bones.forewing_r = &skeleton.bones().at(i++);
-			bones.hindwing_l = &skeleton.bones().at(i++);
-			bones.hindwing_r = &skeleton.bones().at(i++);
+			bones.forewing_l = &skeleton->bones().at(i++);
+			bones.forewing_r = &skeleton->bones().at(i++);
+			bones.hindwing_l = &skeleton->bones().at(i++);
+			bones.hindwing_r = &skeleton->bones().at(i++);
 		}
 	}
 
@@ -1021,5 +1021,7 @@ void generate_ant_skeleton(::skeleton& skeleton, ant_bone_set& bones, const ant_
 	}
 	
 	// Generate poses
-	generate_ant_rest_pose(skeleton, bones, phenome);
+	generate_ant_rest_pose(*skeleton, bones, phenome);
+
+	return skeleton;
 }

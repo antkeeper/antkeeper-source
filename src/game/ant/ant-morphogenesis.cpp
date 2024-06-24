@@ -421,9 +421,9 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	model->set_vertex_stride(mesosoma_model->get_vertex_stride());
 	
 	// Generate ant skeleton
-	::skeleton& skeleton = model->get_skeleton();
 	ant_bone_set bones;
-	generate_ant_skeleton(skeleton, bones, phenome);
+	model->skeleton() = generate_ant_skeleton(bones, phenome);
+	::skeleton& skeleton = *model->skeleton();
 	const auto& rest_pose = skeleton.rest_pose();
 	
 	// Get number of vertices for each body part
@@ -440,17 +440,17 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	const std::uint32_t wings_vertex_count = (phenome.wings->present) ? wings_model->get_groups().front().vertex_count : 0;
 	
 	// Get body part skeletons
-	const ::skeleton& mesosoma_skeleton = phenome.mesosoma->model->get_skeleton();
-	const ::skeleton& legs_skeleton = phenome.legs->model->get_skeleton();
-	const ::skeleton& head_skeleton = phenome.head->model->get_skeleton();
-	const ::skeleton& mandibles_skeleton = phenome.mandibles->model->get_skeleton();
-	const ::skeleton& antennae_skeleton = phenome.antennae->model->get_skeleton();
-	const ::skeleton& waist_skeleton = phenome.waist->model->get_skeleton();
-	const ::skeleton& gaster_skeleton = phenome.gaster->model->get_skeleton();
-	const ::skeleton* sting_skeleton = (phenome.sting->present) ? &phenome.sting->model->get_skeleton() : nullptr;
-	const ::skeleton* eyes_skeleton = (phenome.eyes->present) ? &phenome.eyes->model->get_skeleton() : nullptr;
-	const ::skeleton* ocelli_skeleton = (phenome.ocelli->lateral_ocelli_present || phenome.ocelli->median_ocellus_present) ? &phenome.ocelli->model->get_skeleton() : nullptr;
-	const ::skeleton* wings_skeleton = (phenome.wings->present) ? &phenome.wings->model->get_skeleton() : nullptr;
+	const ::skeleton& mesosoma_skeleton = *phenome.mesosoma->model->skeleton();
+	const ::skeleton& legs_skeleton = *phenome.legs->model->skeleton();
+	const ::skeleton& head_skeleton = *phenome.head->model->skeleton();
+	const ::skeleton& mandibles_skeleton = *phenome.mandibles->model->skeleton();
+	const ::skeleton& antennae_skeleton = *phenome.antennae->model->skeleton();
+	const ::skeleton& waist_skeleton = *phenome.waist->model->skeleton();
+	const ::skeleton& gaster_skeleton = *phenome.gaster->model->skeleton();
+	const ::skeleton* sting_skeleton = (phenome.sting->present) ? phenome.sting->model->skeleton().get() : nullptr;
+	const ::skeleton* eyes_skeleton = (phenome.eyes->present) ? phenome.eyes->model->skeleton().get() : nullptr;
+	const ::skeleton* ocelli_skeleton = (phenome.ocelli->lateral_ocelli_present || phenome.ocelli->median_ocellus_present) ? phenome.ocelli->model->skeleton().get() : nullptr;
+	const ::skeleton* wings_skeleton = (phenome.wings->present) ? phenome.wings->model->skeleton().get() : nullptr;
 	
 	auto get_bone_transform = [](const ::skeleton& skeleton, const std::string& bone_name)
 	{
@@ -713,13 +713,16 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 		eye_uv_area = calculate_uv_area({vertex_buffer_data.data() + eyes_vbo_offset, vertex_buffer_data.data() + eyes_vbo_offset + eyes_vertex_count / 2}, *uv_attribute, model->get_vertex_stride());
 	}
 	
-	// Generate exoskeleton material
-	std::shared_ptr<render::material> exoskeleton_material = generate_ant_exoskeleton_material(phenome, eye_uv_area);
+	// Set model materials
+	model->materials().emplace_back(generate_ant_exoskeleton_material(phenome, eye_uv_area));
+	if (phenome.wings->present)
+	{
+		model->materials().emplace_back(wings_model->materials().front());
+	}
 	
 	// Construct model group
 	render::model_group& model_group = model->get_groups()[0];
 	model_group.id = "exoskeleton";
-	model_group.material = exoskeleton_material;
 	model_group.primitive_topology = gl::primitive_topology::triangle_list;
 	model_group.first_vertex = 0;
 	model_group.vertex_count = mesosoma_vertex_count +
@@ -732,16 +735,17 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 		sting_vertex_count +
 		eyes_vertex_count +
 		ocelli_vertex_count;
+	model_group.material_index = 0;
 	
 	if (phenome.wings->present)
 	{
 		// Construct wings model group
 		render::model_group& wings_group = model->get_groups()[1];
 		wings_group.id = "wings";
-		wings_group.material = wings_model->get_groups().front().material;
 		wings_group.primitive_topology = gl::primitive_topology::triangle_list;
 		wings_group.first_vertex = model_group.vertex_count;
 		wings_group.vertex_count = wings_vertex_count;
+		wings_group.material_index = 1;
 	}
 	
 	// Calculate model bounding box

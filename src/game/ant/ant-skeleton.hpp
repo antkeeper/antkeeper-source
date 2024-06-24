@@ -13,9 +13,10 @@
 /**
  * Generates a skeleton for an ant model.
  *
- * @param[in,out] skeleton Ant skeleton.
  * @param[out] bones Ant bone set.
  * @param[in] phenome Ant phenome.
+ *
+ * @return Ant skeleton.
  *
  * The following bone hierarchy will be constructed:
  *
@@ -62,7 +63,7 @@
  *
  * †: bone presence dependent on phenome.
  */
-void generate_ant_skeleton(::skeleton& skeleton, ant_bone_set& bones, const ant_phenome& phenome);
+[[nodiscard]] std::unique_ptr<skeleton> generate_ant_skeleton(ant_bone_set& bones, const ant_phenome& phenome);
 
 [[nodiscard]] std::unique_ptr<skeleton_pose> generate_ant_midstance_pose(::skeleton& skeleton);
 [[nodiscard]] std::unique_ptr<skeleton_pose> generate_ant_midswing_pose(::skeleton& skeleton);
