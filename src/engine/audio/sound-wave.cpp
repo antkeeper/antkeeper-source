@@ -98,7 +98,7 @@ namespace
 		drwav wav;
 		if (!drwav_init_memory(&wav, file_buffer.data(), ctx->size(), nullptr))
 		{
-			throw deserialize_error("Failed to open WAV file with dr_wav.");
+			throw deserialize_error("Failed to open WAV file with dr_wav");
 		}
 		
 		// Get WAV file info
@@ -117,7 +117,7 @@ namespace
 				// Unitialize wave file
 				drwav_uninit(&wav);
 				
-				throw deserialize_error("dr_wav failed to decode 8-bit WAV file.");
+				throw deserialize_error("dr_wav failed to decode 8-bit WAV file");
 			}
 			
 			// Unitialize wave file
@@ -136,7 +136,7 @@ namespace
 		{
 			if (bits_per_sample != 16)
 			{
-				debug::log_info("Converting {}-bit WAV data to 16-bit.", bits_per_sample);
+				debug::log_trace("{}-bit WAV data will be converted to 16-bit", bits_per_sample);
 			}
 			
 			// Allocate signed 16-bit PCM samples
@@ -148,7 +148,7 @@ namespace
 				// Unitialize wave file
 				drwav_uninit(&wav);
 				
-				throw deserialize_error(std::format("dr_wav failed to decode {}-bit WAV data and convert to 16-bit.", bits_per_sample));
+				throw deserialize_error(std::format("dr_wav failed to decode {}-bit WAV data and convert to 16-bit", bits_per_sample));
 			}
 			
 			// Unitialize wave file
@@ -234,7 +234,7 @@ namespace
 			// Close Ogg/Vorbis file
 			ov_clear(&vf);
 			
-			throw deserialize_error("Vorbisfile failed to provide Ogg/Vorbis file information.");
+			throw deserialize_error("Vorbisfile failed to provide Ogg/Vorbis file information");
 		}
 		
 		auto channels = static_cast<std::uint32_t>(vf_info->channels);
@@ -306,6 +306,6 @@ std::unique_ptr<audio::sound_wave> resource_loader<audio::sound_wave>::load([[ma
 	}
 	else
 	{
-		throw std::runtime_error(std::format("Sound wave file extension not recognized ({}).", ctx->path().extension().string()));
+		throw std::runtime_error(std::format("Sound wave file extension not recognized ({})", ctx->path().extension().string()));
 	}
 }

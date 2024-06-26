@@ -72,7 +72,7 @@ void cosmogenesis(::game& ctx)
 	create_sun(ctx);
 	create_earth_moon_system(ctx);
 	
-	debug::log_trace("Generated cosmos");
+	debug::log_trace("Generating cosmos... OK");
 }
 
 void create_observer(::game& ctx)
@@ -108,7 +108,7 @@ void create_observer(::game& ctx)
 		ctx.astronomy_system->set_observer(observer_eid);
 	}
 	
-	debug::log_trace("Created observer");
+	debug::log_trace("Creating observer... OK");
 }
 
 void set_location(::game& ctx, double elevation, double latitude, double longitude)
@@ -310,7 +310,7 @@ void create_stars(::game& ctx)
 	// Pass starlight illuminance to astronomy system
 	ctx.astronomy_system->set_starlight_illuminance(starlight_illuminance);
 	
-	debug::log_trace("Generated fixed stars");
+	debug::log_trace("Generating fixed stars... OK");
 }
 
 void create_sun(::game& ctx)
@@ -340,7 +340,7 @@ void create_sun(::game& ctx)
 		ctx.astronomy_system->set_sun_light(ctx.sun_light.get());
 	}
 	
-	debug::log_trace("Generated Sun");
+	debug::log_trace("Generating Sun... OK");
 }
 
 void create_earth_moon_system(::game& ctx)
@@ -360,7 +360,7 @@ void create_earth_moon_system(::game& ctx)
 		create_moon(ctx);
 	}
 	
-	debug::log_trace("Generated Earth-Moon system");
+	debug::log_trace("Generating Earth-Moon system... OK");
 }
 
 void create_earth(::game& ctx)
@@ -377,7 +377,7 @@ void create_earth(::game& ctx)
 		ctx.entity_registry->get<::orbit_component>(earth_eid).parent = ctx.entities["em_bary"];
 	}
 	
-	debug::log_trace("Generated Earth");
+	debug::log_trace("Generating Earth... OK");
 }
 
 void create_moon(::game& ctx)
@@ -406,7 +406,7 @@ void create_moon(::game& ctx)
 		ctx.astronomy_system->set_moon_light(ctx.moon_light.get());
 	}
 	
-	debug::log_trace("Generated Moon");
+	debug::log_trace("Generating Moon... OK");
 }
 
 void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
@@ -450,7 +450,7 @@ void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
 		// );
 	}
 	
-	debug::log_trace("Entered ecoregion {}", ecoregion.name);
+	debug::log_trace("Entering ecoregion {}... OK", ecoregion.name);
 }
 
 } // namespace world

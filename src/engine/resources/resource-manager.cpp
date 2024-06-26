@@ -10,46 +10,52 @@
 
 resource_manager::resource_manager()
 {
-	// Log PhysicsFS info
-	// PHYSFS_Version physfs_compiled_version;
-	// PHYSFS_Version physfs_linked_version;
-	// PHYSFS_VERSION(&physfs_compiled_version);
-	// PHYSFS_getLinkedVersion(&physfs_linked_version);
-	// debug::log_info
-	// (
-		// "PhysicsFS compiled version: {}.{}.{}; linked version: {}.{}.{}",
-		// physfs_compiled_version.major,
-		// physfs_compiled_version.minor,
-		// physfs_compiled_version.patch,
-		// physfs_linked_version.major,
-		// physfs_linked_version.minor,
-		// physfs_linked_version.patch
-	// );
-	
 	// Init PhysicsFS
-	debug::log_trace("Initializing PhysicsFS...");
+	debug::log_debug("Initializing PhysicsFS...");
+
+	#if defined(DEBUG)
+		// Log PhysicsFS info
+		PHYSFS_Version physfs_compiled_version;
+		PHYSFS_Version physfs_linked_version;
+		PHYSFS_VERSION(&physfs_compiled_version);
+		PHYSFS_getLinkedVersion(&physfs_linked_version);
+		debug::log_trace
+		(
+			"PhysicsFS compiled version: {}.{}.{}; linked version: {}.{}.{}",
+			physfs_compiled_version.major,
+			physfs_compiled_version.minor,
+			physfs_compiled_version.patch,
+			physfs_linked_version.major,
+			physfs_linked_version.minor,
+			physfs_linked_version.patch
+		);
+	#endif // DEBUG
+	
 	if (!PHYSFS_init(nullptr))
 	{
-		debug::log_error("Failed to initialize PhysicsFS: {}", PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
-		throw std::runtime_error("Failed to initialize PhysicsFS");
+		auto error_message = std::format("Failed to initialize PhysicsFS: {}", PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		debug::log_error("{}", error_message);
+		debug::log_debug("Initializing PhysicsFS... FAILED");
+		throw std::runtime_error(std::move(error_message));
 	}
 	else
 	{
-		debug::log_trace("Initialized PhysicsFS");
+		debug::log_debug("Initializing PhysicsFS... OK");
 	}
 }
 
 resource_manager::~resource_manager()
 {
 	// Deinit PhysicsFS
-	debug::log_trace("Deinitializing PhysicsFS...");
+	debug::log_debug("Deinitializing PhysicsFS...");
 	if (!PHYSFS_deinit())
 	{
 		debug::log_error("Failed to deinitialize PhysicsFS: {}", PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		debug::log_debug("Deinitializing PhysicsFS... FAILED");
 	}
 	else
 	{
-		debug::log_trace("Deinitialized PhysicsFS");
+		debug::log_debug("Deinitializing PhysicsFS... OK");
 	}
 }
 
@@ -57,15 +63,16 @@ bool resource_manager::mount(const std::filesystem::path& path)
 {
 	const std::string path_string = path.string();
 	
-	debug::log_trace("Mounting path \"{}\"...", path_string);
+	debug::log_debug("Mounting path \"{}\"...", path_string);
 	
 	if (!PHYSFS_mount(path_string.c_str(), nullptr, 1))
 	{
 		debug::log_error("Failed to mount path \"{}\": {}", path_string, PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		debug::log_debug("Mounting path \"{}\"... FAILED", path_string);
 		return false;
 	}
 	
-	debug::log_trace("Mounted path \"{}\"", path_string);
+	debug::log_debug("Mounting path \"{}\"... OK", path_string);
 	
 	return true;
 }
@@ -74,15 +81,16 @@ bool resource_manager::unmount(const std::filesystem::path& path)
 {
 	const std::string path_string = path.string();
 	
-	debug::log_trace("Unmounting path \"{}\"...", path_string);
+	debug::log_debug("Unmounting path \"{}\"...", path_string);
 	
 	if (!PHYSFS_unmount(path_string.c_str()))
 	{
 		debug::log_error("Failed to unmount path \"{}\": {}", path_string, PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		debug::log_debug("Unmounting path \"{}\"... FAILED", path_string);
 		return false;
 	}
 	
-	debug::log_trace("Unmounted path \"{}\"", path_string);
+	debug::log_debug("Unmounting path \"{}\"... OK", path_string);
 	
 	return true;
 }
@@ -99,7 +107,7 @@ bool resource_manager::set_write_path(const std::filesystem::path& path)
 	
 	write_path = path;
 	
-	debug::log_trace("Set write path to \"{}\"", path_string);
+	debug::log_debug("Set write path to \"{}\".", path_string);
 	
 	return true;
 }
@@ -114,7 +122,7 @@ std::shared_ptr<void> resource_manager::fetch(const std::filesystem::path& path)
 		}
 		else
 		{
-			debug::log_trace("Fetched expired resource from cache \"{}\"", path.string());
+			debug::log_debug("Fetched expired resource from cache \"{}\".", path.string());
 		}
 	}
 	

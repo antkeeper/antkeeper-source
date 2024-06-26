@@ -13,13 +13,15 @@ namespace app {
 sdl_window_manager::sdl_window_manager()
 {
 	// Init SDL events and video subsystems
-	debug::log_trace("Initializing SDL events and video subsystems...");
+	debug::log_debug("Initializing SDL events and video subsystems...");
 	if (SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO) != 0)
 	{
-		debug::log_fatal("Failed to initialize SDL events and video subsystems: {}", SDL_GetError());
-		throw std::runtime_error("Failed to initialize SDL events and video subsystems");
+		auto error_message = std::format("Failed to initialize SDL events and video subsystems: {}", SDL_GetError());
+		debug::log_fatal("{}", error_message);
+		debug::log_debug("Initializing SDL events and video subsystems... FAILED");
+		throw std::runtime_error(std::move(error_message));
 	}
-	debug::log_trace("Initialized SDL events and video subsystems");
+	debug::log_debug("Initializing SDL events and video subsystems... OK");
 	
 	// Render native IME
 	SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
@@ -56,13 +58,15 @@ sdl_window_manager::sdl_window_manager()
 	}
 	
 	// Load OpenGL library
-	debug::log_trace("Loading OpenGL library...");
+	debug::log_debug("Loading OpenGL library...");
 	if (SDL_GL_LoadLibrary(nullptr) != 0)
 	{
-		debug::log_fatal("Failed to load OpenGL library: {}", SDL_GetError());
-		throw std::runtime_error("Failed to load OpenGL library");
+		auto error_message = std::format("Failed to load OpenGL library: {}", SDL_GetError());
+		debug::log_fatal("{}", error_message);
+		debug::log_debug("Loading OpenGL library... FAILED");
+		throw std::runtime_error(std::move(error_message));
 	}
-	debug::log_trace("Loaded OpenGL library");
+	debug::log_debug("Loading OpenGL library... OK");
 	
 	// Set OpenGL-related window creation hints
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
@@ -94,9 +98,9 @@ sdl_window_manager::sdl_window_manager()
 sdl_window_manager::~sdl_window_manager()
 {
 	// Quit SDL video subsystem
-	debug::log_trace("Quitting SDL video subsystem...");
+	debug::log_debug("Quitting SDL video subsystem...");
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
-	debug::log_trace("Quit SDL video subsystem");
+	debug::log_debug("Quitting SDL video subsystem... OK");
 }
 
 std::shared_ptr<window> sdl_window_manager::create_window
@@ -143,8 +147,9 @@ void sdl_window_manager::update()
 		}
 		else if (status < 0)
 		{
-			debug::log_error("Failed to peep SDL events: {}", SDL_GetError());
-			throw std::runtime_error("Failed to peep SDL events");
+			auto error_message = std::format("Failed to peep SDL events: {}", SDL_GetError());
+			debug::log_error("{}", error_message);
+			throw std::runtime_error(std::move(error_message));
 		}
 		
 		// Handle event
@@ -197,7 +202,7 @@ void sdl_window_manager::update()
 					}
 					
 					// Log window moved event
-					debug::log_debug("Window {} moved to ({}, {})", event.window.windowID, event.window.data1, event.window.data2);
+					debug::log_debug("Window {} moved to ({}, {}).", event.window.windowID, event.window.data1, event.window.data2);
 					
 					// Publish window moved event
 					window->m_moved_publisher.publish({window, window->m_position});
@@ -211,7 +216,7 @@ void sdl_window_manager::update()
 					app::sdl_window* window = get_window(internal_window);
 					
 					// Log window focus gained event
-					debug::log_debug("Window {} gained focus", event.window.windowID);
+					debug::log_debug("Window {} gained focus.", event.window.windowID);
 					
 					// Publish window focus gained event
 					window->m_focus_changed_publisher.publish({window, true});
@@ -225,7 +230,7 @@ void sdl_window_manager::update()
 					app::sdl_window* window = get_window(internal_window);
 					
 					// Log window focus lost event
-					debug::log_debug("Window {} lost focus", event.window.windowID);
+					debug::log_debug("Window {} lost focus.", event.window.windowID);
 					
 					// Publish window focus lost event
 					window->m_focus_changed_publisher.publish({window, false});
@@ -242,7 +247,7 @@ void sdl_window_manager::update()
 					window->m_maximized = true;
 					
 					// Log window focus gained event
-					debug::log_debug("Window {} maximized", event.window.windowID);
+					debug::log_debug("Window {} maximized.", event.window.windowID);
 					
 					// Publish window maximized event
 					window->m_maximized_publisher.publish({window});
@@ -259,7 +264,7 @@ void sdl_window_manager::update()
 					window->m_maximized = false;
 					
 					// Log window restored event
-					debug::log_debug("Window {} restored", event.window.windowID);
+					debug::log_debug("Window {} restored.", event.window.windowID);
 					
 					// Publish window restored event
 					window->m_restored_publisher.publish({window});
@@ -273,7 +278,7 @@ void sdl_window_manager::update()
 					app::sdl_window* window = get_window(internal_window);
 					
 					// Log window focus gained event
-					debug::log_debug("Window {} minimized", event.window.windowID);
+					debug::log_debug("Window {} minimized.", event.window.windowID);
 					
 					// Publish window minimized event
 					window->m_minimized_publisher.publish({window});
@@ -287,7 +292,7 @@ void sdl_window_manager::update()
 					app::sdl_window* window = get_window(internal_window);
 					
 					// Log window closed event
-					debug::log_debug("Window {} closed", event.window.windowID);
+					debug::log_debug("Window {} closed.", event.window.windowID);
 					
 					// Publish window closed event
 					window->m_closed_publisher.publish({window});
@@ -335,7 +340,7 @@ void sdl_window_manager::update()
 					}
 					else
 					{
-						debug::log_error("Index of connected display ({}) out of range", event.display.display);
+						debug::log_error("Index of connected display ({}) out of range.", event.display.display);
 					}
 					break;
 				
@@ -356,7 +361,7 @@ void sdl_window_manager::update()
 					}
 					else
 					{
-						debug::log_error("Index of disconnected display ({}) out of range", event.display.display);
+						debug::log_error("Index of disconnected display ({}) out of range.", event.display.display);
 					}
 					break;
 				
@@ -387,14 +392,14 @@ void sdl_window_manager::update()
 						}
 						
 						// Log display orientation changed event
-						debug::log_info("Display {} orientation changed", event.display.display);
+						debug::log_info("Display {} orientation changed.", event.display.display);
 						
 						// Publish display orientation changed event
 						display.m_orientation_changed_publisher.publish({&display, display.get_orientation()});
 					}
 					else
 					{
-						debug::log_error("Index of orientation-changed display ({}) out of range", event.display.display);
+						debug::log_error("Index of orientation-changed display ({}) out of range.", event.display.display);
 					}
 					break;
 				
@@ -416,8 +421,9 @@ void sdl_window_manager::update()
 		}
 		else if (status < 0)
 		{
-			debug::log_error("Failed to peep SDL events: {}", SDL_GetError());
-			throw std::runtime_error("Failed to peep SDL events");
+			auto error_message = std::format("Failed to peep SDL events: {}", SDL_GetError());
+			debug::log_error("{}", error_message);
+			throw std::runtime_error(std::move(error_message));
 		}
 		
 		switch (event.type)
@@ -483,7 +489,7 @@ sdl_window* sdl_window_manager::get_window(SDL_Window* internal_window)
 	auto it = m_window_map.find(internal_window);
 	if (it == m_window_map.end())
 	{
-		throw std::runtime_error("SDL window unrecognized by SDL window manager");
+		throw std::runtime_error("SDL window unrecognized by SDL window manager.");
 	}
 	
 	return it->second;
@@ -505,7 +511,7 @@ void sdl_window_manager::update_display(int sdl_display_index)
 	SDL_DisplayMode sdl_display_mode;
 	if (SDL_GetDesktopDisplayMode(sdl_display_index, &sdl_display_mode) != 0)
 	{
-		debug::log_error("Failed to get mode of display {}: {}", sdl_display_index, SDL_GetError());
+		debug::log_warning("Failed to get mode of display {}: {}", sdl_display_index, SDL_GetError());
 		SDL_ClearError();
 		sdl_display_mode = {0, 0, 0, 0, nullptr};
 	}

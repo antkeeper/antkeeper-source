@@ -32,7 +32,7 @@ sdl_window::sdl_window
 	}
 	
 	// Create SDL window
-	debug::log_trace("Creating SDL window...");
+	debug::log_debug("Creating SDL window...");
 	m_internal_window = SDL_CreateWindow
 	(
 		title.c_str(),
@@ -44,20 +44,24 @@ sdl_window::sdl_window
 	);
 	if (!m_internal_window)
 	{
-		debug::log_fatal("Failed to create SDL window: {}", SDL_GetError());
-		throw std::runtime_error("Failed to create SDL window");
+		auto error_message = std::format("Failed to create SDL window: {}", SDL_GetError());
+		debug::log_fatal("{}", error_message);
+		debug::log_debug("Creating SDL window... FAILED");
+		throw std::runtime_error(std::move(error_message));
 	}
-	debug::log_trace("Created SDL window");
+	debug::log_debug("Creating SDL window... OK");
 	
 	// Create OpenGL context
-	debug::log_trace("Creating OpenGL context...");
+	debug::log_debug("Creating OpenGL context...");
 	m_internal_context = SDL_GL_CreateContext(m_internal_window);
 	if (!m_internal_context)
 	{
-		debug::log_fatal("Failed to create OpenGL context: {}", SDL_GetError());
-		throw std::runtime_error("Failed to create OpenGL context");
+		auto error_message = std::format("Failed to create OpenGL context: {}", SDL_GetError());
+		debug::log_fatal("{}", error_message);
+		debug::log_debug("Creating OpenGL context... FAILED");
+		throw std::runtime_error(std::move(error_message));
 	}
-	debug::log_trace("Created OpenGL context");
+	debug::log_debug("Creating OpenGL context... OK");
 	
 	// Query OpenGL context info
 	int opengl_context_version_major = -1;
@@ -108,7 +112,7 @@ sdl_window::sdl_window
 	{
 		debug::log_warning
 		(
-			"OpenGL context format (R{}G{}B{}A{}D{}S{}) does not meet minimum requested format (R{}G{}B{}A{}D{}S{})",
+			"OpenGL context format (R{}G{}B{}A{}D{}S{}) does not meet minimum requested format (R{}G{}B{}A{}D{}S{}).",
 			opengl_context_red_size,
 			opengl_context_green_size,
 			opengl_context_blue_size,
@@ -125,13 +129,15 @@ sdl_window::sdl_window
 	}
 	
 	// Load OpenGL functions via GLAD
-	debug::log_trace("Loading OpenGL functions...");
+	debug::log_debug("Loading OpenGL functions...");
 	if (!gladLoadGL(reinterpret_cast<GLADloadfunc>(SDL_GL_GetProcAddress)))
 	{
-		debug::log_fatal("Failed to load OpenGL functions", SDL_GetError());
-		throw std::runtime_error("Failed to load OpenGL functions");
+		auto error_message = std::format("Failed to load OpenGL functions: {}", SDL_GetError());
+		debug::log_fatal("{}", error_message);
+		debug::log_debug("Loading OpenGL functions... FAILED");
+		throw std::runtime_error(std::move(error_message));
 	}
-	debug::log_trace("Loaded OpenGL functions");
+	debug::log_debug("Loading OpenGL functions... OK");
 	
 	// Log OpenGL information
 	debug::log_info
@@ -230,37 +236,40 @@ void sdl_window::set_v_sync(bool v_sync)
 {
 	if (v_sync)
 	{
-		debug::log_trace("Enabling adaptive v-sync...");
+		debug::log_debug("Enabling adaptive v-sync...");
 		if (SDL_GL_SetSwapInterval(-1) != 0)
 		{
 			debug::log_error("Failed to enable adaptive v-sync: {}", SDL_GetError());
-			debug::log_trace("Enabling synchronized v-sync...");
+			debug::log_debug("Enabling adaptive v-sync... FAILED");
+			debug::log_debug("Enabling synchronized v-sync...");
 			if (SDL_GL_SetSwapInterval(1) != 0)
 			{
 				debug::log_error("Failed to enable synchronized v-sync: {}", SDL_GetError());
+				debug::log_debug("Enabling synchronized v-sync... FAILED");
 				v_sync = false;
 			}
 			else
 			{
-				debug::log_debug("Enabled synchronized v-sync");
+				debug::log_debug("Enabling synchronized v-sync... OK");
 			}
 		}
 		else
 		{
-			debug::log_debug("Enabled adaptive v-sync");
+			debug::log_debug("Enabling adaptive v-sync... OK");
 		}
 	}
 	else
 	{
-		debug::log_trace("Disabling v-sync...");
+		debug::log_debug("Disabling v-sync...");
 		if (SDL_GL_SetSwapInterval(0) != 0)
 		{
 			debug::log_error("Failed to disable v-sync: {}", SDL_GetError());
+			debug::log_debug("Disabling v-sync... FAILED");
 			v_sync = true;
 		}
 		else
 		{
-			debug::log_debug("Disabled v-sync");
+			debug::log_debug("Disabling v-sync... OK");
 		}
 	}
 	

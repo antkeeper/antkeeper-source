@@ -181,12 +181,12 @@ int main(int argc, char* argv[])
 		}
 	}
 	
-	// Log application name and version string, followed by launch time
-	debug::log_info("{0} {1}; {2:%Y%m%d}T{2:%H%M%S}Z", config::application_name, config::application_version_string, std::chrono::floor<std::chrono::milliseconds>(launch_time));
-	
 	// Start marker
 	debug::log_debug("Hi! 🐜");
-	
+
+	// Log application name and version string, followed by launch time
+	debug::log_info("{0} {1}; {2:%Y%m%d}T{2:%H%M%S}Z", config::application_name, config::application_version_string, std::chrono::floor<std::chrono::milliseconds>(launch_time));
+
 	// #if defined(NDEBUG)
 	try
 	{

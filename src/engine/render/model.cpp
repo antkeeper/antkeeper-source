@@ -393,7 +393,7 @@ void model::rebuild()
 			{
 				if (face_material_index < group.material_index)
 				{
-					throw std::runtime_error("Model mesh faces are not sorted by material.");
+					throw std::runtime_error("Model mesh faces are not sorted by material");
 				}
 
 				if (group.vertex_count)
@@ -438,7 +438,7 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 	const auto& version = json.at("version").get_ref<const std::string&>();
 	if (version != "1.0.0")
 	{
-		throw deserialize_error(std::format("Unsupported model format (version {}).", version));
+		throw deserialize_error(std::format("Unsupported model format (version {})", version));
 	}
 
 	// Load mesh
@@ -446,7 +446,9 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 	auto mesh = resource_manager.load<geom::brep_mesh>(mesh_path);
 	if (!mesh)
 	{
-		throw deserialize_error(std::format("Failed to load model: failed to load mesh \"{}\".", mesh_path));
+		auto error_message = std::format("Failed to load model mesh \"{}\"", mesh_path);
+		debug::log_error("{}", error_message);
+		throw deserialize_error(std::move(error_message));
 	}
 
 	// Load materials
@@ -477,7 +479,7 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 				skeleton = resource_manager.load<::skeleton>(skeleton_path);
 				if (!skeleton)
 				{
-					debug::log_error("Failed to load model skeleton \"{}\".", skeleton_path);
+					debug::log_error("Failed to load model skeleton \"{}\"", skeleton_path);
 				}
 			}
 		}

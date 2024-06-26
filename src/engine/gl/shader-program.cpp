@@ -4,6 +4,7 @@
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-object.hpp>
 #include <engine/gl/opengl/gl-shader-variables.hpp>
+#include <engine/debug/log.hpp>
 #include <glad/gl.h>
 #include <stdexcept>
 #include <string_view>
@@ -18,7 +19,7 @@ shader_program::shader_program()
 	// Handle OpenGL errors
 	if (!m_gl_program_id)
 	{
-		throw std::runtime_error("Unable to create OpenGL shader program");
+		throw std::runtime_error("Failed to create OpenGL shader program");
 	}
 }
 
@@ -102,6 +103,8 @@ bool shader_program::link()
 	{
 		throw std::runtime_error("Invalid OpenGL shader program");
 	}
+
+	debug::log_trace("Linking shader program {}...", m_gl_program_id);
 	
 	// Link OpenGL shader program
 	glLinkProgram(m_gl_program_id);
@@ -110,6 +113,13 @@ bool shader_program::link()
 	GLint gl_link_status;
 	glGetProgramiv(m_gl_program_id, GL_LINK_STATUS, &gl_link_status);
 	m_linked = (gl_link_status == GL_TRUE);
+
+	if (!m_linked)
+	{
+		debug::log_error("Failed to link shader program {}", m_gl_program_id);
+	}
+
+	debug::log_trace("Linking shader program {}... {}", m_gl_program_id, m_linked ? "OK" : "FAILED");
 	
 	// Populate info log string
 	if (m_linked)
@@ -170,7 +180,7 @@ void shader_program::load_variables()
 		const GLint uniform_location = glGetUniformLocation(m_gl_program_id, uniform_name.c_str());
 		if (uniform_location == -1)
 		{
-			throw std::runtime_error("Unable to get shader uniform location");
+			throw std::runtime_error("Failed to get shader uniform location");
 		}
 		
 		// Get length of variable name by stripping array notation from uniform name

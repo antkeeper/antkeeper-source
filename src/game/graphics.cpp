@@ -198,7 +198,7 @@ void create_framebuffers(::game& ctx)
 	rebuild_ui_framebuffer(ctx);
 	rebuild_shadow_framebuffer(ctx);
 	
-	debug::log_trace("Created framebuffers");
+	debug::log_trace("Creating framebuffers... OK");
 }
 
 void destroy_framebuffers(::game& ctx)
@@ -219,7 +219,7 @@ void destroy_framebuffers(::game& ctx)
 	ctx.shadow_map_framebuffer.reset();
 	ctx.shadow_map_depth_texture.reset();
 	
-	debug::log_trace("Destroyed framebuffers");
+	debug::log_trace("Destroying framebuffers... OK");
 }
 
 void change_render_resolution(::game& ctx, float scale)
@@ -233,7 +233,7 @@ void change_render_resolution(::game& ctx, float scale)
 		return;
 	}
 	
-	debug::log_trace("Changing render resolution to {}...", scale);
+	debug::log_debug("Changing render resolution to {}...", scale);
 	
 	// Update render resolution scale
 	ctx.render_scale = scale;
@@ -244,7 +244,7 @@ void change_render_resolution(::game& ctx, float scale)
 	
 	reroute_framebuffers(ctx);
 	
-	debug::log_trace("Changed render resolution to {}", scale);
+	debug::log_debug("Changing render resolution to {}... OK", scale);
 }
 
 void save_screenshot(::game& ctx)
@@ -256,7 +256,7 @@ void save_screenshot(::game& ctx)
 	// Determine path to screenshot file
 	std::filesystem::path screenshot_filepath = ctx.screenshots_path / screenshot_filename;
 	std::string screenshot_filepath_string = screenshot_filepath.string();
-	debug::log_debug("Saving screenshot to \"{}\"...", screenshot_filepath_string);
+	debug::log_info("Saving screenshot to \"{}\"...", screenshot_filepath_string);
 	
 	// Get viewport dimensions
 	const auto& viewport_size = ctx.window->get_viewport_size();
@@ -276,7 +276,7 @@ void save_screenshot(::game& ctx)
 			stbi_flip_vertically_on_write(1);
 			stbi_write_png(path.c_str(), w, h, 3, frame.get(), w * 3);
 			
-			debug::log_debug("Saved screenshot to \"{}\"", path);
+			debug::log_info("Saving screenshot to \"{}\"... OK", path);
 		}
 	).detach();
 }
@@ -288,13 +288,13 @@ void select_anti_aliasing_method(::game& ctx, render::anti_aliasing_method metho
 	{
 		// Off
 		case render::anti_aliasing_method::none:
-			debug::log_debug("Anti-aliasing disabled");
+			debug::log_info("Anti-aliasing disabled");
 			reroute_framebuffers(ctx);
 			break;
 		
 		// FXAA
 		case render::anti_aliasing_method::fxaa:
-			debug::log_debug("Anti-aliasing enabled (FXAA)");
+			debug::log_info("Anti-aliasing enabled (FXAA)");
 			reroute_framebuffers(ctx);
 			break;
 	}

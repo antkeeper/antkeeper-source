@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/gl/shader-object.hpp>
+#include <engine/debug/log.hpp>
 #include <glad/gl.h>
 #include <stdexcept>
 
@@ -24,7 +25,7 @@ shader_object::shader_object(shader_stage stage):
 	m_gl_shader_id = glCreateShader(gl_shader_type);
 	if (!m_gl_shader_id)
 	{
-		throw std::runtime_error("Unable to create OpenGL shader object");
+		throw std::runtime_error("Failed to create OpenGL shader object");
 	}
 }
 
@@ -45,6 +46,8 @@ bool shader_object::compile()
 {
 	m_compiled = false;
 	m_info_log.clear();
+
+	debug::log_trace("Compiling shader object {}...", m_gl_shader_id);
 	
 	// Compile OpenGL shader object
 	glCompileShader(m_gl_shader_id);
@@ -53,6 +56,13 @@ bool shader_object::compile()
 	GLint gl_compile_status;
 	glGetShaderiv(m_gl_shader_id, GL_COMPILE_STATUS, &gl_compile_status);
 	m_compiled = (gl_compile_status == GL_TRUE);
+
+	if (!m_compiled)
+	{
+		debug::log_error("Failed to compile shader object {}", m_gl_shader_id);
+	}
+
+	debug::log_trace("Compiling shader object {}... {}", m_gl_shader_id, m_compiled ? "OK" : "FAILED");
 	
 	// Get OpenGL shader object info log length
 	GLint gl_info_log_length;

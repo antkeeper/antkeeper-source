@@ -202,7 +202,7 @@ namespace {
 			case GL_DEBUG_TYPE_MARKER:
 			case GL_DEBUG_TYPE_OTHER:
 			default:
-				debug::log_debug("OpenGL {} {} ({}) {}: {}", src_str, type_str, severity_str, id, message);
+				debug::log_trace("OpenGL {} {} ({}) {}: {}", src_str, type_str, severity_str, id, message);
 				break;
 		}
 	}

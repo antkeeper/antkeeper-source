@@ -15,15 +15,17 @@ namespace app {
 sdl_input_manager::sdl_input_manager()
 {
 	// Init SDL joystick and controller subsystems
-	debug::log_trace("Initializing SDL joystick and controller subsystems...");
+	debug::log_debug("Initializing SDL joystick and controller subsystems...");
 	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) != 0)
 	{
-		debug::log_error("Failed to initialize SDL joystick and controller subsytems: {}", SDL_GetError());
-		throw std::runtime_error("Failed to initialize SDL joystick and controller subsytems");
+		auto error_message = std::format("Failed to initialize SDL joystick and controller subsytems: {}", SDL_GetError());
+		debug::log_error("{}", error_message);
+		debug::log_debug("Initializing SDL joystick and controller subsystems... FAILED");
+		throw std::runtime_error(std::move(error_message));
 	}
 	else
 	{
-		debug::log_trace("Initialized SDL joystick and controller subsystems");
+		debug::log_debug("Initializing SDL joystick and controller subsystems... OK");
 	}
 	
 	// Register keyboard and mouse
@@ -38,9 +40,9 @@ sdl_input_manager::sdl_input_manager()
 sdl_input_manager::~sdl_input_manager()
 {
 	// Quit SDL joystick and controller subsystems
-	debug::log_trace("Quitting SDL joystick and controller subsystems...");
+	debug::log_debug("Quitting SDL joystick and controller subsystems...");
 	SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
-	debug::log_trace("Quit SDL joystick and controller subsystems...");
+	debug::log_debug("Quitting SDL joystick and controller subsystems... OK");
 }
 
 void sdl_input_manager::update()
@@ -65,14 +67,15 @@ void sdl_input_manager::update()
 		}
 		else if (status < 0)
 		{
-			debug::log_error("Failed to peep SDL events: {}", SDL_GetError());
-			throw std::runtime_error("Failed to peep SDL events");
+			auto error_message = std::format("Failed to peep SDL events: {}", SDL_GetError());
+			debug::log_error("{}", error_message);
+			throw std::runtime_error(std::move(error_message));
 		}
 		
 		switch (event.type)
 		{
 			case SDL_QUIT:
-				debug::log_debug("Application quit requested");
+				debug::log_debug("Received application quit request");
 				m_event_dispatcher.dispatch<input::application_quit_event>({});
 				break;
 			
@@ -94,8 +97,9 @@ void sdl_input_manager::update()
 		}
 		else if (status < 0)
 		{
-			debug::log_error("Failed to peep SDL events: {}", SDL_GetError());
-			throw std::runtime_error("Failed to peep SDL events");
+			auto error_message = std::format("Failed to peep SDL events: {}", SDL_GetError());
+			debug::log_error("{}", error_message);
+			throw std::runtime_error(std::move(error_message));
 		}
 		
 		switch (event.type)
@@ -373,11 +377,13 @@ void sdl_input_manager::start_text_input(const geom::rectangle<int>& rect)
 	};
 	SDL_SetTextInputRect(&sdl_rect);
 	SDL_StartTextInput();
+	debug::log_debug("Started text input");
 }
 
 void sdl_input_manager::stop_text_input()
 {
 	SDL_StopTextInput();
+	debug::log_debug("Stopped text input");
 }
 
 } // namespace app

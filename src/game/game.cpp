@@ -89,11 +89,11 @@ using namespace hash::literals;
 game::game(int argc, const char* const* argv)
 {
 	// Boot process
-	debug::log_trace("Booting up...");
+	debug::log_debug("Booting up...");
 	
 	// Profile boot duration
 	#if !defined(NDEBUG)
-		auto boot_t0 = std::chrono::high_resolution_clock::now();
+		const auto boot_t0 = std::chrono::high_resolution_clock::now();
 	#endif
 	
 	parse_options(argc, argv);
@@ -116,20 +116,20 @@ game::game(int argc, const char* const* argv)
 	
 	// Profile boot duration
 	#if !defined(NDEBUG)
-		auto boot_t1 = std::chrono::high_resolution_clock::now();
+		const auto boot_t1 = std::chrono::high_resolution_clock::now();
 	#endif
 	
-	debug::log_trace("Boot up complete");
+	debug::log_debug("Booting up... OK");
 	
 	// Print boot duration
 	#if !defined(NDEBUG)
-		debug::log_info("Boot duration: {}", std::chrono::duration_cast<std::chrono::duration<double>>(boot_t1 - boot_t0));
+		debug::log_trace("Boot duration: {}", std::chrono::duration_cast<std::chrono::duration<double>>(boot_t1 - boot_t0));
 	#endif
 }
 
 game::~game()
 {
-	debug::log_trace("Booting down...");
+	debug::log_debug("Booting down...");
 	
 	// Exit all active game states
 	while (!state_machine.empty())
@@ -163,7 +163,7 @@ game::~game()
 	// Shut down audio
 	shutdown_audio();
 	
-	debug::log_trace("Boot down complete");
+	debug::log_debug("Booting down... OK");
 }
 
 void game::parse_options(int argc, const char* const* argv)
@@ -174,7 +174,7 @@ void game::parse_options(int argc, const char* const* argv)
 		return;
 	}
 	
-	debug::log_trace("Parsing command-line options...");
+	debug::log_debug("Parsing command-line options...");
 	
 	// Parse command-line options with cxxopts
 	try
@@ -239,16 +239,20 @@ void game::parse_options(int argc, const char* const* argv)
 			option_windowed = true;
 		}
 		
+		debug::log_debug("Parsing command-line options... OK");
 		debug::log_info("Parsed {} command-line options", argc);
 	}
 	catch (const std::exception& e)
 	{
-		debug::log_error("An error occurred while parsing command-line options: {}", e.what());
+		debug::log_error("Failed to parse one or more command-line options: {}", e.what());
+		debug::log_debug("Parsing command-line options... FAILED");
 	}
 }
 
 void game::setup_resources()
 {
+	debug::log_debug("Setting up resources...");
+
 	// Allocate resource manager
 	resource_manager = std::make_unique<::resource_manager>();
 	
@@ -338,10 +342,14 @@ void game::setup_resources()
 	
 	// Mount controls path
 	resource_manager->mount(shared_config_path / "controls");
+
+	debug::log_debug("Setting up resources... OK");
 }
 
 void game::load_settings()
 {
+	debug::log_debug("Loading settings...");
+
 	if (option_reset)
 	{
 		// Command-line reset option found, reset settings
@@ -359,10 +367,14 @@ void game::load_settings()
 			settings = std::make_shared<json>();
 		}
 	}
+
+	debug::log_debug("Loading settings... OK");
 }
 
 void game::setup_window()
 {
+	debug::log_debug("Setting up window...");
+
 	// Construct window manager
 	window_manager = app::window_manager::instance();
 	
@@ -444,11 +456,13 @@ void game::setup_window()
 			closed = true;
 		}
 	);
+
+	debug::log_debug("Setting up window... OK");
 }
 
 void game::setup_audio()
 {
-	debug::log_trace("Setting up audio...");
+	debug::log_debug("Setting up audio...");
 	
 	// Default audio settings
 	master_volume = 1.0f;
@@ -467,9 +481,9 @@ void game::setup_audio()
 	read_or_write_setting(*this, "captions_size", captions_size);
 	
 	// Init sound system
-	debug::log_trace("Constructing sound system...");
+	debug::log_debug("Constructing sound system...");
 	sound_system = std::make_unique<audio::sound_system>();
-	debug::log_trace("Constructed sound system");
+	debug::log_debug("Constructing sound system... OK");
 	
 	// Print sound system info
 	debug::log_info("Audio playback device: {}", sound_system->get_playback_device_name());
@@ -482,11 +496,13 @@ void game::setup_audio()
 	stridulation_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/stridulate-forward.wav")));
 	stridulation_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/stridulate-reverse.wav")));
 	
-	debug::log_trace("Set up audio");
+	debug::log_debug("Setting up audio... OK");
 }
 
 void game::setup_input()
 {
+	debug::log_debug("Setting up input...");
+
 	// Construct input manager
 	input_manager = app::input_manager::instance();
 	
@@ -564,11 +580,13 @@ void game::setup_input()
 		gamepad_active = false;
 	}
 	*/
+
+	debug::log_debug("Setting up input... OK");
 }
 
 void game::load_language()
 {
-	debug::log_trace("Loading language...");
+	debug::log_debug("Loading language...");
 	
 	// Default language tag setting
 	language_tag = "en";
@@ -592,12 +610,12 @@ void game::load_language()
 	// Update window title setting
 	(*settings)["window_title"] = window_title;
 	
-	debug::log_trace("Loaded language");
+	debug::log_debug("Loading language... OK");
 }
 
 void game::setup_rendering()
 {
-	debug::log_trace("Setting up rendering...");
+	debug::log_debug("Setting up rendering...");
 	
 	// Default rendering settings
 	render_scale = 1.0f;
@@ -677,12 +695,12 @@ void game::setup_rendering()
 	// Create renderer
 	renderer = std::make_unique<render::renderer>(window->get_graphics_pipeline(), *resource_manager);
 	
-	debug::log_trace("Set up rendering");
+	debug::log_debug("Setting up rendering... OK");
 }
 
 void game::setup_scenes()
 {
-	debug::log_trace("Setting up scenes...");
+	debug::log_debug("Setting up scenes...");
 	
 	// Ratio of meters to scene units.
 	constexpr float scene_scale = 1.0f / 100.0f;
@@ -708,16 +726,18 @@ void game::setup_scenes()
 	// Clear active scene
 	active_scene = nullptr;
 	
-	debug::log_trace("Set up scenes");
+	debug::log_debug("Setting up scenes... OK");
 }
 
 void game::setup_animation()
 {
+	debug::log_debug("Setting up animation...");
+	debug::log_debug("Setting up animation... OK");
 }
 
 void game::setup_ui()
 {
-	debug::log_trace("Setting up UI...");
+	debug::log_debug("Setting up UI...");
 	
 	// Default UI settings
 	font_scale = 1.0f;
@@ -739,15 +759,16 @@ void game::setup_ui()
 	title_font_material = std::make_shared<render::material>();
 	
 	// Load fonts
-	debug::log_trace("Loading fonts...");
+	debug::log_debug("Loading fonts...");
 	try
 	{
 		::load_fonts(*this);
-		debug::log_trace("Loaded fonts");
+		debug::log_debug("Loading fonts... OK");
 	}
 	catch (const std::exception& e)
 	{
 		debug::log_error("Failed to load fonts: {}", e.what());
+		debug::log_debug("Loading fonts... FAILED");
 	}
 	
 	// Get default framebuffer
@@ -1000,23 +1021,31 @@ void game::setup_ui()
 		}
 	);
 	
-	debug::log_trace("Set up UI");
+	debug::log_debug("Setting up UI... OK");
 }
 
 void game::setup_rng()
 {
+	debug::log_debug("Setting up RNG...");
 	std::random_device rd;
 	rng.seed(rd());
+	debug::log_debug("Setting up RNG... OK");
 }
 
 void game::setup_entities()
 {
+	debug::log_debug("Setting up entities...");
+
 	// Create entity registry
 	entity_registry = std::make_unique<entt::registry>();
+
+	debug::log_debug("Setting up entities... OK");
 }
 
 void game::setup_systems()
 {
+	debug::log_debug("Setting up systems...");
+
 	const auto& viewport_size = window->get_viewport_size();
 	math::fvec4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_size[0]), static_cast<float>(viewport_size[1])};
 	
@@ -1089,11 +1118,14 @@ void game::setup_systems()
 	render_system->add_layer(exterior_scene.get());
 	render_system->add_layer(interior_scene.get());
 	render_system->add_layer(&ui_canvas->get_scene());
+
+
+	debug::log_debug("Setting up systems... OK");
 }
 
 void game::setup_controls()
 {
-	debug::log_trace("Setting up controls...");
+	debug::log_debug("Setting up controls...");
 	
 	// Load SDL game controller mappings database
 	// debug::log_trace("Loading SDL game controller mappings...");
@@ -1170,11 +1202,13 @@ void game::setup_controls()
 		enable_debug_controls(*this);
 	#endif
 	
-	debug::log_trace("Set up controls");
+	debug::log_debug("Setting up controls... OK");
 }
 
 void game::setup_debugging()
 {
+	debug::log_debug("Setting up debugging...");
+
 	command_line_text = std::make_shared<scene::text>();
 	command_line_text->set_material(debug_font_material);
 	command_line_text->set_color({1.0f, 1.0f, 0.0f, 1.0f});
@@ -1214,10 +1248,14 @@ void game::setup_debugging()
 	frame_time_text->set_color({1.0f, 1.0f, 0.0f, 1.0f});
 	frame_time_text->set_font(debug_font);
 	frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - debug_font->get_metrics().size), 99.0f});
+
+	debug::log_debug("Setting up debugging... OK");
 }
 
 void game::setup_timing()
 {
+	debug::log_debug("Setting up timing...");
+
 	// Init default settings
 	max_frame_rate = static_cast<float>(window_manager->get_display(0).get_refresh_rate() * 2);
 	
@@ -1239,15 +1277,17 @@ void game::setup_timing()
 	
 	// Init frame duration average
 	average_frame_duration.reserve(15);
+
+	debug::log_debug("Setting up timing... OK");
 }
 
 void game::shutdown_audio()
 {
-	debug::log_trace("Shutting down audio...");
+	debug::log_debug("Shutting down audio...");
 	
 	sound_system.reset();
 	
-	debug::log_trace("Shut down audio");
+	debug::log_debug("Shutting down audio... OK");
 }
 
 void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval)
@@ -1323,7 +1363,7 @@ void game::execute()
 	// Change to initial state
 	state_machine.emplace(std::make_unique<main_menu_state>(*this, true));
 	
-	debug::log_trace("Entered main loop");
+	debug::log_debug("Entered main loop");
 	
 	frame_scheduler.refresh();
 	
@@ -1332,7 +1372,7 @@ void game::execute()
 		frame_scheduler.tick();
 	}
 	
-	debug::log_trace("Exited main loop");
+	debug::log_debug("Exited main loop");
 	
 	// Exit all active game states
 	while (!state_machine.empty())
