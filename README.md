@@ -3,10 +3,10 @@ SPDX-FileCopyrightText: 2023 C. J. Howard
 SPDX-License-Identifier: CC-BY-SA-4.0
 -->
 
-# Antkeeper
+# Antkeeper Source
 
-[![build status](https://github.com/antkeeper/antkeeper/actions/workflows/build.yml/badge.svg)](https://github.com/antkeeper/antkeeper/actions/workflows/build.yml)
-[![code quality](https://app.codacy.com/project/badge/Grade/ec1d9f614fdf4d5b8effa6b7b72b3d5e)](https://app.codacy.com/gh/antkeeper/antkeeper/dashboard)
+[![build status](https://github.com/antkeeper/antkeeper-source/actions/workflows/build.yml/badge.svg)](https://github.com/antkeeper/antkeeper-source/actions/workflows/build.yml)
+[![code quality](https://app.codacy.com/project/badge/Grade/ec1d9f614fdf4d5b8effa6b7b72b3d5e)](https://app.codacy.com/gh/antkeeper/antkeeper-source/dashboard)
 [![chat](https://img.shields.io/discord/547138509610156036?logo=discord)](https://discord.gg/ptwHV4T)
 
 Antkeeper is an open-source 3D ant colony simulation game currently in development for Windows and Linux. Antkeeper is the passion project of solo indie game developer and myrmecophile [C. J. Howard](https://github.com/cjhoward).
@@ -40,7 +40,7 @@ Requirements:
 Configure and build a Windows 64-bit release:
 
 ```bash
-git clone https://github.com/antkeeper/antkeeper.git && cd antkeeper
+git clone https://github.com/antkeeper/antkeeper-source.git && cd antkeeper
 cmake --preset windows-x64-release
 cmake --build --preset windows-x64-release
 ```
@@ -60,7 +60,7 @@ Generated HTML documentation will be located at `build/<platform>/docs/doxygen/h
 
 ## Contributing
 
-Contributions are welcome! Feel free to [open an issue](https://github.com/antkeeper/antkeeper/issues) or [submit a pull request](https://github.com/antkeeper/antkeeper/pulls).
+Contributions are welcome! Feel free to [open an issue](https://github.com/antkeeper/antkeeper-source/issues) or [submit a pull request](https://github.com/antkeeper/antkeeper-source/pulls).
 
 See the [contribution guide](./docs/CONTRIBUTING.md) for more details on how to contribute.
 
@@ -70,7 +70,7 @@ See the [contribution guide](./docs/CONTRIBUTING.md) for more details on how to 
 
 ## License
 
-[![REUSE compliance](https://github.com/antkeeper/antkeeper/actions/workflows/reuse.yml/badge.svg)](https://github.com/antkeeper/antkeeper/actions/workflows/reuse.yml)
+[![REUSE compliance](https://github.com/antkeeper/antkeeper-source/actions/workflows/reuse.yml/badge.svg)](https://github.com/antkeeper/antkeeper-source/actions/workflows/reuse.yml)
 
 -   Antkeeper source code is licensed under [GPL-3.0-or-later](./LICENSES/GPL-3.0-or-later.txt).
 -   Antkeeper translations are licensed under [CC-BY-SA-4.0](./LICENSES/CC-BY-SA-4.0.txt).
