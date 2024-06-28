@@ -40,7 +40,7 @@ Requirements:
 Configure and build a Windows 64-bit release:
 
 ```bash
-git clone https://github.com/antkeeper/antkeeper-source.git && cd antkeeper
+git clone https://github.com/antkeeper/antkeeper-source.git && cd antkeeper-source
 cmake --preset windows-x64-release
 cmake --build --preset windows-x64-release
 ```
