@@ -53,7 +53,9 @@ public:
 	/**
 	 * Returns a reference to the animation cues of the sequence.
 	 *
-	 * Cues are function objects mapped to times in the sequence. Cues take one parameter: a void pointer to a user-defined animaton context.
+	 * Cues are function objects mapped to times in the sequence. Cues take one parameter: a reference to an animation context.
+	 *
+	 * @note Cues do not affect the duration of the sequence.
 	 */
 	[[nodiscard]] inline constexpr auto& cues() noexcept
 	{

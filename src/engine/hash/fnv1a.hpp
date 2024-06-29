@@ -45,7 +45,7 @@ template <std::unsigned_integral HashT, std::integral DataT>
 		}
 		else
 		{
-			/// @TODO `reinterpret_cast` is not supported in consteval. C++23 has `if consteval` which can selectively enable reinterpret_cast at runtime, and extract bytes manually at compile-time.
+			/// @todo `reinterpret_cast` is not supported in consteval. C++23 has `if consteval` which can selectively enable reinterpret_cast at runtime, and extract bytes manually at compile-time.
 			for (std::size_t j = 0; j < sizeof(DataT); ++j)
 			{
 				offset ^= static_cast<HashT>(((element) >> (j * 8)) & 255);

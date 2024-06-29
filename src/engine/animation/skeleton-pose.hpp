@@ -88,7 +88,7 @@ public:
 	 * Sets the relative rotation of a bone pose.
 	 *
 	 * @param index Index of a bone.
-	 * @param translation Relative rotation of the bone pose.
+	 * @param rotation Relative rotation of the bone pose.
 	 */
 	void set_relative_rotation(std::size_t index, const math::transform<float>::quaternion_type& rotation);
 	

@@ -65,7 +65,7 @@ void gamepad::move(gamepad_axis axis, float position)
 {
 	const auto axis_index = static_cast<std::underlying_type_t<gamepad_axis>>(axis);
 	
-	/// @TODO Support arbitrary number of gamepad axes.
+	/// @todo Support arbitrary number of gamepad axes.
 	if (axis_index >= 6)
 		return;
 	

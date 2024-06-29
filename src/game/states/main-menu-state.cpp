@@ -283,6 +283,9 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	
 	// Enable menu controls
 	ctx.function_queue.push(std::bind(::enable_menu_controls, std::ref(ctx)));
+
+	// Refresh frame scheduler
+	ctx.frame_scheduler.refresh();
 	
 	debug::log_trace("Entered main menu state");
 }

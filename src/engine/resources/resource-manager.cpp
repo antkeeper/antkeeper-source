@@ -107,7 +107,7 @@ bool resource_manager::set_write_path(const std::filesystem::path& path)
 	
 	write_path = path;
 	
-	debug::log_debug("Set write path to \"{}\".", path_string);
+	debug::log_debug("Set write path to \"{}\"", path_string);
 	
 	return true;
 }
@@ -122,7 +122,7 @@ std::shared_ptr<void> resource_manager::fetch(const std::filesystem::path& path)
 		}
 		else
 		{
-			debug::log_debug("Fetched expired resource from cache \"{}\".", path.string());
+			debug::log_debug("Fetched expired resource from cache \"{}\"", path.string());
 		}
 	}
 	

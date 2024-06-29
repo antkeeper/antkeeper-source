@@ -295,14 +295,13 @@ void pipeline::bind_vertex_array(const vertex_array* array)
 	m_bound_gl_named_array = array ? array->m_gl_named_array : 0;
 	glBindVertexArray(m_bound_gl_named_array);
 	
-	/// @BUG
+	/// @bug
 	/// 
 	/// The following code was occasionally causing this exception:
 	///
 	/// > OpenGL API error (high severity) 1282: GL_INVALID_OPERATION error generated. Array object is not active.
 	///
 	/// Why?
-	
 	
 	// if (array)
 	// {

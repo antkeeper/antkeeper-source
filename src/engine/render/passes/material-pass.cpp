@@ -868,7 +868,7 @@ void material_pass::build_material_command_buffer(std::vector<std::function<void
 		
 		switch (shader_var->type())
 		{
-			/// @TODO render::matvar_bool is broken due to the std::vector<bool> specialization.
+			/// @todo render::matvar_bool is broken due to the std::vector<bool> specialization.
 			case gl::shader_variable_type::bvec1:
 				throw std::runtime_error("bvec1 unimplemented");
 				break;

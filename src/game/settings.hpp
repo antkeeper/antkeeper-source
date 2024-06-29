@@ -15,7 +15,7 @@
  *
  * @param[in] ctx Game context.
  * @param[in] key Setting key.
- * @param[in,out] Setting value.
+ * @param[in,out] value Setting value.
  *
  * @return `true` if the setting was read, `false` if the setting was written.
  */
@@ -43,6 +43,5 @@ bool read_or_write_setting(::game& ctx, std::string_view key, T& value)
 	
 	return true;
 }
-
 
 #endif // ANTKEEPER_GAME_SETTINGS_HPP

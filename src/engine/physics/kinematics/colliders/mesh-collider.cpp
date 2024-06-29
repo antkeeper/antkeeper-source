@@ -29,7 +29,7 @@ void mesh_collider::set_mesh(std::shared_ptr<mesh_type> mesh)
 			generate_face_normals(*m_mesh);
 		}
 		
-		/// @TODO: vertex normals aren't needed for mesh colliders, they're generated here for the locomotion system (remove later)
+		/// @todo vertex normals aren't needed for mesh colliders, they're generated here for the locomotion system (remove later)
 		// If mesh has no vertex normals
 		if (!m_mesh->vertices().attributes().contains("normal"))
 		{
