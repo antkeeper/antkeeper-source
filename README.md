@@ -45,6 +45,14 @@ cmake --preset windows-x64-release
 cmake --build --preset windows-x64-release
 ```
 
+## Testing
+
+Configure and build with `-DANTKEEPER_TEST=ON`, then run the following command to perform tests for a Windows 64-bit release:
+
+```bash
+ctest --test-dir build\windows-x64 -C Release
+```
+
 ## Documentation
 
 Source code documentation can be generated with [Doxygen](https://www.doxygen.nl/download.html). [Graphviz](https://graphviz.org/download/) can optionally be used to generate dependency graphs.
