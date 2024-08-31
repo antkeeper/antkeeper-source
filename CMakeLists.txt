@@ -19,6 +19,7 @@ project(Antkeeper
 )
 
 option(ANTKEEPER_ASAN "Enable address sanitizer" OFF)
+option(ANTKEEPER_TEST "Enable building tests" OFF)
 
 set(APPLICATION_NAME ${PROJECT_NAME})
 string(TOLOWER "${APPLICATION_NAME}" APPLICATION_SLUG)
@@ -419,4 +420,30 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/res/data/CMakeLists.txt)
 			"-DRUNTIME_OUTPUT_DIRECTORY='${PROJECT_SOURCE_DIR}/bin/$<LOWER_CASE:${PROJECT_NAME}-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_GENERATOR_PLATFORM}-$<CONFIG>>'"
 		INSTALL_COMMAND ""
 		BUILD_ALWAYS 1)
+endif()
+
+if(ANTKEEPER_TEST)
+
+	file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS
+		${PROJECT_SOURCE_DIR}/test/test-*.cpp)
+
+	foreach(TEST_FILE ${TEST_FILES})
+		get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
+		add_executable(${TEST_NAME} ${TEST_FILE} ${PROJECT_SOURCE_DIR}/test/test.cpp)
+		set_target_properties(${TEST_NAME}
+			PROPERTIES
+				COMPILE_WARNING_AS_ERROR ON
+				CXX_STANDARD 23
+				CXX_STANDARD_REQUIRED ON
+				CXX_EXTENSIONS OFF
+				MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+		)
+		target_include_directories(${TEST_NAME}
+			PRIVATE
+			${PROJECT_SOURCE_DIR}/src)
+		add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+	endforeach()
+
+	enable_testing()
+
 endif()

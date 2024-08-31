@@ -243,15 +243,15 @@ struct vector
 	/** Returns a reverse iterator to the first element in the reversed vector. */
 	[[nodiscard]] inline constexpr reverse_iterator rbegin() noexcept
 	{
-		return elements + N;
+		return reverse_iterator(end());
 	}
 	[[nodiscard]] inline constexpr const_reverse_iterator rbegin() const noexcept
 	{
-		return elements + N;
+		return const_reverse_iterator(end());
 	}
 	[[nodiscard]] inline constexpr const_reverse_iterator crbegin() const noexcept
 	{
-		return elements + N;
+		return const_reverse_iterator(end());
 	}
 	/// @}
 	
@@ -259,15 +259,15 @@ struct vector
 	/** Returns a reverse iterator to the element following the last element in the reversed vector. */
 	[[nodiscard]] inline constexpr reverse_iterator rend() noexcept
 	{
-		return elements;
+		return reverse_iterator(begin());
 	}
 	[[nodiscard]] inline constexpr const_reverse_iterator rend() const noexcept
 	{
-		return elements;
+		return const_reverse_iterator(begin());
 	}
 	[[nodiscard]] inline constexpr const_reverse_iterator crend() const noexcept
 	{
-		return elements;
+		return const_reverse_iterator(begin());
 	}
 	/// @}
 	
@@ -279,7 +279,7 @@ struct vector
 	/** Returns `true` if the vector is empty, `false` otherwise. */
 	[[nodiscard]] inline static consteval bool empty() noexcept
 	{
-		return N;
+		return !N;
 	};
 	
 	/** Returns the number of elements in the vector. */
