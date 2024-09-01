@@ -20,6 +20,7 @@ Get notified when the game is released by joining the mailing list at <https://a
 
 -   [Building](#building)
     -   [Windows](#windows)
+-   [Testing](#testing)
 -   [Documentation](#documentation)
 -   [Contributing](#contributing)
 -   [Authors](#authors)

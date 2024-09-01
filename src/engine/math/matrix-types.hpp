@@ -270,15 +270,15 @@ struct matrix
 	/** Returns a reverse iterator to the first column in the reversed matrix. */
 	[[nodiscard]] inline constexpr reverse_iterator rbegin() noexcept
 	{
-		return columns + column_count;
+		return reverse_iterator(end());
 	}
 	[[nodiscard]] inline constexpr const_reverse_iterator rbegin() const noexcept
 	{
-		return columns + column_count;
+		return const_reverse_iterator(end());
 	}
 	[[nodiscard]] inline constexpr const_reverse_iterator crbegin() const noexcept
 	{
-		return columns + column_count;
+		return const_reverse_iterator(end());
 	}
 	/// @}
 	
@@ -286,15 +286,15 @@ struct matrix
 	/** Returns a reverse iterator to the column following the last column in the reversed matrix. */
 	[[nodiscard]] inline constexpr reverse_iterator rend() noexcept
 	{
-		return columns;
+		return reverse_iterator(begin());
 	}
 	[[nodiscard]] inline constexpr const_reverse_iterator rend() const noexcept
 	{
-		return columns;
+		return const_reverse_iterator(begin());
 	}
 	[[nodiscard]] inline constexpr const_reverse_iterator crend() const noexcept
 	{
-		return columns;
+		return const_reverse_iterator(begin());
 	}
 	/// @}
 	
@@ -303,10 +303,10 @@ struct matrix
 	/// @name Capacity
 	/// @{
 	
-	/** Returns `true` if the matrix is empty, `false` otherwise. */
+	/** Returns `true` if the matrix has no columns, `false` otherwise. */
 	[[nodiscard]] inline static consteval bool empty() noexcept
 	{
-		return element_count;
+		return !column_count;
 	};
 	
 	/** Returns the number of columns in the matrix. */
@@ -557,6 +557,141 @@ using mat3 = mat3x3<T>;
  */
 template <class T>
 using mat4 = mat4x4<T>;
+
+/**
+ * *n* by *m* matrix of Boolean values.
+ *
+ * @tparam N Number of columns.
+ * @tparam M Number of rows.
+ */
+template <std::size_t N, std::size_t M>
+using bmat = mat<bool, N, M>;
+
+/** 2x2 matrix of Boolean values. */
+using bmat2x2 = bmat<2, 2>;
+
+/** 2x3 matrix of Boolean values. */
+using bmat2x3 = bmat<2, 3>;
+
+/** 2x4 matrix of Boolean values. */
+using bmat2x4 = bmat<2, 4>;
+
+/** 3x2 matrix of Boolean values. */
+using bmat3x2 = bmat<3, 2>;
+
+/** 3x3 matrix of Boolean values. */
+using bmat3x3 = bmat<3, 3>;
+
+/** 3x4 matrix of Boolean values. */
+using bmat3x4 = bmat<3, 4>;
+
+/** 4x2 matrix of Boolean values. */
+using bmat4x2 = bmat<4, 2>;
+
+/** 4x3 matrix of Boolean values. */
+using bmat4x3 = bmat<4, 3>;
+
+/** 4x4 matrix of Boolean values. */
+using bmat4x4 = bmat<4, 4>;
+
+/** 2x2 matrix of Boolean values. */
+using bmat2 = bmat2x2;
+
+/** 3x3 matrix of Boolean values. */
+using bmat3 = bmat3x3;
+
+/** 4x4 matrix of Boolean values. */
+using bmat4 = bmat4x4;
+
+/**
+ * *n* by *m* matrix of signed integer values.
+ *
+ * @tparam N Number of columns.
+ * @tparam M Number of rows.
+ */
+template <std::size_t N, std::size_t M>
+using imat = mat<int, N, M>;
+
+/** 2x2 matrix of signed integer values. */
+using imat2x2 = imat<2, 2>;
+
+/** 2x3 matrix of signed integer values. */
+using imat2x3 = imat<2, 3>;
+
+/** 2x4 matrix of signed integer values. */
+using imat2x4 = imat<2, 4>;
+
+/** 3x2 matrix of signed integer values. */
+using imat3x2 = imat<3, 2>;
+
+/** 3x3 matrix of signed integer values. */
+using imat3x3 = imat<3, 3>;
+
+/** 3x4 matrix of signed integer values. */
+using imat3x4 = imat<3, 4>;
+
+/** 4x2 matrix of signed integer values. */
+using imat4x2 = imat<4, 2>;
+
+/** 4x3 matrix of signed integer values. */
+using imat4x3 = imat<4, 3>;
+
+/** 4x4 matrix of signed integer values. */
+using imat4x4 = imat<4, 4>;
+
+/** 2x2 matrix of signed integer values. */
+using imat2 = imat2x2;
+
+/** 3x3 matrix of signed integer values. */
+using imat3 = imat3x3;
+
+/** 4x4 matrix of signed integer values. */
+using imat4 = imat4x4;
+
+/**
+ * *n* by *m* matrix of unsigned integer values.
+ *
+ * @tparam N Number of columns.
+ * @tparam M Number of rows.
+ */
+template <std::size_t N, std::size_t M>
+using umat = mat<unsigned int, N, M>;
+
+/** 2x2 matrix of unsigned integer values. */
+using umat2x2 = umat<2, 2>;
+
+/** 2x3 matrix of unsigned integer values. */
+using umat2x3 = umat<2, 3>;
+
+/** 2x4 matrix of unsigned integer values. */
+using umat2x4 = umat<2, 4>;
+
+/** 3x2 matrix of unsigned integer values. */
+using umat3x2 = umat<3, 2>;
+
+/** 3x3 matrix of unsigned integer values. */
+using umat3x3 = umat<3, 3>;
+
+/** 3x4 matrix of unsigned integer values. */
+using umat3x4 = umat<3, 4>;
+
+/** 4x2 matrix of unsigned integer values. */
+using umat4x2 = umat<4, 2>;
+
+/** 4x3 matrix of unsigned integer values. */
+using umat4x3 = umat<4, 3>;
+
+/** 4x4 matrix of unsigned integer values. */
+using umat4x4 = umat<4, 4>;
+
+/** 2x2 matrix of unsigned integer values. */
+using umat2 = umat2x2;
+
+/** 3x3 matrix of unsigned integer values. */
+using umat3 = umat3x3;
+
+/** 4x4 matrix of unsigned integer values. */
+using umat4 = umat4x4;
 
 /**
  * *n* by *m* matrix of single-precision floating-point values.
