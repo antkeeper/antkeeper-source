@@ -290,7 +290,8 @@ void constraint_system::handle_spring_to_constraint(transform_component& transfo
 			if (constraint.spring_rotation)
 			{
 				// Update rotation spring target
-				constraint.rotation.set_target_value(math::fvec4(target_transform->world.rotation));
+				const auto& r = target_transform->world.rotation;
+				constraint.rotation.set_target_value(math::fvec4{r.w(), r.x(), r.y(), r.z()});
 				
 				// Solve rotation spring
 				constraint.rotation.solve(dt);

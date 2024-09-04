@@ -197,7 +197,7 @@ int main(int argc, char* argv[])
 	suite.tests.emplace_back("vector comparison", []()
 	{
 		ivec3 a{1, 2, 3};
-		ivec3 b{2, 3, 4};
+		ivec3 b{1, 2, 4};
 		ivec3 c{1, 2, 3};
 
 		ASSERT_EQ(a, c);
@@ -470,7 +470,7 @@ int main(int argc, char* argv[])
 	suite.tests.emplace_back("matrix comparison", []()
 	{
 		imat2 a{1, 2, 3, 4};
-		imat2 b{2, 3, 4, 5};
+		imat2 b{1, 2, 3, 5};
 		imat2 c{1, 2, 3, 4};
 
 		ASSERT_EQ(a, c);
@@ -521,6 +521,188 @@ int main(int argc, char* argv[])
 
 		str = std::format("{:.4f}", b);
 		ASSERT_EQ(str, "{{-0.4700, 0.0000, 0.6667}, {inf, 1000.3457, -0.0000}}");
+	});
+
+	suite.tests.emplace_back("quaternion initialization", []()
+	{
+		fquat a{};
+		ASSERT_EQ(a.w(), 0.0f);
+		ASSERT_EQ(a.x(), 0.0f);
+		ASSERT_EQ(a.y(), 0.0f);
+		ASSERT_EQ(a.z(), 0.0f);
+
+		fquat b{1.0f, 2.0f, 3.0f, 4.0f};
+		ASSERT_EQ(b.w(), 1.0f);
+		ASSERT_EQ(b.x(), 2.0f);
+		ASSERT_EQ(b.y(), 3.0f);
+		ASSERT_EQ(b.z(), 4.0f);
+
+		fquat c{5.0f, {6.0f, 7.0f, 8.0f}};
+		ASSERT_EQ(c.w(), 5.0f);
+		ASSERT_EQ(c.x(), 6.0f);
+		ASSERT_EQ(c.y(), 7.0f);
+		ASSERT_EQ(c.z(), 8.0f);
+
+		fvec3 di{-2.0f, -3.0f, -4.0f};
+		fquat d{-1.0f, di};
+		ASSERT_EQ(d.w(), -1.0f);
+		ASSERT_EQ(d.x(), -2.0f);
+		ASSERT_EQ(d.y(), -3.0f);
+		ASSERT_EQ(d.z(), -4.0f);
+	});
+
+	suite.tests.emplace_back("quaternion part access", []()
+	{
+		fquat a{1.0f, 2.0f, 3.0f, 4.0f};
+		ASSERT_EQ(a.w(), a.r);
+		ASSERT_EQ(a.x(), a.i.x());
+		ASSERT_EQ(a.y(), a.i.y());
+		ASSERT_EQ(a.z(), a.i.z());
+
+		a.w() = 5.0f;
+		a.x() = 6.0f;
+		a.y() = 7.0f;
+		a.z() = 8.0f;
+		ASSERT_EQ(a.r, 5.0f);
+		ASSERT_EQ(a.i.x(), 6.0f);
+		ASSERT_EQ(a.i.y(), 7.0f);
+		ASSERT_EQ(a.i.z(), 8.0f);
+	});
+
+	suite.tests.emplace_back("quaternion conversion", []()
+	{
+		// Scalar type conversion
+		fquat q = fquat(dquat{1.0, 2.0, 3.0, 4.0});
+		ASSERT_NEAR(q.w(), 1.0f, 1e-6f);
+		ASSERT_NEAR(q.x(), 2.0f, 1e-6f);
+		ASSERT_NEAR(q.y(), 3.0f, 1e-6f);
+		ASSERT_NEAR(q.z(), 4.0f, 1e-6f);
+
+		// Matrix conversion (identity)
+		q = {1.0f, 0.0f, 0.0f, 0.0f};
+		fmat3 m = fmat3(q);
+		ASSERT_NEAR(m[0][0], 1.0f, 1e-6);
+		ASSERT_NEAR(m[0][1], 0.0f, 1e-6);
+		ASSERT_NEAR(m[0][2], 0.0f, 1e-6);
+		ASSERT_NEAR(m[1][0], 0.0f, 1e-6);
+		ASSERT_NEAR(m[1][1], 1.0f, 1e-6);
+		ASSERT_NEAR(m[1][2], 0.0f, 1e-6);
+		ASSERT_NEAR(m[2][0], 0.0f, 1e-6);
+		ASSERT_NEAR(m[2][1], 0.0f, 1e-6);
+		ASSERT_NEAR(m[2][2], 1.0f, 1e-6);
+
+		// Matrix conversion (X-axis, 90 degrees)
+		q = {std::cos(math::pi<float> / 4.0f), std::sin(math::pi<float> / 4.0f), 0.0f, 0.0f};
+		m = fmat3(q);
+		ASSERT_NEAR(m[0][0], 1.0f, 1e-6);
+		ASSERT_NEAR(m[0][1], 0.0f, 1e-6);
+		ASSERT_NEAR(m[0][2], 0.0f, 1e-6);
+		ASSERT_NEAR(m[1][0], 0.0f, 1e-6);
+		ASSERT_NEAR(m[1][1], 0.0f, 1e-6);
+		ASSERT_NEAR(m[1][2], 1.0f, 1e-6);
+		ASSERT_NEAR(m[2][0], 0.0f, 1e-6);
+		ASSERT_NEAR(m[2][1], -1.0f, 1e-6);
+		ASSERT_NEAR(m[2][2], 0.0f, 1e-6);
+
+		// Matrix conversion (Y-axis, 90 degrees)
+		q = {std::cos(math::pi<float> / 4.0f), 0.0f, std::sin(math::pi<float> / 4.0f), 0.0f};
+		m = fmat3(q);
+		ASSERT_NEAR(m[0][0], 0.0f, 1e-6);
+		ASSERT_NEAR(m[0][1], 0.0f, 1e-6);
+		ASSERT_NEAR(m[0][2], -1.0f, 1e-6);
+		ASSERT_NEAR(m[1][0], 0.0f, 1e-6);
+		ASSERT_NEAR(m[1][1], 1.0f, 1e-6);
+		ASSERT_NEAR(m[1][2], 0.0f, 1e-6);
+		ASSERT_NEAR(m[2][0], 1.0f, 1e-6);
+		ASSERT_NEAR(m[2][1], 0.0f, 1e-6);
+		ASSERT_NEAR(m[2][2], 0.0f, 1e-6);
+
+		// Matrix conversion (Z-axis, 90 degrees)
+		q = {std::cos(math::pi<float> / 4.0f), 0.0f, 0.0f, std::sin(math::pi<float> / 4.0f)};
+		m = fmat3(q);
+		ASSERT_NEAR(m[0][0], 0.0f, 1e-6);
+		ASSERT_NEAR(m[0][1], 1.0f, 1e-6);
+		ASSERT_NEAR(m[0][2], 0.0f, 1e-6);
+		ASSERT_NEAR(m[1][0], -1.0f, 1e-6);
+		ASSERT_NEAR(m[1][1], 0.0f, 1e-6);
+		ASSERT_NEAR(m[1][2], 0.0f, 1e-6);
+		ASSERT_NEAR(m[2][0], 0.0f, 1e-6);
+		ASSERT_NEAR(m[2][1], 0.0f, 1e-6);
+		ASSERT_NEAR(m[2][2], 1.0f, 1e-6);
+	});
+
+	suite.tests.emplace_back("quaternion operations", []()
+	{
+		fquat a{1.0f, 2.0f, 3.0f, 4.0f};
+		fquat b{5.0f, 6.0f, 7.0f, 8.0f};
+
+		a.swap(b);
+
+		ASSERT_EQ(a.w(), 5.0f);
+		ASSERT_EQ(a.x(), 6.0f);
+		ASSERT_EQ(a.y(), 7.0f);
+		ASSERT_EQ(a.z(), 8.0f);
+		ASSERT_EQ(b.w(), 1.0f);
+		ASSERT_EQ(b.x(), 2.0f);
+		ASSERT_EQ(b.y(), 3.0f);
+		ASSERT_EQ(b.z(), 4.0f);
+	});
+
+	suite.tests.emplace_back("quaternion comparison", []()
+	{
+		fquat a{1.0f, 2.0f, 3.0f, 4.0f};
+		fquat b{1.0f, 2.0f, 3.0f, 5.0f};
+		fquat c{1.0f, 2.0f, 3.0f, 4.0f};
+
+		ASSERT_EQ(a, c);
+		ASSERT_NE(a, b);
+		ASSERT_LT(a, b);
+		ASSERT_LE(a, b);
+		ASSERT_LE(a, c);
+		ASSERT_GT(b, a);
+		ASSERT_GE(b, a);
+		ASSERT_GE(a, c);
+	});
+
+	suite.tests.emplace_back("quaternion tuple-like interface", []()
+	{
+		fquat q{1.0f, 2.0f, 3.0f, 4.0f};
+
+		auto [r, i] = q;
+
+		ASSERT_EQ(r, 1.0f);
+		ASSERT_EQ(i.x(), 2.0f);
+		ASSERT_EQ(i.y(), 3.0f);
+		ASSERT_EQ(i.z(), 4.0f);
+
+		ASSERT_EQ(get<0>(q), 1.0f);
+		ASSERT_EQ(get<1>(q).x(), 2.0f);
+		ASSERT_EQ(get<1>(q).y(), 3.0f);
+		ASSERT_EQ(get<1>(q).z(), 4.0f);
+
+		auto& [rr, ri] = q;
+		rr = 5.0f;
+		ri.x() = 6.0f;
+		ri.y() = 7.0f;
+		ri.z() = 8.0f;
+
+		ASSERT_EQ(q.w(), 5.0f);
+		ASSERT_EQ(q.x(), 6.0f);
+		ASSERT_EQ(q.y(), 7.0f);
+		ASSERT_EQ(q.z(), 8.0f);
+
+		ASSERT_NE(r, rr);
+		ASSERT_NE(i.x(), ri.x());
+		ASSERT_NE(i.y(), ri.y());
+		ASSERT_NE(i.z(), ri.z());
+	});
+
+	suite.tests.emplace_back("quaternion formatter", []()
+	{
+		fquat q{-9999.96f, 0.0f, 2.0f / 3.0f, std::numeric_limits<float>::infinity()};
+
+		auto str = std::format("{:.4f}", q);
+		ASSERT_EQ(str, "{-9999.9600, {0.0000, 0.6667, inf}}");
 	});
 
 	return suite.run();

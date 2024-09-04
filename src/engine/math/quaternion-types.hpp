@@ -9,6 +9,7 @@
 #include <engine/math/matrix.hpp>
 #include <format>
 #include <type_traits>
+#include <utility>
 
 // export module math.quaternion:type;
 // import math.constants;
@@ -53,7 +54,7 @@ struct quaternion
 	
 	/// @}
 	
-	/// @name Element access
+	/// @name Part access
 	/// @{
 	
 	/// @{
@@ -105,7 +106,91 @@ struct quaternion
 	/// @}
 	
 	/// @}
+
+	/// @name Conversion
+	/// @{
 	
+	/**
+	 * Type-casts the quaternion scalars using `static_cast`.
+	 *
+	 * @tparam U Target scalar type.
+	 *
+	 * @return Type-casted quaternion.
+	 */
+	template <class U>
+	[[nodiscard]] inline constexpr explicit operator quaternion<U>() const noexcept
+	{
+		return {static_cast<U>(r), vec3<U>(i)};
+	}
+	
+	/**
+	 * Constructs a matrix representing the rotation described by the quaternion.
+	 *
+	 * @return Rotation matrix.
+	 */
+	[[nodiscard]] inline constexpr matrix_type matrix() const noexcept
+	{
+		const T xx = x() * x();
+		const T xy = x() * y();
+		const T xz = x() * z();
+		const T xw = x() * w();
+		const T yy = y() * y();
+		const T yz = y() * z();
+		const T yw = y() * w();
+		const T zz = z() * z();
+		const T zw = z() * w();
+		
+		return
+		{{
+			{T{1} - (yy + zz) * T{2}, (xy + zw) * T{2}, (xz - yw) * T{2}},
+			{(xy - zw) * T{2}, T{1} - (xx + zz) * T{2}, (yz + xw) * T{2}},
+			{(xz + yw) * T{2}, (yz - xw) * T{2}, T{1} - (xx + yy) * T{2}}
+		}};
+	}
+
+	/// @copydoc matrix()
+	[[nodiscard]] constexpr explicit operator matrix_type() const noexcept
+	{
+		return matrix();
+	}
+
+	/// @}
+
+	/// @name Operations
+	/// @{
+	
+	/**
+	 * Exchanges the parts of this quaternion with the parts of another.
+	 *
+	 * @param other Quaternion with which to exchange parts.
+	 */
+	[[nodiscard]] inline constexpr void swap(quaternion& other) noexcept
+	{
+		std::swap(r, other.r);
+		std::swap(i, other.i);
+	};
+	
+	/// @}
+	
+	/// @name Comparison
+	/// @{
+	
+	/**
+	 * Tests two quaternions for equality.
+	 *
+	 * @return `true` if the two quaternions are equivalent, `false` otherwise.
+	 */
+	[[nodiscard]] inline constexpr friend bool operator==(const quaternion&, const quaternion&) noexcept = default;
+	
+	/**
+	 * Compares the parts of two quaternions lexicographically.
+	 *
+	 * @return Lexicographical ordering of the two quaternions.
+	 */
+	[[nodiscard]] inline constexpr friend auto operator<=>(const quaternion&, const quaternion&) noexcept = default; 
+	
+	/// @}
+
 	/**
 	 * Returns a quaternion representing a rotation about the x-axis.
 	 *
@@ -140,80 +225,6 @@ struct quaternion
 	{
 		return {cos(angle * T{0.5}), T{0}, T{0}, sin(angle * T{0.5})};
 	}
-	
-	/**
-	 * Type-casts the quaternion scalars using `static_cast`.
-	 *
-	 * @tparam U Target scalar type.
-	 *
-	 * @return Type-casted quaternion.
-	 */
-	template <class U>
-	[[nodiscard]] inline constexpr explicit operator quaternion<U>() const noexcept
-	{
-		return {static_cast<U>(r), vec3<U>(i)};
-	}
-	
-	/// @{
-	/**
-	 * Constructs a matrix representing the rotation described by the quaternion.
-	 *
-	 * @return Rotation matrix.
-	 */
-	[[nodiscard]] constexpr explicit operator matrix_type() const noexcept
-	{
-		const T xx = x() * x();
-		const T xy = x() * y();
-		const T xz = x() * z();
-		const T xw = x() * w();
-		const T yy = y() * y();
-		const T yz = y() * z();
-		const T yw = y() * w();
-		const T zz = z() * z();
-		const T zw = z() * w();
-		
-		return
-		{{
-			{T{1} - (yy + zz) * T{2}, (xy + zw) * T{2}, (xz - yw) * T{2}},
-			{(xy - zw) * T{2}, T{1} - (xx + zz) * T{2}, (yz + xw) * T{2}},
-			{(xz + yw) * T{2}, (yz - xw) * T{2}, T{1} - (xx + yy) * T{2}}
-		}};
-	}
-	
-	[[nodiscard]] inline constexpr matrix_type matrix() const noexcept
-	{
-		return matrix_type(*this);
-	}
-	/// @}
-	
-	/**
-	 * Casts the quaternion to a 4-element vector, with the real part as the first element and the imaginary part as the following three elements.
-	 *
-	 * @return Vector containing the real and imaginary parts of the quaternion.
-	 */
-	[[nodiscard]] inline constexpr explicit operator vec4<T>() const noexcept
-	{
-		return {r, i.x(), i.y(), i.z()};
-	}
-	
-	/// @name Comparison
-	/// @{
-	
-	/**
-	 * Tests two quaternions for equality.
-	 *
-	 * @return `true` if the two quaternions are equivalent, `false` otherwise.
-	 */
-	[[nodiscard]] inline constexpr friend bool operator==(const quaternion&, const quaternion&) noexcept = default;
-	
-	/**
-	 * Compares the elements of two quaternions lexicographically.
-	 *
-	 * @return Lexicographical ordering of the two quaternions.
-	 */
-	[[nodiscard]] inline constexpr friend auto operator<=>(const quaternion&, const quaternion&) noexcept = default; 
-	
-	/// @}
 };
 
 /// @name Tuple-like interface
