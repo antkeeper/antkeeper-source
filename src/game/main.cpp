@@ -51,14 +51,13 @@ int main(int argc, char* argv[])
 			
 			std::osyncstream((static_cast<int>(event.severity) > 3) ? std::cerr : std::cout) << std::format
 			(
-				"[{:8.03f}] {}{}: {}:{}:{}: {}{}\n",
+				"[{:8.03f}] {}{}: {}:{}: {}{}\n",
 				std::chrono::duration<float>(event.time - launch_time).count(),
 				colors[static_cast<int>(event.severity)],
 				//severities[static_cast<int>(event.severity)],
 				static_cast<int>(event.severity),
 				std::filesystem::path(event.location.file_name()).filename().string(),
 				event.location.line(),
-				event.location.column(),
 				event.message,
 				ansi::reset
 			);
@@ -80,41 +79,6 @@ int main(int argc, char* argv[])
 		if (std::filesystem::create_directories(log_archive_path))
 		{
 			debug::log_debug("Created log archive \"{}\"", log_archive_path.string());
-		}
-		else
-		{
-			// Clean pre-existing log archive
-			try
-			{
-				// Detect and sort archived logs
-				std::set<std::filesystem::path> log_archive;
-				for (const auto& entry: std::filesystem::directory_iterator{log_archive_path})
-				{
-					if (entry.is_regular_file() &&
-						entry.path().extension() == log_extension &&
-						entry.path().stem().string().starts_with(log_stem_prefix))
-					{
-						log_archive.emplace(entry.path());
-					}
-				}
-				
-				debug::log_debug("Detected {} archived log{} at \"{}\"", log_archive.size(), log_archive.size() != 1 ? "s" : "", log_archive_path.string());
-				
-				// Delete expired logs
-				if (!log_archive.empty())
-				{
-					for (std::size_t i = log_archive.size() + 1; i > config::debug_log_archive_capacity; --i)
-					{
-						std::filesystem::remove(*log_archive.begin());
-						debug::log_debug("Deleted expired log file \"{}\"", log_archive.begin()->string());
-						log_archive.erase(log_archive.begin());
-					}
-				}
-			}
-			catch (const std::filesystem::filesystem_error& e)
-			{
-				debug::log_error("An error occured while cleaning the log archive \"{}\": {}", log_archive_path.string(), e.what());
-			}
 		}
 		
 		log_archive_exists = true;
@@ -143,7 +107,7 @@ int main(int argc, char* argv[])
 			debug::log_debug("Opened log file \"{}\"", log_filepath_string);
 			
 			// Write log file header
-			(*log_filestream) << "time\tfile\tline\tcolumn\tseverity\tmessage";
+			(*log_filestream) << "time\tthread\tfile\tline\tseverity\tmessage";
 			
 			if (log_filestream->good())
 			{
@@ -156,9 +120,9 @@ int main(int argc, char* argv[])
 						(
 							"\n{:.03f}\t{}\t{}\t{}\t{}\t{}",
 							std::chrono::duration<float>(event.time - launch_time).count(),
+							event.thread_id,
 							std::filesystem::path(event.location.file_name()).filename().string(),
 							event.location.line(),
-							event.location.column(),
 							static_cast<int>(event.severity),
 							event.message
 						);
@@ -187,7 +151,6 @@ int main(int argc, char* argv[])
 	// Log application name and version string, followed by launch time
 	debug::log_info("{0} {1}; {2:%Y%m%d}T{2:%H%M%S}Z", config::application_name, config::application_version_string, std::chrono::floor<std::chrono::milliseconds>(launch_time));
 
-	// #if defined(NDEBUG)
 	try
 	{
 		game(argc, argv).execute();
@@ -196,12 +159,53 @@ int main(int argc, char* argv[])
 	{
 		debug::log_fatal("Unhandled exception: {}", e.what());
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", std::format("Unhandled exception: {}", e.what()).c_str(), nullptr);
-		
 		return EXIT_FAILURE;
 	}
-	// #else
-		// game(argc, argv).execute();
-	// #endif
+	catch (...)
+	{
+		debug::log_fatal("Unknown exception");
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Unknown exception", nullptr);
+		return EXIT_FAILURE;
+	}
+
+	// Clean log archive
+	if (log_archive_exists)
+	{
+		try
+		{
+			// Detect and sort archived logs
+			std::set<std::filesystem::path> log_archive;
+			for (const auto& entry: std::filesystem::directory_iterator{log_archive_path})
+			{
+				if (entry.is_regular_file() &&
+					entry.path().extension() == log_extension &&
+					entry.path().stem().string().starts_with(log_stem_prefix))
+				{
+					log_archive.emplace(entry.path());
+				}
+			}
+			
+			debug::log_debug("Detected {} archived log{} at \"{}\"", log_archive.size(), log_archive.size() != 1 ? "s" : "", log_archive_path.string());
+			
+			// Delete expired logs
+			if (!log_archive.empty())
+			{
+				for (std::size_t i = log_archive.size(); i > config::debug_log_archive_capacity; --i)
+				{
+					if (std::filesystem::remove(*log_archive.begin()))
+					{
+						debug::log_debug("Deleted expired log file \"{}\"", log_archive.begin()->string());
+					}
+
+					log_archive.erase(log_archive.begin());
+				}
+			}
+		}
+		catch (const std::filesystem::filesystem_error& e)
+		{
+			debug::log_error("A filesystem error occured while cleaning the log archive \"{}\": {}", log_archive_path.string(), e.what());
+		}
+	}
 	
 	// Clean exit marker
 	debug::log_debug("Bye! 🐜");
