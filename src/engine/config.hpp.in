@@ -28,8 +28,11 @@ inline constexpr int application_version_minor = @APPLICATION_VERSION_MINOR@;
 /// Application patch version number.
 inline constexpr int application_version_patch = @APPLICATION_VERSION_PATCH@;
 
-/// Application version string ("`major.minor.patch`")
-inline constexpr const char* application_version_string = "@APPLICATION_VERSION@";
+/// Application build type string.
+inline constexpr const char* application_build_type = "@APPLICATION_BUILD_TYPE@";
+
+/// Application version string.
+inline constexpr const char* application_version = "@APPLICATION_VERSION@";
 
 /// @}
 

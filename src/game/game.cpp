@@ -905,7 +905,7 @@ void game::setup_ui()
 	auto version_label = std::make_shared<ui::label>();
 	version_label->set_font(debug_font);
 	version_label->set_material(debug_font_material);
-	version_label->set_text(std::format("v{}", config::application_version_string));
+	version_label->set_text(std::format("v{}", config::application_version));
 	version_label->set_anchors(0.0f, 0.0f, 1.0f, 1.0f);
 	version_label->set_margin_left(50.0f);
 	version_label->set_margin_bottom(50.0f);
@@ -1237,7 +1237,7 @@ void game::setup_debugging()
 	
 	// Set shell variables
 	shell->set_variable("language", language_tag);
-	shell->set_variable("version", config::application_version_string);
+	shell->set_variable("version", config::application_version);
 	
 	command_line_text->set_content(shell->prompt());
 	

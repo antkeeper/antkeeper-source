@@ -17,52 +17,45 @@
 
 int main(int argc, char* argv[])
 {
-	// Get time at which the application launched 
+	// Get time at which the application was launched
 	const auto launch_time = std::chrono::system_clock::now();
 	
-	// Enable console UTF-8 output and VT100 sequences (for colored text)
-	debug::console::enable_utf8();
-	debug::console::enable_vt100();
-	
-	// Subscribe log to cout function to message logged events
-	auto log_to_cout_subscription = debug::default_logger().get_message_logged_channel().subscribe
-	(
-		[&launch_time](const auto& event)
-		{
-			static const char* severities[] =
+	#if !defined(NDEBUG)
+		// Enable console UTF-8 output and VT100 sequences (for colored text)
+		debug::console::enable_utf8();
+		debug::console::enable_vt100();
+
+		// Set up logging to cout/cerr
+		auto log_to_cout_subscription = debug::default_logger().get_message_logged_channel().subscribe
+		(
+			[&launch_time](const auto& event)
 			{
-				"trace",
-				"debug",
-				"info",
-				"warning",
-				"error",
-				"fatal"
-			};
-			
-			static const std::string colors[] =
-			{
-				std::format("{}", ansi::fg_white),
-				std::format("{}", ansi::fg_bright_blue),
-				std::format("{}", ansi::fg_bright_green),
-				std::format("{}", ansi::fg_yellow),
-				std::format("{}", ansi::fg_red),
-				std::format("{}{}", ansi::fg_white, ansi::bg_bright_red)
-			};
-			
-			std::osyncstream((static_cast<int>(event.severity) > 3) ? std::cerr : std::cout) << std::format
-			(
-				"[{:8.03f}] {}{}: {}:{}: {}{}\n",
-				std::chrono::duration<float>(event.time - launch_time).count(),
-				colors[static_cast<int>(event.severity)],
-				//severities[static_cast<int>(event.severity)],
-				static_cast<int>(event.severity),
-				std::filesystem::path(event.location.file_name()).filename().string(),
-				event.location.line(),
-				event.message,
-				ansi::reset
-			);
-		}
-	);
+				static const std::string colors[] =
+				{
+					std::format("{}", ansi::fg_white),
+					std::format("{}", ansi::fg_bright_blue),
+					std::format("{}", ansi::fg_bright_green),
+					std::format("{}", ansi::fg_yellow),
+					std::format("{}", ansi::fg_red),
+					std::format("{}{}", ansi::fg_white, ansi::bg_bright_red)
+				};
+
+				auto& output_stream = std::to_underlying(event.severity) >= std::to_underlying(debug::log_message_severity::error) ? std::cerr : std::cout;
+				
+				std::osyncstream(output_stream) << std::format
+				(
+					"[{:%T}] {}{:7}: {}:{}: {}{}\n",
+					std::chrono::floor<std::chrono::milliseconds>(event.time - launch_time),
+					colors[static_cast<int>(event.severity)],
+					debug::log_message_severity_to_string(event.severity),
+					std::filesystem::path(event.location.file_name()).filename().string(),
+					event.location.line(),
+					event.message,
+					ansi::reset
+				);
+			}
+		);
+	#endif
 	
 	// Determine path to log archive
 	const std::filesystem::path log_archive_path = get_shared_config_path() / config::application_name / "logs";
@@ -107,7 +100,7 @@ int main(int argc, char* argv[])
 			debug::log_debug("Opened log file \"{}\"", log_filepath_string);
 			
 			// Write log file header
-			(*log_filestream) << "time\tthread\tfile\tline\tseverity\tmessage";
+			(*log_filestream) << "time\tseverity\tfile\tline\tthread\tmessage";
 			
 			if (log_filestream->good())
 			{
@@ -118,21 +111,16 @@ int main(int argc, char* argv[])
 					{
 						std::osyncstream(*log_filestream) << std::format
 						(
-							"\n{:.03f}\t{}\t{}\t{}\t{}\t{}",
-							std::chrono::duration<float>(event.time - launch_time).count(),
-							event.thread_id,
+							"\n{:%T}\t{}\t{}\t{}\t{}\t{}",
+							std::chrono::floor<std::chrono::milliseconds>(event.time - launch_time),
+							debug::log_message_severity_to_string(event.severity),
 							std::filesystem::path(event.location.file_name()).filename().string(),
 							event.location.line(),
-							static_cast<int>(event.severity),
+							event.thread_id,
 							event.message
 						);
 					}
 				);
-				
-				// Unsubscribe log to cout function from message logged events on release builds
-				#if defined(NDEBUG)
-					log_to_cout_subscription->unsubscribe();
-				#endif
 			}
 			else
 			{
@@ -148,8 +136,8 @@ int main(int argc, char* argv[])
 	// Start marker
 	debug::log_debug("Hi! 🐜");
 
-	// Log application name and version string, followed by launch time
-	debug::log_info("{0} {1}; {2:%Y%m%d}T{2:%H%M%S}Z", config::application_name, config::application_version_string, std::chrono::floor<std::chrono::milliseconds>(launch_time));
+	// Log version and launch time
+	debug::log_info("{0} version: {1}; launch time: {2:%Y%m%d}T{2:%H%M%S}Z", config::application_name, config::application_version, std::chrono::floor<std::chrono::milliseconds>(launch_time));
 
 	try
 	{
