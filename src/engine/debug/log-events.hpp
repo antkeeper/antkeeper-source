@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_DEBUG_LOG_EVENTS_HPP
 #define ANTKEEPER_DEBUG_LOG_EVENTS_HPP
 
-#include <engine/debug/log/log-message-severity.hpp>
+#include <engine/debug/log-message-severity.hpp>
 #include <chrono>
 #include <source_location>
 #include <string>

@@ -91,11 +91,6 @@ game::game(int argc, const char* const* argv)
 	// Boot process
 	debug::log_debug("Booting up...");
 	
-	// Profile boot duration
-	#if !defined(NDEBUG)
-		const auto boot_t0 = std::chrono::high_resolution_clock::now();
-	#endif
-	
 	parse_options(argc, argv);
 	setup_resources();
 	load_settings();
@@ -114,17 +109,7 @@ game::game(int argc, const char* const* argv)
 	setup_debugging();
 	setup_timing();
 	
-	// Profile boot duration
-	#if !defined(NDEBUG)
-		const auto boot_t1 = std::chrono::high_resolution_clock::now();
-	#endif
-	
 	debug::log_debug("Booting up... OK");
-	
-	// Print boot duration
-	#if !defined(NDEBUG)
-		debug::log_trace("Boot duration: {}", std::chrono::duration_cast<std::chrono::duration<double>>(boot_t1 - boot_t0));
-	#endif
 }
 
 game::~game()

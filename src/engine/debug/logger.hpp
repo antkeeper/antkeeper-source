@@ -4,8 +4,8 @@
 #ifndef ANTKEEPER_DEBUG_LOGGER_HPP
 #define ANTKEEPER_DEBUG_LOGGER_HPP
 
-#include <engine/debug/log/log-message-severity.hpp>
-#include <engine/debug/log/log-events.hpp>
+#include <engine/debug/log-message-severity.hpp>
+#include <engine/debug/log-events.hpp>
 #include <engine/event/publisher.hpp>
 #include <source_location>
 #include <string>
@@ -31,19 +31,24 @@ public:
 	void log
 	(
 		std::string&& message,
-		log_message_severity severity = log_message_severity::info,
+		log_message_severity severity,
 		std::source_location&& location = std::source_location::current()
 	);
 	
 	/** Returns the channel through which message logged events are published. */
-	[[nodiscard]] inline ::event::channel<message_logged_event>& get_message_logged_channel() noexcept
+	[[nodiscard]] inline auto& message_logged_channel() noexcept
 	{
 		return m_message_logged_publisher.channel();
 	}
 	
 private:
-	::event::publisher<message_logged_event> m_message_logged_publisher;
+	event::publisher<message_logged_event> m_message_logged_publisher;
 };
+
+/**
+ * Returns the default logger.
+ */
+[[nodiscard]] logger& default_logger() noexcept;
 
 /// @}
 

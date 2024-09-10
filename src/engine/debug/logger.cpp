@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2023 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/debug/log/logger.hpp>
+#include <engine/debug/logger.hpp>
 #include <thread>
 #include <utility>
 
@@ -21,6 +21,12 @@ void logger::log(std::string&& message, log_message_severity severity, std::sour
 			std::move(message)
 		}
 	);
+}
+
+logger& default_logger() noexcept
+{
+	static logger instance;
+	return instance;
 }
 
 } // namespace debug

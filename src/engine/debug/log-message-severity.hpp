@@ -4,51 +4,31 @@
 #ifndef ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_HPP
 #define ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_HPP
 
-#include <cstdint>
-
 namespace debug {
 
 /// @name Debug logging
 /// @{
 
-/** Trace message severity level. */
-#define ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_TRACE   0
-
-/** Debug message severity level. */
-#define ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_DEBUG   1
-
-/** Info message severity level. */
-#define ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_INFO    2
-
-/** Warning message severity level. */
-#define ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_WARNING 3
-
-/** Error message severity level. */
-#define ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_ERROR   4
-
-/** Fatal error message severity level. */
-#define ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_FATAL   5
-
 /** Log message severity levels. */
 enum class log_message_severity
 {
 	/** Trace message severity. */
-	trace = ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_TRACE,
+	trace,
 	
 	/** Debug message severity. */
-	debug = ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_DEBUG,
+	debug,
 	
 	/** Info message severity. */
-	info = ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_INFO,
+	info,
 	
 	/** Warning message severity. */
-	warning = ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_WARNING,
+	warning,
 	
 	/** Error message severity. */
-	error = ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_ERROR,
+	error,
 	
 	/** Fatal error message severity. */
-	fatal = ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_FATAL,
+	fatal
 };
 
 /**
@@ -57,7 +37,7 @@ enum class log_message_severity
  * @param severity Log message severity.
  * @return Log message severity string.
  */
-constexpr const char* log_message_severity_to_string(log_message_severity severity) noexcept
+[[nodiscard]] constexpr const char* log_message_severity_to_string(log_message_severity severity) noexcept
 {
 	switch (severity)
 	{

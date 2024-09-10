@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 		debug::console::enable_vt100();
 
 		// Set up logging to cout/cerr
-		auto log_to_cout_subscription = debug::default_logger().get_message_logged_channel().subscribe
+		auto log_to_cout_subscription = debug::default_logger().message_logged_channel().subscribe
 		(
 			[&launch_time](const auto& event)
 			{
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
 			if (log_filestream->good())
 			{
 				// Subscribe log to file function to message logged events
-				log_to_file_subscription = debug::default_logger().get_message_logged_channel().subscribe
+				log_to_file_subscription = debug::default_logger().message_logged_channel().subscribe
 				(
 					[&launch_time, log_filestream](const auto& event)
 					{
