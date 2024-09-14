@@ -4,7 +4,6 @@
 #include "game/systems/metabolic-system.hpp"
 #include "game/components/isometric-growth-component.hpp"
 #include "game/components/rigid-body-component.hpp"
-#include <execution>
 
 metabolic_system::metabolic_system(entity::registry& registry):
 	updatable_system(registry)
@@ -17,17 +16,11 @@ void metabolic_system::update([[maybe_unused]] float t, float dt)
 	
 	// Handle isometric growth
 	auto isometric_growth_group = m_registry.group<isometric_growth_component>(entt::get<rigid_body_component>);
-	std::for_each
-	(
-		std::execution::seq,
-		isometric_growth_group.begin(),
-		isometric_growth_group.end(),
-		[&](auto entity_id)
-		{
-			auto& growth = isometric_growth_group.get<isometric_growth_component>(entity_id);
-			auto& rigid_body = *isometric_growth_group.get<rigid_body_component>(entity_id).body;
-			
-			rigid_body.set_scale(rigid_body.get_scale() + growth.rate * scaled_timestep);
-		}
-	);
+	for (auto entity_id: isometric_growth_group)
+	{
+		auto& growth = isometric_growth_group.get<isometric_growth_component>(entity_id);
+		auto& rigid_body = *isometric_growth_group.get<rigid_body_component>(entity_id).body;
+		
+		rigid_body.set_scale(rigid_body.get_scale() + growth.rate * scaled_timestep);
+	}
 }

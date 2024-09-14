@@ -14,9 +14,6 @@
 #include <engine/physics/kinematics/colliders/mesh-collider.hpp>
 #include <engine/scene/static-mesh.hpp>
 #include <engine/render/vertex-attribute-location.hpp>
-#include <algorithm>
-#include <execution>
-#include <stdexcept>
 
 terrain_system::terrain_system(entity::registry& registry):
 	updatable_system(registry)
@@ -101,101 +98,95 @@ entity::id terrain_system::generate(std::shared_ptr<gl::image_2d> heightmap, con
 	);
 	
 	// Generate terrain cell meshes
-	std::for_each
-	(
-		std::execution::seq,
-		std::begin(grid.cells),
-		std::end(grid.cells),
-		[&](auto cell_eid)
+	for (auto cell_eid: grid.cells)
+	{
+		const auto& cell = m_registry.get<terrain_cell_component>(cell_eid);
+		
+		// Allocate cell mesh and attributes
+		auto mesh = std::make_shared<geom::brep_mesh>();
+		auto& vertex_positions = static_cast<geom::brep_attribute<math::fvec3>&>(*mesh->vertices().attributes().emplace<math::fvec3>("position"));
+		
+		auto cell_pixel_bounds_min = cell.coordinates * cell_quad_dimensions;
+		auto cell_pixel_bounds_max = cell_pixel_bounds_min + cell_quad_dimensions;
+		
+		// Build cell vertices
+		math::uvec2 pixel_position;
+		for (pixel_position.y() = cell_pixel_bounds_min.y(); pixel_position.y() <= cell_pixel_bounds_max.y(); ++pixel_position.y())
 		{
-			const auto& cell = m_registry.get<terrain_cell_component>(cell_eid);
-			
-			// Allocate cell mesh and attributes
-			auto mesh = std::make_shared<geom::brep_mesh>();
-			auto& vertex_positions = static_cast<geom::brep_attribute<math::fvec3>&>(*mesh->vertices().attributes().emplace<math::fvec3>("position"));
-			
-			auto cell_pixel_bounds_min = cell.coordinates * cell_quad_dimensions;
-			auto cell_pixel_bounds_max = cell_pixel_bounds_min + cell_quad_dimensions;
-			
-			// Build cell vertices
-			math::uvec2 pixel_position;
-			for (pixel_position.y() = cell_pixel_bounds_min.y(); pixel_position.y() <= cell_pixel_bounds_max.y(); ++pixel_position.y())
+			for (pixel_position.x() = cell_pixel_bounds_min.x(); pixel_position.x() <= cell_pixel_bounds_max.x(); ++pixel_position.x())
 			{
-				for (pixel_position.x() = cell_pixel_bounds_min.x(); pixel_position.x() <= cell_pixel_bounds_max.x(); ++pixel_position.x())
-				{
-					// Allocate vertex
-					auto vertex = mesh->vertices().emplace_back();
-					
-					// Get vertex height from heightmap
-					float height = sample(pixel_position);
-					
-					// Set vertex position
-					auto& position = vertex_positions[vertex->index()];
-					position.x() = static_cast<float>(pixel_position.x()) * vertex_scale.x() + vertex_translation.x();
-					position.y() = height * vertex_scale.y() + vertex_translation.y();
-					position.z() = static_cast<float>(pixel_position.y()) * vertex_scale.z() + vertex_translation.z();
-				}
+				// Allocate vertex
+				auto vertex = mesh->vertices().emplace_back();
+				
+				// Get vertex height from heightmap
+				float height = sample(pixel_position);
+				
+				// Set vertex position
+				auto& position = vertex_positions[vertex->index()];
+				position.x() = static_cast<float>(pixel_position.x()) * vertex_scale.x() + vertex_translation.x();
+				position.y() = height * vertex_scale.y() + vertex_translation.y();
+				position.z() = static_cast<float>(pixel_position.y()) * vertex_scale.z() + vertex_translation.z();
 			}
-			
-			// Build cell faces
-			for (auto y = 0u; y < cell_quad_dimensions.y(); ++y)
-			{
-				for (auto x = 0u; x < cell_quad_dimensions.x(); ++x)
-				{
-					auto a = mesh->vertices()[y * cell_vert_dimensions.x() + x];
-					auto b = mesh->vertices()[a->index() + cell_vert_dimensions.x()];
-					auto c = mesh->vertices()[a->index() + 1];
-					auto d = mesh->vertices()[b->index() + 1];
-					
-					geom::brep_vertex* abc[3] = {a, b, c};
-					geom::brep_vertex* cbd[3] = {c, b, d};
-					
-					mesh->faces().emplace_back(abc);
-					mesh->faces().emplace_back(cbd);
-				}
-			}
-			
-			// Generate vertex normals
-			auto& vertex_normals = static_cast<geom::brep_attribute<math::fvec3>&>(*mesh->vertices().attributes().try_emplace<math::fvec3>("normal").first);
-			for (pixel_position.y() = cell_pixel_bounds_min.y(); pixel_position.y() <= cell_pixel_bounds_max.y(); ++pixel_position.y())
-			{
-				for (pixel_position.x() = cell_pixel_bounds_min.x(); pixel_position.x() <= cell_pixel_bounds_max.x(); ++pixel_position.x())
-				{
-					const auto pixel_w = pixel_position.x() >= 1u ? pixel_position - math::uvec2{1, 0} : pixel_position;
-					const auto pixel_e = pixel_position.x() < cell_pixel_bounds_max.x() ? pixel_position + math::uvec2{1, 0} : pixel_position;
-					const auto pixel_s = pixel_position.y() >= 1u ? pixel_position - math::uvec2{0, 1} : pixel_position;
-					const auto pixel_n = pixel_position.y() < cell_pixel_bounds_max.y() ? pixel_position + math::uvec2{0, 1} : pixel_position;
-					
-					const auto index_c = pixel_position.y() * (cell_pixel_bounds_max.x() + 1) + pixel_position.x();
-					const auto index_w = pixel_w.y() * (cell_pixel_bounds_max.x() + 1) + pixel_w.x();
-					const auto index_e = pixel_e.y() * (cell_pixel_bounds_max.x() + 1) + pixel_e.x();
-					const auto index_s = pixel_s.y() * (cell_pixel_bounds_max.x() + 1) + pixel_s.x();
-					const auto index_n = pixel_n.y() * (cell_pixel_bounds_max.x() + 1) + pixel_n.x();
-					
-					const auto height_w = vertex_positions[index_w].y();
-					const auto height_e = vertex_positions[index_e].y();
-					const auto height_s = vertex_positions[index_s].y();
-					const auto height_n = vertex_positions[index_n].y();
-					
-					auto& normal_c = vertex_normals[index_c];
-					normal_c = math::normalize(math::fvec3{(height_w - height_e) / vertex_scale.x(), 2.0f, (height_s - height_n) / vertex_scale.z()});
-				}
-			}
-			
-			// Construct terrain cell rigid body
-			auto rigid_body = std::make_unique<physics::rigid_body>();
-			rigid_body->set_mass(0.0f);
-			rigid_body->set_collider(std::make_shared<physics::mesh_collider>(mesh));
-			rigid_body->set_transform({transform.translation, transform.rotation, math::fvec3{max_scale, max_scale, max_scale} * 0.5f});
-			m_registry.emplace<rigid_body_component>(cell_eid, std::move(rigid_body));
-			
-			auto model = generate_terrain_model(*mesh, material, cell_quad_dimensions);
-			scene_component scene;
-			scene.object = std::make_shared<scene::static_mesh>(std::move(model));
-			scene.layer_mask = 1;
-			m_registry.emplace<scene_component>(cell_eid, std::move(scene));
 		}
-	);
+		
+		// Build cell faces
+		for (auto y = 0u; y < cell_quad_dimensions.y(); ++y)
+		{
+			for (auto x = 0u; x < cell_quad_dimensions.x(); ++x)
+			{
+				auto a = mesh->vertices()[y * cell_vert_dimensions.x() + x];
+				auto b = mesh->vertices()[a->index() + cell_vert_dimensions.x()];
+				auto c = mesh->vertices()[a->index() + 1];
+				auto d = mesh->vertices()[b->index() + 1];
+				
+				geom::brep_vertex* abc[3] = {a, b, c};
+				geom::brep_vertex* cbd[3] = {c, b, d};
+				
+				mesh->faces().emplace_back(abc);
+				mesh->faces().emplace_back(cbd);
+			}
+		}
+		
+		// Generate vertex normals
+		auto& vertex_normals = static_cast<geom::brep_attribute<math::fvec3>&>(*mesh->vertices().attributes().try_emplace<math::fvec3>("normal").first);
+		for (pixel_position.y() = cell_pixel_bounds_min.y(); pixel_position.y() <= cell_pixel_bounds_max.y(); ++pixel_position.y())
+		{
+			for (pixel_position.x() = cell_pixel_bounds_min.x(); pixel_position.x() <= cell_pixel_bounds_max.x(); ++pixel_position.x())
+			{
+				const auto pixel_w = pixel_position.x() >= 1u ? pixel_position - math::uvec2{1, 0} : pixel_position;
+				const auto pixel_e = pixel_position.x() < cell_pixel_bounds_max.x() ? pixel_position + math::uvec2{1, 0} : pixel_position;
+				const auto pixel_s = pixel_position.y() >= 1u ? pixel_position - math::uvec2{0, 1} : pixel_position;
+				const auto pixel_n = pixel_position.y() < cell_pixel_bounds_max.y() ? pixel_position + math::uvec2{0, 1} : pixel_position;
+				
+				const auto index_c = pixel_position.y() * (cell_pixel_bounds_max.x() + 1) + pixel_position.x();
+				const auto index_w = pixel_w.y() * (cell_pixel_bounds_max.x() + 1) + pixel_w.x();
+				const auto index_e = pixel_e.y() * (cell_pixel_bounds_max.x() + 1) + pixel_e.x();
+				const auto index_s = pixel_s.y() * (cell_pixel_bounds_max.x() + 1) + pixel_s.x();
+				const auto index_n = pixel_n.y() * (cell_pixel_bounds_max.x() + 1) + pixel_n.x();
+				
+				const auto height_w = vertex_positions[index_w].y();
+				const auto height_e = vertex_positions[index_e].y();
+				const auto height_s = vertex_positions[index_s].y();
+				const auto height_n = vertex_positions[index_n].y();
+				
+				auto& normal_c = vertex_normals[index_c];
+				normal_c = math::normalize(math::fvec3{(height_w - height_e) / vertex_scale.x(), 2.0f, (height_s - height_n) / vertex_scale.z()});
+			}
+		}
+		
+		// Construct terrain cell rigid body
+		auto rigid_body = std::make_unique<physics::rigid_body>();
+		rigid_body->set_mass(0.0f);
+		rigid_body->set_collider(std::make_shared<physics::mesh_collider>(mesh));
+		rigid_body->set_transform({transform.translation, transform.rotation, math::fvec3{max_scale, max_scale, max_scale} * 0.5f});
+		m_registry.emplace<rigid_body_component>(cell_eid, std::move(rigid_body));
+		
+		auto model = generate_terrain_model(*mesh, material, cell_quad_dimensions);
+		scene_component scene;
+		scene.object = std::make_shared<scene::static_mesh>(std::move(model));
+		scene.layer_mask = 1;
+		m_registry.emplace<scene_component>(cell_eid, std::move(scene));
+	}
 	
 	m_registry.emplace<terrain_grid_component>(grid_eid, std::move(grid));
 	return grid_eid;

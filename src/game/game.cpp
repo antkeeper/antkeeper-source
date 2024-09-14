@@ -73,7 +73,6 @@
 #include <engine/utility/paths.hpp>
 #include <engine/ui/label.hpp>
 #include <entt/entt.hpp>
-#include <execution>
 #include <filesystem>
 #include <functional>
 #include <string>
@@ -144,9 +143,6 @@ game::~game()
 	// Destruct input and window managers
 	input_manager.reset();
 	window_manager.reset();
-	
-	// Shut down audio
-	shutdown_audio();
 	
 	debug::log_debug("Booting down... OK");
 }
@@ -242,7 +238,7 @@ void game::setup_resources()
 	resource_manager = std::make_unique<::resource_manager>();
 	
 	// Get executable data path
-	const auto data_path = get_executable_data_path();
+	const auto data_path = executable_data_directory_path();
 	
 	// Determine data package path
 	if (option_data)
@@ -263,8 +259,8 @@ void game::setup_resources()
 	mods_path = data_path / "mods";
 	
 	// Determine config paths
-	local_config_path = get_local_config_path() / config::application_name;
-	shared_config_path = get_shared_config_path() / config::application_name;
+	local_config_path = ::local_config_directory_path() / config::application_name;
+	shared_config_path = ::shared_config_directory_path() / config::application_name;
 	saves_path = shared_config_path / "saves";
 	screenshots_path = shared_config_path / "gallery";
 	controls_path = shared_config_path / "controls";
@@ -1264,15 +1260,6 @@ void game::setup_timing()
 	average_frame_duration.reserve(15);
 
 	debug::log_debug("Setting up timing... OK");
-}
-
-void game::shutdown_audio()
-{
-	debug::log_debug("Shutting down audio...");
-	
-	sound_system.reset();
-	
-	debug::log_debug("Shutting down audio... OK");
 }
 
 void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval)

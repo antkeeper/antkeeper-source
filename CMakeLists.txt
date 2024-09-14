@@ -397,6 +397,7 @@ target_link_libraries(${PROJECT_NAME}
 		freetype
 		${OPENGL_gl_LIBRARY}
 		vorbisfile
+		$<$<PLATFORM_ID:Windows>:Dbghelp>
 )
 
 # Determine data output directory

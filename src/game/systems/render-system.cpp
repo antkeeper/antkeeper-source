@@ -4,8 +4,6 @@
 #include "game/systems/render-system.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/rigid-body-component.hpp"
-#include <algorithm>
-#include <execution>
 
 render_system::render_system(entity::registry& registry):
 	updatable_system(registry),
@@ -34,21 +32,15 @@ void render_system::update(float t, float dt)
 {
 	m_t = t;
 	m_dt = dt;
-	
-	std::for_each
-	(
-		std::execution::par_unseq,
-		m_updated_scene_transforms.begin(),
-		m_updated_scene_transforms.end(),
-		[&](auto entity_id)
-		{
-			auto& transform = m_registry.get<transform_component>(entity_id);
-			const auto& scene = m_registry.get<scene_component>(entity_id);
-			
-			// WARNING: could potentially lead to multithreading issues with scene::object_base::transformed()
-			scene.object->set_transform(transform.world);
-		}
-	);
+
+	for (auto entity_id: m_updated_scene_transforms)
+	{
+		auto& transform = m_registry.get<transform_component>(entity_id);
+		const auto& scene = m_registry.get<scene_component>(entity_id);
+		
+		scene.object->set_transform(transform.world);
+	}
+
 	m_updated_scene_transforms.clear();
 }
 

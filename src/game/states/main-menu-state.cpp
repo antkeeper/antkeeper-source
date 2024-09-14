@@ -31,6 +31,7 @@
 #include <format>
 #include <limits>
 #include <print>
+#include <stacktrace>
 
 main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	game_state(ctx)

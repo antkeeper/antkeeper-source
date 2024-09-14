@@ -2,117 +2,88 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/utility/paths.hpp>
-#include <cstddef>
-#include <limits.h>
-#include <stdexcept>
+#include <cstdlib>
 
 #if defined(_WIN32)
-	#include <Shlobj.h>
+	#include <system_error>
 	#include <windows.h>
-#else
-	#include <pwd.h>
-	#include <sys/types.h>
-	#include <sys/stat.h>
-	#include <unistd.h>
+	#include <Shlobj.h>
 #endif
 
-std::filesystem::path get_executable_path()
+std::filesystem::path executable_path()
 {
-	std::filesystem::path executable_path;
-	
 	#if defined(_WIN32)
-		// Get executable path on Windows
-		std::wstring path(MAX_PATH, L'\0');
-		GetModuleFileNameW(GetModuleHandleW(nullptr), path.data(), MAX_PATH);
-		path.erase(std::find(path.begin(), path.end(), L'\0'), path.end());
-		executable_path = path;
-	#else
-		// Get executable path on Linux
-		char path[PATH_MAX];
-		ssize_t length = ::readlink("/proc/self/exe", path, sizeof(path) - 1);
-		if (length != -1)
+
+		wchar_t buffer[MAX_PATH];
+		if (!GetModuleFileNameW(nullptr, buffer, MAX_PATH))
 		{
-			path[length] = '\0';
-			executable_path = path;
+			std::error_code ec(GetLastError(), std::system_category());
+			throw std::filesystem::filesystem_error(ec.message(), ec);
 		}
-	#endif
+		return std::filesystem::path(buffer);
 
-	return executable_path;
-}
-
-std::filesystem::path get_executable_data_path()
-{
-	#if defined(_WIN32)
-		return get_executable_path().parent_path();
 	#else
-		return get_executable_path().parent_path().parent_path() / "share";
+
+		return std::filesystem::read_symlink("/proc/self/exe");
+
 	#endif
 }
 
-std::filesystem::path get_local_config_path()
+std::filesystem::path executable_data_directory_path()
 {
-	std::filesystem::path local_config_path;
-	
 	#if defined(_WIN32)
-		
-		std::wstring path(MAX_PATH, L'\0');
-		if (SHGetFolderPathW(nullptr, CSIDL_LOCAL_APPDATA, nullptr, SHGFP_TYPE_CURRENT, path.data()) == S_OK)
-		{
-			path.erase(std::find(path.begin(), path.end(), L'\0'), path.end());
-			local_config_path = path;
-		}
-		
-		// Windows Vista+
-		// wchar_t* path_buffer = nullptr;
-		// if (SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_DEFAULT, nullptr, &path_buffer) == S_OK)
-		// {
-			// local_config_path = std::filesystem::path(path_buffer);
-			// CoTaskMemFree(static_cast<void*>(path_buffer));
-		// }
-		
+		return executable_path().parent_path();
 	#else
-		// Determine home path
-		std::filesystem::path home_path = getpwuid(getuid())->pw_dir;
-
-		// Determine config path
-		char* xdg_config_home = std::getenv("XDG_CONFIG_HOME");
-		if (!xdg_config_home)
-		{
-			// Default to $HOME/.config/ as per:
-			// https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html#variables
-			local_config_path = home_path / ".config/";
-		}
-		else
-		{
-			local_config_path = xdg_config_home;
-		}
+		return executable_path().parent_path().parent_path() / "share";
 	#endif
-	
-	return local_config_path;
 }
 
-std::filesystem::path get_shared_config_path()
+std::filesystem::path local_config_directory_path()
 {
 	#if defined(_WIN32)
-		std::filesystem::path shared_config_path;
 		
-		std::wstring path(MAX_PATH, L'\0');
-		if (SHGetFolderPathW(nullptr, CSIDL_APPDATA, nullptr, SHGFP_TYPE_CURRENT, path.data()) == S_OK)
+		wchar_t buffer[MAX_PATH];
+		const auto result = SHGetFolderPathW(nullptr, CSIDL_LOCAL_APPDATA, nullptr, SHGFP_TYPE_CURRENT, buffer);
+		if (!SUCCEEDED(result))
 		{
-			path.erase(std::find(path.begin(), path.end(), L'\0'), path.end());
-			shared_config_path = path;
+			std::error_code ec(static_cast<int>(result), std::system_category());
+			throw std::filesystem::filesystem_error(ec.message(), ec);
 		}
+		return std::filesystem::path(buffer);
 		
-		// Windows Vista+
-		// wchar_t* path_buffer = nullptr;
-		// if (SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &path_buffer) == S_OK)
-		// {
-			// shared_config_path = path_buffer;
-			// CoTaskMemFree(static_cast<void*>(path_buffer));
-		// }
-		
-		return shared_config_path;
 	#else
-		return get_local_config_path();
+
+		if (const char* xdg_config_home = std::getenv("XDG_CONFIG_HOME"))
+		{
+			return std::filesystem::path(xdg_config_home);
+		}
+
+		if (const char* home = std::getenv("HOME"))
+		{
+			return std::filesystem::path(home) / ".config";
+		}
+
+		return std::filesystem::path();
+
+	#endif
+}
+
+std::filesystem::path shared_config_directory_path()
+{
+	#if defined(_WIN32)
+
+		wchar_t buffer[MAX_PATH];
+		const auto result = SHGetFolderPathW(nullptr, CSIDL_APPDATA, nullptr, SHGFP_TYPE_CURRENT, buffer);
+		if (!SUCCEEDED(result))
+		{
+			std::error_code ec(static_cast<int>(result), std::system_category());
+			throw std::filesystem::filesystem_error(ec.message(), ec);
+		}
+		return std::filesystem::path(buffer);
+
+	#else
+
+		return local_config_directory_path();
+
 	#endif
 }

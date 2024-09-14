@@ -66,20 +66,14 @@ void animation_system::interpolate(float alpha)
 	const auto dt = std::max(0.0f, m_render_time - m_previous_render_time);
 
 	auto animation_view = m_registry.view<animation_component>();
-	std::for_each
-	(
-		std::execution::seq,
-		animation_view.begin(),
-		animation_view.end(),
-		[&](auto entity)
+	for (auto entity: animation_view)
+	{
+		auto& player = animation_view.get<animation_component>(entity).player;
+		if (player.is_playing())
 		{
-			auto& player = animation_view.get<animation_component>(entity).player;
-			if (player.is_playing())
-			{
-				player.advance(dt);
-			}
+			player.advance(dt);
 		}
-	);
+	}
 }
 
 void animation_system::on_animation_construct(entity::registry& registry, entity::id entity)

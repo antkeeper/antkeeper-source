@@ -175,8 +175,6 @@ public:
 	std::string control_profile_filename;
 	std::shared_ptr<::control_profile> control_profile;
 	
-	std::unordered_map<hash::fnv1a32_t, input::action> actions;
-	
 	input::action_map window_action_map;
 	input::action fullscreen_action;
 	input::action screenshot_action;
@@ -436,8 +434,6 @@ private:
 	void setup_controls();
 	void setup_debugging();
 	void setup_timing();
-	
-	void shutdown_audio();
 	
 	void fixed_update(::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval);
 	void variable_update(::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval, ::frame_scheduler::duration_type accumulated_time);

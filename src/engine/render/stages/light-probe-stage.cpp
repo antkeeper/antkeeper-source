@@ -5,8 +5,6 @@
 #include <engine/render/vertex-attribute-location.hpp>
 #include <engine/scene/light-probe.hpp>
 #include <engine/scene/collection.hpp>
-#include <algorithm>
-#include <execution>
 #include <stdexcept>
 
 namespace render {
@@ -123,107 +121,101 @@ void light_probe_stage::update_light_probes_luminance(const std::vector<scene::o
 	bool state_bound = false;
 	
 	// Downsample cubemaps
-	std::for_each
-	(
-		std::execution::seq,
-		std::begin(light_probes),
-		std::end(light_probes),
-		[&](scene::object_base* object)
+	for (const auto& object: light_probes)
+	{
+		scene::light_probe& light_probe = static_cast<scene::light_probe&>(*object);
+		if (!light_probe.is_luminance_outdated() && !m_refilter_cubemaps)
 		{
-			scene::light_probe& light_probe = static_cast<scene::light_probe&>(*object);
-			if (!light_probe.is_luminance_outdated() && !m_refilter_cubemaps)
-			{
-				return;
-			}
-			
-			// Store light probe luminance sampler
-			auto light_probe_luminance_sampler = light_probe.get_luminance_texture()->get_sampler();
-			
-			// Bind state, if unbound
-			if (!state_bound)
-			{
-				m_pipeline->set_primitive_topology(gl::primitive_topology::point_list);
-				m_pipeline->bind_vertex_array(m_vertex_array.get());
-				m_pipeline->set_color_blend_enabled(false);
-				state_bound = true;
-			}
-			
-			// Bind cubemap downsample shader program
-			m_pipeline->bind_shader_program(m_cubemap_downsample_shader_program.get());
-			
-			// Get resolution of cubemap face for base mip level
-			const auto base_mip_face_size = light_probe.get_luminance_texture()->get_image_view()->get_image()->get_dimensions()[0];
-			
-			// Downsample mip chain
-			for (std::size_t i = 1; i < light_probe.get_luminance_framebuffers().size(); ++i)
-			{
-				// Set viewport to resolution of cubemap face size for current mip level
-				const auto current_mip_face_size = base_mip_face_size >> i;
-				const gl::viewport viewport[1] =
-				{{
-					0,
-					0,
-					static_cast<float>(current_mip_face_size),
-					static_cast<float>(current_mip_face_size)
-				}};
-				m_pipeline->set_viewport(0, viewport);
-				
-				// Restrict cubemap mipmap range to parent mip level
-				light_probe.get_luminance_texture()->set_sampler(m_downsample_samplers[i - 1]);
-				
-				// Update cubemap shader variable with light probe luminance texture
-				m_cubemap_downsample_cubemap_var->update(*light_probe.get_luminance_texture());
-				
-				// Bind framebuffer of current cubemap mip level
-				m_pipeline->bind_framebuffer(light_probe.get_luminance_framebuffers()[i].get());
-				
-				// Downsample
-				m_pipeline->draw(1, 1, 0, 0);
-			}
-			
-			// Bind cubemap filter shader program
-			m_pipeline->bind_shader_program(m_cubemap_filter_shader_program.get());
-			
-			// Pass filter lut texture to cubemap filter shader program
-			m_cubemap_filter_filter_lut_var->update(*m_cubemap_filter_lut_texture);
-			
-			// Filter mip chain
-			for (int i = 1; i < static_cast<int>(light_probe.get_luminance_framebuffers().size()) - 2; ++i)
-			{
-				// Update mip level shader variable
-				m_cubemap_filter_mip_level_var->update(static_cast<int>(i));
-				
-				// Set viewport to resolution of cubemap face size for current mip level
-				const auto current_mip_face_size = base_mip_face_size >> i;
-				const gl::viewport viewport[1] =
-				{{
-					0,
-					0,
-					static_cast<float>(current_mip_face_size),
-					static_cast<float>(current_mip_face_size)
-				}};
-				m_pipeline->set_viewport(0, viewport);
-				
-				// Restrict cubemap mipmap range to descendent levels
-				light_probe.get_luminance_texture()->set_sampler(m_filter_samplers[i + 1]);
-				
-				// Update cubemap shader variable with light probe luminance texture
-				m_cubemap_filter_cubemap_var->update(*light_probe.get_luminance_texture());
-				
-				// Bind framebuffer of current cubemap mip level
-				m_pipeline->bind_framebuffer(light_probe.get_luminance_framebuffers()[i].get());
-				
-				// Filter
-				m_pipeline->draw(1, 1, 0, 0);
-			}
-			
-			// Restore light probe luminance sampler
-			light_probe.get_luminance_texture()->set_sampler(light_probe_luminance_sampler);
-			
-			// Mark light probe luminance as current
-			light_probe.set_luminance_outdated(false);
+			continue;
 		}
-	);
+		
+		// Store light probe luminance sampler
+		auto light_probe_luminance_sampler = light_probe.get_luminance_texture()->get_sampler();
+		
+		// Bind state, if unbound
+		if (!state_bound)
+		{
+			m_pipeline->set_primitive_topology(gl::primitive_topology::point_list);
+			m_pipeline->bind_vertex_array(m_vertex_array.get());
+			m_pipeline->set_color_blend_enabled(false);
+			state_bound = true;
+		}
+		
+		// Bind cubemap downsample shader program
+		m_pipeline->bind_shader_program(m_cubemap_downsample_shader_program.get());
+		
+		// Get resolution of cubemap face for base mip level
+		const auto base_mip_face_size = light_probe.get_luminance_texture()->get_image_view()->get_image()->get_dimensions()[0];
+		
+		// Downsample mip chain
+		for (std::size_t i = 1; i < light_probe.get_luminance_framebuffers().size(); ++i)
+		{
+			// Set viewport to resolution of cubemap face size for current mip level
+			const auto current_mip_face_size = base_mip_face_size >> i;
+			const gl::viewport viewport[1] =
+			{{
+				0,
+				0,
+				static_cast<float>(current_mip_face_size),
+				static_cast<float>(current_mip_face_size)
+			}};
+			m_pipeline->set_viewport(0, viewport);
+			
+			// Restrict cubemap mipmap range to parent mip level
+			light_probe.get_luminance_texture()->set_sampler(m_downsample_samplers[i - 1]);
+			
+			// Update cubemap shader variable with light probe luminance texture
+			m_cubemap_downsample_cubemap_var->update(*light_probe.get_luminance_texture());
+			
+			// Bind framebuffer of current cubemap mip level
+			m_pipeline->bind_framebuffer(light_probe.get_luminance_framebuffers()[i].get());
+			
+			// Downsample
+			m_pipeline->draw(1, 1, 0, 0);
+		}
+		
+		// Bind cubemap filter shader program
+		m_pipeline->bind_shader_program(m_cubemap_filter_shader_program.get());
+		
+		// Pass filter lut texture to cubemap filter shader program
+		m_cubemap_filter_filter_lut_var->update(*m_cubemap_filter_lut_texture);
+		
+		// Filter mip chain
+		for (int i = 1; i < static_cast<int>(light_probe.get_luminance_framebuffers().size()) - 2; ++i)
+		{
+			// Update mip level shader variable
+			m_cubemap_filter_mip_level_var->update(static_cast<int>(i));
+			
+			// Set viewport to resolution of cubemap face size for current mip level
+			const auto current_mip_face_size = base_mip_face_size >> i;
+			const gl::viewport viewport[1] =
+			{{
+				0,
+				0,
+				static_cast<float>(current_mip_face_size),
+				static_cast<float>(current_mip_face_size)
+			}};
+			m_pipeline->set_viewport(0, viewport);
+			
+			// Restrict cubemap mipmap range to descendent levels
+			light_probe.get_luminance_texture()->set_sampler(m_filter_samplers[i + 1]);
+			
+			// Update cubemap shader variable with light probe luminance texture
+			m_cubemap_filter_cubemap_var->update(*light_probe.get_luminance_texture());
+			
+			// Bind framebuffer of current cubemap mip level
+			m_pipeline->bind_framebuffer(light_probe.get_luminance_framebuffers()[i].get());
+			
+			// Filter
+			m_pipeline->draw(1, 1, 0, 0);
+		}
+		
+		// Restore light probe luminance sampler
+		light_probe.get_luminance_texture()->set_sampler(light_probe_luminance_sampler);
+		
+		// Mark light probe luminance as current
+		light_probe.set_luminance_outdated(false);
+	}
 }
 
 void light_probe_stage::update_light_probes_illuminance(const std::vector<scene::object_base*>& light_probes)
@@ -231,52 +223,46 @@ void light_probe_stage::update_light_probes_illuminance(const std::vector<scene:
 	bool state_bound = false;
 	
 	// For each light probe
-	std::for_each
-	(
-		std::execution::seq,
-		std::begin(light_probes),
-		std::end(light_probes),
-		[&](scene::object_base* object)
+	for (const auto& object: light_probes)
+	{
+		scene::light_probe& light_probe = static_cast<scene::light_probe&>(*object);
+		if (!light_probe.is_illuminance_outdated() && !m_reproject_sh)
 		{
-			scene::light_probe& light_probe = static_cast<scene::light_probe&>(*object);
-			if (!light_probe.is_illuminance_outdated() && !m_reproject_sh)
-			{
-				return;
-			}
-			
-			// Setup viewport and bind cubemap to spherical harmonics shader program
-			if (!state_bound)
-			{
-				m_pipeline->set_primitive_topology(gl::primitive_topology::triangle_list);
-				m_pipeline->bind_vertex_array(m_vertex_array.get());
-				m_pipeline->set_color_blend_enabled(false);
-				
-				const gl::viewport viewport[1] =
-				{{
-					0,
-					0,
-					12,
-					1
-				}};
-				m_pipeline->set_viewport(0, viewport);
-				
-				m_pipeline->bind_shader_program(m_cubemap_to_sh_shader_program.get());
-				state_bound = true;
-			}
-			
-			// Bind light probe illuminance framebuffer
-			m_pipeline->bind_framebuffer(light_probe.get_illuminance_framebuffer().get());
-			
-			// Update cubemap to spherical harmonics cubemap variable with light probe luminance texture
-			m_cubemap_to_sh_cubemap_var->update(*light_probe.get_luminance_texture());
-			
-			// Draw fullscreen triangle
-			m_pipeline->draw(3, 1, 0, 0);
-			
-			// Mark light probe illuminance as current
-			light_probe.set_illuminance_outdated(false);
+			continue;
 		}
-	);
+		
+		// Setup viewport and bind cubemap to spherical harmonics shader program
+		if (!state_bound)
+		{
+			m_pipeline->set_primitive_topology(gl::primitive_topology::triangle_list);
+			m_pipeline->bind_vertex_array(m_vertex_array.get());
+			m_pipeline->set_color_blend_enabled(false);
+			
+			const gl::viewport viewport[1] =
+			{{
+				0,
+				0,
+				12,
+				1
+			}};
+			m_pipeline->set_viewport(0, viewport);
+			
+			m_pipeline->bind_shader_program(m_cubemap_to_sh_shader_program.get());
+			state_bound = true;
+		}
+		
+		// Bind light probe illuminance framebuffer
+		m_pipeline->bind_framebuffer(light_probe.get_illuminance_framebuffer().get());
+		
+		// Update cubemap to spherical harmonics cubemap variable with light probe luminance texture
+		m_cubemap_to_sh_cubemap_var->update(*light_probe.get_luminance_texture());
+		
+		// Draw fullscreen triangle
+		m_pipeline->draw(3, 1, 0, 0);
+		
+		// Mark light probe illuminance as current
+		light_probe.set_illuminance_outdated(false);
+	}
 	
 	m_reproject_sh = false;
 }

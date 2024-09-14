@@ -20,9 +20,7 @@
 #include <engine/math/projection.hpp>
 #include <engine/geom/primitives/view-frustum.hpp>
 #include <cmath>
-#include <algorithm>
 #include <execution>
-#include <mutex>
 
 namespace render {
 
@@ -84,7 +82,7 @@ void cascaded_shadow_map_stage::execute(render::context& ctx)
 		// Ignore lights that don't share a common layer with the camera
 		if (!(directional_light.get_layer_mask() & ctx.camera->get_layer_mask()))
 		{
-			return;
+			continue;
 		}
 		
 		// Ignore improperly-configured lights
@@ -140,40 +138,34 @@ void cascaded_shadow_map_stage::queue(render::context& ctx, scene::directional_l
 	
 	// For each object in the scene collection
 	const auto& objects = ctx.collection->get_objects();
-	std::for_each
-	(
-		std::execution::seq,
-		std::begin(objects),
-		std::end(objects),
-		[&](scene::object_base* object)
+	for (const auto& object: objects)
+	{
+		// Cull object if it doesn't share a common layer with the camera and light
+		if (!(object->get_layer_mask() & camera_light_layer_mask))
 		{
-			// Cull object if it doesn't share a common layer with the camera and light
-			if (!(object->get_layer_mask() & camera_light_layer_mask))
-			{
-				return;
-			}
-			
-			// Ignore cameras and lights
-			if (object->get_object_type_id() == scene::camera::object_type_id || object->get_object_type_id() == scene::light::object_type_id)
-			{
-				return;
-			}
-			
-			// Cull object if it's outside of the light view frustum (excluding near plane [reverse-z, so far=near])
-			const auto& object_bounds = object->get_bounds();
-			if (box_outside_plane(object_bounds, light_view_frustum.left()) ||
-				box_outside_plane(object_bounds, light_view_frustum.right()) ||
-				box_outside_plane(object_bounds, light_view_frustum.bottom()) ||
-				box_outside_plane(object_bounds, light_view_frustum.top()) ||
-				box_outside_plane(object_bounds, light_view_frustum.near()))
-			{
-				return;
-			}
-			
-			// Add object render operations to render context
-			object->render(ctx);
+			continue;
 		}
-	);
+		
+		// Ignore cameras and lights
+		if (object->get_object_type_id() == scene::camera::object_type_id || object->get_object_type_id() == scene::light::object_type_id)
+		{
+			continue;
+		}
+		
+		// Cull object if it's outside of the light view frustum (excluding near plane [reverse-z, so far=near])
+		const auto& object_bounds = object->get_bounds();
+		if (box_outside_plane(object_bounds, light_view_frustum.left()) ||
+			box_outside_plane(object_bounds, light_view_frustum.right()) ||
+			box_outside_plane(object_bounds, light_view_frustum.bottom()) ||
+			box_outside_plane(object_bounds, light_view_frustum.top()) ||
+			box_outside_plane(object_bounds, light_view_frustum.near()))
+		{
+			continue;
+		}
+		
+		// Add object render operations to render context
+		object->render(ctx);
+	}
 }
 
 void cascaded_shadow_map_stage::render_shadow_atlas(render::context& ctx, scene::directional_light& light)

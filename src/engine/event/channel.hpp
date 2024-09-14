@@ -43,7 +43,7 @@ public:
 	[[nodiscard]] std::shared_ptr<subscription> subscribe(subscriber_type&& subscriber)
 	{
 		// Construct shared pointer to subscriber function
-		std::shared_ptr<subscriber_type> shared_subscriber = std::make_shared<subscriber_type>(std::move(subscriber));
+		auto shared_subscriber = std::make_shared<subscriber_type>(std::move(subscriber));
 		
 		// Append subscriber to subscriber list and store iterator
 		auto iterator = m_subscribers.insert(m_subscribers.end(), shared_subscriber);
@@ -98,7 +98,6 @@ public:
 private:
 	friend class publisher<T>;
 	
-	/// List of subscribers.
 	std::list<std::shared_ptr<subscriber_type>> m_subscribers;
 };
 

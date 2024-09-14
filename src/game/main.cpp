@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/game.hpp"
-#include <SDL2/SDL.h>
 #include <chrono>
 #include <engine/config.hpp>
 #include <engine/debug/console.hpp>
 #include <engine/debug/log.hpp>
+#include <engine/debug/crash-reporter.hpp>
 #include <engine/utility/ansi.hpp>
 #include <engine/utility/paths.hpp>
 #include <fstream>
@@ -19,8 +19,9 @@ int main(int argc, char* argv[])
 {
 	// Get time at which the application was launched
 	const auto launch_time = std::chrono::system_clock::now();
-	
+
 	#if !defined(NDEBUG)
+
 		// Enable console UTF-8 output and VT100 sequences (for colored text)
 		debug::console::enable_utf8();
 		debug::console::enable_vt100();
@@ -55,10 +56,19 @@ int main(int argc, char* argv[])
 				);
 			}
 		);
+
 	#endif
-	
+
+	const auto& shared_config_directory = shared_config_directory_path();
+
+	// Set up crash reporting
+	debug::crash_reporter crash_reporter;
+	crash_reporter.set_report_directory_path(shared_config_directory / config::application_name / "crash-reports");
+	crash_reporter.set_report_prefix(std::string(config::application_slug) + "-crash-");
+	debug::set_crash_reporter(&crash_reporter);
+
 	// Determine path to log archive
-	const std::filesystem::path log_archive_path = get_shared_config_path() / config::application_name / "logs";
+	const std::filesystem::path log_archive_path = shared_config_directory / config::application_name / "logs";
 	
 	// Determine log file prefix
 	const std::string log_stem_prefix = std::format("{}-log-", config::application_slug);
@@ -87,8 +97,7 @@ int main(int argc, char* argv[])
 	if (config::debug_log_archive_capacity && log_archive_exists)
 	{
 		// Determine log filename
-		const auto time = std::chrono::floor<std::chrono::seconds>(launch_time);
-		const std::string log_filename = std::format("{0}{1:%Y%m%d}T{1:%H%M%S}Z{2}", log_stem_prefix, time, log_extension);
+		const std::string log_filename = std::format("{0}{1:%Y%m%d}T{1:%H%M%S}Z{2}", log_stem_prefix, std::chrono::floor<std::chrono::seconds>(launch_time), log_extension);
 		
 		// Open log file
 		log_filepath = log_archive_path / log_filename;
@@ -139,22 +148,8 @@ int main(int argc, char* argv[])
 	// Log version and launch time
 	debug::log_info("{0} version: {1}; launch time: {2:%Y%m%d}T{2:%H%M%S}Z", config::application_name, config::application_version, std::chrono::floor<std::chrono::milliseconds>(launch_time));
 
-	try
-	{
-		game(argc, argv).execute();
-	}
-	catch (const std::exception& e)
-	{
-		debug::log_fatal("Unhandled exception: {}", e.what());
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", std::format("Unhandled exception: {}", e.what()).c_str(), nullptr);
-		return EXIT_FAILURE;
-	}
-	catch (...)
-	{
-		debug::log_fatal("Unknown exception");
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Unknown exception", nullptr);
-		return EXIT_FAILURE;
-	}
+	// Launch game
+	game(argc, argv).execute();
 
 	// Clean log archive
 	if (log_archive_exists)

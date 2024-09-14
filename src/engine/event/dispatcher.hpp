@@ -37,7 +37,7 @@ public:
 	[[nodiscard]] std::shared_ptr<subscription> subscribe(subscriber<T>&& subscriber)
 	{
 		// Allocate shared pointer to std::any object containing subscriber
-		std::shared_ptr<std::any> shared_subscriber = std::make_shared<std::any>(std::make_any<event::subscriber<T>>(std::move(subscriber)));
+		auto shared_subscriber = std::make_shared<std::any>(std::make_any<event::subscriber<T>>(std::move(subscriber)));
 		
 		// Append subscriber to subscriber list and store iterator
 		auto iterator = m_subscribers.emplace(std::type_index(typeid(T)), shared_subscriber);

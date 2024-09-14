@@ -16,12 +16,12 @@ namespace debug {
 /// @name Debug logging
 /// @{
 
+/** Minimum log message severity. */
+inline constexpr auto min_log_message_severity =
 #if !defined(NDEBUG)
-	/** Minimum log message severity for debug builds. */
-	inline constexpr auto min_log_message_severity = log_message_severity::trace;
+	log_message_severity::trace;
 #else
-	/** Minimum log message severity for non-debug builds. */
-	inline constexpr auto min_log_message_severity = log_message_severity::info;
+	log_message_severity::debug;
 #endif
 
 /**
