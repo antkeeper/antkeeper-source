@@ -6,3 +6,4 @@ build
 res/data
 .~lock*
 .cache
+.vs

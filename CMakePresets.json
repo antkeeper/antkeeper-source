@@ -66,24 +66,6 @@
 			}
 		},
 		{
-			"name": "windows-x64-relwithdebinfo",
-			"displayName": "Windows 64-bit RelWithDebInfo",
-			"inherits": "windows-x64",
-			"cacheVariables":
-			{
-				"CMAKE_BUILD_TYPE": "RelWithDebInfo"
-			}
-		},
-		{
-			"name": "windows-x64-minsizerel",
-			"displayName": "Windows 64-bit MinSizeRel",
-			"inherits": "windows-x64",
-			"cacheVariables":
-			{
-				"CMAKE_BUILD_TYPE": "MinSizeRel"
-			}
-		},
-		{
 			"name": "windows-clang-x64-debug",
 			"displayName": "Windows Clang 64-bit Debug",
 			"inherits": "windows-clang-x64",
@@ -102,24 +84,6 @@
 			}
 		},
 		{
-			"name": "windows-clang-x64-relwithdebinfo",
-			"displayName": "Windows Clang 64-bit RelWithDebInfo",
-			"inherits": "windows-clang-x64",
-			"cacheVariables":
-			{
-				"CMAKE_BUILD_TYPE": "RelWithDebInfo"
-			}
-		},
-		{
-			"name": "windows-clang-x64-minsizerel",
-			"displayName": "Windows Clang 64-bit MinSizeRel",
-			"inherits": "windows-clang-x64",
-			"cacheVariables":
-			{
-				"CMAKE_BUILD_TYPE": "MinSizeRel"
-			}
-		},
-		{
 			"name": "linux-x64-debug",
 			"displayName": "Linux 64-bit Debug",
 			"inherits": "linux-x64",
@@ -135,24 +99,6 @@
 			"cacheVariables":
 			{
 				"CMAKE_BUILD_TYPE": "Release"
-			}
-		},
-		{
-			"name": "linux-x64-relwithdebinfo",
-			"displayName": "Linux 64-bit RelWithDebInfo",
-			"inherits": "linux-x64",
-			"cacheVariables":
-			{
-				"CMAKE_BUILD_TYPE": "RelWithDebInfo"
-			}
-		},
-		{
-			"name": "linux-x64-minsizerel",
-			"displayName": "Linux 64-bit MinSizeRel",
-			"inherits": "linux-x64",
-			"cacheVariables":
-			{
-				"CMAKE_BUILD_TYPE": "MinSizeRel"
 			}
 		}
 	],
@@ -171,18 +117,6 @@
 			"configuration": "Release"
 		},
 		{
-			"name": "windows-x64-relwithdebinfo",
-			"displayName": "Windows 64-bit RelWithDebInfo",
-			"configurePreset": "windows-x64-relwithdebinfo",
-			"configuration": "RelWithDebInfo"
-		},
-		{
-			"name": "windows-x64-minsizerel",
-			"displayName": "Windows 64-bit MinSizeRel",
-			"configurePreset": "windows-x64-minsizerel",
-			"configuration": "MinSizeRel"
-		},
-		{
 			"name": "windows-clang-x64-debug",
 			"displayName": "Windows Clang 64-bit Debug",
 			"configurePreset": "windows-clang-x64-debug",
@@ -195,18 +129,6 @@
 			"configuration": "Release"
 		},
 		{
-			"name": "windows-clang-x64-relwithdebinfo",
-			"displayName": "Windows Clang 64-bit RelWithDebInfo",
-			"configurePreset": "windows-clang-x64-relwithdebinfo",
-			"configuration": "RelWithDebInfo"
-		},
-		{
-			"name": "windows-clang-x64-minsizerel",
-			"displayName": "Windows Clang 64-bit MinSizeRel",
-			"configurePreset": "windows-clang-x64-minsizerel",
-			"configuration": "MinSizeRel"
-		},
-		{
 			"name": "linux-x64-debug",
 			"displayName": "Linux 64-bit Debug",
 			"configurePreset": "linux-x64-debug",
@@ -217,18 +139,6 @@
 			"displayName": "Linux 64-bit Release",
 			"configurePreset": "linux-x64-release",
 			"configuration": "Release"
-		},
-		{
-			"name": "linux-x64-relwithdebinfo",
-			"displayName": "Linux 64-bit RelWithDebInfo",
-			"configurePreset": "linux-x64-relwithdebinfo",
-			"configuration": "RelWithDebInfo"
-		},
-		{
-			"name": "linux-x64-minsizerel",
-			"displayName": "Linux 64-bit MinSizeRel",
-			"configurePreset": "linux-x64-minsizerel",
-			"configuration": "MinSizeRel"
 		}
 	]
 }

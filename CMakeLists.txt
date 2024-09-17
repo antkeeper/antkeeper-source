@@ -11,6 +11,9 @@ include(FetchContent)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Restrict configuration types to Debug and Release
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release")
+
 project(Antkeeper
 	VERSION 0.0.1
 	DESCRIPTION "ant colony simulation game"
@@ -34,7 +37,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 set(APPLICATION_AUTHOR "C. J. Howard")
-
 
 if(MSVC)
 	# Use static multithreaded runtime on MSVC
@@ -274,6 +276,7 @@ configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.hpp.in ${PROJECT_BINARY_D
 # Collect platform-independent source files
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
 	${PROJECT_SOURCE_DIR}/src/*.cpp
+	${PROJECT_SOURCE_DIR}/src/*.hpp
 	EXCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/game/platform"
 )
 
@@ -307,8 +310,11 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	
 endif()
 
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})
+
 # Add executable target
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 
 # Set executable module files
 # target_sources(${PROJECT_NAME}
@@ -347,29 +353,82 @@ target_compile_options(${PROJECT_NAME}
 	PRIVATE
 		$<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Wpedantic -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-c++11-compat -Wno-c++11-compat-pedantic -Wno-c++14-compat -Wno-c++14-compat-pedantic -Wno-c++17-compat -Wno-c++17-compat-pedantic -Wno-c++20-compat -Wno-c++20-compat-pedantic>
 		$<$<CXX_COMPILER_ID:MSVC>:
-			/W4 /we4265 /we5204 /we5263 /we4946 /we4822 /we4355 /we4061 /we4062 /EHsc /GR-
-			$<$<NOT:$<CONFIG:Debug>>:/GL>
-			$<$<CONFIG:Release>:/O2 /Ob3 /Qfast_transcendentals /GS->
+		
+			# Set warning level 4
+			/W4
+			
+			# Treat specific warnings as errors
+			/we4061 # enumerator 'identifier' in switch of enum 'enumeration' is not explicitly handled by a case label
+			/we4062 # enumerator 'identifier' in switch of enum 'enumeration' is not handled
+			/we4265 # 'class' : class has virtual functions, but destructor is not virtual
+			/we4355 # 'this' : used in base member initializer list
+			/we4822 # local class member function does not have a body
+			/we4946 # reinterpret_cast used between related classes
+			/we5204 # 'function' : class has virtual functions, but destructor is not virtual
+			/we5263 # 'function' : 'noexcept' used with no exception specification
+
+			# Enable C++ exception handling
+			/EHsc
+
+			# Disable RTTI
+			/GR-
+
+			# Set Debug configuration options
+			$<$<CONFIG:Debug>:
+				/ZI # Enable Edit and Continue
+			>
+
+			# Set Release configuration options
+			$<$<CONFIG:Release>:
+				/GL                    # Enable whole program optimization
+				/O2                    # Optimize for speed
+				/Ob3                   # Inline any suitable function
+				/Qfast_transcendentals # Use fast transcendentals
+				/GS-                   # Disable buffer security checks
+				/Zi                    # Generate PDB file
+			>
 		>
 )
 
 # Set link options
-target_link_options(${PROJECT_NAME}
-	PRIVATE
-		$<$<PLATFORM_ID:Windows>:
-			$<$<CXX_COMPILER_ID:MSVC>:
-				$<$<CONFIG:Debug>:/SUBSYSTEM:CONSOLE>
-				$<$<NOT:$<CONFIG:Debug>>:/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup /OPT:REF /OPT:ICF /INCREMENTAL:NO /LTCG>
+target_link_options(${PROJECT_NAME} PRIVATE
+	
+	# Set Windows-specific link options
+	$<$<PLATFORM_ID:Windows>:
+			
+		# Set MSVC-specific link options
+		$<$<CXX_COMPILER_ID:MSVC>:
+
+			# Set link options for Debug configuration
+			$<$<CONFIG:Debug>:
+				/SUBSYSTEM:CONSOLE # Specify console subsystem
+				/INCREMENTAL       # Enable incremental linking
 			>
-			$<$<CXX_COMPILER_ID:GNU,Clang>:
-				$<$<CONFIG:Debug>:-mconsole>
-				$<$<NOT:$<CONFIG:Debug>>:-mwindows --entry=mainCRTStartup>
+
+			# Set link options for Release configuration
+			$<$<CONFIG:Release>:
+				/SUBSYSTEM:WINDOWS    # Specify Windows subsystem
+				/ENTRY:mainCRTStartup # Specify entry point
+				/OPT:REF              # Eliminate unreferenced functions/data
+				/OPT:ICF              # Perform identical COMDAT folding
+				/INCREMENTAL:NO       # Disable incremental linking
+				/LTCG                 # Enable link-time code generation
+				/DEBUG                # Generate debug information
 			>
 		>
+
+		# Set GNU/Clang-specific link options
 		$<$<CXX_COMPILER_ID:GNU,Clang>:
-			-static
-			$<$<NOT:$<CONFIG:Debug>>:-flto>
+			$<$<CONFIG:Debug>:-mconsole>
+			$<$<CONFIG:Release>:-mwindows --entry=mainCRTStartup>
 		>
+	>
+
+	# Set GNU/Clang-specific link options
+	$<$<CXX_COMPILER_ID:GNU,Clang>:
+		-static
+		$<$<CONFIG:Release>:-flto>
+	>
 )
 
 # Set include directories
@@ -430,11 +489,18 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/res/data/CMakeLists.txt)
 		BUILD_ALWAYS 1)
 endif()
 
-if(ANTKEEPER_TEST)
 
+if(ANTKEEPER_TEST)
+	
+	# Enable testing
+	include(CTest)
+	enable_testing()
+
+	# Collect test files
 	file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS
 		${PROJECT_SOURCE_DIR}/test/test-*.cpp)
 
+	# Add test targets
 	foreach(TEST_FILE ${TEST_FILES})
 		get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
 		add_executable(${TEST_NAME} ${TEST_FILE} ${PROJECT_SOURCE_DIR}/test/test.cpp)
@@ -451,7 +517,5 @@ if(ANTKEEPER_TEST)
 			${PROJECT_SOURCE_DIR}/src)
 		add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
 	endforeach()
-
-	enable_testing()
 
 endif()
