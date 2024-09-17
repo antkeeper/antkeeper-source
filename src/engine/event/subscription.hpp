@@ -23,6 +23,8 @@ public:
 	 *
 	 * @param subscriber Weak pointer to the subscriber.
 	 * @param unsubscriber Unsubscribe function object.
+	 * *
+	 * @warning @p unsubscriber must be noexcept.
 	 */
 	subscription(std::weak_ptr<void>&& subscriber, unsubscribe_type&& unsubscriber);
 	
@@ -39,7 +41,7 @@ public:
 	/**
 	 * Unsubscribes the subscriber.
 	 */
-	void unsubscribe();
+	void unsubscribe() noexcept;
 	
 private:
 	std::weak_ptr<void> m_subscriber;

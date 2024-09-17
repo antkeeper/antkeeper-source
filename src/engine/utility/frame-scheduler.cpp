@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/utility/frame-scheduler.hpp>
+#include <engine/debug/contract.hpp>
 #include <algorithm>
 #include <thread>
 
@@ -12,6 +13,9 @@ frame_scheduler::frame_scheduler() noexcept
 
 void frame_scheduler::tick()
 {
+	debug::precondition(m_fixed_update_callback != nullptr);
+	debug::precondition(m_variable_update_callback != nullptr);
+
 	// Measure duration of previous frame
 	m_frame_end_time = clock_type::now();
 	m_frame_duration = m_frame_end_time - m_frame_start_time;

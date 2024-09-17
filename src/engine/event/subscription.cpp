@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/event/subscription.hpp>
+#include <engine/debug/contract.hpp>
 #include <utility>
 
 namespace event {
@@ -21,11 +22,17 @@ bool subscription::expired() const noexcept
 	return m_subscriber.expired();
 }
 
-void subscription::unsubscribe()
+void subscription::unsubscribe() noexcept
 {
 	if (!expired())
 	{
-		m_unsubscriber();
+		if (m_unsubscriber)
+		{
+			m_unsubscriber();
+			m_unsubscriber = nullptr;
+		}
+
+		m_subscriber.reset();
 	}
 }
 
