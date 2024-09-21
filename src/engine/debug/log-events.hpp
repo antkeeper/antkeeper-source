@@ -14,7 +14,7 @@ namespace debug {
 
 class logger;
 
-/// @name Debug logging
+/// @name Logging
 /// @{
 
 /**

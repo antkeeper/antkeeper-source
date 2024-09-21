@@ -6,7 +6,7 @@
 
 namespace debug {
 
-/// @name Debug logging
+/// @name Logging
 /// @{
 
 /** Log message severity levels. */
@@ -37,26 +37,7 @@ enum class log_message_severity
  * @param severity Log message severity.
  * @return Log message severity string.
  */
-[[nodiscard]] constexpr const char* log_message_severity_to_string(log_message_severity severity) noexcept
-{
-	switch (severity)
-	{
-		case log_message_severity::trace:
-			return "trace";
-		case log_message_severity::debug:
-			return "debug";
-		case log_message_severity::info:
-			return "info";
-		case log_message_severity::warning:
-			return "warning";
-		case log_message_severity::error:
-			return "error";
-		case log_message_severity::fatal:
-			return "fatal";
-		default:
-			return "unknown";
-	}
-}
+[[nodiscard]] const char* log_message_severity_to_string(log_message_severity severity) noexcept;
 
 /// @}
 

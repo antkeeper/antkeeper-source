@@ -280,11 +280,17 @@ file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
 	EXCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/game/platform"
 )
 
+# Collect platform-independent header files
+file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS
+	${PROJECT_SOURCE_DIR}/src/*.hpp
+	EXCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/game/platform"
+)
+
 # Collect module files
-# file(GLOB_RECURSE MODULE_FILES CONFIGURE_DEPENDS
-	# ${PROJECT_SOURCE_DIR}/src/*.ixx
-	# ${PROJECT_SOURCE_DIR}/src/*.cxx
-# )
+#file(GLOB_RECURSE MODULE_FILES CONFIGURE_DEPENDS
+#	${PROJECT_SOURCE_DIR}/src/*.ixx
+#	${PROJECT_SOURCE_DIR}/src/*.cxx
+#)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	
@@ -310,17 +316,18 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	
 endif()
 
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES} ${HEADER_FILES} ${MODULE_FILES})
 
 # Add executable target
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 
 # Set executable module files
-# target_sources(${PROJECT_NAME}
-	# PUBLIC
-		# FILE_SET CXX_MODULES FILES ${MODULE_FILES}
-# )
+target_sources(${PROJECT_NAME}
+	PUBLIC
+		FILE_SET HEADERS FILES ${HEADER_FILES}
+		#FILE_SET CXX_MODULES FILES ${MODULE_FILES}
+)
 
 # Set target properties
 set_target_properties(${PROJECT_NAME}
@@ -372,6 +379,9 @@ target_compile_options(${PROJECT_NAME}
 
 			# Disable RTTI
 			/GR-
+
+			# Enable experimental modules
+			#/experimental:module
 
 			# Set Debug configuration options
 			$<$<CONFIG:Debug>:

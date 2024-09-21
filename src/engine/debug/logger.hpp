@@ -12,7 +12,7 @@
 
 namespace debug {
 
-/// @name Debug logging
+/// @name Logging
 /// @{
 
 /**

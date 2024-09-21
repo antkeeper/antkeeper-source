@@ -13,7 +13,7 @@
 
 namespace debug {
 
-/// @name Debug logging
+/// @name Logging
 /// @{
 
 /** Minimum log message severity. */

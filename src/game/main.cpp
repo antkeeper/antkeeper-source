@@ -4,60 +4,22 @@
 #include "game/game.hpp"
 #include <chrono>
 #include <engine/config.hpp>
-#include <engine/debug/console.hpp>
 #include <engine/debug/log.hpp>
+#include <engine/debug/console-log.hpp>
+#include <engine/debug/file-log.hpp>
 #include <engine/debug/crash-reporter.hpp>
-#include <engine/utility/ansi.hpp>
 #include <engine/utility/paths.hpp>
-#include <fstream>
-#include <iostream>
 #include <set>
-#include <stdexcept>
-#include <syncstream>
 
 int main(int argc, char* argv[])
 {
+	// Open console log
+	#if !defined(NDEBUG)
+		debug::console_log console_log;
+	#endif
+
 	// Get time at which the application was launched
 	const auto launch_time = std::chrono::system_clock::now();
-
-	#if !defined(NDEBUG)
-
-		// Enable console UTF-8 output and VT100 sequences (for colored text)
-		debug::console::enable_utf8();
-		debug::console::enable_vt100();
-
-		// Set up logging to cout/cerr
-		auto log_to_cout_subscription = debug::default_logger().message_logged_channel().subscribe
-		(
-			[&launch_time](const auto& event)
-			{
-				static const std::string colors[] =
-				{
-					std::format("{}", ansi::fg_white),
-					std::format("{}", ansi::fg_bright_blue),
-					std::format("{}", ansi::fg_bright_green),
-					std::format("{}", ansi::fg_yellow),
-					std::format("{}", ansi::fg_red),
-					std::format("{}{}", ansi::fg_white, ansi::bg_bright_red)
-				};
-
-				auto& output_stream = std::to_underlying(event.severity) >= std::to_underlying(debug::log_message_severity::error) ? std::cerr : std::cout;
-				
-				std::osyncstream(output_stream) << std::format
-				(
-					"[{:%T}] {}{:7}: {}:{}: {}{}\n",
-					std::chrono::floor<std::chrono::milliseconds>(event.time - launch_time),
-					colors[static_cast<int>(event.severity)],
-					debug::log_message_severity_to_string(event.severity),
-					std::filesystem::path(event.location.file_name()).filename().string(),
-					event.location.line(),
-					event.message,
-					ansi::reset
-				);
-			}
-		);
-
-	#endif
 
 	const auto& shared_config_directory = shared_config_directory_path();
 
@@ -72,7 +34,7 @@ int main(int argc, char* argv[])
 	
 	// Determine log file prefix
 	const std::string log_stem_prefix = std::format("{}-log-", config::application_slug);
-	const std::string log_extension = ".txt";
+	const std::string log_extension = ".tsv";
 	
 	// Set up log archive
 	bool log_archive_exists = false;
@@ -90,63 +52,20 @@ int main(int argc, char* argv[])
 	{
 		debug::log_error("Failed to create log archive at \"{}\": {}", log_archive_path.string(), e.what());
 	}
-	
-	// Set up logging to file
-	std::shared_ptr<event::subscription> log_to_file_subscription;
-	std::filesystem::path log_filepath;
+
+	// Open file log
+	std::unique_ptr<debug::file_log> file_log;
 	if (config::debug_log_archive_capacity && log_archive_exists)
 	{
-		// Determine log filename
-		const std::string log_filename = std::format("{0}{1:%Y%m%d}T{1:%H%M%S}Z{2}", log_stem_prefix, std::chrono::floor<std::chrono::seconds>(launch_time), log_extension);
-		
-		// Open log file
-		log_filepath = log_archive_path / log_filename;
-		const std::string log_filepath_string = log_filepath.string();
-		auto log_filestream = std::make_shared<std::ofstream>(log_filepath);
-		
-		if (log_filestream->is_open())
-		{
-			debug::log_debug("Opened log file \"{}\"", log_filepath_string);
-			
-			// Write log file header
-			(*log_filestream) << "time\tseverity\tfile\tline\tthread\tmessage";
-			
-			if (log_filestream->good())
-			{
-				// Subscribe log to file function to message logged events
-				log_to_file_subscription = debug::default_logger().message_logged_channel().subscribe
-				(
-					[&launch_time, log_filestream](const auto& event)
-					{
-						std::osyncstream(*log_filestream) << std::format
-						(
-							"\n{:%T}\t{}\t{}\t{}\t{}\t{}",
-							std::chrono::floor<std::chrono::milliseconds>(event.time - launch_time),
-							debug::log_message_severity_to_string(event.severity),
-							std::filesystem::path(event.location.file_name()).filename().string(),
-							event.location.line(),
-							event.thread_id,
-							event.message
-						);
-					}
-				);
-			}
-			else
-			{
-				debug::log_error("Failed to write to log file \"{}\"", log_filepath_string);
-			}
-		}
-		else
-		{
-			debug::log_error("Failed to open log file \"{}\"", log_filepath_string);
-		}
+		const auto log_filename = std::format("{0}{1:%Y%m%d}T{1:%H%M%S}Z{2}", log_stem_prefix, std::chrono::floor<std::chrono::seconds>(launch_time), log_extension);
+		file_log = std::make_unique<debug::file_log>(log_archive_path / log_filename);
 	}
 	
 	// Start marker
 	debug::log_debug("Hi! 🐜");
 
-	// Log version and launch time
-	debug::log_info("{0} version: {1}; launch time: {2:%Y%m%d}T{2:%H%M%S}Z", config::application_name, config::application_version, std::chrono::floor<std::chrono::milliseconds>(launch_time));
+	// Log version string
+	debug::log_info("{0} v{1}", config::application_name, config::application_version);
 
 	// Launch game
 	game(argc, argv).execute();
