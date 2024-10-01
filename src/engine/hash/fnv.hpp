@@ -17,19 +17,17 @@
 
 namespace hash {
 
+/// 32-bit FNV hash value.
+enum class fnv32_t : std::uint32_t {};
+
+/// 64-bit FNV hash value.
+enum class fnv64_t : std::uint64_t {};
+
 namespace types
 {
-
-	/// 32-bit FNV hash value.
-	enum class fnv32_t: std::uint32_t {};
-
-	/// 64-bit FNV hash value.
-	enum class fnv64_t: std::uint64_t {};
-
+	using hash::fnv32_t;
+	using hash::fnv64_t;
 } // namespace types
-
-// Bring hash::types namespace into hash namespace
-using namespace hash::types;
 
 /// FNV-1a hash function.
 /// @tparam HashT Unsigned integral hash type.
