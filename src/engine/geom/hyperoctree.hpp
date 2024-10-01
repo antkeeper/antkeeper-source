@@ -51,21 +51,21 @@ struct hyperoctree_container {};
 template <std::unsigned_integral T, std::size_t DepthBits>
 struct hyperoctree_container<hyperoctree_order::unordered, T, DepthBits>
 {
-	typedef std::unordered_set<T> type;
+	using type = std::unordered_set<T>;
 };
 
 /// @private
 template <std::unsigned_integral T, std::size_t DepthBits>
 struct hyperoctree_container<hyperoctree_order::dfs_pre, T, DepthBits>
 {
-	typedef std::set<T, hyperoctree_dfs_pre_compare<T>> type;
+	using type = std::set<T, hyperoctree_dfs_pre_compare<T>>;
 };
 
 /// @private
 template <std::unsigned_integral T, std::size_t DepthBits>
 struct hyperoctree_container<hyperoctree_order::bfs, T, DepthBits>
 {
-	typedef std::set<T, hyperoctree_bfs_compare<T, DepthBits>> type;
+	using type = std::set<T, hyperoctree_bfs_compare<T, DepthBits>>;
 };
 
 /// Hashed linear hyperoctree.
@@ -119,7 +119,7 @@ private:
 	
 public:
 	/// Node identifier type.
-	typedef T node_type;
+	using node_type = T;
 	
 	/// Number of dimensions.
 	static constexpr std::size_t dimensions = N;
@@ -158,19 +158,19 @@ public:
 	static constexpr node_type root = 0;
 	
 	/// Node container type.
-	typedef typename hyperoctree_container<order, node_type, depth_bits>::type container_type;
+	using container_type = hyperoctree_container<order, node_type, depth_bits>::type;
 	
 	/// Iterator type.
-	typedef typename container_type::iterator iterator;
+	using iterator = container_type::iterator;
 	
 	/// Constant iterator type.
-	typedef typename container_type::const_iterator const_iterator;
+	using const_iterator = container_type::const_iterator;
 	
 	/// Reverse iterator type.
-	typedef std::conditional<order != hyperoctree_order::unordered, std::reverse_iterator<iterator>, iterator>::type reverse_iterator;
+	using reverse_iterator = std::conditional<order != hyperoctree_order::unordered, std::reverse_iterator<iterator>, iterator>::type;
 	
 	/// Constant reverse iterator type.
-	typedef std::conditional<order != hyperoctree_order::unordered, std::reverse_iterator<const_iterator>, const_iterator>::type const_reverse_iterator;
+	using const_reverse_iterator = std::conditional<order != hyperoctree_order::unordered, std::reverse_iterator<const_iterator>, const_iterator>::type;
 	
 	/// @name Nodes
 	/// @{

@@ -22,9 +22,9 @@ template<class UnaryOp, class InputIt>
 [[nodiscard]] typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::value_type>::type
 	simpson(UnaryOp f, InputIt first, InputIt last)
 {
-	typedef typename std::iterator_traits<InputIt>::value_type input_type;
-	typedef typename std::invoke_result<UnaryOp, input_type>::type output_type;
-	typedef decltype(*last - *first) difference_type;
+	using input_type = std::iterator_traits<InputIt>::value_type;
+	using output_type = std::invoke_result<UnaryOp, input_type>::type;
+	using difference_type = decltype(*last - *first) ;
 	
 	if (first == last)
 	{
@@ -70,9 +70,9 @@ template<class UnaryOp, class InputIt>
 [[nodiscard]] typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::value_type>::type
 	trapezoid(UnaryOp f, InputIt first, InputIt last)
 {
-	typedef typename std::iterator_traits<InputIt>::value_type input_type;
-	typedef typename std::invoke_result<UnaryOp, input_type>::type output_type;
-	typedef decltype(*last - *first) difference_type;
+	using input_type = std::iterator_traits<InputIt>::value_type;
+	using output_type = std::invoke_result<UnaryOp, input_type>::type;
+	using difference_type = decltype(*last - *first);
 	
 	if (first == last)
 	{

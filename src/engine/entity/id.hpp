@@ -9,7 +9,7 @@
 namespace entity {
 
 /// Entity ID type.
-typedef entt::entity id;
+using id = entt::entity;
 
 } // namespace entity
 

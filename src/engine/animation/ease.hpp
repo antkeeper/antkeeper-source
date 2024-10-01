@@ -51,8 +51,8 @@
 template <typename T, typename S = float>
 struct ease
 {
-	typedef T value_type;
-	typedef S scalar_type;
+	using value_type = T;
+	using scalar_type = S;
 	
 	static T in_sine(const T& x, const T& y, S a);
 	static T out_sine(const T& x, const T& y, S a);

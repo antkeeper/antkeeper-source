@@ -17,7 +17,7 @@ template <class T>
 struct elements
 {
 	/// Scalar type.
-	typedef T scalar_type;
+	using scalar_type = T;
 	
 	/// Eccentricity (e).
 	scalar_type ec;

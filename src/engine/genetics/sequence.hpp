@@ -114,7 +114,7 @@ namespace rna
 template <class ForwardIt1, class ForwardIt2, class URBG>
 ForwardIt2 crossover(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2, URBG&& g)
 {
-	typedef typename std::iterator_traits<ForwardIt1>::difference_type difference_t;
+	using difference_t = std::iterator_traits<ForwardIt1>::difference_type;
 	std::uniform_int_distribution<difference_t> distribution(0, std::distance(first1, last1) - 1);
 	difference_t pos = distribution(g);
 	std::advance(first1, pos);
@@ -126,7 +126,7 @@ ForwardIt2 crossover(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2, URB
 template <class ForwardIt1, class ForwardIt2, class Size, class URBG>
 void crossover_n(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2, Size count, URBG&& g)
 {
-	typedef typename std::iterator_traits<ForwardIt1>::difference_type difference_t;
+	using difference_t = std::iterator_traits<ForwardIt1>::difference_type;
 	
 	std::uniform_int_distribution<difference_t> distribution(0, std::distance(first1, last1) - 1);
 	ForwardIt1 crossover1, crossover2;
@@ -197,7 +197,7 @@ orf<ForwardIt> find_orf(ForwardIt first, ForwardIt last, const codon::table& tab
 template <class ForwardIt, class UnaryOperation, class URBG>
 ForwardIt mutate(ForwardIt first, ForwardIt last, UnaryOperation unary_op, URBG&& g)
 {
-	typedef typename std::iterator_traits<ForwardIt>::difference_type difference_t;
+	using difference_t = std::iterator_traits<ForwardIt>::difference_type;
 	
 	if (first == last)
 		return first;
@@ -212,7 +212,7 @@ ForwardIt mutate(ForwardIt first, ForwardIt last, UnaryOperation unary_op, URBG&
 template <class ForwardIt, class Size, class UnaryOperation, class URBG>
 void mutate_n(ForwardIt first, ForwardIt last, Size count, UnaryOperation unary_op, URBG&& g)
 {
-	typedef typename std::iterator_traits<ForwardIt>::difference_type difference_t;
+	using difference_t = std::iterator_traits<ForwardIt>::difference_type;
 	
 	if (first == last)
 		return first;

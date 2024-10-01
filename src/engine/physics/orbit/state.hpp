@@ -15,10 +15,10 @@ template <class T>
 struct state
 {
 	/// Scalar type.
-	typedef T scalar_type;
+	using scalar_type = T;
 	
 	/// Vector type.
-	typedef math::vec3<T> vector_type;
+	using vector_type = math::vec3<T>;
 	
 	/// Cartesian orbital position vector (r).
 	vector_type r;

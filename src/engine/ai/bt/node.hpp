@@ -15,7 +15,7 @@ template <class T>
 struct node
 {
 	/// Data type on which nodes operate.
-	typedef T context_type;
+	using context_type = T;
 
 	/// Executes a node's function and returns its status.
 	/// @param context Context data on which the node will operate.
@@ -46,7 +46,7 @@ template <class T>
 struct action: public leaf_node<T>
 {
 	virtual status execute(node<T>::context_type& context) const final;
-	typedef std::function<status(node<T>::context_type&)> function_type;
+	using function_type = std::function<status(node<T>::context_type&)>;
 	function_type function;
 };
 
@@ -55,7 +55,7 @@ template <class T>
 struct condition: public leaf_node<T>
 {
 	virtual status execute(node<T>::context_type& context) const final;
-	typedef std::function<status(const node<T>::context_type&)> predicate_type;
+	using predicate_type = std::function<status(const node<T>::context_type&)>;
 	predicate_type predicate;
 };
 

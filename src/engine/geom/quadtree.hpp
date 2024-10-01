@@ -34,16 +34,16 @@ template <std::unsigned_integral T>
 using unordered_quadtree = quadtree<T, hyperoctree_order::unordered>;
 
 /// Unordered quadtree with an 8-bit node type (2 depth levels).
-typedef unordered_quadtree<std::uint8_t> unordered_quadtree8;
+using unordered_quadtree8 = unordered_quadtree<std::uint8_t>;
 
 /// Unordered quadtree with a 16-bit node type (6 depth levels).
-typedef unordered_quadtree<std::uint16_t> unordered_quadtree16;
+using unordered_quadtree16 = unordered_quadtree<std::uint16_t>;
 
 /// Unordered quadtree with a 32-bit node type (13 depth levels).
-typedef unordered_quadtree<std::uint32_t> unordered_quadtree32;
+using unordered_quadtree32 = unordered_quadtree<std::uint32_t>;
 
 /// Unordered quadtree with a 64-bit node type (29 depth levels).
-typedef unordered_quadtree<std::uint64_t>unordered_quadtree64;
+using unordered_quadtree64 = unordered_quadtree<std::uint64_t>;
 
 } // namespace geom
 

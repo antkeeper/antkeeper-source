@@ -9,7 +9,7 @@
 namespace entity {
 
 /// Component registry type.
-typedef entt::registry registry;
+using registry = entt::registry;
 
 } // namespace entity
 

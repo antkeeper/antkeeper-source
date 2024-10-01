@@ -34,16 +34,16 @@ template <std::unsigned_integral T>
 using unordered_octree = octree<T, hyperoctree_order::unordered>;
 
 /// Unordered octree with an 8-bit node type (2 depth levels).
-typedef unordered_octree<std::uint8_t> unordered_octree8;
+using unordered_octree8 = unordered_octree<std::uint8_t>;
 
 /// Unordered octree with a 16-bit node type (4 depth levels).
-typedef unordered_octree<std::uint16_t> unordered_octree16;
+using unordered_octree16 = unordered_octree<std::uint16_t>;
 
 /// Unordered octree with a 32-bit node type (9 depth levels).
-typedef unordered_octree<std::uint32_t> unordered_octree32;
+using unordered_octree32 = unordered_octree<std::uint32_t>;
 
 /// Unordered octree with a 64-bit node type (19 depth levels).
-typedef unordered_octree<std::uint64_t>unordered_octree64;
+using unordered_octree64 = unordered_octree<std::uint64_t>;
 
 } // namespace geom
 
