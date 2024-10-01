@@ -19,7 +19,6 @@
 // import <type_traits>;
 
 namespace math {
-namespace types {
 
 /// Quaternion composed of a real scalar part and imaginary vector part.
 /// @tparam T Scalar type.
@@ -286,26 +285,29 @@ using dquat = quat<double>;
 
 /// @}
 
+namespace types
+{
+	using math::quaternion;
+	using math::quat;
+	using math::fquat;
+	using math::dquat;
 } // namespace types
-
-// Bring math::types into math namespace
-using namespace types;
 
 } // namespace math
 
 namespace std
 {
-	/// Provides access to the number of parts in a math::types::quaternion as a compile-time constant expression.
+	/// Provides access to the number of parts in a math::quaternion as a compile-time constant expression.
 	/// @tparam T Scalar type.
-	/// @relates math::types::quaternion
+	/// @relates math::quaternion
 	template <class T>
 	struct tuple_size<math::quaternion<T>>:
 		std::integral_constant<std::size_t, 2>
 	{};
 	
-	/// Provides compile-time indexed access to the real part of a math::types::quaternion using a tuple-like interface.
+	/// Provides compile-time indexed access to the real part of a math::quaternion using a tuple-like interface.
 	/// @tparam T Scalar type.
-	/// @relates math::types::quaternion
+	/// @relates math::quaternion
 	template <class T>
 	struct tuple_element<0, math::quaternion<T>>
 	{
@@ -313,9 +315,9 @@ namespace std
 		using type = T;
 	};
 	
-	/// Provides compile-time indexed access to the imaginary part of a math::types::quaternion using a tuple-like interface.
+	/// Provides compile-time indexed access to the imaginary part of a math::quaternion using a tuple-like interface.
 	/// @tparam T Scalar type.
-	/// @relates math::types::quaternion
+	/// @relates math::quaternion
 	template <class T>
 	struct tuple_element<1, math::quaternion<T>>
 	{
@@ -323,9 +325,9 @@ namespace std
 		using type = math::vec3<T>;
 	};
 	
-	/// Specialization of std::formatter for math::types::quaternion.
+	/// Specialization of std::formatter for math::quaternion.
 	/// @tparam T Scalar type.
-	/// @relates math::types::quaternion
+	/// @relates math::quaternion
     template <class T>
     struct formatter<math::quaternion<T>>: formatter<T>
     {

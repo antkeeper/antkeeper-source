@@ -14,7 +14,6 @@
 // import math.quaternion;
 
 namespace math {
-namespace types {
 
 /// SRT transformation.
 /// @tparam T Scalar type.
@@ -83,10 +82,10 @@ struct transform
 	}
 };
 
+namespace types
+{
+	using math::transform;
 } // namespace types
-
-// Bring math::types into math namespace
-using namespace types;
 
 namespace constants {
 

@@ -17,7 +17,6 @@
 // import <utility>;
 
 namespace math {
-namespace types {
 
 /// *n*-dimensional vector.
 /// @tparam T Element type.
@@ -462,29 +461,53 @@ using dvec4 = dvec<4>;
 
 /// @}
 
+namespace types
+{
+	using math::vector;
+	using math::vec;
+	using math::vec2;
+	using math::vec3;
+	using math::vec4;
+	using math::bvec;
+	using math::bvec2;
+	using math::bvec3;
+	using math::bvec4;
+	using math::ivec;
+	using math::ivec2;
+	using math::ivec3;
+	using math::ivec4;
+	using math::uvec;
+	using math::uvec2;
+	using math::uvec3;
+	using math::uvec4;
+	using math::fvec;
+	using math::fvec2;
+	using math::fvec3;
+	using math::fvec4;
+	using math::dvec;
+	using math::dvec2;
+	using math::dvec3;
+	using math::dvec4;
 } // namespace types
-
-// Bring math::types into math namespace
-using namespace types;
 
 } // namespace math
 
 namespace std
 {
-	/// Provides access to the number of elements in a math::types::vector as a compile-time constant expression.
+	/// Provides access to the number of elements in a math::vector as a compile-time constant expression.
 	/// @tparam T Element type.
 	/// @tparam N Number of elements.
-	/// @relates math::types::vector
+	/// @relates math::vector
 	template <class T, std::size_t N>
 	struct tuple_size<math::vector<T, N>>:
 		std::integral_constant<std::size_t, N>
 	{};
 	
-	/// Provides compile-time indexed access to the type of the elements in a math::types::vector using a tuple-like interface.
+	/// Provides compile-time indexed access to the type of the elements in a math::vector using a tuple-like interface.
 	/// @tparam I Index of an element.
 	/// @tparam T Element type.
 	/// @tparam N Number of elements.
-	/// @relates math::types::vector
+	/// @relates math::vector
 	template <std::size_t I, class T, std::size_t N>
 	struct tuple_element<I, math::vector<T, N>>
 	{
@@ -492,10 +515,10 @@ namespace std
 		using type = T;
 	};
 	
-	/// Specialization of std::formatter for math::types::vector.
+	/// Specialization of std::formatter for math::vector.
 	/// @tparam T Element type.
 	/// @tparam N Number of elements.
-	/// @relates math::types::vector
+	/// @relates math::vector
     template <class T, std::size_t N>
     struct formatter<math::vector<T, N>>: formatter<T>
     {

@@ -14,7 +14,6 @@
 // import math.quaternion;
 
 namespace math {
-namespace types {
 
 /// SE(3) proper rigid transformation (rototranslation).
 /// @tparam T Scalar type.
@@ -102,10 +101,10 @@ public:
 	}
 };
 
+namespace types
+{
+	using math::se3;
 } // namespace types
-
-// Bring math::types into math namespace
-using namespace types;
 
 namespace constants {
 

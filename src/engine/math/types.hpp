@@ -19,9 +19,6 @@ namespace math
 {
 	/// Mathematical types.
 	namespace types {}
-	
-	// Bring math::types into math namespace
-	using namespace types;
 }
 
 #endif // ANTKEEPER_MATH_TYPES_HPP

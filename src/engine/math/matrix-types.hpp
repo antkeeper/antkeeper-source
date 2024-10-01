@@ -18,7 +18,6 @@
 // import <utility>;
 
 namespace math {
-namespace types {
 
 /// *n* by *m* column-major matrix.
 /// @tparam T Element type.
@@ -706,31 +705,109 @@ using dmat4 = dmat4x4;
 
 /// @}
 
+namespace types
+{
+	using math::matrix;
+	using math::mat;
+	using math::mat2x2;
+	using math::mat2x3;
+	using math::mat2x4;
+	using math::mat3x2;
+	using math::mat3x3;
+	using math::mat3x4;
+	using math::mat4x2;
+	using math::mat4x3;
+	using math::mat4x4;
+	using math::mat2;
+	using math::mat3;
+	using math::mat4;
+	using math::bmat;
+	using math::bmat2x2;
+	using math::bmat2x3;
+	using math::bmat2x4;
+	using math::bmat3x2;
+	using math::bmat3x3;
+	using math::bmat3x4;
+	using math::bmat4x2;
+	using math::bmat4x3;
+	using math::bmat4x4;
+	using math::bmat2;
+	using math::bmat3;
+	using math::bmat4;
+	using math::imat;
+	using math::imat2x2;
+	using math::imat2x3;
+	using math::imat2x4;
+	using math::imat3x2;
+	using math::imat3x3;
+	using math::imat3x4;
+	using math::imat4x2;
+	using math::imat4x3;
+	using math::imat4x4;
+	using math::imat2;
+	using math::imat3;
+	using math::imat4;
+	using math::umat;
+	using math::umat2x2;
+	using math::umat2x3;
+	using math::umat2x4;
+	using math::umat3x2;
+	using math::umat3x3;
+	using math::umat3x4;
+	using math::umat4x2;
+	using math::umat4x3;
+	using math::umat4x4;
+	using math::umat2;
+	using math::umat3;
+	using math::umat4;
+	using math::fmat;
+	using math::fmat2x2;
+	using math::fmat2x3;
+	using math::fmat2x4;
+	using math::fmat3x2;
+	using math::fmat3x3;
+	using math::fmat3x4;
+	using math::fmat4x2;
+	using math::fmat4x3;
+	using math::fmat4x4;
+	using math::fmat2;
+	using math::fmat3;
+	using math::fmat4;
+	using math::dmat;
+	using math::dmat2x2;
+	using math::dmat2x3;
+	using math::dmat2x4;
+	using math::dmat3x2;
+	using math::dmat3x3;
+	using math::dmat3x4;
+	using math::dmat4x2;
+	using math::dmat4x3;
+	using math::dmat4x4;
+	using math::dmat2;
+	using math::dmat3;
+	using math::dmat4;
 } // namespace types
-
-// Bring math::types into math namespace
-using namespace types;
 
 } // namespace math
 
 namespace std
 {
-	/// Provides access to the number of columns in a math::types::matrix as a compile-time constant expression.
+	/// Provides access to the number of columns in a math::matrix as a compile-time constant expression.
 	/// @tparam T Element type.
 	/// @tparam N Number of columns.
 	/// @tparam M Number of rows.
-	/// @relates math::types::matrix
+	/// @relates math::matrix
 	template <class T, std::size_t N, std::size_t M>
 	struct tuple_size<math::matrix<T, N, M>>:
 		std::integral_constant<std::size_t, N>
 	{};
 	
-	/// Provides compile-time indexed access to the type of the columns in a math::types::matrix using a tuple-like interface.
+	/// Provides compile-time indexed access to the type of the columns in a math::matrix using a tuple-like interface.
 	/// @tparam I Index of a column.
 	/// @tparam T Element type.
 	/// @tparam N Number of columns.
 	/// @tparam M Number of rows.
-	/// @relates math::types::matrix
+	/// @relates math::matrix
 	template <std::size_t I, class T, std::size_t N, std::size_t M>
 	struct tuple_element<I, math::matrix<T, N, M>>
 	{
@@ -738,11 +815,11 @@ namespace std
 		using type = math::matrix<T, N, M>::column_type;
 	};
 	
-	/// Specialization of std::formatter for math::types::matrix.
+	/// Specialization of std::formatter for math::matrix.
 	/// @tparam T Element type.
 	/// @tparam N Number of columns.
 	/// @tparam M Number of rows.
-	/// @relates math::types::matrix
+	/// @relates math::matrix
     template <class T, std::size_t N, std::size_t M>
     struct formatter<math::matrix<T, N, M>>: formatter<math::vector<T, M>>
     {

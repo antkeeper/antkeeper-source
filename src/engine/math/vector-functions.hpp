@@ -31,7 +31,7 @@
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Vector on the right-hand side.
 /// @return @p lhs + @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 [[nodiscard]] inline constexpr math::vec<T, N> operator+(const math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
 {
@@ -47,7 +47,7 @@ template <class T, std::size_t N>
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Scalar on the right-hand side.
 /// @return @p lhs + @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 [[nodiscard]] inline constexpr math::vec<T, N> operator+(const math::vec<T, N>& lhs, const T& rhs) noexcept
 {
@@ -63,7 +63,7 @@ template <class T, std::size_t N>
 /// @param lhs Scalar on the left-hand side.
 /// @param rhs Vector on the right-hand side.
 /// @return @p lhs + @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 [[nodiscard]] inline constexpr math::vec<T, N> operator+(const T& lhs, const math::vec<T, N>& rhs) noexcept
 {
@@ -73,7 +73,7 @@ template <class T, std::size_t N>
 /// Negates a vector.
 /// @param v Vector to negate.
 /// @return `-v`.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 [[nodiscard]] inline constexpr math::vec<T, N> operator-(const math::vec<T, N>& v) noexcept
 {
@@ -89,7 +89,7 @@ template <class T, std::size_t N>
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Vector on the right-hand side.
 /// @return @p lhs - @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 [[nodiscard]] inline constexpr math::vec<T, N> operator-(const math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
 {
@@ -105,7 +105,7 @@ template <class T, std::size_t N>
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Scalar on the right-hand side.
 /// @return @p lhs - @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 [[nodiscard]] inline constexpr math::vec<T, N> operator-(const math::vec<T, N>& lhs, const T& rhs) noexcept
 {
@@ -121,7 +121,7 @@ template <class T, std::size_t N>
 /// @param lhs Scalar on the left-hand side.
 /// @param rhs Vector on the right-hand side.
 /// @return @p lhs - @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 [[nodiscard]] inline constexpr math::vec<T, N> operator-(const T& lhs, const math::vec<T, N>& rhs) noexcept
 {
@@ -137,7 +137,7 @@ template <class T, std::size_t N>
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Vector on the right-hand side.
 /// @return @p lhs * @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 [[nodiscard]] inline constexpr math::vec<T, N> operator*(const math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
 {
@@ -153,7 +153,7 @@ template <class T, std::size_t N>
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Scalar on the right-hand side.
 /// @return @p lhs * @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 [[nodiscard]] inline constexpr math::vec<T, N> operator*(const math::vec<T, N>& lhs, const T& rhs) noexcept
 {
@@ -169,7 +169,7 @@ template <class T, std::size_t N>
 /// @param lhs Scalar on the left-hand side.
 /// @param rhs Vector on the right-hand side.
 /// @return @p lhs * @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 [[nodiscard]] inline constexpr math::vec<T, N> operator*(const T& lhs, const math::vec<T, N>& rhs) noexcept
 {
@@ -180,7 +180,7 @@ template <class T, std::size_t N>
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Vector on the right-hand side.
 /// @return @p lhs / @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 [[nodiscard]] inline constexpr math::vec<T, N> operator/(const math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
 {
@@ -196,7 +196,7 @@ template <class T, std::size_t N>
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Scalar on the right-hand side.
 /// @return @p lhs / @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 [[nodiscard]] inline constexpr math::vec<T, N> operator/(const math::vec<T, N>& lhs, const T& rhs) noexcept
 {
@@ -212,7 +212,7 @@ template <class T, std::size_t N>
 /// @param lhs Scalar on the left-hand side.
 /// @param rhs Vector on the right-hand side.
 /// @return @p lhs / @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 [[nodiscard]] inline constexpr math::vec<T, N> operator/(const T& lhs, const math::vec<T, N>& rhs) noexcept
 {
@@ -228,7 +228,7 @@ template <class T, std::size_t N>
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Vector on the right-hand side.
 /// @return @p lhs + @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 inline constexpr math::vec<T, N>& operator+=(math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
 {
@@ -243,7 +243,7 @@ inline constexpr math::vec<T, N>& operator+=(math::vec<T, N>& lhs, const math::v
 /// @param lhs Scalar on the left-hand side.
 /// @param rhs Vector on the right-hand side.
 /// @return @p lhs + @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 inline constexpr math::vec<T, N>& operator+=(math::vec<T, N>& lhs, const T& rhs) noexcept
 {
@@ -258,7 +258,7 @@ inline constexpr math::vec<T, N>& operator+=(math::vec<T, N>& lhs, const T& rhs)
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Vector on the right-hand side.
 /// @return @p lhs - @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 inline constexpr math::vec<T, N>& operator-=(math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
 {
@@ -273,7 +273,7 @@ inline constexpr math::vec<T, N>& operator-=(math::vec<T, N>& lhs, const math::v
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Scalar on the right-hand side.
 /// @return @p lhs - @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 inline constexpr math::vec<T, N>& operator-=(math::vec<T, N>& lhs, const T& rhs) noexcept
 {
@@ -288,7 +288,7 @@ inline constexpr math::vec<T, N>& operator-=(math::vec<T, N>& lhs, const T& rhs)
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Vector on the right-hand side.
 /// @return @p lhs * @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 inline constexpr math::vec<T, N>& operator*=(math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
 {
@@ -303,7 +303,7 @@ inline constexpr math::vec<T, N>& operator*=(math::vec<T, N>& lhs, const math::v
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Scalar on the right-hand side.
 /// @return @p lhs * @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 inline constexpr math::vec<T, N>& operator*=(math::vec<T, N>& lhs, const T& rhs) noexcept
 {
@@ -318,7 +318,7 @@ inline constexpr math::vec<T, N>& operator*=(math::vec<T, N>& lhs, const T& rhs)
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Vector on the right-hand side.
 /// @return @p lhs / @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 inline constexpr math::vec<T, N>& operator/=(math::vec<T, N>& lhs, const math::vec<T, N>& rhs) noexcept
 {
@@ -333,7 +333,7 @@ inline constexpr math::vec<T, N>& operator/=(math::vec<T, N>& lhs, const math::v
 /// @param lhs Vector on the left-hand side.
 /// @param rhs Scalar on the right-hand side.
 /// @return @p lhs / @p rhs.
-/// @relates math::types::vector
+/// @relates math::vector
 template <class T, std::size_t N>
 inline constexpr math::vec<T, N>& operator/=(math::vec<T, N>& lhs, const T& rhs) noexcept
 {
@@ -347,7 +347,7 @@ inline constexpr math::vec<T, N>& operator/=(math::vec<T, N>& lhs, const T& rhs)
 /// Logically inverts a Boolean vector.
 /// @param v Vector to invert.
 /// @return `!v`.
-/// @relates math::types::vector
+/// @relates math::vector
 template <std::size_t N>
 [[nodiscard]] inline constexpr math::bvec<N> operator!(const math::bvec<N>& v) noexcept
 {
