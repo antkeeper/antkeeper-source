@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_RENDER_MATERIAL_HPP
@@ -14,66 +14,42 @@
 
 namespace render {
 
-/**
- * A material is associated with exactly one shader program and contains a set of material properties which can be uploaded to that shader program via shader inputs.
- */
+/// A material is associated with exactly one shader program and contains a set of material properties which can be uploaded to that shader program via shader inputs.
 class material
 {
 public:
-	/**
-	 * Constructs a material.
-	 */
+	/// Constructs a material.
 	material() = default;
 	
-	/**
-	 * Constructs a copy of another material.
-	 *
-	 * @param other Material to copy.
-	 */
+	/// Constructs a copy of another material.
+	/// @param other Material to copy.
 	material(const material& other);
 	
-	/**
-	 * Destroys a material.
-	 */
+	/// Destroys a material.
 	~material() = default;
 	
-	/**
-	 * Makes this material a copy of aother material.
-	 *
-	 * @param other Material to copy.
-	 * @return Reference to this material.
-	 */
+	/// Makes this material a copy of aother material.
+	/// @param other Material to copy.
+	/// @return Reference to this material.
 	material& operator=(const material& other);
 	
 	/// @name Settings
 	/// @{
 	
-	/**
-	 * Enables or disables back-face culling of the material surface.
-	 *
-	 * @param two_sided `true` to disable back-face culling, or `false` to enable it.
-	 */
+	/// Enables or disables back-face culling of the material surface.
+	/// @param two_sided `true` to disable back-face culling, or `false` to enable it.
 	void set_two_sided(bool two_sided) noexcept;
 	
-	/**
-	 * Sets the material blend mode.
-	 *
-	 * @param mode Blend mode.
-	 */
+	/// Sets the material blend mode.
+	/// @param mode Blend mode.
 	void set_blend_mode(material_blend_mode mode) noexcept;
 	
-	/**
-	 * Sets the material shadow mode.
-	 *
-	 * @param mode Shadow mode.
-	 */
+	/// Sets the material shadow mode.
+	/// @param mode Shadow mode.
 	void set_shadow_mode(material_shadow_mode mode) noexcept;
 	
-	/**
-	 * Sets the material flags.
-	 *
-	 * @param flags Material flags.
-	 */
+	/// Sets the material flags.
+	/// @param flags Material flags.
 	void set_flags(std::uint32_t flags) noexcept;
 	
 	/// Returns `true` if the material surface is two-sided, and `false` otherwise.
@@ -105,43 +81,28 @@ public:
 	/// @name Shading
 	/// @{
 	
-	/**
-	 * Sets the material's shader template.
-	 *
-	 * @param shader_template Shader template with which to associate the material.
-	 */
+	/// Sets the material's shader template.
+	/// @param shader_template Shader template with which to associate the material.
 	void set_shader_template(std::shared_ptr<gl::shader_template> shader_template);
 	
-	/**
-	 * Returns the shader template with which this material is associated.
-	 */
+	/// Returns the shader template with which this material is associated.
 	[[nodiscard]] inline const std::shared_ptr<gl::shader_template>& get_shader_template() const noexcept
 	{
 		return m_shader_template;
 	}
 	
-	/**
-	 * Sets the value of a material variable with the given name.
-	 *
-	 * @param key 32-bit FNV-1a hash value of the variable name.
-	 * @param value Shared pointer to the material variable value.
-	 */
+	/// Sets the value of a material variable with the given name.
+	/// @param key 32-bit FNV-1a hash value of the variable name.
+	/// @param value Shared pointer to the material variable value.
 	void set_variable(hash::fnv1a32_t key, std::shared_ptr<material_variable_base> value);
 	
-	/**
-	 * Returns a shared pointer to the material variable with the given name, or `nullptr` if not found.
-	 *
-	 * @param key 32-bit FNV-1a hash value of the variable name.
-	 *
-	 * @return Shared pointer to the material variable with the given name, or `nullptr` if not found.
-	 */
+	/// Returns a shared pointer to the material variable with the given name, or `nullptr` if not found.
+	/// @param key 32-bit FNV-1a hash value of the variable name.
+	/// @return Shared pointer to the material variable with the given name, or `nullptr` if not found.
 	[[nodiscard]] std::shared_ptr<material_variable_base> get_variable(hash::fnv1a32_t key) const;
 	
-	/**
-	 * Returns all material variables.
-	 *
-	 * @return Map of 32-bit FNV-1a hash values of variable names to variables.
-	 */
+	/// Returns all material variables.
+	/// @return Map of 32-bit FNV-1a hash values of variable names to variables.
 	[[nodiscard]] inline const std::unordered_map<hash::fnv1a32_t, std::shared_ptr<material_variable_base>>& get_variables() const noexcept
 	{
 		return m_variable_map;
@@ -149,26 +110,23 @@ public:
 	
 	/// @}
 	
-	/**
-	 * Returns a hash of the material state.
-	 *
-	 * The followings functions may change the material hash:
-	 *
-	 * * material::set_shader_template
-	 * * material::set_flags
-	 * * material::set_blend_mode
-	 * * material::set_two_sided
-	 * * material::set_shadow_mode
-	 */
+	/// Returns a hash of the material state.
+	/// 
+	/// The followings functions may change the material hash:
+	/// 
+	/// * material::set_shader_template
+	/// * material::set_flags
+	/// * material::set_blend_mode
+	/// * material::set_two_sided
+	/// * material::set_shadow_mode
+	/// 
 	[[nodiscard]] inline std::size_t hash() const noexcept
 	{
 		return m_hash;
 	}
 	
 private:
-	/**
-	 * Recalculates the material state hash.
-	 */
+	/// Recalculates the material state hash.
 	void rehash() noexcept;
 	
 	bool m_two_sided{false};

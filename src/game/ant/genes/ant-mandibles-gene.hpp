@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_MANDIBLES_GENE_HPP
@@ -9,13 +9,10 @@
 #include <memory>
 #include <cstdint>
 
-/**
- * Ant mandibles phene.
- *
- * @see https://www.antwiki.org/wiki/Character_States_for_Extant_Ant_Genera_of_the_Formicidae
- * @see https://www.antwiki.org/wiki/Morphological_and_Functional_Diversity_of_Ant_Mandibles
- * @see https://www.antwiki.org/wiki/Morphological_Measurements
- */
+/// Ant mandibles phene.
+/// @see https://www.antwiki.org/wiki/Character_States_for_Extant_Ant_Genera_of_the_Formicidae
+/// @see https://www.antwiki.org/wiki/Morphological_and_Functional_Diversity_of_Ant_Mandibles
+/// @see https://www.antwiki.org/wiki/Morphological_Measurements
 struct ant_mandibles_phene
 {
 	/// Mandible length at closure, in mesosomal lengths.

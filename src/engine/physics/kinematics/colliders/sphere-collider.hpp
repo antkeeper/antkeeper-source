@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_SPHERE_COLLIDER_HPP
@@ -9,9 +9,7 @@
 
 namespace physics {
 
-/**
- * Sphere collision object.
- */
+/// Sphere collision object.
 class sphere_collider: public collider
 {
 public:
@@ -23,59 +21,47 @@ public:
 		return collider_type::sphere;
 	}
 	
-	/**
-	 * Constructs a sphere collider from a sphere.
-	 *
-	 * @param sphere Sphere shape.
-	 */
+	/// Constructs a sphere collider from a sphere.
+	/// @param sphere Sphere shape.
 	inline constexpr explicit sphere_collider(const sphere_type& sphere) noexcept:
 		m_sphere{sphere}
 	{}
 	
-	/**
-	 * Constructs a sphere collider.
-	 *
-	 * @param center Sphere center.
-	 * @param radius Sphere radius.
-	 */
-	/// @{
+	/// Constructs a sphere collider.
+	/// @param center Sphere center.
+	/// @param radius Sphere radius.
 	inline constexpr sphere_collider(const math::fvec3& center, float radius) noexcept:
 		m_sphere{center, radius}
 	{}
+
+	/// Constructs a sphere collider.
+	/// @param radius Sphere radius.
 	inline constexpr explicit sphere_collider(float radius) noexcept:
 		m_sphere{{}, radius}
 	{}
+
+	/// Constructs a sphere collider.
 	constexpr sphere_collider() noexcept = default;
-	/// @}
 	
-	/** Destructs a sphere collider. */
+	/// Destructs a sphere collider.
 	~sphere_collider() override = default;
 	
-	/**
-	 * Sets the collider's sphere.
-	 *
-	 * @param sphere Sphere shape.
-	 */
+	/// Sets the collider's sphere.
+	/// @param sphere Sphere shape.
 	inline constexpr void set_sphere(const sphere_type& sphere) noexcept
 	{
 		m_sphere = sphere;
 	}
 	
-	/**
-	 * Sets the center of the sphere.
-	 *
-	 * @param center Sphere center, in object space.
-	 */
+	/// Sets the center of the sphere.
+	/// @param center Sphere center, in object space.
 	inline constexpr void set_center(const math::fvec3& center) noexcept
 	{
 		m_sphere.center = center;
 	}
 	
-	/**
-	 * Sets the radius of the sphere.
-	 *
-	 * @param radius Sphere radius.
-	 */
+	/// Sets the radius of the sphere.
+	/// @param radius Sphere radius.
 	inline constexpr void set_radius(float radius) noexcept
 	{
 		m_sphere.radius = radius;

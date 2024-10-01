@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_CASTE_COMPONENT_HPP
@@ -13,7 +13,7 @@ struct ant_caste_component
 	/// Caste type.
 	ant_caste_type type{};
 	
-	/// Subcaste type.
+	// Subcaste type.
 	//ant_subcaste subtype;
 	
 	/// Shared pointer to the caste phenome.

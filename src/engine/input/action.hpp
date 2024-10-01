@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_INPUT_ACTION_HPP
@@ -10,47 +10,32 @@
 
 namespace input {
 
-/**
- * Evaluates an activation state given input values and publishes events on activation state changes.
- */
+/// Evaluates an activation state given input values and publishes events on activation state changes.
 class action
 {
 public:
-	/**
-	 * Threshold function type.
-	 *
-	 * Given an input value, returns `true` if the action should be considered active, and `false` otherwise.
-	 */
+	/// Threshold function type.
+	/// @details Given an input value, returns `true` if the action should be considered active, and `false` otherwise.
 	using threshold_function_type = std::function<bool(float)>;
 	
 	/// Constructs an action.
 	action();
 	
-	/**
-	 * Sets the threshold function.
-	 *
-	 * @param function Threshold function.
-	 */
+	/// Sets the threshold function.
+	/// @param function Threshold function.
 	inline void set_threshold_function(const threshold_function_type& function) noexcept
 	{
 		m_threshold_function = function;
 	}
 	
-	/**
-	 * Evaluates the activation state of the action, according to its threshold function and an input value.
-	 *
-	 * @param value Input value.
-	 */
+	/// Evaluates the activation state of the action, according to its threshold function and an input value.
+	/// @param value Input value.
 	void evaluate(float value);
 	
-	/**
-	 * Publishes an action active event if the action is active.
-	 */
+	/// Publishes an action active event if the action is active.
 	void update() const;
 	
-	/**
-	 * Resets the activation state of the action without publishing any events.
-	 */
+	/// Resets the activation state of the action without publishing any events.
 	void reset() noexcept;
 	
 	/// Returns the threshold function.

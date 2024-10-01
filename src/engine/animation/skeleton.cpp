@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/animation/skeleton.hpp>
@@ -64,14 +64,10 @@ void skeleton::rename(const std::string& name)
 	m_name = name;
 }
 
-/**
- * Deserializes a skeleton.
- *
- * @param[out] skeleton Skeleton to deserialize.
- * @param[in,out] ctx Deserialize context.
- *
- * @throw deserialize_error Read error.
- */
+/// Deserializes a skeleton.
+/// @param[out] skeleton Skeleton to deserialize.
+/// @param[in,out] ctx Deserialize context.
+/// @throw deserialize_error Read error.
 template <>
 void deserializer<skeleton>::deserialize(skeleton& skeleton, deserialize_context& ctx)
 {

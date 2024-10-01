@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_LIGHT_BLACKBODY_HPP
@@ -10,76 +10,55 @@
 namespace physics {
 namespace light {
 
-/**
- * Blackbody radiation functions.
- *
- * @see https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law
- */
+/// Blackbody radiation functions.
+/// @see https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law
 namespace blackbody {
 
-/**
- * Calculates the radiant exitance of a blackbody.
- *
- * @param t Temperature of the blackbody, in kelvin.
- * @return Radiant exitance of the blackbody, in watt per square meter.
- */
+/// Calculates the radiant exitance of a blackbody.
+/// @param t Temperature of the blackbody, in kelvin.
+/// @return Radiant exitance of the blackbody, in watt per square meter.
 template <class T>
 T radiant_exitance(T t);
 
-/**
- * Calculates the radiant flux of a blackbody.
- *
- * @param t Temperature of the blackbody, in kelvin.
- * @param a Surface area of the blackbody, in square meters.
- * @return Radiant flux of the blackbody, in watt.
- */
+/// Calculates the radiant flux of a blackbody.
+/// @param t Temperature of the blackbody, in kelvin.
+/// @param a Surface area of the blackbody, in square meters.
+/// @return Radiant flux of the blackbody, in watt.
 template <class T>
 T radiant_flux(T t, T a);
 
-/**
- * Calculates the radiant intensity of a blackbody.
- *
- * @param t Temperature of the blackbody, in kelvin.
- * @param a Surface area of the blackbody, in square meters.
- * @param omega Solid angle, in steradians.
- * @return Radiant intensity of the blackbody, in watt per steradian.
- */
+/// Calculates the radiant intensity of a blackbody.
+/// @param t Temperature of the blackbody, in kelvin.
+/// @param a Surface area of the blackbody, in square meters.
+/// @param omega Solid angle, in steradians.
+/// @return Radiant intensity of the blackbody, in watt per steradian.
 template <class T>
 T radiant_intensity(T t, T a, T omega);
 
-/**
- * Calculates the spectral flux of a blackbody for the given wavelength.
- *
- * @param t Temperature of the blackbody, in kelvin.
- * @param a Surface area of the blackbody, in square meters.
- * @param lambda Wavelength of light, in meters.
- * @param c Speed of light in medium.
- * @return Spectral flux of the blackbody, in watt per meter.
- */
+/// Calculates the spectral flux of a blackbody for the given wavelength.
+/// @param t Temperature of the blackbody, in kelvin.
+/// @param a Surface area of the blackbody, in square meters.
+/// @param lambda Wavelength of light, in meters.
+/// @param c Speed of light in medium.
+/// @return Spectral flux of the blackbody, in watt per meter.
 template <class T>
 T spectral_flux(T t, T a, T lambda, T c = constants::speed_of_light<T>);
 
-/**
- * Calculates the spectral intensity of a blackbody for the given wavelength.
- *
- * @param t Temperature of the blackbody, in kelvin.
- * @param a Surface area of the blackbody, in square meters.
- * @param lambda Wavelength of light, in meters.
- * @param omega Solid angle, in steradians.
- * @param c Speed of light in medium.
- * @return Spectral intensity of the blackbody for the given wavelength, in watt per steradian per meter.
- */
+/// Calculates the spectral intensity of a blackbody for the given wavelength.
+/// @param t Temperature of the blackbody, in kelvin.
+/// @param a Surface area of the blackbody, in square meters.
+/// @param lambda Wavelength of light, in meters.
+/// @param omega Solid angle, in steradians.
+/// @param c Speed of light in medium.
+/// @return Spectral intensity of the blackbody for the given wavelength, in watt per steradian per meter.
 template <class T>
 T spectral_intensity(T t, T a, T lambda, T omega, T c = constants::speed_of_light<T>);
 
-/**
- * Calculates the spectral radiance of a blackbody for the given wavelength.
- *
- * @param t Temperature of the blackbody, in kelvin.
- * @param lambda Wavelength of light, in meters.
- * @param c Speed of light in medium.
- * @return Spectral radiance, in watt per steradian per square meter per meter.
- */
+/// Calculates the spectral radiance of a blackbody for the given wavelength.
+/// @param t Temperature of the blackbody, in kelvin.
+/// @param lambda Wavelength of light, in meters.
+/// @param c Speed of light in medium.
+/// @return Spectral radiance, in watt per steradian per square meter per meter.
 template <class T>
 T spectral_radiance(T t, T lambda, T c = constants::speed_of_light<T>);
 

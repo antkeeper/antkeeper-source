@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_EVENT_DISPATCHER_HPP
@@ -14,25 +14,17 @@
 
 namespace event {
 
-/**
- * Forwards messages from publishers to subscribers.
- */
+/// Forwards messages from publishers to subscribers.
 class dispatcher
 {
 public:
-	/** Destructs a dispatcher. */
+	/// Destructs a dispatcher.
 	virtual ~dispatcher() = default;
 	
-	/**
-	 * Subscribes a function object to messages dispatched by this dispatcher.
-	 *
-	 * @tparam T Message type.
-	 *
-	 * @param subscriber Function object to subscribe.
-	 *
-	 * @return Shared subscription object which will unsubscribe the subscriber on destruction.
-	 *
-	 */
+	/// Subscribes a function object to messages dispatched by this dispatcher.
+	/// @tparam T Message type.
+	/// @param subscriber Function object to subscribe.
+	/// @return Shared subscription object which will unsubscribe the subscriber on destruction.
 	template <class T>
 	[[nodiscard]] std::shared_ptr<subscription> subscribe(subscriber<T>&& subscriber)
 	{
@@ -53,13 +45,9 @@ public:
 		);
 	}
 	
-	/**
-	 * Dispatches a message to subscribers of the message type.
-	 *
-	 * @tparam T Message type.
-	 *
-	 * @param message Message to dispatch.
-	 */
+	/// Dispatches a message to subscribers of the message type.
+	/// @tparam T Message type.
+	/// @param message Message to dispatch.
 	template <class T>
 	void dispatch(const T& message) const
 	{

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_INPUT_MODIFIER_KEY_HPP
@@ -8,9 +8,7 @@
 
 namespace input {
 
-/**
- * Modifier key bit mask flags.
- */
+/// Modifier key bit mask flags.
 namespace modifier_key {
 
 /// Modifier key bit flags.

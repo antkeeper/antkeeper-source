@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_GAS_ATMOSPHERE_HPP
@@ -15,16 +15,12 @@ namespace gas {
 /// Atmosphere-related functions.
 namespace atmosphere {
 
-/**
- * Calculates a particle polarizability factor.
- *
- * @param ior Atmospheric index of refraction.
- * @param density Molecular number density, in mol/m-3.
- * @return Polarizability factor.
- *
- * @see Elek, O., & Kmoch, P. (2010). Real-time spectral scattering in large-scale natural participating media. Proceedings of the 26th Spring Conference on Computer Graphics - SCCG ’10. doi:10.1145/1925059.1925074
- * @see Elek, Oskar. (2009). Rendering Parametrizable Planetary Atmospheres with Multiple Scattering in Real-Time.
- */
+/// Calculates a particle polarizability factor.
+/// @param ior Atmospheric index of refraction.
+/// @param density Molecular number density, in mol/m-3.
+/// @return Polarizability factor.
+/// @see Elek, O., & Kmoch, P. (2010). Real-time spectral scattering in large-scale natural participating media. Proceedings of the 26th Spring Conference on Computer Graphics - SCCG ’10. doi:10.1145/1925059.1925074
+/// @see Elek, Oskar. (2009). Rendering Parametrizable Planetary Atmospheres with Multiple Scattering in Real-Time.
 template <class T>
 T polarization(T ior, T density)
 {
@@ -35,20 +31,14 @@ T polarization(T ior, T density)
 	return num / den;
 }
 
-/**
- * Calculates a wavelength-dependent scattering coefficient.
- *
- * @param density Molecular number density of the particles, in mol/m-3.
- * @param polarization Particle polarizability factor.
- * @param wavelength Wavelength of light, in meters.
- *
- * @return Scattering coefficient.
- *
- * @see atmosphere::polarization
- *
- * @see Elek, O., & Kmoch, P. (2010). Real-time spectral scattering in large-scale natural participating media. Proceedings of the 26th Spring Conference on Computer Graphics - SCCG ’10. doi:10.1145/1925059.1925074
- * @see Elek, Oskar. (2009). Rendering Parametrizable Planetary Atmospheres with Multiple Scattering in Real-Time.
- */
+/// Calculates a wavelength-dependent scattering coefficient.
+/// @param density Molecular number density of the particles, in mol/m-3.
+/// @param polarization Particle polarizability factor.
+/// @param wavelength Wavelength of light, in meters.
+/// @return Scattering coefficient.
+/// @see atmosphere::polarization
+/// @see Elek, O., & Kmoch, P. (2010). Real-time spectral scattering in large-scale natural participating media. Proceedings of the 26th Spring Conference on Computer Graphics - SCCG ’10. doi:10.1145/1925059.1925074
+/// @see Elek, Oskar. (2009). Rendering Parametrizable Planetary Atmospheres with Multiple Scattering in Real-Time.
 template <class T>
 T scattering(T density, T polarization, T wavelength)
 {
@@ -56,67 +46,48 @@ T scattering(T density, T polarization, T wavelength)
 	return math::four_pi<T> * (density / (wavelength2 * wavelength2)) * polarization;
 }
 
-/**
- * Calculates a wavelength-independent scattering coefficient.
- *
- * @param density Molecular number density of the particles, in mol/m-3.
- * @param polarization Particle polarizability factor.
- *
- * @return Scattering coefficient.
- *
- * @see atmosphere::polarization
- *
- * @see Elek, O., & Kmoch, P. (2010). Real-time spectral scattering in large-scale natural participating media. Proceedings of the 26th Spring Conference on Computer Graphics - SCCG ’10. doi:10.1145/1925059.1925074
- * @see Elek, Oskar. (2009). Rendering Parametrizable Planetary Atmospheres with Multiple Scattering in Real-Time.
- */
+/// Calculates a wavelength-independent scattering coefficient.
+/// @param density Molecular number density of the particles, in mol/m-3.
+/// @param polarization Particle polarizability factor.
+/// @return Scattering coefficient.
+/// @see atmosphere::polarization
+/// @see Elek, O., & Kmoch, P. (2010). Real-time spectral scattering in large-scale natural participating media. Proceedings of the 26th Spring Conference on Computer Graphics - SCCG ’10. doi:10.1145/1925059.1925074
+/// @see Elek, Oskar. (2009). Rendering Parametrizable Planetary Atmospheres with Multiple Scattering in Real-Time.
 template <class T>
 T scattering(T density, T polarization)
 {
 	return math::four_pi<T> * density * polarization;
 }
 
-/**
- * Calculates an absorption coefficient.
- *
- * @param scattering Scattering coefficient.
- * @param albedo Single-scattering albedo.
- *
- * @return Absorption coefficient.
- *
- * @see https://en.wikipedia.org/wiki/Single-scattering_albedo
- */
+/// Calculates an absorption coefficient.
+/// @param scattering Scattering coefficient.
+/// @param albedo Single-scattering albedo.
+/// @return Absorption coefficient.
+/// @see https://en.wikipedia.org/wiki/Single-scattering_albedo
 template <class T>
 T absorption(T scattering, T albedo)
 {
 	return scattering * (T(1) / albedo - T(1));
 }
 
-/**
- * Calculates an extinction coefficient.
- *
- * @param scattering Scattering coefficient.
- * @param albedo Single-scattering albedo.
- *
- * @return Extinction coefficient.
- *
- * @see https://en.wikipedia.org/wiki/Single-scattering_albedo
- */
+/// Calculates an extinction coefficient.
+/// @param scattering Scattering coefficient.
+/// @param albedo Single-scattering albedo.
+/// @return Extinction coefficient.
+/// @see https://en.wikipedia.org/wiki/Single-scattering_albedo
 template <class T>
 T extinction(T scattering, T albedo)
 {
 	return scattering / albedo;
 }
 
-/**
- * Approximates the optical depth of exponentially-distributed atmospheric particles between two points using the trapezoidal rule.
- *
- * @param a Start point.
- * @param b End point.
- * @param r Radius of the planet.
- * @param sh Scale height of the atmospheric particles.
- * @param n Number of samples.
- * @return Optical depth between @p a and @p b.
- */
+/// Approximates the optical depth of exponentially-distributed atmospheric particles between two points using the trapezoidal rule.
+/// @param a Start point.
+/// @param b End point.
+/// @param r Radius of the planet.
+/// @param sh Scale height of the atmospheric particles.
+/// @param n Number of samples.
+/// @return Optical depth between @p a and @p b.
 template <class T>
 T optical_depth_exp(const math::vec3<T>& a, const math::vec3<T>& b, T r, T sh, std::size_t n)
 {
@@ -142,18 +113,15 @@ T optical_depth_exp(const math::vec3<T>& a, const math::vec3<T>& b, T r, T sh, s
 	return sum / T(2) * h;
 }
 
-/**
- * Approximates the optical depth of triangularly-distributed atmospheric particles between two points using the trapezoidal rule.
- *
- * @param p0 Start point.
- * @param p1 End point.
- * @param r Radius of the planet.
- * @param a Distribution lower limit.
- * @param b Distribution upper limit.
- * @param c Distribution upper mode.
- * @param n Number of samples.
- * @return Optical depth between @p a and @p b.
- */
+/// Approximates the optical depth of triangularly-distributed atmospheric particles between two points using the trapezoidal rule.
+/// @param p0 Start point.
+/// @param p1 End point.
+/// @param r Radius of the planet.
+/// @param a Distribution lower limit.
+/// @param b Distribution upper limit.
+/// @param c Distribution upper mode.
+/// @param n Number of samples.
+/// @return Optical depth between @p a and @p b.
 template <class T>
 T optical_depth_tri(const math::vec3<T>& p0, const math::vec3<T>& p1, T r, T a, T b, T c, std::size_t n)
 {
@@ -189,37 +157,27 @@ T optical_depth_tri(const math::vec3<T>& p0, const math::vec3<T>& p1, T r, T a, 
 /// Atmospheric density functions.
 namespace density {
 
-	/**
-	 * Calculates the density of exponentially-distributed atmospheric particles at a given elevation.
-	 *
-	 * @param d0 Density at sea level.
-	 * @param z Height above sea level.
-	 * @param sh Scale height of the particle type.
-	 *
-	 * @return Particle density at elevation @p z.
-	 *
-	 * @see https://en.wikipedia.org/wiki/Barometric_formula
-	 * @see https://en.wikipedia.org/wiki/Scale_height
-	 */
+	/// Calculates the density of exponentially-distributed atmospheric particles at a given elevation.
+	/// @param d0 Density at sea level.
+	/// @param z Height above sea level.
+	/// @param sh Scale height of the particle type.
+	/// @return Particle density at elevation @p z.
+	/// @see https://en.wikipedia.org/wiki/Barometric_formula
+	/// @see https://en.wikipedia.org/wiki/Scale_height
 	template <class T>
 	T exponential(T d0, T z, T sh)
 	{
 		return d0 * std::exp(-z / sh);
 	}
 	
-	/**
-	 * Calculates the density of triangularly-distributed atmospheric particles at a given elevation.
-	 *
-	 * @param d0 Density at sea level.
-	 * @param z Height above sea level.
-	 * @param a Distribution lower limit.
-	 * @param b Distribution upper limit.
-	 * @param c Distribution mode.
-	 *
-	 * @return Particle density at elevation @p z.
-	 *
-	 * @see https://en.wikipedia.org/wiki/Triangular_distribution
-	 */
+	/// Calculates the density of triangularly-distributed atmospheric particles at a given elevation.
+	/// @param d0 Density at sea level.
+	/// @param z Height above sea level.
+	/// @param a Distribution lower limit.
+	/// @param b Distribution upper limit.
+	/// @param c Distribution mode.
+	/// @return Particle density at elevation @p z.
+	/// @see https://en.wikipedia.org/wiki/Triangular_distribution
 	template <class T>
 	T triangular(T d0, T z, T a, T b, T c)
 	{

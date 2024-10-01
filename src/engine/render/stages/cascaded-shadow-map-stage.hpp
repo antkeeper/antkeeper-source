@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_RENDER_CASCADED_SHADOW_MAP_STAGE_HPP
@@ -17,32 +17,23 @@
 
 namespace render {
 
-/**
- * Renders cascaded shadow maps for directional lights.
- */
+/// Renders cascaded shadow maps for directional lights.
 class cascaded_shadow_map_stage: public stage
 {
 public:
-	/**
-	 * Constructs a cascaded shadow map stage.
-	 *
-	 * @param pipeline Graphics pipeline.
-	 * @param resource_manager Resource manager for loading shader templates.
-	 */
+	/// Constructs a cascaded shadow map stage.
+	/// @param pipeline Graphics pipeline.
+	/// @param resource_manager Resource manager for loading shader templates.
 	cascaded_shadow_map_stage(gl::pipeline& pipeline, ::resource_manager& resource_manager);
 	
-	/** Destructs a cascaded shadow map stage. */
+	/// Destructs a cascaded shadow map stage.
 	~cascaded_shadow_map_stage() override = default;
 	
 	void execute(render::context& ctx) override;
 	
-	/**
-	 * Sets the maximum bone count for shadow-casting skeletal meshes.
-	 *
-	 * @param bone_count Max bone count.
-	 *
-	 * @warning Triggers rebuilding of skeletal mesh shader.
-	 */
+	/// Sets the maximum bone count for shadow-casting skeletal meshes.
+	/// @param bone_count Max bone count.
+	/// @warning Triggers rebuilding of skeletal mesh shader.
 	void set_max_bone_count(std::size_t bone_count);
 	
 	/// Returns the maximum bone count for shadow-casting skeletal meshes.
@@ -52,17 +43,12 @@ public:
 	}
 
 private:
-	/**
-	 * Queues render operations of objects that may cast shadows visible to the current camera.
-	 */
+	/// Queues render operations of objects that may cast shadows visible to the current camera.
 	void queue(render::context& ctx, scene::directional_light& light, const math::fmat4& light_view_projection);
 	
-	/**
-	 * Renders an atlas of cascaded shadow maps for a single directional light.
-	 *
-	 * @param light Shadow-casting directional light.
-	 * @param ctx Render context.
-	 */
+	/// Renders an atlas of cascaded shadow maps for a single directional light.
+	/// @param light Shadow-casting directional light.
+	/// @param ctx Render context.
 	void render_shadow_atlas(render::context& ctx, scene::directional_light& light);
 	
 	/// Rebuilds the shader program for static meshes.

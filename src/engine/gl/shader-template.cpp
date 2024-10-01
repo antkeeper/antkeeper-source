@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/gl/shader-template.hpp>
@@ -233,13 +233,9 @@ bool shader_template::has_define_directive(const std::string& key) const
 
 } // namespace gl
 
-/**
- * Scans a text file for the presence of a `#pragma once` directive.
- *
- * @param source Text file to scan.
- *
- * @return `true` if the file contains a `#pragma once` directive, `false` otherwise.
- */
+/// Scans a text file for the presence of a `#pragma once` directive.
+/// @param source Text file to scan.
+/// @return `true` if the file contains a `#pragma once` directive, `false` otherwise.
 static bool has_pragma_once(const text_file& source)
 {
 	for (const auto& line: source.lines)
@@ -260,9 +256,7 @@ static bool has_pragma_once(const text_file& source)
 	return false;
 }
 
-/**
- * Handles `#pragma include` directives by loading the specified text files and inserting them in place.
- */
+/// Handles `#pragma include` directives by loading the specified text files and inserting them in place.
 static void handle_includes(std::vector<std::shared_ptr<text_file>>& include_files, text_file& source, std::unordered_set<std::filesystem::path>& include_once, resource_manager& resource_manager)
 {
 	// For each line in the source

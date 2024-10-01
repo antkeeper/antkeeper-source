@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GENETICS_PROTEIN_HPP
@@ -12,34 +12,26 @@ namespace genetics {
 /// Functions which operate on sequences of IUPAC amino acid symbols.
 namespace protein {
 
-/**
- * Returns the percent identity between two proteins.
- *
- * @param first1,last1 Range of IUPAC amino acids which constitute the first protein.
- * @param first2 Beginning of the range of IUPAC amino acids which constitute the second protein.
- * @return Percent identity between the two proteins.
- */
+/// Returns the percent identity between two proteins.
+/// @param first1,last1 Range of IUPAC amino acids which constitute the first protein.
+/// @param first2 Beginning of the range of IUPAC amino acids which constitute the second protein.
+/// @return Percent identity between the two proteins.
 template <class T, class ForwardIt1, class ForwardIt2>
 T identity(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2);
 
-/**
- * Scores two proteins using a substitution matrix.
- *
- * @param first1,last1 Range of IUPAC amino acid codes which constitute the first protein.
- * @param first2 Beginning of the range of IUPAC amino acid codes which constitute the second protein.
- * @param matrix Substitution matrix.
- * @return Score of the two proteins.
- */
+/// Scores two proteins using a substitution matrix.
+/// @param first1,last1 Range of IUPAC amino acid codes which constitute the first protein.
+/// @param first2 Beginning of the range of IUPAC amino acid codes which constitute the second protein.
+/// @param matrix Substitution matrix.
+/// @return Score of the two proteins.
 template <class ForwardIt1, class ForwardIt2, class Matrix>
 typename std::remove_all_extents<Matrix>::type score(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2, const Matrix& matrix);
 
-/**
- * Returns the percent similarity between two proteins.
- *
- * @param first1,last1 Range of IUPAC amino acids which constitute the first protein.
- * @param first2 Beginning of the range of IUPAC amino acids which constitute the second protein.
- * @return Percent similarity between the two proteins.
- */
+/// Returns the percent similarity between two proteins.
+/// @param first1,last1 Range of IUPAC amino acids which constitute the first protein.
+/// @param first2 Beginning of the range of IUPAC amino acids which constitute the second protein.
+/// @param matrix Substitution matrix.
+/// @return Percent similarity between the two proteins.
 template <class T, class ForwardIt1, class ForwardIt2, class Matrix>
 typename T similarity(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2, const Matrix& matrix);
 

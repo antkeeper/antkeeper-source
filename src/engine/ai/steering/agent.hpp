@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_AI_STEERING_AGENT_HPP
@@ -10,9 +10,7 @@
 namespace ai {
 namespace steering {
 
-/**
- * Autonomous agent governed by steering behaviors.
- */
+/// Autonomous agent governed by steering behaviors.
 struct agent
 {
 	/// Mass of the agent.

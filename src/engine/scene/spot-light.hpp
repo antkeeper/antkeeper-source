@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_SCENE_SPOT_LIGHT_HPP
@@ -10,13 +10,11 @@
 
 namespace scene {
 
-/**
- * Directional cone light source.
- */
+/// Directional cone light source.
 class spot_light: public light
 {
 public:
-	/** Destructs a spot light. */
+	/// Destructs a spot light.
 	~spot_light() override = default;
 	
 	/// Returns light_type::spot.
@@ -25,11 +23,8 @@ public:
 		return light_type::spot;
 	}
 	
-	/**
-	 * Sets the luminous flux of the spot light.
-	 *
-	 * @param luminous_flux Luminous flux, in *lm*.
-	 */
+	/// Sets the luminous flux of the spot light.
+	/// @param luminous_flux Luminous flux, in *lm*.
 	inline void set_luminous_flux(const math::fvec3& luminous_flux) noexcept
 	{
 		m_luminous_flux = luminous_flux;
@@ -41,11 +36,8 @@ public:
 		return m_luminous_flux;
 	}
 	
-	/**
-	 * Sets the spot light cutoff angles.
-	 *
-	 * @param cutoff Vector containing the inner and outer cutoff angles, as x and y, respectively.
-	 */
+	/// Sets the spot light cutoff angles.
+	/// @param cutoff Vector containing the inner and outer cutoff angles, as x and y, respectively.
 	void set_cutoff(const math::fvec2& cutoff);
 	
 	/// Returns the direction vector.

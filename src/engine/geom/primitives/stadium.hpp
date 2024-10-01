@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_PRIMITIVES_STADIUM_HPP
@@ -9,11 +9,8 @@
 namespace geom {
 namespace primitives {
 
-/**
- * 2-dimensional capsule.
- *
- * @tparam T Real type.
- */
+/// 2-dimensional capsule.
+/// @tparam T Real type.
 template <class T>
 using stadium = hypercapsule<T, 2>;
 

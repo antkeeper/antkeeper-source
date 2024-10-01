@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_IMAGE_HPP
@@ -14,13 +14,11 @@
 
 namespace gl {
 
-/**
- * 
- */
+/// Image base class.
 class image
 {
 public:
-	/** Destructs an image. */
+	/// Destructs an image.
 	virtual ~image() = 0;
 	
 	image(const image&) = delete;
@@ -28,22 +26,18 @@ public:
 	image& operator=(const image&) = delete;
 	image& operator=(image&&) = delete;
 	
-	/**
-	 * Reads pixel data from the image.
-	 *
-	 * @param mip_level Level-of-detail number. Level `0` is the base image level. Level `n` is the nth mipmap reduction image.
-	 * @param offset_x Texel offset in the X-direction.
-	 * @param offset_y Texel offset in the Y-direction.
-	 * @param offset_z Texel offset in the Z-direction.
-	 * @param width Width of the subimage.
-	 * @param height Height of the subimage.
-	 * @param depth Depth of the subimage.
-	 * @param format Format of the image data.
-	 * @param data Buffer into which image data will be read.
-	 *
-	 * @exception std::out_of_range Image read operation mip level out of range.
-	 * @exception std::invalid_argument Image read operation used unsupported format.
-	 */
+	/// Reads pixel data from the image.
+	/// @param mip_level Level-of-detail number. Level `0` is the base image level. Level `n` is the nth mipmap reduction image.
+	/// @param offset_x Texel offset in the X-direction.
+	/// @param offset_y Texel offset in the Y-direction.
+	/// @param offset_z Texel offset in the Z-direction.
+	/// @param width Width of the subimage.
+	/// @param height Height of the subimage.
+	/// @param depth Depth of the subimage.
+	/// @param format Format of the image data.
+	/// @param data Buffer into which image data will be read.
+	/// @exception std::out_of_range Image read operation mip level out of range.
+	/// @exception std::invalid_argument Image read operation used unsupported format.
 	void read
 	(
 		std::uint32_t mip_level,
@@ -57,23 +51,19 @@ public:
 		std::span<std::byte> data
 	) const;
 	
-	/**
-	 * Writes pixel data to the image.
-	 *
-	 * @param mip_level Level-of-detail number. Level `0` is the base image level. Level `n` is the nth mipmap reduction image.
-	 * @param offset_x Texel offset in the X-direction.
-	 * @param offset_y Texel offset in the Y-direction.
-	 * @param offset_z Texel offset in the Z-direction.
-	 * @param width Width of the subimage.
-	 * @param height Height of the subimage.
-	 * @param depth Depth of the subimage.
-	 * @param format Format of the image data.
-	 * @param data Image data to write.
-	 *
-	 * @exception std::out_of_range Image write operation mip level out of range.
-	 * @exception std::invalid_argument Image write operation used unsupported format.
-	 * @exception std::out_of_range Image write operation exceeded image bounds.
-	 */
+	/// Writes pixel data to the image.
+	/// @param mip_level Level-of-detail number. Level `0` is the base image level. Level `n` is the nth mipmap reduction image.
+	/// @param offset_x Texel offset in the X-direction.
+	/// @param offset_y Texel offset in the Y-direction.
+	/// @param offset_z Texel offset in the Z-direction.
+	/// @param width Width of the subimage.
+	/// @param height Height of the subimage.
+	/// @param depth Depth of the subimage.
+	/// @param format Format of the image data.
+	/// @param data Image data to write.
+	/// @exception std::out_of_range Image write operation mip level out of range.
+	/// @exception std::invalid_argument Image write operation used unsupported format.
+	/// @exception std::out_of_range Image write operation exceeded image bounds.
 	void write
 	(
 		std::uint32_t mip_level,
@@ -87,22 +77,19 @@ public:
 		std::span<const std::byte> data
 	);
 	
-	/**
-	 * Copies pixel data from this image into another the image.
-	 *
-	 * @param src_mip_level Source image level-of-detail number. Level `0` is the base image level. Level `n` is the nth mipmap reduction image.
-	 * @param src_x Source image texel offset in the X-direction.
-	 * @param src_y Source image texel offset in the Y-direction.
-	 * @param src_z Source image texel offset in the Z-direction.
-	 * @param dst_image Destination image.
-	 * @param dst_mip_level Destination image level-of-detail number. Level `0` is the base image level. Level `n` is the nth mipmap reduction image.
-	 * @param dst_x Destination image texel offset in the X-direction.
-	 * @param dst_y Destination image texel offset in the Y-direction.
-	 * @param dst_z Destination image texel offset in the Z-direction.
-	 * @param width Width of the subimage to copy.
-	 * @param height Height of the subimage to copy.
-	 * @param depth Depth of the subimage to copy.
-	 */
+	/// Copies pixel data from this image into another the image.
+	/// @param src_mip_level Source image level-of-detail number. Level `0` is the base image level. Level `n` is the nth mipmap reduction image.
+	/// @param src_x Source image texel offset in the X-direction.
+	/// @param src_y Source image texel offset in the Y-direction.
+	/// @param src_z Source image texel offset in the Z-direction.
+	/// @param dst_image Destination image.
+	/// @param dst_mip_level Destination image level-of-detail number. Level `0` is the base image level. Level `n` is the nth mipmap reduction image.
+	/// @param dst_x Destination image texel offset in the X-direction.
+	/// @param dst_y Destination image texel offset in the Y-direction.
+	/// @param dst_z Destination image texel offset in the Z-direction.
+	/// @param width Width of the subimage to copy.
+	/// @param height Height of the subimage to copy.
+	/// @param depth Depth of the subimage to copy.
 	void copy
 	(
 		std::uint32_t src_mip_level,
@@ -119,9 +106,7 @@ public:
 		std::uint32_t depth
 	) const;
 	
-	/**
-	 * Generates mip subimages.
-	 */
+	/// Generates mip subimages.
 	void generate_mipmaps();
 	
 	/// Returns the dimensionality of the image.
@@ -185,30 +170,26 @@ public:
 	}
 	
 protected:
-	/**
-	 * Constructs an image.
-	 *
-	 * @param dimensionality Image dimensionality, on `[1, 3]`.
-	 * @param format Format and type of the texel blocks that will be contained in the image.
-	 * @param width Width of the image.
-	 * @param height Height of the image.
-	 * @param depth Depth of the image.
-	 * @param mip_levels Number of levels of detail available for minified sampling of the image.
-	 * @param array_layers Number of layers in the image.
-	 * @param flags Image flags.
-	 *
-	 * @exception std::invalid_argument Image constructed with unsupported format.
-	 * @exception std::invalid_argument Image dimensions must be nonzero.
-	 * @exception std::invalid_argument Image mip levels must be nonzero.
-	 * @exception std::out_of_range Image mip levels exceed `1 + log2(max(width, height, depth))`.
-	 * @exception std::invalid_argument Image array layers must be nonzero.
-	 * @exception std::invalid_argument 1D image must have a height and depth of `1`.
-	 * @exception std::invalid_argument 2D image must have a depth of `1`.
-	 * @exception std::invalid_argument 3D image arrays not supported.
-	 * @exception std::invalid_argument Cube compatible image must be 2D.
-	 * @exception std::invalid_argument Cube compatible image width and height must be equal.
-	 * @exception std::invalid_argument Cube compatible image array layers must be a multiple of 6.
-	 */
+	/// Constructs an image.
+	/// @param dimensionality Image dimensionality, on `[1, 3]`.
+	/// @param format Format and type of the texel blocks that will be contained in the image.
+	/// @param width Width of the image.
+	/// @param height Height of the image.
+	/// @param depth Depth of the image.
+	/// @param mip_levels Number of levels of detail available for minified sampling of the image.
+	/// @param array_layers Number of layers in the image.
+	/// @param flags Image flags.
+	/// @exception std::invalid_argument Image constructed with unsupported format.
+	/// @exception std::invalid_argument Image dimensions must be nonzero.
+	/// @exception std::invalid_argument Image mip levels must be nonzero.
+	/// @exception std::out_of_range Image mip levels exceed `1 + log2(max(width, height, depth))`.
+	/// @exception std::invalid_argument Image array layers must be nonzero.
+	/// @exception std::invalid_argument 1D image must have a height and depth of `1`.
+	/// @exception std::invalid_argument 2D image must have a depth of `1`.
+	/// @exception std::invalid_argument 3D image arrays not supported.
+	/// @exception std::invalid_argument Cube compatible image must be 2D.
+	/// @exception std::invalid_argument Cube compatible image width and height must be equal.
+	/// @exception std::invalid_argument Cube compatible image array layers must be a multiple of 6.
 	image
 	(
 		std::uint8_t dimensionality,
@@ -234,9 +215,7 @@ private:
 	friend class image_view;
 };
 
-/**
- * 1D image.
- */
+/// 1D image.
 class image_1d: public image
 {
 public:
@@ -250,13 +229,11 @@ public:
 		std::uint32_t flags = 0
 	);
 	
-	/** Destructs a 1D image. */
+	/// Destructs a 1D image.
 	~image_1d() override = default;
 };
 
-/**
- * 2D image.
- */
+/// 2D image.
 class image_2d: public image
 {
 public:
@@ -271,13 +248,11 @@ public:
 		std::uint32_t flags = 0
 	);
 	
-	/** Destructs a 2D image. */
+	/// Destructs a 2D image.
 	~image_2d() override = default;
 };
 
-/**
- * 3D image.
- */
+/// 3D image.
 class image_3d: public image
 {
 public:
@@ -292,13 +267,11 @@ public:
 		std::uint32_t flags = 0
 	);
 	
-	/** Destructs a 3D image. */
+	/// Destructs a 3D image.
 	 ~image_3d() override = default;
 };
 
-/**
- * Cube-compatible 2D image.
- */
+/// Cube-compatible 2D image.
 class image_cube: public image_2d
 {
 public:
@@ -311,7 +284,7 @@ public:
 		std::uint32_t array_layers = 6
 	);
 	
-	/** Destructs a cube image. */
+	/// Destructs a cube image.
 	~image_cube() override = default;
 };
 

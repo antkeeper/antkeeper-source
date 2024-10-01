@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_NEST_COMPONENT_HPP
@@ -6,7 +6,6 @@
 
 #include <vector>
 #include <engine/entity/id.hpp>
-
 
 struct nest_component
 {
@@ -16,6 +15,5 @@ struct nest_component
 	float helix_chirality;
 	float helix_turns;
 };
-
 
 #endif // ANTKEEPER_GAME_NEST_COMPONENT_HPP

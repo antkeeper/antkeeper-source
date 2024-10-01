@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_BLACKBODY_SYSTEM_HPP
@@ -11,9 +11,7 @@
 #include "game/components/blackbody-component.hpp"
 #include <vector>
 
-/**
- * Calculates the color and luminance of blackbody radiators.
- */
+/// Calculates the color and luminance of blackbody radiators.
 class blackbody_system:
 	public updatable_system
 {

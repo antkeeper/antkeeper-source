@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_EVENT_CHANNEL_HPP
@@ -18,28 +18,21 @@ namespace event {
 template <class T>
 class publisher;
 
-/**
- * Channel through which messages are published.
- *
- * @tparam T Message type.
- */
+/// Channel through which messages are published.
+/// @tparam T Message type.
 template <class T>
 class channel
 {
 public:
-	/** Message type. */
+	/// Message type.
 	using message_type = T;
 	
-	/** Subscriber function object type. */
+	/// Subscriber function object type.
 	using subscriber_type = subscriber<message_type>;
 	
-	/**
-	 * Subscribes a function object to messages published through this channel.
-	 *
-	 * @param subscriber Subscriber function object which will received published messages.
-	 *
-	 * @return Shared subscription object which will unsubscribe the subscriber on destruction.
-	 */
+	/// Subscribes a function object to messages published through this channel.
+	/// @param subscriber Subscriber function object which will received published messages.
+	/// @return Shared subscription object which will unsubscribe the subscriber on destruction.
 	[[nodiscard]] std::shared_ptr<subscription> subscribe(subscriber_type&& subscriber)
 	{
 		// Construct shared pointer to subscriber function
@@ -59,13 +52,9 @@ public:
 		);
 	}
 	
-	/**
-	 * Subscribes a message dispatcher to messages published through this channel.
-	 *
-	 * @param dispatcher Message dispatcher which will received published messages.
-	 *
-	 * @return Shared subscription object which will unsubscribe the queue on destruction.
-	 */
+	/// Subscribes a message dispatcher to messages published through this channel.
+	/// @param dispatcher Message dispatcher which will receive published messages.
+	/// @return Shared subscription object which will unsubscribe the queue on destruction.
 	[[nodiscard]] std::shared_ptr<subscription> subscribe(event::dispatcher& dispatcher)
 	{
 		return subscribe
@@ -77,13 +66,9 @@ public:
 		);
 	}
 	
-	/**
-	 * Subscribes a message queue to messages published through this channel.
-	 *
-	 * @param queue Message queue which will received published messages.
-	 *
-	 * @return Shared subscription object which will unsubscribe the queue on destruction.
-	 */
+	/// Subscribes a message queue to messages published through this channel.
+	/// @param queue Message queue which will receive published messages.
+	/// @return Shared subscription object which will unsubscribe the queue on destruction.
 	[[nodiscard]] std::shared_ptr<subscription> subscribe(event::queue& queue)
 	{
 		return subscribe

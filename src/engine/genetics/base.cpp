@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/genetics/base.hpp>
@@ -6,12 +6,9 @@
 namespace genetics {
 namespace base {
 
-/**
- * Decodes an IUPAC degenerate base symbol into a bit mask representing the possible bases represented by the symbol.
- *
- * @param symbol IUPAC degenerate base symbol.
- * @return Bit mask representing the possible bases represented by the symbol.
- */
+/// Decodes an IUPAC degenerate base symbol into a bit mask representing the possible bases represented by the symbol.
+/// @param symbol IUPAC degenerate base symbol.
+/// @return Bit mask representing the possible bases represented by the symbol.
 static inline unsigned char decode(char symbol)
 {
 	static constexpr unsigned char bases[25] =

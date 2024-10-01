@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_INPUT_MOUSE_HPP
@@ -13,42 +13,28 @@
 
 namespace input {
 
-/**
- * A virtual mouse which generates mouse-related input events.
- */
+/// A virtual mouse which generates mouse-related input events.
 class mouse: public device
 {
 public:
-	/** Destructs a mouse. */
+	/// Destructs a mouse.
 	~mouse() override = default;
 	
-	/**
-	 * Simulates a mouse button press.
-	 *
-	 * @param button Button to press.
-	 */
+	/// Simulates a mouse button press.
+	/// @param button Button to press.
 	void press(mouse_button button);
 	
-	/**
-	 * Simulates a mouse button release.	
-	 *
-	 * @param button Button to release.
-	 */
+	/// Simulates a mouse button release.	
+	/// @param button Button to release.
 	void release(mouse_button button);
 	
-	/**
-	 * Simulates mouse movement.
-	 *
-	 * @param position Mouse position, in pixels, relative to the window.
-	 * @param difference Relative movement of the mouse, in pixels.
-	 */
+	/// Simulates mouse movement.
+	/// @param position Mouse position, in pixels, relative to the window.
+	/// @param difference Relative movement of the mouse, in pixels.
 	void move(const math::vec2<std::int32_t>& position, const math::vec2<std::int32_t>& difference);
 	
-	/**
-	 * Simulates mouse scrolling.
-	 *
-	 * @param velocity Scroll velocity.
-	 */
+	/// Simulates mouse scrolling.
+	/// @param velocity Scroll velocity.
 	void scroll(const math::fvec2& velocity);
 	
 	/// Returns the current mouse position, in pixels, relative to the window.

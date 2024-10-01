@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_BREP_EDGE_LOOP_LIST_HPP
@@ -10,9 +10,7 @@
 
 namespace geom {
 
-/**
- * List of B-rep loops that share a common edge.
- */
+/// List of B-rep loops that share a common edge.
 class brep_edge_loop_list
 {
 public:
@@ -94,13 +92,13 @@ public:
 	/// @name Element access
 	/// @{
 	
-	/** Returns the first loop. */
+	/// Returns the first loop.
 	[[nodiscard]] inline brep_loop* front() const noexcept
 	{
 		return m_head;
 	}
 	
-	/** Returns the last loop. */
+	/// Returns the last loop.
 	[[nodiscard]] inline brep_loop* back() const noexcept
 	{
 		return m_head->m_edge_previous;
@@ -110,7 +108,7 @@ public:
 	/// @name Iterators
 	/// @{
 	
-	/** Returns an iterator to the first loop. */
+	/// Returns an iterator to the first loop.
 	[[nodiscard]] inline constexpr const_iterator begin() const noexcept
 	{
 		const_iterator it;
@@ -120,13 +118,13 @@ public:
 		return it;
 	}
 
-	/** @copydoc begin() */
+	/// @copydoc begin()
 	[[nodiscard]] inline constexpr const_iterator cbegin() const noexcept
 	{
 		return begin();
 	}
 	
-	/** Returns an iterator to the loop following the last loop. */
+	/// Returns an iterator to the loop following the last loop.
 	[[nodiscard]] inline constexpr const_iterator end() const noexcept
 	{
 		const_iterator it;
@@ -136,31 +134,31 @@ public:
 		return it;
 	}
 
-	/** @copydoc end() */
+	/// @copydoc end()
 	[[nodiscard]] inline constexpr const_iterator cend() const noexcept
 	{
 		return end();
 	}
 	
-	/** Returns a reverse iterator to the first loop of the reversed list. */
+	/// Returns a reverse iterator to the first loop of the reversed list.
 	[[nodiscard]] inline constexpr const_reverse_iterator rbegin() const noexcept
 	{
 		return std::make_reverse_iterator(end());
 	}
 
-	/** @copydoc rbegin() */
+	/// @copydoc rbegin()
 	[[nodiscard]] inline constexpr const_reverse_iterator crbegin() const noexcept
 	{
 		return rbegin();
 	}
 	
-	/** Returns a reverse iterator to the loop following the last loop of the reversed list. */
+	/// Returns a reverse iterator to the loop following the last loop of the reversed list.
 	[[nodiscard]] inline constexpr const_reverse_iterator rend() const noexcept
 	{
 		return std::make_reverse_iterator(begin());
 	}
 
-	/** @copydoc rend() */
+	/// @copydoc rend()
 	[[nodiscard]] inline constexpr const_reverse_iterator crend() const noexcept
 	{
 		return rend();
@@ -170,13 +168,13 @@ public:
 	/// @name Capacity
 	/// @{
 	
-	/** Returns `true` if the list is empty, `false` otherwise. */
+	/// Returns `true` if the list is empty, `false` otherwise.
 	[[nodiscard]] inline constexpr bool empty() const noexcept
 	{
 		return !m_size;
 	}
 	
-	/** Returns the number of loops in the list. */
+	/// Returns the number of loops in the list.
 	[[nodiscard]] inline constexpr std::size_t size() const noexcept
 	{
 		return m_size;
@@ -186,18 +184,12 @@ public:
 	/// @name Modifiers
 	/// @{
 	
-	/**
-	 * Appends a loop to the end of the list.
-	 *
-	 * @param loop Pointer to the loop to append.
-	 */
+	/// Appends a loop to the end of the list.
+	/// @param loop Pointer to the loop to append.
 	void push_back(brep_loop* loop);
 	
-	/**
-	 * Removes an loop from the list.
-	 *
-	 * @param loop Pointer to the loop to remove.
-	 */
+	/// Removes an loop from the list.
+	/// @param loop Pointer to the loop to remove.
 	void remove(brep_loop* loop);
 	
 	/// @}

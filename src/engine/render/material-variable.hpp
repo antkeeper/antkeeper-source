@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_RENDER_MATERIAL_VARIABLE_HPP
@@ -13,38 +13,25 @@
 
 namespace render {
 
-/**
- * Abstract base class for material variables.
- */
+/// Abstract base class for material variables.
 class material_variable_base
 {
 public:
-	/**
-	 * Destructs a material variable base.
-	 */
+	/// Destructs a material variable base.
 	virtual ~material_variable_base() = default;
 	
-	/**
-	 * Returns the material variable data type.
-	 */
+	/// Returns the material variable data type.
 	[[nodiscard]] virtual constexpr material_variable_type type() const noexcept = 0;
 	
-	/**
-	 * Returns the number of elements in an array variable, or `1` if the variable is not an array.
-	 */
+	/// Returns the number of elements in an array variable, or `1` if the variable is not an array.
 	[[nodiscard]] virtual std::size_t size() const noexcept = 0;
 	
-	/**
-	 * Creates a copy of this material property.
-	 */
+	/// Creates a copy of this material property.
 	[[nodiscard]] virtual std::unique_ptr<material_variable_base> clone() const = 0;
 };
 
-/**
- * Material variable.
- *
- * @tparam T Material variable value type.
- */
+/// Material variable.
+/// @tparam T Material variable value type.
 template <class T>
 class material_variable: public material_variable_base
 {
@@ -52,28 +39,20 @@ public:
 	/// Material variable element type.
 	using element_type = T;
 	
-	/**
-	 * Constructs a material variable.
-	 *
-	 * @param size Number of elements in the array, or `1` if the variable is not an array.
-	 * @param value Value with which to initialize the elements.
-	 */
+	/// Constructs a material variable.
+	/// @param size Number of elements in the array, or `1` if the variable is not an array.
+	/// @param value Value with which to initialize the elements.
 	inline explicit material_variable(std::size_t size, const element_type& value = element_type()):
 		elements(size, value)
 	{}
 	
-	/**
-	 * Constructs a material variable with a single element.
-	 */
+	/// Constructs a material variable with a single element.
 	inline material_variable():
 		material_variable(1)
 	{}
 	
-	/**
-	 * Constructs a material variable from a list of element values.
-	 *
-	 * @param list List of element values.
-	 */
+	/// Constructs a material variable from a list of element values.
+	/// @param list List of element values.
 	inline explicit material_variable(std::initializer_list<element_type> list):
 		elements(list)
 	{}
@@ -90,50 +69,36 @@ public:
 		return std::make_unique<material_variable<T>>(*this);
 	}
 	
-	/**
-	 * Sets the value of the the variable, or the value of the first element if the variable is an array.
-	 *
-	 * @param value Value to set.
-	 */
+	/// Sets the value of the the variable, or the value of the first element if the variable is an array.
+	/// @param value Value to set.
 	inline void set(const element_type& value)
 	{
 		elements.front() = value;
 	}
 	
-	/**
-	 * Sets the value of a single element in an array variable.
-	 *
-	 * @param index Index of an element.
-	 * @param value Value to set.
-	 */
+	/// Sets the value of a single element in an array variable.
+	/// @param index Index of an element.
+	/// @param value Value to set.
 	inline void set(std::size_t index, const element_type& value)
 	{
 		elements[index] = value;
 	}
 	
-	/**
-	 * Returns a reference to the first element in the array.
-	 */
+	/// Returns a reference to the first element in the array.
 	[[nodiscard]] inline const element_type& get() const
 	{
 		return elements.front();
 	}
 	
-	/**
-	 * Returns a reference to the element at a given index.
-	 *
-	 * @param index Index of an element.
-	 *
-	 * @return Reference to the element at @p index.
-	 */
+	/// Returns a reference to the element at a given index.
+	/// @param index Index of an element.
+	/// @return Reference to the element at @p index.
 	[[nodiscard]] inline const element_type& get(std::size_t index) const
 	{
 		return elements[index];
 	}
 	
-	/**
-	 * Returns a pointer to the element array.
-	 */
+	/// Returns a pointer to the element array.
 	[[nodiscard]] inline const element_type* data() const noexcept
 	{
 		return elements.data();

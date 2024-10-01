@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_UTILITY_TEXT_FILE_HPP
@@ -7,9 +7,7 @@
 #include <string>
 #include <vector>
 
-/**
- * Virtual text file.
- */
+/// Virtual text file.
 struct text_file
 {
 	/// Text file lines.

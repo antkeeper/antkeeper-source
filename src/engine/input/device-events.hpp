@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_INPUT_DEVICE_EVENTS_HPP
@@ -8,18 +8,14 @@ namespace input {
 
 class device;
 
-/**
- * Event generated when an input device has been connected.
- */
+/// Event generated when an input device has been connected.
 struct device_connected_event
 {
 	/// Device that was connected.
 	device* device{nullptr};
 };
 
-/**
- * Event generated when an input device has been disconnected.
- */
+/// Event generated when an input device has been disconnected.
 struct device_disconnected_event
 {
 	/// Device that was disconnected.

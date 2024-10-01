@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_SCENE_OBJECT_HPP
@@ -14,9 +14,7 @@
 
 namespace scene {
 
-/**
- * Abstract base class for scene objects.
- */
+/// Abstract base class for scene objects.
 class object_base
 {
 public:
@@ -25,84 +23,68 @@ public:
 	using transform_type = math::transform<float>;
 	using aabb_type = geom::box<float>;
 	
-	/** Destructs a scene object base. */
+	/// Destructs a scene object base.
 	virtual ~object_base() = default;
 	
 	/// Returns the type ID for this scene object type.
 	[[nodiscard]] virtual const std::size_t get_object_type_id() const noexcept = 0;
 	
-	/**
-	 * Adds render operations to a render context.
-	 *
-	 * @param ctx Render context.
-	 */
+	/// Adds render operations to a render context.
+	/// @param ctx Render context.
 	inline virtual void render([[maybe_unused]] render::context& ctx) const {}
 	
-	/**
-	 *
-	 */
+	/// Transforms the object to look at a target.
+	/// @param position Object position.
+	/// @param target Target position.
+	/// @param up Up vector.
 	void look_at(const vector_type& position, const vector_type& target, const vector_type& up);
 	
-	/**
-	 * Sets the layer mask of the object.
-	 *
-	 * @param mask 32-bit layer mask in which each set bit represents a layer in which the object is visible.
-	 */
+	/// Sets the layer mask of the object.
+	/// @param mask 32-bit layer mask in which each set bit represents a layer in which the object is visible.
 	inline constexpr void set_layer_mask(std::uint32_t mask) noexcept
 	{
 		m_layer_mask = mask;
 	}
 	
-	/**
-	 * Sets the transform of the object.
-	 *
-	 * @param transform Object transform.
-	 */
+	/// Sets the transform of the object.
+	/// @param transform Object transform.
 	inline void set_transform(const transform_type& transform)
 	{
 		m_transform = transform;
 		transformed();
 	}
 
-	/**
-	 * Sets the translation of the object.
-	 *
-	 * @param translation Object translation.
-	 */
+	/// Sets the translation of the object.
+	/// @param translation Object translation.
 	inline void set_translation(const vector_type& translation)
 	{
 		m_transform.translation = translation;
 		transformed();
 	}
 	
-	/**
-	 * Sets the rotation of the object.
-	 *
-	 * @param rotation Object rotation.
-	 */
+	/// Sets the rotation of the object.
+	/// @param rotation Object rotation.
 	inline void set_rotation(const quaternion_type& rotation)
 	{
 		m_transform.rotation = rotation;
 		transformed();
 	}
 	
-	/**
-	 * Sets the scale of the object.
-	 *
-	 * @param scale Object scale.
-	 */
-	/// @{
+	/// Sets the scale of the object.
+	/// @param scale Object scale.
 	inline void set_scale(const vector_type& scale)
 	{
 		m_transform.scale = scale;
 		transformed();
 	}
+
+	/// Sets the scale of the object.
+	/// @param scale Object scale.
 	inline void set_scale(float scale)
 	{
 		m_transform.scale = {scale, scale, scale};
 		transformed();
 	}
-	/// @}
 	
 	/// Returns the layer mask of the object.
 	[[nodiscard]] inline constexpr std::uint32_t get_layer_mask() const noexcept
@@ -140,20 +122,15 @@ public:
 protected:
 	static std::size_t next_object_type_id();
 	
-	/**
-	 * Called every time the scene object's tranform is changed.
-	 */
+	/// Called every time the scene object's tranform is changed.
 	inline virtual void transformed() {}
 	
 	std::uint32_t m_layer_mask{1};
 	transform_type m_transform{math::identity<transform_type>};
 };
 
-/**
- * Abstract base class for lights, cameras, model instances, and other scene objects.
- *
- * @tparam T This should be the same class that's inheriting from the scene object, in order to give it a valid type-specific ID.
- */
+/// Abstract base class for lights, cameras, model instances, and other scene objects.
+/// @tparam T This should be the same class that's inheriting from the scene object, in order to give it a valid type-specific ID.
 template <class T>
 class object: public object_base
 {
@@ -161,15 +138,17 @@ public:
 	/// Unique type ID for this scene object type.
 	static const std::atomic<std::size_t> object_type_id;
 	
-	/** Destructs a scene base. */
+	/// Destructs a scene base.
 	~object() override = default;
 	
+	/// Returns the type ID for this scene object type.
 	[[nodiscard]] inline const std::size_t get_object_type_id() const noexcept final
 	{
 		return object_type_id;
 	}
 };
 
+/// @private
 template <typename T>
 const std::atomic<std::size_t> object<T>::object_type_id{object_base::next_object_type_id()};
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_CONSTRAINT_STACK_COMPONENT_HPP
@@ -6,10 +6,7 @@
 
 #include <engine/entity/id.hpp>
 
-
-/**
- * Causes an ordered stack of constraints to be applied to an entity.
- */
+/// Causes an ordered stack of constraints to be applied to an entity.
 struct constraint_stack_component
 {
 	/// Priority number, with lower priorities evaluated first.
@@ -19,9 +16,7 @@ struct constraint_stack_component
 	entity::id head;
 };
 
-/**
- * Single node in a constraint stack. Allows toggling and weighing of constraints and links to the following constraint stack node (if any).
- */
+/// Single node in a constraint stack. Allows toggling and weighing of constraints and links to the following constraint stack node (if any).
 struct constraint_stack_node_component
 {
 	/// Enables or disables the constraint.
@@ -33,6 +28,5 @@ struct constraint_stack_node_component
 	/// ID of the entity containing the next constraint in the constraint stack.
 	entity::id next;
 };
-
 
 #endif // ANTKEEPER_GAME_CONSTRAINT_STACK_COMPONENT_HPP

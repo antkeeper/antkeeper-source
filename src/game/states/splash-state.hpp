@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_SPLASH_STATE_HPP
@@ -11,7 +11,6 @@
 #include <engine/event/subscription.hpp>
 #include <engine/entity/id.hpp>
 #include <vector>
-
 
 class splash_state: public game_state
 {

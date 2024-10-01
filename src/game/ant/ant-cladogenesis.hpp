@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_CLADOGENESIS_HPP
@@ -9,16 +9,11 @@
 #include <memory>
 #include <random>
 
-/**
- * Generates an ant genome from a gene pool.
- *
- * @tparam URBG Uniform random bit generator type.
- *
- * @param pool Ant gene pool.
- * @param urbg Uniform random bit generator object.
- *
- * @return New genome.
- */
+/// Generates an ant genome from a gene pool.
+/// @tparam URBG Uniform random bit generator type.
+/// @param pool Ant gene pool.
+/// @param urbg Uniform random bit generator object.
+/// @return New genome.
 template <class URBG>
 [[nodiscard]] std::unique_ptr<ant_genome> ant_cladogenesis(const ant_gene_pool& pool, URBG& urbg)
 {

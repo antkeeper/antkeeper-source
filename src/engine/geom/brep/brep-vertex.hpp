@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_BREP_VERTEX_HPP
@@ -13,23 +13,18 @@ class brep_mesh;
 template <class T>
 class brep_element_container;
 
-/**
- * A point in space.
- */
+/// A point in space.
 class brep_vertex
 {
 public:
-	/**
-	 * Returns the index of this vertex in the mesh vertex array.
-	 *
-	 * @warning This index may change if any vertices are removed from the mesh.
-	 */
+	/// Returns the index of this vertex in the mesh vertex array.
+	/// @warning This index may change if any vertices are removed from the mesh.
 	[[nodiscard]] inline constexpr std::size_t index() const noexcept
 	{
 		return m_index;
 	}
 	
-	/** Returns the list of edges bounded by this vertex. */
+	/// Returns the list of edges bounded by this vertex.
 	[[nodiscard]] inline constexpr const brep_vertex_edge_list& edges() const noexcept
 	{
 		return m_edges;

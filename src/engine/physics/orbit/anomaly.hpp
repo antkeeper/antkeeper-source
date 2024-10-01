@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_ORBIT_ANOMALY_HPP
@@ -10,74 +10,53 @@
 namespace physics {
 namespace orbit {
 
-/**
- * Orbital anomaly functions.
- */
+/// Orbital anomaly functions.
 namespace anomaly {
 
-/**
- * Derives the eccentric anomaly given eccentricity and true anomaly.
- *
- * @param ec Eccentricity (e).
- * @param ta True anomaly (nu).
- * @return Eccentric anomaly (E).
- */
+/// Derives the eccentric anomaly given eccentricity and true anomaly.
+/// @param ec Eccentricity (e).
+/// @param ta True anomaly (nu).
+/// @return Eccentric anomaly (E).
 template <class T>
 T true_to_eccentric(T ec, T ta);
 
-/**
- * Derives the mean anomaly given eccentricity and true anomaly.
- *
- * @param ec Eccentricity (e).
- * @param ta True anomaly (nu).
- * @return Mean anomaly (M).
- */
+/// Derives the mean anomaly given eccentricity and true anomaly.
+/// @param ec Eccentricity (e).
+/// @param ta True anomaly (nu).
+/// @return Mean anomaly (M).
 template <class T>
 T true_to_mean(T ec, T ta);
 
-/**
- * Derives the true anomaly given eccentricity and eccentric anomaly.
- *
- * @param ec Eccentricity (e).
- * @param ea Eccentric anomaly (E).
- * @return True anomaly (nu).
- */
+/// Derives the true anomaly given eccentricity and eccentric anomaly.
+/// @param ec Eccentricity (e).
+/// @param ea Eccentric anomaly (E).
+/// @return True anomaly (nu).
 template <class T>
 T eccentric_to_true(T ec, T ea);
 
-/**
- * Derives the mean anomaly given eccentricity and eccentric anomaly.
- *
- * @param ec Eccentricity (e).
- * @param ea Eccentric anomaly (E).
- * @return Mean anomaly (M).
- */
+/// Derives the mean anomaly given eccentricity and eccentric anomaly.
+/// @param ec Eccentricity (e).
+/// @param ea Eccentric anomaly (E).
+/// @return Mean anomaly (M).
 template <class T>
 T eccentric_to_mean(T ec, T ea);
 
-/**
- * Iteratively derives the eccentric anomaly given eccentricity and mean anomaly.
- *
- * @param ec Eccentricity (e).
- * @param ma Mean anomaly (M).
- * @param iterations Maximum number of iterations.
- * @param tolerance Solution error tolerance.
- * @return Eccentric anomaly (E).
- *
- * @see Murison, Marc. (2006). A Practical Method for Solving the Kepler Equation. 10.13140/2.1.5019.6808.
- */
+/// Iteratively derives the eccentric anomaly given eccentricity and mean anomaly.
+/// @param ec Eccentricity (e).
+/// @param ma Mean anomaly (M).
+/// @param iterations Maximum number of iterations.
+/// @param tolerance Solution error tolerance.
+/// @return Eccentric anomaly (E).
+/// @see Murison, Marc. (2006). A Practical Method for Solving the Kepler Equation. 10.13140/2.1.5019.6808.
 template <class T>
 T mean_to_eccentric(T ec, T ma, std::size_t iterations, T tolerance);
 
-/**
- * Iteratively derives the true anomaly given eccentricity and mean anomaly.
- *
- * @param ec Eccentricity (e).
- * @param ma Mean anomaly (M).
- * @param iterations Maximum number of iterations.
- * @param tolerance Solution error tolerance.
- * @return True anomaly (nu).
- */
+/// Iteratively derives the true anomaly given eccentricity and mean anomaly.
+/// @param ec Eccentricity (e).
+/// @param ma Mean anomaly (M).
+/// @param iterations Maximum number of iterations.
+/// @param tolerance Solution error tolerance.
+/// @return True anomaly (nu).
 template <class T>
 T mean_to_true(T ec, T ma, std::size_t iterations, T tolerance);
 

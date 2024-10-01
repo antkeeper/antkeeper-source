@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_APP_WINDOW_HPP
@@ -9,89 +9,58 @@
 #include <engine/app/window-events.hpp>
 #include <string>
 
-namespace gl {
-
+namespace gl
+{
 	class pipeline;
-
 }
 
 namespace app {
 
 class window_manager;
 
-/**
- * 
- */
+/// Window interface.
 class window
 {
 public:
-	/** Destructs a window. */
+	/// Destructs a window.
 	virtual ~window() = default;
 	
-	/**
-	 * Changes the title of the window.
-	 *
-	 * @param title Window title.
-	 */
+	/// Changes the title of the window.
+	/// @param title Window title.
 	virtual void set_title(const std::string& title) = 0;
 	
-	/**
-	 * Changes the position of the window.
-	 *
-	 * @param position Position of the window, in display units.
-	 */
+	/// Changes the position of the window.
+	/// @param position Position of the window, in display units.
 	virtual void set_position(const math::ivec2& position) = 0;
 	
-	/**
-	 * Changes the size of the window.
-	 *
-	 * @param size Size of the window, in display units.
-	 */
+	/// Changes the size of the window.
+	/// @param size Size of the window, in display units.
 	virtual void set_size(const math::ivec2& size) = 0;
 	
-	/**
-	 * Sets the minimum size of the window.
-	 *
-	 * @param size Minimum size of the window, in display units.
-	 */
+	/// Sets the minimum size of the window.
+	/// @param size Minimum size of the window, in display units.
 	virtual void set_minimum_size(const math::ivec2& size) = 0;
 	
-	/**
-	 * Sets the maximum size of the window.
-	 *
-	 * @param size Maximum size of the window, in display units.
-	 */
+	/// Sets the maximum size of the window.
+	/// @param size Maximum size of the window, in display units.
 	virtual void set_maximum_size(const math::ivec2& size) = 0;
 	
-	/**
-	 * Maximizes or unmaximizes the window.
-	 *
-	 * @param maximized `true` if the window should be maximized, `false` otherwise.
-	 */
+	/// Maximizes or unmaximizes the window.
+	/// @param maximized `true` if the window should be maximized, `false` otherwise.
 	virtual void set_maximized(bool maximized) = 0;
 	
-	/**
-	 * Enables or disables fullscreen mode.
-	 *
-	 * @param fullscreen `true` if the window should be in fullscreen mode, `false` otherwise.
-	 */
+	/// Enables or disables fullscreen mode.
+	/// @param fullscreen `true` if the window should be in fullscreen mode, `false` otherwise.
 	virtual void set_fullscreen(bool fullscreen) = 0;
 	
-	/**
-	 * Enables or disables v-sync.
-	 *
-	 * @param v_sync `true` if the v-sync should be enabled, `false` otherwise.
-	 */
+	/// Enables or disables v-sync.
+	/// @param v_sync `true` if the v-sync should be enabled, `false` otherwise.
 	virtual void set_v_sync(bool v_sync) = 0;
 	
-	/**
-	 * Makes the window's graphics context current.
-	 */
+	/// Makes the window's graphics context current.
 	virtual void make_current() = 0;
 	
-	/**
-	 * Swaps the front and back buffers of the window's graphics context.
-	 */
+	/// Swaps the front and back buffers of the window's graphics context.
 	virtual void swap_buffers() = 0;
 	
 	/// Returns the title of the window.
@@ -161,10 +130,10 @@ public:
 	}
 	
 	/// Returns the graphics pipeline associated with this window.
-	/// @{
-	[[nodiscard]] virtual const gl::pipeline& get_graphics_pipeline() const noexcept = 0;
 	[[nodiscard]] virtual gl::pipeline& get_graphics_pipeline() noexcept = 0;
-	/// @}
+
+	/// @copydoc get_graphics_pipeline() noexcept
+	[[nodiscard]] virtual const gl::pipeline& get_graphics_pipeline() const noexcept = 0;
 	
 	/// Returns the channel through which window closed events are published.
 	[[nodiscard]] inline auto& get_closed_channel() noexcept

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_SHADER_VARIABLE_TYPE_HPP
@@ -8,9 +8,7 @@
 
 namespace gl {
 
-/**
- * Shader variable data types.
- */
+/// Shader variable data types.
 enum class shader_variable_type: std::uint8_t
 {
 	bvec1,

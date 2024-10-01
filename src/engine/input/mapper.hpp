@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_INPUT_MAPPER_HPP
@@ -16,22 +16,15 @@
 
 namespace input {
 
-/**
- * Listens for input events and generates corresponding input mappings.
- */
+/// Listens for input events and generates corresponding input mappings.
 class mapper
 {
 public:
-	/**
-	 * Connects the input event signals of an event dispatcher to the mapper.
-	 *
-	 * @param dispatcher Event dispatcher to connect.
-	 */
+	/// Connects the input event signals of an event dispatcher to the mapper.
+	/// @param dispatcher Event dispatcher to connect.
 	void connect(::event::dispatcher& dispatcher);
 	
-	/**
-	 * Disconnects all input event signals from the mapper.
-	 */
+	/// Disconnects all input event signals from the mapper.
 	void disconnect();
 	
 	/// Returns the channel through which gamepad axis mapped events are published.

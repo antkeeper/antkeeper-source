@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_MAIN_MENU_STATE_HPP
@@ -10,7 +10,6 @@
 #include <engine/entity/id.hpp>
 #include <engine/event/subscription.hpp>
 #include <memory>
-
 
 class main_menu_state: public game_state
 {

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_GENE_FREQUENCY_TABLE_HPP
@@ -8,11 +8,8 @@
 #include <vector>
 #include <memory>
 	
-/**
- * Ant gene frequency table.
- *
- * @tparam T Gene type.
- */
+/// Ant gene frequency table.
+/// @tparam T Gene type.
 template <class T>
 struct ant_gene_frequency_table
 {
@@ -22,15 +19,10 @@ struct ant_gene_frequency_table
 	/// Weight array
 	std::vector<float> weights;
 	
-	/**
-	 * Samples a gene from the frequency table.
-	 *
-	 * @tparam URBG Uniform random bit generator type.
-	 *
-	 * @param urbg Uniform random bit generator object.
-	 *
-	 * @return Randomly sampled gene.
-	 */
+	/// Samples a gene from the frequency table.
+	/// @tparam URBG Uniform random bit generator type.
+	/// @param urbg Uniform random bit generator object.
+	/// @return Randomly sampled gene.
 	template <class URBG>
 	[[nodiscard]] std::shared_ptr<T> sample(URBG& urbg) const
 	{

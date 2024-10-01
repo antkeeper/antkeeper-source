@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_PIGMENTATION_GENE_HPP
@@ -8,9 +8,7 @@
 #include <engine/render/material.hpp>
 #include <memory>
 
-/**
- * Ant pigmentation phene.
- */
+/// Ant pigmentation phene.
 struct ant_pigmentation_phene
 {
 	/// Pigmentation material

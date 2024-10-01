@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_APP_INPUT_MANAGER_HPP
@@ -17,66 +17,52 @@
 
 namespace app {
 
-/**
- * Manages virtual input devices.
- */
+/// Manages virtual input devices.
 class input_manager
 {
 public:
-	/** Allocates and returns an input manager. */
+	/// Allocates and returns an input manager.
 	static std::unique_ptr<input_manager> instance();
 
-	/** Destructs an input manager. */
+	/// Destructs an input manager.
 	virtual ~input_manager() = default;
 	
-	/** Processes input events. */
+	/// Processes input events.
 	virtual void update() = 0;
 	
-	/**
-	 * Shows or hides the cursor.
-	 *
-	 * @param visible `true` to show the cursor, `false` to hide it.
-	 */
+	/// Shows or hides the cursor.
+	/// @param visible `true` to show the cursor, `false` to hide it.
 	virtual void set_cursor_visible(bool visible) = 0;
 	
-	/**
-	 * Enables or disables relative mouse mode.
-	 *
-	 * @param enabled `true` to enable relative mouse mode, `false` to disable it.
-	 */
+	/// Enables or disables relative mouse mode.
+	/// @param enabled `true` to enable relative mouse mode, `false` to disable it.
 	virtual void set_relative_mouse_mode(bool enabled) = 0;
 	
-	/**
-	 * Sets the clipboard text.
-	 *
-	 * @param text UTF-8 text.
-	 */
+	/// Sets the clipboard text.
+	/// @param text UTF-8 text.
 	virtual void set_clipboard_text(const std::string& text) = 0;
 	
-	/** Returns UTF-8 text from the clipboard. */
+	/// Returns UTF-8 text from the clipboard.
 	[[nodiscard]] virtual std::string get_clipboard_text() const = 0;
 	
-	/**
-	 * Enables text input events.
-	 *
-	 * @param rect Text input rectangle, with the origin at the upper left.
-	 */
+	/// Enables text input events.
+	/// @param rect Text input rectangle, with the origin at the upper left.
 	virtual void start_text_input(const geom::rectangle<int>& rect = {}) = 0;
 	
-	/** Disables text input events. */
+	/// Disables text input events.
 	virtual void stop_text_input() = 0;
 
-	/// @{
-	/** Returns the event dispatcher associated with registered input devices. */
-	[[nodiscard]] inline const ::event::dispatcher& get_event_dispatcher() const noexcept
-	{
-		return m_event_dispatcher;
-	}
+	/// Returns the event dispatcher associated with registered input devices.
 	[[nodiscard]] inline ::event::dispatcher& get_event_dispatcher() noexcept
 	{
 		return m_event_dispatcher;
 	}
-	/// @}
+
+	/// @copydoc get_event_dispatcher() noexcept
+	[[nodiscard]] inline const ::event::dispatcher& get_event_dispatcher() const noexcept
+	{
+		return m_event_dispatcher;
+	}
 	
 	/// Returns the set of registered gamepads.
 	[[nodiscard]] inline const std::unordered_set<input::gamepad*>& get_gamepads() noexcept
@@ -97,29 +83,37 @@ public:
 	}
 	
 protected:
-	/// @{
-	/**
-	 * Registers an input device.
-	 *
-	 * @param device Input device to register.
-	 */
+	/// Registers an input device.
+	/// @param device Input device to register.
 	void register_device(input::device& device);
+
+	/// Registers a gamepad.
+	/// @param device Gamepad to register.
 	void register_gamepad(input::gamepad& device);
+
+	/// Registers a keyboard.
+	/// @param device Keyboard to register.
 	void register_keyboard(input::keyboard& device);
+
+	/// Registers a mouse.
+	/// @param device Mouse to register.
 	void register_mouse(input::mouse& device);
-	/// @}
 	
-	/// @{
-	/**
-	 * Unregisters an input device.
-	 *
-	 * @param device Input device to unregister.
-	 */
+	/// Unregisters an input device.
+	/// @param device Input device to unregister.
 	void unregister_device(input::device& device);
+
+	/// Unregisters a gamepad.
+	/// @param device Gamepad to unregister.
 	void unregister_gamepad(input::gamepad& device);
+
+	/// Unregisters a keyboard.
+	/// @param device Keyboard to unregister.
 	void unregister_keyboard(input::keyboard& device);
+
+	/// Unregisters a mouse.
+	/// @param device Mouse to unregister.
 	void unregister_mouse(input::mouse& device);
-	/// @}
 	
 	::event::dispatcher m_event_dispatcher;
 	

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_PHENOME_HPP
@@ -29,17 +29,12 @@
 #include "game/ant/ant-genome.hpp"
 #include "game/ant/ant-caste-type.hpp"
 
-/**
- * Complete set of ant phenes.
- */
+/// Complete set of ant phenes.
 struct ant_phenome
 {
-	/**
-	 * Constructs an ant phenome for a given caste.
-	 *
-	 * @param genome Ant genome.
-	 * @param caste Ant caste.
-	 */
+	/// Constructs an ant phenome for a given caste.
+	/// @param genome Ant genome.
+	/// @param caste Ant caste.
 	ant_phenome(const ant_genome& genome, ant_caste_type caste);
 	
 	/// Constructs an empty ant phenome.

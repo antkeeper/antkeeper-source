@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_MORTON_HPP
@@ -8,14 +8,10 @@
 
 namespace geom {
 
-/**
- * Encodes 2D coordinates as a Morton location code.
- *
- * @param[in] x X-coordinate to encode.
- * @param[in] y Y-coordinate to encode.
- *
- * @return Morton location code.
- */
+/// Encodes 2D coordinates as a Morton location code.
+/// @param[in] x X-coordinate to encode.
+/// @param[in] y Y-coordinate to encode.
+/// @return Morton location code.
 template <std::unsigned_integral T>
 constexpr T morton_encode(T x, T y) noexcept
 {
@@ -45,15 +41,11 @@ constexpr T morton_encode(T x, T y) noexcept
 	return expand(x) | (expand(y) << 1);
 }
 
-/**
- * Encodes 3D coordinates as a Morton location code.
- *
- * @param[in] x X-coordinate to encode.
- * @param[in] y Y-coordinate to encode.
- * @param[in] z Z-coordinate to encode.
- *
- * @return Morton location code.
- */
+/// Encodes 3D coordinates as a Morton location code.
+/// @param[in] x X-coordinate to encode.
+/// @param[in] y Y-coordinate to encode.
+/// @param[in] z Z-coordinate to encode.
+/// @return Morton location code.
 template <std::unsigned_integral T>
 constexpr T morton_encode(T x, T y, T z) noexcept
 {
@@ -95,13 +87,10 @@ constexpr T morton_encode(T x, T y, T z) noexcept
 	return expand(x) | (expand(y) << 1) | (expand(z) << 2);
 }
 
-/**
- * Decodes 2D coordinates from a Morton location code.
- *
- * @param[in] code Morton location code to decode.
- * @param[out] x Decoded x-coordinate.
- * @param[out] y Decoded y-coordinate.
- */
+/// Decodes 2D coordinates from a Morton location code.
+/// @param[in] code Morton location code to decode.
+/// @param[out] x Decoded x-coordinate.
+/// @param[out] y Decoded y-coordinate.
 template <std::unsigned_integral T>
 void morton_decode(T code, T& x, T& y) noexcept
 {
@@ -131,14 +120,11 @@ void morton_decode(T code, T& x, T& y) noexcept
 	y = compress(code >> 1);
 }
 
-/**
- * Decodes 3D coordinates from a Morton location code.
- *
- * @param[in] code Morton location code to decode.
- * @param[out] x Decoded x-coordinate.
- * @param[out] y Decoded y-coordinate.
- * @param[out] z Decoded z-coordinate.
- */
+/// Decodes 3D coordinates from a Morton location code.
+/// @param[in] code Morton location code to decode.
+/// @param[out] x Decoded x-coordinate.
+/// @param[out] y Decoded y-coordinate.
+/// @param[out] z Decoded z-coordinate.
 template <std::unsigned_integral T>
 void morton_decode(T code, T& x, T& y, T& z) noexcept
 {

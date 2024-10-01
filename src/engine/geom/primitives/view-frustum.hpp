@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_PRIMITIVES_VIEW_FRUSTUM_HPP
@@ -13,11 +13,8 @@
 namespace geom {
 namespace primitives {
 
-/**
- * View frustum.
- *
- * @tparam T Real type.
- */
+/// View frustum.
+/// @tparam T Real type.
 template <class T>
 struct view_frustum
 {
@@ -39,93 +36,87 @@ struct view_frustum
 	/// Constructs a view frustum
 	constexpr view_frustum() noexcept = default;
 	
-	/**
-	 * Constructs a view frustum by extracting planes from view-projection matrix.
-	 *
-	 * @param matrix View-projection matrix from which to extract view frustum planes.
-	 */
+	/// Constructs a view frustum by extracting planes from view-projection matrix.
+	/// @param matrix View-projection matrix from which to extract view frustum planes.
 	inline explicit constexpr view_frustum(const matrix_type& matrix) noexcept
 	{
 		extract(matrix);
 	}
 	
 	/// Returns the left clipping plane.
-	/// @{
-	[[nodiscard]] inline constexpr const plane_type& left() const noexcept
-	{
-		return planes[0];
-	}
 	[[nodiscard]] inline constexpr plane_type& left() noexcept
 	{
 		return planes[0];
 	}
-	/// @}
+
+	/// @copydoc left()
+	[[nodiscard]] inline constexpr const plane_type& left() const noexcept
+	{
+		return planes[0];
+	}
 	
 	/// Returns the right clipping plane.
-	/// @{
-	[[nodiscard]] inline constexpr const plane_type& right() const noexcept
-	{
-		return planes[1];
-	}
 	[[nodiscard]] inline constexpr plane_type& right() noexcept
 	{
 		return planes[1];
 	}
-	/// @}
+
+	/// @copydoc right()
+	[[nodiscard]] inline constexpr const plane_type& right() const noexcept
+	{
+		return planes[1];
+	}
 	
 	/// Returns the bottom clipping plane.
-	/// @{
-	[[nodiscard]] inline constexpr const plane_type& bottom() const noexcept
-	{
-		return planes[2];
-	}
 	[[nodiscard]] inline constexpr plane_type& bottom() noexcept
 	{
 		return planes[2];
 	}
-	/// @}
+
+	/// @copydoc bottom()
+	[[nodiscard]] inline constexpr const plane_type& bottom() const noexcept
+	{
+		return planes[2];
+	}
 	
 	/// Returns the top clipping plane.
-	/// @{
-	[[nodiscard]] inline constexpr const plane_type& top() const noexcept
-	{
-		return planes[3];
-	}
 	[[nodiscard]] inline constexpr plane_type& top() noexcept
 	{
 		return planes[3];
 	}
-	/// @}
+
+	/// @copydoc top()
+	[[nodiscard]] inline constexpr const plane_type& top() const noexcept
+	{
+		return planes[3];
+	}
 	
 	/// Returns the near clipping plane.
-	/// @{
-	[[nodiscard]] inline constexpr const plane_type& near() const noexcept
-	{
-		return planes[4];
-	}
 	[[nodiscard]] inline constexpr plane_type& near() noexcept
 	{
 		return planes[4];
 	}
-	/// @}
+
+	/// @copydoc near()
+	[[nodiscard]] inline constexpr const plane_type& near() const noexcept
+	{
+		return planes[4];
+	}
 	
 	/// Returns the far clipping plane.
-	/// @{
-	[[nodiscard]] inline constexpr const plane_type& far() const noexcept
-	{
-		return planes[5];
-	}
 	[[nodiscard]] inline constexpr plane_type& far() noexcept
 	{
 		return planes[5];
 	}
-	/// @}
+
+	/// @copydoc far()
+	[[nodiscard]] inline constexpr const plane_type& far() const noexcept
+	{
+		return planes[5];
+	}
 	
-	/**
-	 * Extracts the view frustum planes from a view-projection matrix.
-	 *
-	 * @param matrix View-projection matrix from which to extract view frustum planes.
-	 */
+	/// Extracts the view frustum planes from a view-projection matrix.
+	/// @param matrix View-projection matrix from which to extract view frustum planes.
 	void extract(const matrix_type& matrix) noexcept
 	{
 		for (std::size_t i = 0; i < 6; ++i)
@@ -156,13 +147,9 @@ struct view_frustum
 		}
 	}
 	
-	/**
-	 * Tests for intersection between an axis-aligned box and the view frustum.
-	 *
-	 * @param box Box to test for intersection with the view frustum.
-	 *
-	 * @return `true` if the axis-aligned box intersects the view frustum, `false` otherwise.
-	 */
+	/// Tests for intersection between an axis-aligned box and the view frustum.
+	/// @param box Box to test for intersection with the view frustum.
+	/// @return `true` if the axis-aligned box intersects the view frustum, `false` otherwise.
 	[[nodiscard]] bool intersects(const box_type& box) const noexcept
 	{
 		for (const auto& plane: planes)
@@ -183,13 +170,9 @@ struct view_frustum
 		return true;
 	}
 	
-	/**
-	 * Tests for intersection between a sphere and the view frustum.
-	 *
-	 * @param sphere Sphere to test for intersection with the view frustum.
-	 *
-	 * @return `true` if the sphere intersects the view frustum, `false` otherwise.
-	 */
+	/// Tests for intersection between a sphere and the view frustum.
+	/// @param sphere Sphere to test for intersection with the view frustum.
+	/// @return `true` if the sphere intersects the view frustum, `false` otherwise.
 	[[nodiscard]] bool intersects(const sphere_type& sphere) const noexcept
 	{
 		for (const auto& plane: planes)
@@ -203,13 +186,9 @@ struct view_frustum
 		return true;
 	}
 	
-	/**
-	 * Tests whether a point is contained within this view frustum.
-	 *
-	 * @param point Point to test for containment.
-	 *
-	 * @return `true` if the point is contained within this view frustum, `false` otherwise.
-	 */
+	/// Tests whether a point is contained within this view frustum.
+	/// @param point Point to test for containment.
+	/// @return `true` if the point is contained within this view frustum, `false` otherwise.
 	[[nodiscard]] constexpr bool contains(const vector_type& point) const noexcept
 	{
 		for (const auto& plane: planes)
@@ -223,13 +202,9 @@ struct view_frustum
 		return true;
 	}
 	
-	/**
-	 * Checks if an axis-aligned box is completely contained within the view frustum.
-	 *
-	 * @param box Box to test for containment within the view frustum.
-	 *
-	 * @return `true` if the axis-aligned box is completely contained within the view frustum, `false` otherwise.
-	 */
+	/// Checks if an axis-aligned box is completely contained within the view frustum.
+	/// @param box Box to test for containment within the view frustum.
+	/// @return `true` if the axis-aligned box is completely contained within the view frustum, `false` otherwise.
 	[[nodiscard]] bool contains(const box_type& box) const noexcept
 	{
 		for (const auto& plane: planes)
@@ -257,13 +232,9 @@ struct view_frustum
 		return true;
 	}
 	
-	/**
-	 * Checks if a sphere is completely contained within the view frustum.
-	 *
-	 * @param sphere Sphere to test for containment within the view frustum.
-	 *
-	 * @return `true` if the sphere is completely contained within the view frustum, `false` otherwise.
-	 */
+	/// Checks if a sphere is completely contained within the view frustum.
+	/// @param sphere Sphere to test for containment within the view frustum.
+	/// @return `true` if the sphere is completely contained within the view frustum, `false` otherwise.
 	[[nodiscard]] bool contains(const sphere_type& sphere) const noexcept
 	{
 		for (const auto& plane: planes)
@@ -277,18 +248,16 @@ struct view_frustum
 		return true;
 	}
 	
-	/**
-	 * View frustum clipping planes.
-	 *
-	 * Clipping planes are stored in the following order:
-	 *
-	 * 1. left
-	 * 2. right
-	 * 3. bottom
-	 * 4. top
-	 * 5. near
-	 * 6. far
-	 */
+	/// View frustum clipping planes.
+	/// 
+	/// Clipping planes are stored in the following order:
+	/// 
+	/// 1. left
+	/// 2. right
+	/// 3. bottom
+	/// 4. top
+	/// 5. near
+	/// 6. far
 	plane_type planes[6];
 };
 

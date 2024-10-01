@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_PIVOT_CONSTRAINT_HPP
@@ -7,10 +7,7 @@
 #include <engine/entity/id.hpp>
 #include <engine/math/vector.hpp>
 
-
-/**
- * Pivots around a target entity.
- */
+/// Pivots around a target entity.
 struct pivot_constraint
 {
 	/// Target entity ID.
@@ -19,6 +16,5 @@ struct pivot_constraint
 	/// Pivot point offset.
 	math::fvec3 offset;
 };
-
 
 #endif // ANTKEEPER_GAME_PIVOT_CONSTRAINT_HPP

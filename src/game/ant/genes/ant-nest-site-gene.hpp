@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_NEST_SITE_GENE_HPP
@@ -7,9 +7,7 @@
 #include "game/ant/genes/ant-gene.hpp"
 #include <cstdint>
 
-/**
- * Ant nest site phene.
- */
+/// Ant nest site phene.
 enum class ant_nest_site_phene: std::uint8_t
 {
 	hypogeic,

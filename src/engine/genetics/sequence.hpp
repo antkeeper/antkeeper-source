@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GENETICS_SEQUENCE_HPP
@@ -15,11 +15,8 @@ namespace genetics {
 /// Functions and structures related to sequences of IUPAC degenerate base symbols.
 namespace sequence {
 
-/**
- * Open reading frame (ORF), defined by a start codon and stop codon, with the distance between divisible by three.
- *
- * @tparam Iterator Sequence iterator type.
- */
+/// Open reading frame (ORF), defined by a start codon and stop codon, with the distance between divisible by three.
+/// @tparam Iterator Sequence iterator type.
 template <class Iterator>
 struct orf
 {
@@ -30,102 +27,75 @@ struct orf
 	Iterator stop;
 };
 
-/**
- * Exchanges elements between two ranges, starting at a random offset.
- *
- * @param first1,last1 First range of elements to crossover.
- * @param first2 Beginning of the second range of elements to crossover.
- * @param g Uniform random bit generator.
- * @return Iterator to the start of the crossover in the second range.
- */
+/// Exchanges elements between two ranges, starting at a random offset.
+/// @param first1,last1 First range of elements to crossover.
+/// @param first2 Beginning of the second range of elements to crossover.
+/// @param g Uniform random bit generator.
+/// @return Iterator to the start of the crossover in the second range.
 template <class ForwardIt1, class ForwardIt2, class URBG>
 ForwardIt2 crossover(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2, URBG&& g);
 
-/**
- * Exchanges elements between two ranges multiple times, starting at a random offset each time.
- *
- * @param first1,last1 First range of elements to crossover.
- * @param first2 Beginning of the second range of elements to crossover.
- * @param count Number of times to crossover.
- * @param g Uniform random bit generator.
- */
+/// Exchanges elements between two ranges multiple times, starting at a random offset each time.
+/// @param first1,last1 First range of elements to crossover.
+/// @param first2 Beginning of the second range of elements to crossover.
+/// @param count Number of times to crossover.
+/// @param g Uniform random bit generator.
 template <class ForwardIt1, class ForwardIt2, class Size, class URBG>
 void crossover_n(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2, Size count, URBG&& g);
 
-/**
- * Searches a sequence for an open reading frame (ORF).
- *
- * @param first,last Range of elements to search.
- * @param table Genetic code translation table.
- * @return First ORF in the sequence, or `{last, last}` if no ORF was found.
- */
+/// Searches a sequence for an open reading frame (ORF).
+/// @param first,last Range of elements to search.
+/// @param table Genetic code translation table.
+/// @return First ORF in the sequence, or `{last, last}` if no ORF was found.
 template <class ForwardIt>
 orf<ForwardIt> find_orf(ForwardIt first, ForwardIt last, const codon::table& table);
 
-/**
- * Applies the given function to a randomly selected element in a range.
- *
- * @param first,last Range of elements to mutate.
- * @param unary_op Unary operation function object that will be applied.
- * @param g Uniform random bit generator.
- * @return Iterator to the mutated element.
- */
+/// Applies the given function to a randomly selected element in a range.
+/// @param first,last Range of elements to mutate.
+/// @param unary_op Unary operation function object that will be applied.
+/// @param g Uniform random bit generator.
+/// @return Iterator to the mutated element.
 template <class ForwardIt, class UnaryOperation, class URBG>
 ForwardIt mutate(ForwardIt first, ForwardIt last, UnaryOperation unary_op, URBG&& g);
 
-/**
- * Applies the given function to a random selection of elements in a range.
- *
- * @param first,last Range of elements to mutate.
- * @param count Number of elements to mutate.
- * @param unary_op Unary operation function object that will be applied.
- * @param g Uniform random bit generator.
- */
+/// Applies the given function to a random selection of elements in a range.
+/// @param first,last Range of elements to mutate.
+/// @param count Number of elements to mutate.
+/// @param unary_op Unary operation function object that will be applied.
+/// @param g Uniform random bit generator.
 template <class ForwardIt, class Size, class UnaryOperation, class URBG>
 void mutate_n(ForwardIt first, ForwardIt last, Size count, UnaryOperation unary_op, URBG&& g);
 
-/**
- * Searches a sequence of IUPAC base symbols for a pattern matching a search string of IUPAC degenerate base symbols.
- *
- * @param first,last Sequence of IUPAC base symbols to search.
- * @param s_first,s_last Search string of IUPAC degenerate base symbols.
- * @param stride Distance between consecutive searches.
- * @return Iterator to the beginning of the first subsequence matching `[s_first, s_last)` in the sequence `[first, last)`. If no such occurrence is found, @p last is returned.
- */
+/// Searches a sequence of IUPAC base symbols for a pattern matching a search string of IUPAC degenerate base symbols.
+/// @param first,last Sequence of IUPAC base symbols to search.
+/// @param s_first,s_last Search string of IUPAC degenerate base symbols.
+/// @param stride Distance between consecutive searches.
+/// @return Iterator to the beginning of the first subsequence matching `[s_first, s_last)` in the sequence `[first, last)`. If no such occurrence is found, @p last is returned.
 template <class ForwardIt1, class ForwardIt2>
 ForwardIt1 search(ForwardIt1 first, ForwardIt1 last, ForwardIt2 s_first, ForwardIt2 s_last, typename std::iterator_traits<ForwardIt1>::difference_type stride);
 
-/**
- * Transcribes a sequence of IUPAC base symbols between DNA and RNA, swapping `T` for `U` or `U` for `T`.
- *
- * @param first,last Range of elements to transcribe.
- * @param d_first Beginning of the destination range.
- * @return Output iterator to the element past the last element transcribed. 
- */
+/// Transcribes a sequence of IUPAC base symbols between DNA and RNA, swapping `T` for `U` or `U` for `T`.
+/// @param first,last Range of elements to transcribe.
+/// @param d_first Beginning of the destination range.
+/// @return Output iterator to the element past the last element transcribed. 
 template <class InputIt, class OutputIt>
 OutputIt transcribe(InputIt first, InputIt last, OutputIt d_first);
 
-/**
- * Translates a sequence of codons into amino acids.
- *
- * @param first,last Open reading frame.
- * @param d_first Beginning of destination range.
- * @param table Genetic code translation table.
- * @return Output iterator to the element past the last element translated. 
- */
+/// Translates a sequence of codons into amino acids.
+/// @param first,last Open reading frame.
+/// @param d_first Beginning of destination range.
+/// @param table Genetic code translation table.
+/// @return Output iterator to the element past the last element translated. 
 template <class InputIt, class OutputIt>
 OutputIt translate(InputIt first, InputIt last, OutputIt d_first, const codon::table& table);
 
 /// Functions which operate on sequences of IUPAC degenerate **DNA** base symbols.
 namespace dna
 {
-	/**
-	 * Generates the complementary sequence for a sequence of IUPAC degenerate DNA base symbols.
-	 *
-	 * @param first,last Range of elements to complement.
-	 * @param d_first Beginning of the destination range.
-	 * @return Output iterator to the element past the last element complemented. 
-	 */
+	/// Generates the complementary sequence for a sequence of IUPAC degenerate DNA base symbols.
+	/// @param first,last Range of elements to complement.
+	/// @param d_first Beginning of the destination range.
+	/// @return Output iterator to the element past the last element complemented. 
 	template <class InputIt, class OutputIt>
 	OutputIt complement(InputIt first, InputIt last, OutputIt d_first);
 }
@@ -133,13 +103,10 @@ namespace dna
 /// Functions which operate on sequences of IUPAC degenerate **RNA** base symbols.
 namespace rna
 {
-	/**
-	 * Generates the complementary sequence for a sequence of IUPAC degenerate RNA base symbols.
-	 *
-	 * @param first,last Range of elements to complement.
-	 * @param d_first Beginning of the destination range.
-	 * @return Output iterator to the element past the last element complemented. 
-	 */
+	/// Generates the complementary sequence for a sequence of IUPAC degenerate RNA base symbols.
+	/// @param first,last Range of elements to complement.
+	/// @param d_first Beginning of the destination range.
+	/// @return Output iterator to the element past the last element complemented. 
 	template <class InputIt, class OutputIt>
 	OutputIt complement(InputIt first, InputIt last, OutputIt d_first);
 }

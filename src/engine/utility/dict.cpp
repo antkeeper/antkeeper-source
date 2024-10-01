@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/utility/dict.hpp>
@@ -30,15 +30,11 @@ static void deserialize_any(std::any& any, deserialize_context& ctx)
 	any = std::move(value);
 }
 
-/**
- * Serializes a dict with a 32-bit FNV-1a hash key.
- *
- * @param[in] dict Dict to serialize.
- * @param[in,out] ctx Serialize context.
- *
- * @throw serialize_error Write error.
- * @throw serialize_error Unsupported dict value type.
- */
+/// Serializes a dict with a 32-bit FNV-1a hash key.
+/// @param[in] dict Dict to serialize.
+/// @param[in,out] ctx Serialize context.
+/// @throw serialize_error Write error.
+/// @throw serialize_error Unsupported dict value type.
 template <>
 void serializer<dict<hash::fnv1a32_t>>::serialize(const dict<hash::fnv1a32_t>& dict, serialize_context& ctx)
 {
@@ -95,15 +91,11 @@ void serializer<dict<hash::fnv1a32_t>>::serialize(const dict<hash::fnv1a32_t>& d
 	}
 }
 
-/**
- * Deserializes a dict with a 32-bit FNV-1a hash key.
- *
- * @param[out] dict Dict to deserialize.
- * @param[in,out] ctx Deserialize context.
- *
- * @throw deserialize_error Read error.
- * @throw deserialize_error Unsupported dict value type.
- */
+/// Deserializes a dict with a 32-bit FNV-1a hash key.
+/// @param[out] dict Dict to deserialize.
+/// @param[in,out] ctx Deserialize context.
+/// @throw deserialize_error Read error.
+/// @throw deserialize_error Unsupported dict value type.
 template <>
 void deserializer<dict<hash::fnv1a32_t>>::deserialize(dict<hash::fnv1a32_t>& dict, deserialize_context& ctx)
 {

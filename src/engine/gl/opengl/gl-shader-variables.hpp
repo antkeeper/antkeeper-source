@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_GL_SHADER_VARIABLES_HPP
@@ -10,9 +10,7 @@
 
 namespace gl {
 
-/**
- * Boolean shader variable implementation using OpenGL.
- */
+/// Boolean shader variable implementation using OpenGL.
 class gl_shader_bool: public shader_variable
 {
 public:
@@ -33,9 +31,7 @@ private:
 	mutable std::vector<GLint> m_ivalues;
 };
 
-/**
- * 2-dimensional boolean vector shader variable implementation using OpenGL.
- */
+/// 2-dimensional boolean vector shader variable implementation using OpenGL.
 class gl_shader_bvec2: public shader_variable
 {
 public:
@@ -56,9 +52,7 @@ private:
 	mutable std::vector<GLint> m_ivalues;
 };
 
-/**
- * 3-dimensional boolean vector shader variable implementation using OpenGL.
- */
+/// 3-dimensional boolean vector shader variable implementation using OpenGL.
 class gl_shader_bvec3: public shader_variable
 {
 public:
@@ -79,9 +73,7 @@ private:
 	mutable std::vector<GLint> m_ivalues;
 };
 
-/**
- * 4-dimensional boolean vector shader variable implementation using OpenGL.
- */
+/// 4-dimensional boolean vector shader variable implementation using OpenGL.
 class gl_shader_bvec4: public shader_variable
 {
 public:
@@ -102,9 +94,7 @@ private:
 	mutable std::vector<GLint> m_ivalues;
 };
 
-/**
- * Signed integer shader variable implementation using OpenGL.
- */
+/// Signed integer shader variable implementation using OpenGL.
 class gl_shader_int: public shader_variable
 {
 public:
@@ -124,9 +114,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * 2-dimensional signed integer vector shader variable implementation using OpenGL.
- */
+/// 2-dimensional signed integer vector shader variable implementation using OpenGL.
 class gl_shader_ivec2: public shader_variable
 {
 public:
@@ -146,9 +134,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * 3-dimensional signed integer vector shader variable implementation using OpenGL.
- */
+/// 3-dimensional signed integer vector shader variable implementation using OpenGL.
 class gl_shader_ivec3: public shader_variable
 {
 public:
@@ -168,9 +154,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * 4-dimensional signed integer vector shader variable implementation using OpenGL.
- */
+/// 4-dimensional signed integer vector shader variable implementation using OpenGL.
 class gl_shader_ivec4: public shader_variable
 {
 public:
@@ -190,9 +174,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * Unsigned integer shader variable implementation using OpenGL.
- */
+/// Unsigned integer shader variable implementation using OpenGL.
 class gl_shader_uint: public shader_variable
 {
 public:
@@ -212,9 +194,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * 2-dimensional unsigned integer vector shader variable implementation using OpenGL.
- */
+/// 2-dimensional unsigned integer vector shader variable implementation using OpenGL.
 class gl_shader_uvec2: public shader_variable
 {
 public:
@@ -234,9 +214,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * 3-dimensional unsigned integer vector shader variable implementation using OpenGL.
- */
+/// 3-dimensional unsigned integer vector shader variable implementation using OpenGL.
 class gl_shader_uvec3: public shader_variable
 {
 public:
@@ -256,9 +234,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * 4-dimensional unsigned integer vector shader variable implementation using OpenGL.
- */
+/// 4-dimensional unsigned integer vector shader variable implementation using OpenGL.
 class gl_shader_uvec4: public shader_variable
 {
 public:
@@ -278,9 +254,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * Floating-point shader variable implementation using OpenGL.
- */
+/// Floating-point shader variable implementation using OpenGL.
 class gl_shader_float: public shader_variable
 {
 public:
@@ -300,9 +274,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * 2-dimensional floating-point vector shader variable implementation using OpenGL.
- */
+/// 2-dimensional floating-point vector shader variable implementation using OpenGL.
 class gl_shader_fvec2: public shader_variable
 {
 public:
@@ -322,9 +294,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * 3-dimensional floating-point vector shader variable implementation using OpenGL.
- */
+/// 3-dimensional floating-point vector shader variable implementation using OpenGL.
 class gl_shader_fvec3: public shader_variable
 {
 public:
@@ -344,9 +314,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * 4-dimensional floating-point vector shader variable implementation using OpenGL.
- */
+/// 4-dimensional floating-point vector shader variable implementation using OpenGL.
 class gl_shader_fvec4: public shader_variable
 {
 public:
@@ -366,9 +334,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * 2x2 floating-point matrix shader variable implementation using OpenGL.
- */
+/// 2x2 floating-point matrix shader variable implementation using OpenGL.
 class gl_shader_fmat2: public shader_variable
 {
 public:
@@ -388,9 +354,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * 3x3 floating-point matrix shader variable implementation using OpenGL.
- */
+/// 3x3 floating-point matrix shader variable implementation using OpenGL.
 class gl_shader_fmat3: public shader_variable
 {
 public:
@@ -410,9 +374,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * 4x4 floating-point matrix shader variable implementation using OpenGL.
- */
+/// 4x4 floating-point matrix shader variable implementation using OpenGL.
 class gl_shader_fmat4: public shader_variable
 {
 public:
@@ -432,9 +394,7 @@ private:
 	GLint m_gl_uniform_location;
 };
 
-/**
- * 1-dimensional texture shader variable implementation using OpenGL.
- */
+/// 1-dimensional texture shader variable implementation using OpenGL.
 class gl_shader_texture_1d: public shader_variable
 {
 public:
@@ -456,9 +416,7 @@ private:
 	std::vector<GLint> m_gl_texture_unit_indices;
 };
 
-/**
- * 2-dimensional texture shader variable implementation using OpenGL.
- */
+/// 2-dimensional texture shader variable implementation using OpenGL.
 class gl_shader_texture_2d: public shader_variable
 {
 public:
@@ -480,9 +438,7 @@ private:
 	std::vector<GLint> m_gl_texture_unit_indices;
 };
 
-/**
- * 3-dimensional texture shader variable implementation using OpenGL.
- */
+/// 3-dimensional texture shader variable implementation using OpenGL.
 class gl_shader_texture_3d: public shader_variable
 {
 public:
@@ -504,9 +460,7 @@ private:
 	std::vector<GLint> m_gl_texture_unit_indices;
 };
 
-/**
- * Cube texture shader variable implementation using OpenGL.
- */
+/// Cube texture shader variable implementation using OpenGL.
 class gl_shader_texture_cube: public shader_variable
 {
 public:

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_VERTEX_ARRAY_HPP
@@ -10,23 +10,17 @@
 
 namespace gl {
 
-/**
- * Vertex arrays describes how vertex input attributes are stored in vertex buffers.
- */
+/// Vertex arrays describes how vertex input attributes are stored in vertex buffers.
 class vertex_array
 {
 public:
-	/**
-	 * Constructs a vertex array.
-	 *
-	 * @param attributes Vertex input attributes.
-	 *
-	 * @exception std::invalid_argument Vertex input attribute has unsupported format.
-	 */
-	/// @{
+	/// Constructs a vertex array.
+	/// @param attributes Vertex input attributes.
+	/// @exception std::invalid_argument Vertex input attribute has unsupported format.
 	explicit vertex_array(std::span<const vertex_input_attribute> attributes);
+
+	/// Constructs an empty vertex array.
 	vertex_array();
-	/// @}
 	
 	/// Destructs a vertex array.
 	~vertex_array();

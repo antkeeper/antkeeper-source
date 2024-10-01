@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/audio/sound-wave.hpp>
@@ -87,7 +87,7 @@ sound_wave::~sound_wave()
 
 namespace
 {
-	/** Loads a sound wave with dr_wav. */
+	/// Loads a sound wave with dr_wav.
 	std::unique_ptr<audio::sound_wave> load_sound_wave_dr_wav(std::shared_ptr<deserialize_context> ctx)
 	{
 		// Read file into file buffer
@@ -165,7 +165,7 @@ namespace
 		}
 	}
 	
-	/** Vorbisfile I/O read callback. */
+	/// Vorbisfile I/O read callback.
 	size_t vorbisfile_io_read(void* ptr, size_t size, size_t nmemb, void* datasource)
 	{
 		if (size && nmemb)
@@ -177,7 +177,7 @@ namespace
 		return 0;
 	}
 	
-	/** Vorbisfile I/O seek callback. */
+	/// Vorbisfile I/O seek callback.
 	int vorbisfile_io_seek(void* datasource, ogg_int64_t offset, int whence)
 	{
 		deserialize_context& ctx = *static_cast<deserialize_context*>(datasource);
@@ -201,14 +201,14 @@ namespace
 		return 1;
 	}
 	
-	/** Vorbisfile I/O tell callback. */
+	/// Vorbisfile I/O tell callback.
 	long vorbisfile_io_tell(void* datasource)
 	{
 		deserialize_context& ctx = *static_cast<deserialize_context*>(datasource);
 		return static_cast<long>(ctx.tell());
 	}
 	
-	/** Loads a sound wave with Vorbisfile. */
+	/// Loads a sound wave with Vorbisfile.
 	std::unique_ptr<audio::sound_wave> load_sound_wave_vorbisfile(std::shared_ptr<deserialize_context> ctx)
 	{
 		// Setup Vorbisfile I/O callbacks

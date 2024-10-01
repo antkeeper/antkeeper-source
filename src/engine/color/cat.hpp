@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_COLOR_CAT_HPP
@@ -12,12 +12,10 @@ namespace color {
 /// @name Chromatic adaption transforms (CAT)
 /// @{
 
-/**
- * Bradford cone response matrix.
- *
- * @see Specification ICC.1:2010 (Profile version 4.3.0.0). Image technology colour management — Architecture, profile format, and data structure, Annex E.3, pp. 102.
- * @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
- */
+/// Bradford cone response matrix.
+/// @tparam T Scalar type.
+/// @see Specification ICC.1:2010 (Profile version 4.3.0.0). Image technology colour management — Architecture, profile format, and data structure, Annex E.3, pp. 102.
+/// @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
 template <class T>
 constexpr math::mat3<T> bradford_cone_response =
 {
@@ -26,11 +24,9 @@ constexpr math::mat3<T> bradford_cone_response =
 	T{-0.1614}, T{ 0.0367}, T{ 1.0296}
 };
 
-/**
- * von Kries cone response matrix.
- *
- * @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
- */
+/// von Kries cone response matrix.
+/// @tparam T Scalar type.
+/// @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
 template <class T>
 constexpr math::mat3<T> von_kries_cone_response =
 {
@@ -39,26 +35,20 @@ constexpr math::mat3<T> von_kries_cone_response =
 	T{-0.08081}, T{ 0.04570}, T{0.91822}
 };
 
-/**
- * XYZ scaling cone response matrix.
- *
- * @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
- */
+/// XYZ scaling cone response matrix.
+/// @tparam T Scalar type.
+/// @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
 template <class T>
 constexpr math::mat3<T> xyz_scaling_cone_response = math::identity<math::mat3<T>>;
 
-/**
- * Constructs a chromatic adaptation transform (CAT) matrix.
- *
- * @param w0 CIE xy chromaticity coordinates of the source illuminant.
- * @param w1 CIE xy chromaticity coordinates of the destination illuminant.
- * @param cone_response Cone response matrix.
- *
- * @return CAT matrix.
- *
- * @see Specification ICC.1:2010 (Profile version 4.3.0.0). Image technology colour management — Architecture, profile format, and data structure, Annex E.3, pp. 102.
- * @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
- */
+/// Constructs a chromatic adaptation transform (CAT) matrix.
+/// @tparam T Scalar type.
+/// @param w0 CIE xy chromaticity coordinates of the source illuminant.
+/// @param w1 CIE xy chromaticity coordinates of the destination illuminant.
+/// @param cone_response Cone response matrix.
+/// @return CAT matrix.
+/// @see Specification ICC.1:2010 (Profile version 4.3.0.0). Image technology colour management — Architecture, profile format, and data structure, Annex E.3, pp. 102.
+/// @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
 template <class T>
 [[nodiscard]] constexpr math::mat3<T> cat_matrix(const math::vec2<T>& w0, const math::vec2<T>& w1, const math::mat3<T>& cone_response = bradford_cone_response<T>) noexcept
 {

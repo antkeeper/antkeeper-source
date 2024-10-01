@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_APP_DISPLAY_ORIENTATION_HPP
@@ -8,12 +8,10 @@
 
 namespace app {
 
-/**
- * Display orientations.
- */
+/// Display orientations.
 enum class display_orientation: std::uint8_t
 {
-	/// Display orientation unknown.
+	/// Unknown display orientation.
 	unknown,
 	
 	/// Display is in landscape mode, with the right side up, relative to portrait mode.

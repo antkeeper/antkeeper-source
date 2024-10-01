@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_PIXEL_FORMAT_HPP
@@ -31,7 +31,7 @@ enum class pixel_format: std::uint8_t
 	/// Red, green, blue, alpha
 	rgba,
 	
-	///< Blue, green, red, alpha
+	/// Blue, green, red, alpha
 	bgra
 };
 

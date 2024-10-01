@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_SETTINGS_HPP
@@ -8,17 +8,12 @@
 #include <engine/debug/log.hpp>
 #include <string_view>
 
-/**
- * Reads a setting if found, inserts a setting if not found, and overwrites a setting if a type mismatch occurs.
- *
- * @tparam T Setting value type.
- *
- * @param[in] ctx Game context.
- * @param[in] key Setting key.
- * @param[in,out] value Setting value.
- *
- * @return `true` if the setting was read, `false` if the setting was written.
- */
+/// Reads a setting if found, inserts a setting if not found, and overwrites a setting if a type mismatch occurs.
+/// @tparam T Setting value type.
+/// @param[in] ctx Game context.
+/// @param[in] key Setting key.
+/// @param[in,out] value Setting value.
+/// @return `true` if the setting was read, `false` if the setting was written.
 template <class T>
 bool read_or_write_setting(::game& ctx, std::string_view key, T& value)
 {

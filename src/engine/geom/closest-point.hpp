@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_CLOSEST_POINT_HPP
@@ -19,34 +19,24 @@
 
 namespace geom {
 
-/**
- * Calculates the closest point on a ray to a point.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- *
- * @param a Ray a.
- * @param b Point b.
- *
- * @return Closest point on ray a to point b.
- */
+/// Calculates the closest point on a ray to a point.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @param a Ray a.
+/// @param b Point b.
+/// @return Closest point on ray a to point b.
 template <class T, std::size_t N>
 [[nodiscard]] constexpr point<T, N> closest_point(const ray<T, N>& a, const point<T, N>& b) noexcept
 {
 	return a.extrapolate(std::max<T>(T{0}, math::dot(b - a.origin, a.direction)));
 }
 
-/**
- * Calculates the closest point on a line segment to a point.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- *
- * @param ab Line segment ab.
- * @param c Point c.
- *
- * @return Closest point on line segment ab to point c.
- */
+/// Calculates the closest point on a line segment to a point.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @param ab Line segment ab.
+/// @param c Point c.
+/// @return Closest point on line segment ab to point c.
 template <class T, std::size_t N>
 [[nodiscard]] constexpr point<T, N> closest_point(const line_segment<T, N>& ab, const point<T, N>& c) noexcept
 {
@@ -71,19 +61,13 @@ template <class T, std::size_t N>
 	}
 }
 
-/**
- * Calculates the closest points on two line segments.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- *
- * @param ab Line segment ab.
- * @param cd Line segment cd.
- *
- * @return Tuple containing the closest point on segment ab to segment cd, followed by the closest point on segment cd to segment ab.
- *
- * @see Ericson, C. (2004). Real-time collision detection. Crc Press.
- */
+/// Calculates the closest points on two line segments.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @param ab Line segment ab.
+/// @param cd Line segment cd.
+/// @return Tuple containing the closest point on segment ab to segment cd, followed by the closest point on segment cd to segment ab.
+/// @see Ericson, C. (2004). Real-time collision detection. Crc Press.
 template <class T, std::size_t N>
 [[nodiscard]] constexpr std::tuple<point<T, N>, point<T, N>> closest_point(const line_segment<T, N>& ab, const line_segment<T, N>& cd) noexcept
 {
@@ -160,39 +144,26 @@ template <class T, std::size_t N>
 	}
 }
 
-/**
- * Calculates the closest point on a hyperplane to a point.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- *
- * @param a Hyperplane a.
- * @param b Point b.
- *
- * @return Closest point on hyperplane a to point b.
- */
+/// Calculates the closest point on a hyperplane to a point.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @param a Hyperplane a.
+/// @param b Point b.
+/// @return Closest point on hyperplane a to point b.
 template <class T, std::size_t N>
 [[nodiscard]] constexpr point<T, N> closest_point(const hyperplane<T, N>& a, const point<T, N>& b) noexcept
 {
 	return b - a.normal * (math::dot(a.normal, b) + a.constant);
 }
 
-/**
- * Calculates the closest point on a triangle to a point.
- *
- * @tparam T Real type.
- *
- * @param tri Triangle.
- * @param a First point of triangle.
- * @param b Second point of triangle.
- * @param c Third point of triangle.
- * @param p Point.
- *
- * @return Closest point on the triangle to point @p p, followed by the Voronoi region of the point.
- *
- * @see Ericson, C. (2004). Real-time collision detection. Crc Press.
- */
-/// @{
+/// Calculates the closest point on a triangle to a point.
+/// @tparam T Real type.
+/// @param a First point of triangle.
+/// @param b Second point of triangle.
+/// @param c Third point of triangle.
+/// @param p Point.
+/// @return Closest point on the triangle to point @p p, followed by the Voronoi region of the point.
+/// @see Ericson, C. (2004). Real-time collision detection. Crc Press.
 template <class T>
 [[nodiscard]] constexpr std::tuple<point<T, 3>, triangle_region> closest_point(const point<T, 3>& a, const point<T, 3>& b, const point<T, 3>& c, const point<T, 3>& p) noexcept
 {
@@ -252,24 +223,24 @@ template <class T>
 	return {a * u + b * v + c * w, triangle_region::abc};
 }
 
+/// Calculates the closest point on a triangle to a point.
+/// @tparam T Real type.
+/// @param tri Triangle.
+/// @param p Point.
+/// @return Closest point on the triangle to point @p p, followed by the Voronoi region of the point.
+/// @see Ericson, C. (2004). Real-time collision detection. Crc Press.
 template <class T>
 [[nodiscard]] inline constexpr std::tuple<point<T, 3>, triangle_region> closest_point(const triangle<T, 3>& tri, const point<T, 3>& p) noexcept
 {
 	return closest_point(tri.a, tri.b, tri.c, p);
 }
-/// @}
 
-/**
- * Calculates the closest point on or in a hypersphere to a point.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- *
- * @param a Hypersphere a.
- * @param b Point b.
- *
- * @return Closest point on or in hypersphere a to point b.
- */
+/// Calculates the closest point on or in a hypersphere to a point.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @param a Hypersphere a.
+/// @param b Point b.
+/// @return Closest point on or in hypersphere a to point b.
 template <class T, std::size_t N>
 [[nodiscard]] point<T, N> closest_point(const hypersphere<T, N>& a, const point<T, N>& b)
 {
@@ -278,17 +249,12 @@ template <class T, std::size_t N>
 	return d > a.radius * a.radius ? a.center + ab * (a.radius / std::sqrt(d)) : b;
 }
 
-/**
- * Calculates the closest point on or in a hypercapsule to a point.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- *
- * @param a Hypercapsule a.
- * @param b Point b.
- *
- * @return Closest point on or in hypercapsule a to point b.
- */
+/// Calculates the closest point on or in a hypercapsule to a point.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @param a Hypercapsule a.
+/// @param b Point b.
+/// @return Closest point on or in hypercapsule a to point b.
 template <class T, std::size_t N>
 [[nodiscard]] point<T, N> closest_point(const hypercapsule<T, N>& a, const point<T, N>& b)
 {
@@ -298,17 +264,12 @@ template <class T, std::size_t N>
 	return d > a.radius * a.radius ? c + cb * (a.radius / std::sqrt(d)) : b;
 }
 
-/**
- * Calculates the closest point on or in a hyperrectangle to a point.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- *
- * @param a Hyperrectangle a.
- * @param b Point b.
- *
- * @return Closest point on or in hyperrectangle a to point b.
- */
+/// Calculates the closest point on or in a hyperrectangle to a point.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @param a Hyperrectangle a.
+/// @param b Point b.
+/// @return Closest point on or in hyperrectangle a to point b.
 template <class T, std::size_t N>
 [[nodiscard]] constexpr point<T, N> closest_point(const hyperrectangle<T, N>& a, const point<T, N>& b) noexcept
 {

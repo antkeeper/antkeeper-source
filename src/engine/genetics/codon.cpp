@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/genetics/codon.hpp>
@@ -6,12 +6,9 @@
 namespace genetics {
 namespace codon {
 
-/**
- * Returns the index of a nucleobase for use with a translation table.
- *
- * @param base IUPAC code of nucleobase, either `U`, `T`, `C`, `A`, or `G`.
- * @return Index of the nucleobase, or a negative value if a non-standard nucleobase was supplied.
- */
+/// Returns the index of a nucleobase for use with a translation table.
+/// @param base IUPAC code of nucleobase, either `U`, `T`, `C`, `A`, or `G`.
+/// @return Index of the nucleobase, or a negative value if a non-standard nucleobase was supplied.
 static inline int base_index(char base)
 {
 	switch (base)
@@ -30,14 +27,11 @@ static inline int base_index(char base)
 	return ~3;
 }
 
-/**
- * Returns the index of a codon for use with a translation table.
- *
- * @param base1 IUPAC code of first nucleobase, either `U`, `T`, `C`, `A`, or `G`.
- * @param base2 IUPAC code of second nucleobase, either `U`, `T`, `C`, `A`, or `G`.
- * @param base3 IUPAC code of third nucleobase, either `U`, `T`, `C`, `A`, or `G`.
- * @return Index of codon, or a negative value if a non-standard nucleobase was supplied.
- */
+/// Returns the index of a codon for use with a translation table.
+/// @param base1 IUPAC code of first nucleobase, either `U`, `T`, `C`, `A`, or `G`.
+/// @param base2 IUPAC code of second nucleobase, either `U`, `T`, `C`, `A`, or `G`.
+/// @param base3 IUPAC code of third nucleobase, either `U`, `T`, `C`, `A`, or `G`.
+/// @return Index of codon, or a negative value if a non-standard nucleobase was supplied.
 static inline int codon_index(char base1, char base2, char base3)
 {
 	int i = base_index(base1);

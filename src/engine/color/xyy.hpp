@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_COLOR_XYY_HPP
@@ -11,26 +11,20 @@ namespace color {
 /// @name CIE xyY color space.
 /// @{
 
-/**
- * Returns the luminance of a CIE xyY color.
- *
- * @param x CIE xyY color.
- *
- * @return return Luminance of @p x.
- */
+/// Returns the luminance of a CIE xyY color.
+/// @tparam T Scalar type.
+/// @param x CIE xyY color.
+/// @return return Luminance of @p x.
 template <class T>
 [[nodiscard]] inline constexpr T xyy_to_luminance(const math::vec3<T>& x) noexcept
 {
 	return x[2];
 }
 
-/**
- * Transforms a CIE xyY color into the CIE 1960 UCS colorspace.
- *
- * @param x CIE xyY color.
- *
- * @return CIE 1960 UCS color.
- */
+/// Transforms a CIE xyY color into the CIE 1960 UCS colorspace.
+/// @tparam T Scalar type.
+/// @param x CIE xyY color.
+/// @return CIE 1960 UCS color.
 template <class T>
 [[nodiscard]] constexpr math::vec2<T> xyy_to_ucs(const math::vec3<T>& x) noexcept
 {
@@ -38,13 +32,10 @@ template <class T>
 	return {(T{4} * x[0]) * d, (T{6} * x[1]) * d};
 }
 
-/**
- * Transforms a CIE xyY color into the CIE XYZ colorspace.
- *
- * @param x CIE xyY color.
- *
- * @return CIE XYZ color.
- */
+/// Transforms a CIE xyY color into the CIE XYZ colorspace.
+/// @tparam T Scalar type.
+/// @param x CIE xyY color.
+/// @return CIE XYZ color.
 template <class T>
 [[nodiscard]] constexpr math::vec3<T> xyy_to_xyz(const math::vec3<T>& x) noexcept
 {

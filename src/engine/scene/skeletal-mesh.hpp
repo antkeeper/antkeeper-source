@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_SCENE_SKELETAL_MESH_HPP
@@ -12,55 +12,39 @@
 
 namespace scene {
 
-/**
- *
- */
+/// Skeletal mesh object.
 class skeletal_mesh: public object<skeletal_mesh>
 {
 public:
-	/**
-	 * Constructs a skeletal mesh from a model.
-	 *
-	 * @param model Model from which the skeletal mesh will be constructed.
-	 */
+	/// Constructs a skeletal mesh from a model.
+	/// @param model Model from which the skeletal mesh will be constructed.
 	explicit skeletal_mesh(std::shared_ptr<render::model> model);
 	
-	/**
-	 * Constructs a skeletal mesh.
-	 */
+	/// Constructs a skeletal mesh.
 	skeletal_mesh() = default;
 	
-	/** Destructs a skeletal mesh. */
+	/// Destructs a skeletal mesh.
 	~skeletal_mesh() override = default;
 	
-	/**
-	 * Sets the model with which this model instance is associated.
-	 *
-	 * @warning This will reset all overwritten materials.
-	 */
+	/// Sets the model with which this model instance is associated.
+	/// @param model Shared pointer to the model.
 	void set_model(std::shared_ptr<render::model> model);
 	
-	/**
-	 * Overwrites the material of a model group for this model instance.
-	 *
-	 * @param index Index of a model group.
-	 * @param material Pointer to the material which should overwrite the model group's material. A value of `nullptr` indicates the material will not be overwritten.
-	 */
+	/// Overwrites the material of a model group for this model instance.
+	/// @param index Index of a model group.
+	/// @param material Pointer to the material which should overwrite the model group's material. A value of `nullptr` indicates the material will not be overwritten.
 	void set_material(std::size_t index, std::shared_ptr<render::material> material);
 	
-	/**
-	 * Resets all overwritten materials.
-	 */
+	/// Resets all overwritten materials.
 	void reset_materials();
 	
+	/// Returns the bounds of the skeletal mesh.
 	[[nodiscard]] inline const aabb_type& get_bounds() const noexcept override
 	{
 		return m_bounds;
 	}
 	
-	/**
-	 * Returns the model of the model instance.
-	 */
+	/// Returns the model of the model instance.
 	[[nodiscard]] inline const std::shared_ptr<render::model>& get_model() const noexcept
 	{
 		return m_model;
@@ -75,17 +59,16 @@ public:
 	}
 	
 	/// Returns the pose of the skeletal mesh.
-	/// @{
-	[[nodiscard]] inline const skeleton_pose& get_pose() const noexcept
-	{
-		return m_pose;
-	}
-	
 	[[nodiscard]] inline skeleton_pose& get_pose() noexcept
 	{
 		return m_pose;
 	}
-	/// @}
+
+	/// @copydoc get_pose()
+	[[nodiscard]] inline const skeleton_pose& get_pose() const noexcept
+	{
+		return m_pose;
+	}
 	
 private:
 	void update_bounds();

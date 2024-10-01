@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/input/mapping.hpp>
@@ -46,128 +46,126 @@ mouse_scroll_mapping::mouse_scroll_mapping(input::mouse* map_mouse, mouse_scroll
 
 } // namespace input
 
-/**
- * Serializes an input mapping.
- *
- * @param[in] mapping Input mapping to serialize.
- * @param[in,out] ctx Serialize context.
- *
- * @throw serialize_error Write error.
- */
-/// @{
+/// Serializes an input mapping.
+/// @param[in] value Input mapping to serialize.
+/// @param[in,out] ctx Serialize context.
+/// @throw serialize_error Write error.
 template <>
-void serializer<input::gamepad_axis_mapping>::serialize(const input::gamepad_axis_mapping& mapping, serialize_context& ctx)
+void serializer<input::gamepad_axis_mapping>::serialize(const input::gamepad_axis_mapping& value, serialize_context& ctx)
 {
-	ctx.write8(reinterpret_cast<const std::byte*>(&mapping.axis), 1);	
-	const std::uint8_t direction = mapping.direction;
+	ctx.write8(reinterpret_cast<const std::byte*>(&value.axis), 1);
+	const std::uint8_t direction = value.direction;
 	ctx.write8(reinterpret_cast<const std::byte*>(&direction), 1);
 }
 
+/// @copydoc serializer<input::gamepad_axis_mapping>::serialize
 template <>
-void serializer<input::gamepad_button_mapping>::serialize(const input::gamepad_button_mapping& mapping, serialize_context& ctx)
+void serializer<input::gamepad_button_mapping>::serialize(const input::gamepad_button_mapping& value, serialize_context& ctx)
 {
-	ctx.write8(reinterpret_cast<const std::byte*>(&mapping.button), 1);
+	ctx.write8(reinterpret_cast<const std::byte*>(&value.button), 1);
 }
 
+/// @copydoc serializer<input::gamepad_axis_mapping>::serialize
 template <>
-void serializer<input::key_mapping>::serialize(const input::key_mapping& mapping, serialize_context& ctx)
+void serializer<input::key_mapping>::serialize(const input::key_mapping& value, serialize_context& ctx)
 {
-	ctx.write16<std::endian::big>(reinterpret_cast<const std::byte*>(&mapping.scancode), 1);	
-	ctx.write16<std::endian::big>(reinterpret_cast<const std::byte*>(&mapping.modifiers), 1);
-	const std::uint8_t repeat = mapping.repeat;
+	ctx.write16<std::endian::big>(reinterpret_cast<const std::byte*>(&value.scancode), 1);
+	ctx.write16<std::endian::big>(reinterpret_cast<const std::byte*>(&value.modifiers), 1);
+	const std::uint8_t repeat = value.repeat;
 	ctx.write8(reinterpret_cast<const std::byte*>(&repeat), 1);
 }
 
+/// @copydoc serializer<input::gamepad_axis_mapping>::serialize
 template <>
-void serializer<input::mouse_button_mapping>::serialize(const input::mouse_button_mapping& mapping, serialize_context& ctx)
+void serializer<input::mouse_button_mapping>::serialize(const input::mouse_button_mapping& value, serialize_context& ctx)
 {
-	ctx.write8(reinterpret_cast<const std::byte*>(&mapping.button), 1);	
+	ctx.write8(reinterpret_cast<const std::byte*>(&value.button), 1);
 }
 
+/// @copydoc serializer<input::gamepad_axis_mapping>::serialize
 template <>
-void serializer<input::mouse_motion_mapping>::serialize(const input::mouse_motion_mapping& mapping, serialize_context& ctx)
+void serializer<input::mouse_motion_mapping>::serialize(const input::mouse_motion_mapping& value, serialize_context& ctx)
 {
-	ctx.write8(reinterpret_cast<const std::byte*>(&mapping.axis), 1);	
-	const std::uint8_t direction = mapping.direction;
+	ctx.write8(reinterpret_cast<const std::byte*>(&value.axis), 1);
+	const std::uint8_t direction = value.direction;
 	ctx.write8(reinterpret_cast<const std::byte*>(&direction), 1);
 }
 
+/// @copydoc serializer<input::gamepad_axis_mapping>::serialize
 template <>
-void serializer<input::mouse_scroll_mapping>::serialize(const input::mouse_scroll_mapping& mapping, serialize_context& ctx)
+void serializer<input::mouse_scroll_mapping>::serialize(const input::mouse_scroll_mapping& value, serialize_context& ctx)
 {
-	ctx.write8(reinterpret_cast<const std::byte*>(&mapping.axis), 1);	
-	const std::uint8_t direction = mapping.direction;
+	ctx.write8(reinterpret_cast<const std::byte*>(&value.axis), 1);
+	const std::uint8_t direction = value.direction;
 	ctx.write8(reinterpret_cast<const std::byte*>(&direction), 1);
 }
-/// @}
 
-/**
- * Deserializes an input mapping.
- *
- * @param[out] mapping Input mapping to deserialize.
- * @param[in,out] ctx Deserialize context.
- *
- * @throw deserialize_error Read error.
- */
-/// @{
+/// Deserializes an input mapping.
+/// @param[out] value Input mapping to deserialize.
+/// @param[in,out] ctx Deserialize context.
+/// @throw deserialize_error Read error.
 template <>
-void deserializer<input::gamepad_axis_mapping>::deserialize(input::gamepad_axis_mapping& mapping, deserialize_context& ctx)
+void deserializer<input::gamepad_axis_mapping>::deserialize(input::gamepad_axis_mapping& value, deserialize_context& ctx)
 {
-	mapping.gamepad = nullptr;
+	value.gamepad = nullptr;
 	
-	ctx.read8(reinterpret_cast<std::byte*>(&mapping.axis), 1);
+	ctx.read8(reinterpret_cast<std::byte*>(&value.axis), 1);
 	std::uint8_t direction = 0;
 	ctx.read8(reinterpret_cast<std::byte*>(&direction), 1);
-	mapping.direction = direction;
+	value.direction = direction;
 }
 
+/// @copydoc deserializer<input::gamepad_axis_mapping>::deserialize
 template <>
-void deserializer<input::gamepad_button_mapping>::deserialize(input::gamepad_button_mapping& mapping, deserialize_context& ctx)
+void deserializer<input::gamepad_button_mapping>::deserialize(input::gamepad_button_mapping& value, deserialize_context& ctx)
 {
-	mapping.gamepad = nullptr;
+	value.gamepad = nullptr;
 	
-	ctx.read8(reinterpret_cast<std::byte*>(&mapping.button), 1);
+	ctx.read8(reinterpret_cast<std::byte*>(&value.button), 1);
 }
 
+/// @copydoc deserializer<input::gamepad_axis_mapping>::deserialize
 template <>
-void deserializer<input::key_mapping>::deserialize(input::key_mapping& mapping, deserialize_context& ctx)
+void deserializer<input::key_mapping>::deserialize(input::key_mapping& value, deserialize_context& ctx)
 {
-	mapping.keyboard = nullptr;
+	value.keyboard = nullptr;
 	
-	ctx.read16<std::endian::big>(reinterpret_cast<std::byte*>(&mapping.scancode), 1);
-	ctx.read16<std::endian::big>(reinterpret_cast<std::byte*>(&mapping.modifiers), 1);
+	ctx.read16<std::endian::big>(reinterpret_cast<std::byte*>(&value.scancode), 1);
+	ctx.read16<std::endian::big>(reinterpret_cast<std::byte*>(&value.modifiers), 1);
 	std::uint8_t repeat = 0;
 	ctx.read8(reinterpret_cast<std::byte*>(&repeat), 1);
-	mapping.repeat = repeat;
+	value.repeat = repeat;
 }
 
+/// @copydoc deserializer<input::gamepad_axis_mapping>::deserialize
 template <>
-void deserializer<input::mouse_button_mapping>::deserialize(input::mouse_button_mapping& mapping, deserialize_context& ctx)
+void deserializer<input::mouse_button_mapping>::deserialize(input::mouse_button_mapping& value, deserialize_context& ctx)
 {
-	mapping.mouse = nullptr;
+	value.mouse = nullptr;
 	
-	ctx.read8(reinterpret_cast<std::byte*>(&mapping.button), 1);
+	ctx.read8(reinterpret_cast<std::byte*>(&value.button), 1);
 }
 
+/// @copydoc deserializer<input::gamepad_axis_mapping>::deserialize
 template <>
-void deserializer<input::mouse_motion_mapping>::deserialize(input::mouse_motion_mapping& mapping, deserialize_context& ctx)
+void deserializer<input::mouse_motion_mapping>::deserialize(input::mouse_motion_mapping& value, deserialize_context& ctx)
 {
-	mapping.mouse = nullptr;
+	value.mouse = nullptr;
 	
-	ctx.read8(reinterpret_cast<std::byte*>(&mapping.axis), 1);
+	ctx.read8(reinterpret_cast<std::byte*>(&value.axis), 1);
 	std::uint8_t direction = 0;
 	ctx.read8(reinterpret_cast<std::byte*>(&direction), 1);
-	mapping.direction = direction;
+	value.direction = direction;
 }
 
+/// @copydoc deserializer<input::gamepad_axis_mapping>::deserialize
 template <>
-void deserializer<input::mouse_scroll_mapping>::deserialize(input::mouse_scroll_mapping& mapping, deserialize_context& ctx)
+void deserializer<input::mouse_scroll_mapping>::deserialize(input::mouse_scroll_mapping& value, deserialize_context& ctx)
 {
-	mapping.mouse = nullptr;
+	value.mouse = nullptr;
 	
-	ctx.read8(reinterpret_cast<std::byte*>(&mapping.axis), 1);
+	ctx.read8(reinterpret_cast<std::byte*>(&value.axis), 1);
 	std::uint8_t direction = 0;
 	ctx.read8(reinterpret_cast<std::byte*>(&direction), 1);
-	mapping.direction = direction;
+	value.direction = direction;
 }
-/// @}

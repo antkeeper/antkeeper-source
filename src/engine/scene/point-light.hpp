@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_SCENE_POINT_LIGHT_HPP
@@ -9,13 +9,11 @@
 
 namespace scene {
 
-/**
- * Light source that radiates outward from a point.
- */
+/// Light source that radiates outward from a point.
 class point_light: public light
 {
 public:
-	/** Destructs a point light. */
+	/// Destructs a point light.
 	~point_light() override = default;
 	
 	/// Returns light_type::point.
@@ -24,11 +22,8 @@ public:
 		return light_type::point;
 	}
 	
-	/**
-	 * Sets the luminous flux of the light.
-	 *
-	 * @param luminous_flux Luminous flux.
-	 */
+	/// Sets the luminous flux of the light.
+	/// @param luminous_flux Luminous flux.
 	inline void set_luminous_flux(float luminous_flux) noexcept
 	{
 		m_luminous_flux = luminous_flux;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_PROJECTION_HPP
@@ -8,8 +8,14 @@
 
 namespace geom {
 
+/// Project a vector onto a plane.
+/// @tparam T Real type.
+/// @param v Vector to project.
+/// @param p Point on the plane.
+/// @param n Normal of the plane.
+/// @return Projected vector.
 template <class T>
-math::vec3<T> project_on_plane(const math::vec3<T>& v, const math::vec3<T>& p, const math::vec3<T>& n)
+[[nodiscard]] math::vec3<T> project_on_plane(const math::vec3<T>& v, const math::vec3<T>& p, const math::vec3<T>& n) noexcept
 {
 	return v - n * math::dot(v - p, n);
 }

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_BREP_ELEMENT_CONTAINER_HPP
@@ -11,11 +11,9 @@
 #include <vector>
 
 namespace geom {
-/**
- * Container for B-rep elements.
- *
- * @tparam T Element type.
- */
+
+/// Container for B-rep elements.
+/// @tparam T Element type.
 template <class T>
 class brep_element_container
 {
@@ -90,10 +88,10 @@ public:
 			return m_it == other.m_it;
 		};
 		
-        [[nodiscard]] inline std::weak_ordering operator<=>(const const_iterator& other) const noexcept
+		[[nodiscard]] inline std::weak_ordering operator<=>(const const_iterator& other) const noexcept
 		{
 			return m_it <=> other.m_it;
-        }
+		}
 		
 		[[nodiscard]] inline difference_type operator-(const const_iterator& rhs) const noexcept
 		{
@@ -131,39 +129,30 @@ public:
 	/// @name Element access
 	/// @{
 
-	/**
-	 * Returns a pointer to the element at the specified index, with bounds checking.
-	 *
-	 * @param i Index of an element.
-	 *
-	 * @return Pointer to the element at index @p i.
-	 *
-	 * @exception std::out_of_range if @p i >= size().
-	 */
+	/// Returns a pointer to the element at the specified index, with bounds checking.
+	/// @param i Index of an element.
+	/// @return Pointer to the element at index @p i.
+	/// @exception std::out_of_range if @p i >= size().
 	[[nodiscard]] inline constexpr element_type* at(std::size_t i) const
 	{
 		return m_elements.at(i).get();
 	}
 	
-	/**
-	 * Returns a pointer to the element at the specified index.
-	 *
-	 * @param i Index of an element.
-	 *
-	 * @return Pointer to the element at index @p i.
-	 */
+	/// Returns a pointer to the element at the specified index.
+	/// @param i Index of an element.
+	/// @return Pointer to the element at index @p i.
 	[[nodiscard]] inline constexpr element_type* operator[](std::size_t i) const
 	{
 		return m_elements[i].get();
 	}
 	
-	/** Returns the first element. */
+	/// Returns the first element.
 	[[nodiscard]] inline constexpr element_type* front() const noexcept
 	{
 		return m_elements.front().get();
 	}
 	
-	/** Returns the last element. */
+	/// Returns the last element.
 	[[nodiscard]] inline constexpr element_type* back() const noexcept
 	{
 		return m_elements.back().get();
@@ -173,7 +162,7 @@ public:
 	/// @name Iterators
 	/// @{
 	
-	/** Returns an iterator to the first element. */
+	/// Returns an iterator to the first element.
 	[[nodiscard]] inline constexpr const_iterator begin() const noexcept
 	{
 		const_iterator it;
@@ -181,13 +170,13 @@ public:
 		return it;
 	}
 
-	/** @copydoc begin() */
+	/// @copydoc begin()
 	[[nodiscard]] inline constexpr const_iterator cbegin() const noexcept
 	{
 		return begin();
 	}
 	
-	/** Returns an iterator to the element following the last element. */
+	/// Returns an iterator to the element following the last element.
 	[[nodiscard]] inline constexpr const_iterator end() const noexcept
 	{
 		const_iterator it;
@@ -195,31 +184,31 @@ public:
 		return it;
 	}
 
-	/** @copydoc end() */
+	/// @copydoc end()
 	[[nodiscard]] inline constexpr const_iterator cend() const noexcept
 	{
 		return end();
 	}
 	
-	/** Returns a reverse iterator to the first element of the reversed container. */
+	/// Returns a reverse iterator to the first element of the reversed container.
 	[[nodiscard]] inline constexpr const_reverse_iterator rbegin() const noexcept
 	{
 		return std::make_reverse_iterator(end());
 	}
 
-	/** @copydoc rbegin() */
+	/// @copydoc rbegin()
 	[[nodiscard]] inline constexpr const_reverse_iterator crbegin() const noexcept
 	{
 		return rbegin();
 	}
 	
-	/** Returns a reverse iterator to the element following the last element of the reversed container. */
+	/// Returns a reverse iterator to the element following the last element of the reversed container.
 	[[nodiscard]] inline constexpr const_reverse_iterator rend() const noexcept
 	{
 		return std::make_reverse_iterator(begin());
 	}
 
-	/** @copydoc rend() */
+	/// @copydoc rend()
 	[[nodiscard]] inline constexpr const_reverse_iterator crend() const noexcept
 	{
 		return rend();
@@ -229,13 +218,13 @@ public:
 	/// @name Capacity
 	/// @{
 	
-	/** Returns `true` if the container is empty, `false` otherwise. */
+	/// Returns `true` if the container is empty, `false` otherwise.
 	[[nodiscard]] inline constexpr bool empty() const noexcept
 	{
 		return m_elements.empty();
 	}
 	
-	/** Returns the number of elements in the container. */
+	/// Returns the number of elements in the container.
 	[[nodiscard]] inline constexpr std::size_t size() const noexcept
 	{
 		return m_elements.size();
@@ -245,13 +234,13 @@ public:
 	/// @name Attributes
 	/// @{
 	
-	/** Returns the element attribute map. */
+	/// Returns the element attribute map.
 	[[nodiscard]] brep_attribute_map& attributes() noexcept
 	{
 		return m_attribute_map;
 	}
 
-	/** @copydoc attributes() */
+	/// @copydoc attributes()
 	[[nodiscard]] const brep_attribute_map& attributes() const noexcept
 	{
 		return m_attribute_map;
@@ -262,21 +251,14 @@ public:
 protected:
 	friend class brep_mesh;
 	
-	/**
-	 * Constructs a B-rep element container.
-	 *
-	 * @param mesh Pointer to the parent mesh.
-	 */
+	/// Constructs a B-rep element container.
 	constexpr brep_element_container() noexcept = default;
 	
-	/** Destructs a B-rep element container. */
+	/// Destructs a B-rep element container.
 	virtual ~brep_element_container() = default;
 	
-	/**
-	 * Associates the B-rep element container with a mesh.
-	 *
-	 * @param mesh Mesh with which to associate the container.
-	 */
+	/// Associates the B-rep element container with a mesh.
+	/// @param mesh Mesh with which to associate the container.
 	inline void set_mesh(brep_mesh* mesh) noexcept
 	{
 		m_mesh = mesh;
@@ -285,11 +267,8 @@ protected:
 	/// @name Modifiers
 	/// @{
 	
-	/**
-	 * Erases an element from the container.
-	 *
-	 * @param element Pointer to the element to erase.
-	 */
+	/// Erases an element from the container.
+	/// @param element Pointer to the element to erase.
 	virtual void erase(element_type* element)
 	{
 		const auto index = element->m_index;
@@ -305,11 +284,8 @@ protected:
 		m_elements.pop_back();
 	}
 	
-	/**
-	 * Appends a new element to the end of the container.
-	 *
-	 * @return Pointer to the new element.
-	 */
+	/// Appends a new element to the end of the container.
+	/// @return Pointer to the new element.
 	virtual element_type* emplace_back()
 	{
 		for (auto& [key, values]: m_attribute_map.m_attributes)

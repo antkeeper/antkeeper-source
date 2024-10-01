@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_HEAD_GENE_HPP
@@ -8,12 +8,9 @@
 #include <engine/render/model.hpp>
 #include <memory>
 
-/**
- * Ant head phene.
- *
- * @see https://www.antwiki.org/wiki/Morphological_Measurements
- * @see https://antwiki.org/wiki/Phragmosis
- */
+/// Ant head phene.
+/// @see https://www.antwiki.org/wiki/Morphological_Measurements
+/// @see https://antwiki.org/wiki/Phragmosis
 struct ant_head_phene
 {
 	/// Head length, in mesosomal lengths.
@@ -25,22 +22,20 @@ struct ant_head_phene
 	/// Degree of phragmosis.
 	float phragmosis{0.0f};
 	
-	/**
-	 * 3D model of the head.
-	 *
-	 * The head model skeleton must contain the following bones:
-	 *
-	 * * head
-	 * * * mandible_socket_l
-	 * * * mandible_socket_r
-	 * * * antenna_socket_l
-	 * * * antenna_socket_r
-	 * * * eye_socket_l
-	 * * * eye_socket_r
-	 * * * ocellus_socket_l
-	 * * * ocellus_socket_r
-	 * * * ocellus_socket_m
-	 */
+	/// 3D model of the head.
+	/// 
+	/// The head model skeleton must contain the following bones:
+	/// 
+	/// * head
+	/// * * mandible_socket_l
+	/// * * mandible_socket_r
+	/// * * antenna_socket_l
+	/// * * antenna_socket_r
+	/// * * eye_socket_l
+	/// * * eye_socket_r
+	/// * * ocellus_socket_l
+	/// * * ocellus_socket_r
+	/// * * ocellus_socket_m
 	std::shared_ptr<render::model> model;
 };
 

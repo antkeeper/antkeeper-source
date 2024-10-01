@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_LIGHT_PHASE_HPP
@@ -13,40 +13,28 @@ namespace light {
 /// Light-scattering phase functions.
 namespace phase {
 
-/**
- * Cornette-Shanks phase function.
- *
- * @param mu Cosine of the angle between the light and view directions.
- * @param g Asymmetry factor, on [-1, 1]. Positive values cause forward scattering, negative values cause back scattering.
- */
+/// Cornette-Shanks phase function.
+/// @param mu Cosine of the angle between the light and view directions.
+/// @param g Asymmetry factor, on [-1, 1]. Positive values cause forward scattering, negative values cause back scattering.
 template <class T>
 T cornette_shanks(T mu, T g);
 
-/**
- * Henyey–Greenstein phase function.
- *
- * @param mu Cosine of the angle between the light and view directions.
- * @param g Asymmetry factor, on `[-1, 1]`. Positive values cause forward scattering, negative values cause back scattering.
- *
- * @see http://www.pbr-book.org/3ed-2018/Volume_Scattering/Phase_Functions.html
- */
+/// Henyey–Greenstein phase function.
+/// @param mu Cosine of the angle between the light and view directions.
+/// @param g Asymmetry factor, on `[-1, 1]`. Positive values cause forward scattering, negative values cause back scattering.
+/// @see http://www.pbr-book.org/3ed-2018/Volume_Scattering/Phase_Functions.html
 template <class T>
 T henyey_greenstein(T mu, T g);
 
-/**
- * Isotropic phase function.
- */
+/// Isotropic phase function.
 template <class T>
 constexpr T isotropic()
 {
 	return T(1) / (T(4) * math::pi<T>);
 }
 
-/**
- * Rayleigh phase function.
- *
- * @param mu Cosine of the angle between the light and view directions.
- */
+/// Rayleigh phase function.
+/// @param mu Cosine of the angle between the light and view directions.
 template <class T>
 T rayleigh(T mu);
 

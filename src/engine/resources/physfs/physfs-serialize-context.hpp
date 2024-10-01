@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_RESOURCES_PHYSFS_SERIALIZE_CONTEXT_HPP
@@ -8,48 +8,30 @@
 #include <physfs.h>
 #include <filesystem>
 
-/**
- * Provides access to a serialization state.
- */
+/// Provides access to a serialization state.
 class physfs_serialize_context: public serialize_context
 {
 public:
-	/**
-	 * Constructs a PhysicsFS serialize context, opening a file using PhysicsFS and associating it with this serialize context.
-	 *
-	 * @param path Path to a file to open.
-	 *
-	 * @throw serialize_error File open error.
-	 */
+	/// Constructs a PhysicsFS serialize context, opening a file using PhysicsFS and associating it with this serialize context.
+	/// @param path Path to a file to open.
+	/// @throw serialize_error File open error.
 	explicit physfs_serialize_context(const std::filesystem::path& path) noexcept(false);
 	
-	/**
-	 * Constructs a PhysicsFS serialize context.
-	 */
+	/// Constructs a PhysicsFS serialize context.
 	physfs_serialize_context() noexcept = default;
 	
-	/**
-	 * Destructs a PhysicsFS serialize context, internally closing a file using PhysicsFS.
-	 */
+	/// Destructs a PhysicsFS serialize context, internally closing a file using PhysicsFS.
 	~physfs_serialize_context() override;
 	
-	/**
-	 * Opens a file using PhysicsFS and associates it with the serialize context.
-	 *
-	 * @param path Path to a file to open.
-	 *
-	 * @throw serialize_error File open error.
-	 */
+	/// Opens a file using PhysicsFS and associates it with the serialize context.
+	/// @param path Path to a file to open.
+	/// @throw serialize_error File open error.
 	void open(const std::filesystem::path& path) noexcept(false);
 	
-	/**
-	 * Closes the associated file using PhysicsFS.
-	 */
+	/// Closes the associated file using PhysicsFS.
 	void close() noexcept;
 	
-	/**
-	 * Returns `true` if the PhysicsFS file associated with this serialize context is open, `false` otherwise.
-	 */
+	/// Returns `true` if the PhysicsFS file associated with this serialize context is open, `false` otherwise.
 	[[nodiscard]] bool is_open() const noexcept;
 	
 	[[nodiscard]] const std::filesystem::path& path() const noexcept override;

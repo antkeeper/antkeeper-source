@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_COORDINATES_HPP
@@ -11,9 +11,7 @@
 
 namespace geom {
 
-/**
- * Voronoi regions of a triangle.
- */
+/// Voronoi regions of a triangle.
 enum class triangle_region: std::uint8_t
 {
 	/// Face ABC region.
@@ -38,75 +36,50 @@ enum class triangle_region: std::uint8_t
 	c   = 0b011
 };
 
-/**
- * Checks whether a triangle voronoi region is a face region.
- *
- * @param region Triangle region.
- *
- * @return `true` if @p region is a face region, `false` otherwise.
- */
+/// Checks whether a triangle voronoi region is a face region.
+/// @param region Triangle region.
+/// @return `true` if @p region is a face region, `false` otherwise.
 [[nodiscard]] inline constexpr bool is_face_region(triangle_region region) noexcept
 {
 	return !static_cast<bool>(region);
 }
 
-/**
- * Checks whether a triangle voronoi region is an edge region.
- *
- * @param region Triangle region.
- *
- * @return `true` if @p region is an edge region, `false` otherwise.
- */
+/// Checks whether a triangle voronoi region is an edge region.
+/// @param region Triangle region.
+/// @return `true` if @p region is an edge region, `false` otherwise.
 [[nodiscard]] inline constexpr bool is_edge_region(triangle_region region) noexcept
 {
 	return std::has_single_bit(static_cast<std::uint8_t>(region));
 }
 
-/**
- * Checks whether a triangle voronoi region is a vertex region.
- *
- * @param region Triangle region.
- *
- * @return `true` if @p region is an vertex region, `false` otherwise.
- */
+/// Checks whether a triangle voronoi region is a vertex region.
+/// @param region Triangle region.
+/// @return `true` if @p region is an vertex region, `false` otherwise.
 [[nodiscard]] inline constexpr bool is_vertex_region(triangle_region region) noexcept
 {
 	return static_cast<bool>(region) && !std::has_single_bit(static_cast<std::uint8_t>(region));
 }
 
-/**
- * Returns the edge index of an edge region.
- *
- * @param region Triangle edge region.
- *
- * @return Edge index.
- */
+/// Returns the edge index of an edge region.
+/// @param region Triangle edge region.
+/// @return Edge index.
 [[nodiscard]] inline constexpr std::uint8_t edge_index(triangle_region region) noexcept
 {
 	return static_cast<std::uint8_t>(region) & std::uint8_t{0b11};
 }
 
-/**
- * Returns the vertex index of a vertex region.
- *
- * @param region Triangle vertex region.
- *
- * @return Vertex index.
- */
+/// Returns the vertex index of a vertex region.
+/// @param region Triangle vertex region.
+/// @return Vertex index.
 [[nodiscard]] inline constexpr std::uint8_t vertex_index(triangle_region region) noexcept
 {
 	return std::uint8_t{3} - (static_cast<std::uint8_t>(region) >> 1);
 }
 
-/**
- * Classifies barycentric coordinates according to their Voronoi region.
- *
- * @tparam T Real type.
- *
- * @param p Barycentric coordinates of point to classify.
- *
- * @return Voronoi region of point @p p.
- */
+/// Classifies barycentric coordinates according to their Voronoi region.
+/// @tparam T Real type.
+/// @param p Barycentric coordinates of point to classify.
+/// @return Voronoi region of point @p p.
 template <class T>
 [[nodiscard]] constexpr triangle_region barycentric_to_region(const point<T, 3>& p) noexcept
 {
@@ -116,36 +89,26 @@ template <class T>
 	return static_cast<triangle_region>(region);
 }
 
-/**
- * Converts Cartesian coordinates to barycentric coordinates.
- *
- * @tparam T Real type.
- *
- * @param p Barycentric coordinates of point to convert.
- * @param a Cartesian coordinates of first point of triangle.
- * @param b Cartesian coordinates of second point of triangle.
- * @param c Cartesian coordinates of third point of triangle.
- *
- * @return Cartesian coordinates of point @p p.
- */
+/// Converts Cartesian coordinates to barycentric coordinates.
+/// @tparam T Real type.
+/// @param p Barycentric coordinates of point to convert.
+/// @param a Cartesian coordinates of first point of triangle.
+/// @param b Cartesian coordinates of second point of triangle.
+/// @param c Cartesian coordinates of third point of triangle.
+/// @return Cartesian coordinates of point @p p.
 template <class T>
 [[nodiscard]] inline constexpr point<T, 3> barycentric_to_cartesian(const point<T, 3>& p, const point<T, 3>& a, const point<T, 3>& b, const point<T, 3>& c) noexcept
 {
 	return a * p.x() + b * p.y() + c * p.z();
 }
 
-/**
- * Converts Cartesian coordinates to barycentric coordinates.
- *
- * @tparam T Real type.
- *
- * @param p Cartesian coordinates of point to convert.
- * @param a Cartesian coordinates of first point of triangle.
- * @param b Cartesian coordinates of second point of triangle.
- * @param c Cartesian coordinates of third point of triangle.
- *
- * @return Barycentric coordinates of point @p p.
- */
+/// Converts Cartesian coordinates to barycentric coordinates.
+/// @tparam T Real type.
+/// @param p Cartesian coordinates of point to convert.
+/// @param a Cartesian coordinates of first point of triangle.
+/// @param b Cartesian coordinates of second point of triangle.
+/// @param c Cartesian coordinates of third point of triangle.
+/// @return Barycentric coordinates of point @p p.
 template <class T>
 [[nodiscard]] constexpr point<T, 3> cartesian_to_barycentric(const point<T, 3>& p, const point<T, 3>& a, const point<T, 3>& b, const point<T, 3>& c) noexcept
 {
@@ -179,15 +142,10 @@ template <class T>
 	return uvw;
 }
 
-/**
- * Converts Cartesian (rectangular) coordinates to spherical coordinates.
- *
- * @tparam T Real type.
- *
- * @param p Cartesian coordinates of point to convert.
- *
- * @return Spherical coordinates of point @p p, in the ISO order of radial distance, polar angle (radians), and azimuthal angle (radians).
- */
+/// Converts Cartesian (rectangular) coordinates to spherical coordinates.
+/// @tparam T Real type.
+/// @param p Cartesian coordinates of point to convert.
+/// @return Spherical coordinates of point @p p, in the ISO order of radial distance, polar angle (radians), and azimuthal angle (radians).
 template <class T>
 [[nodiscard]] point<T, 3> cartesian_to_spherical(const point<T, 3>& p)
 {
@@ -201,15 +159,10 @@ template <class T>
 	};
 }
 
-/**
- * Converts spherical coordinates to Cartesian (rectangular) coordinates.
- *
- * @tparam T Real type.
- *
- * @param p Spherical coordinates to convert, in the ISO order of radial distance, polar angle (radians), and azimuthal angle (radians).
- *
- * @return Cartesian coordinates of point @p p.
- */
+/// Converts spherical coordinates to Cartesian (rectangular) coordinates.
+/// @tparam T Real type.
+/// @param p Spherical coordinates to convert, in the ISO order of radial distance, polar angle (radians), and azimuthal angle (radians).
+/// @return Cartesian coordinates of point @p p.
 template <class T>
 [[nodiscard]] point<T, 3> spherical_to_cartesian(const point<T, 3>& p)
 {

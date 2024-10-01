@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_GENE_LOADER_HPP
@@ -9,16 +9,12 @@
 #include <engine/resources/deserialize-context.hpp>
 #include <engine/resources/deserialize-error.hpp>
 
-/**
- * Loads an ant gene.
- *
- * @tparam T Phene type.
- *
- * @param gene Gene to load.
- * @param resource_manager Resource manager.
- * @param ctx Deserialize context.
- * @param load_phene Pointer to phene load function.
- */
+/// Loads an ant gene.
+/// @tparam T Phene type.
+/// @param gene Gene to load.
+/// @param resource_manager Resource manager.
+/// @param ctx Deserialize context.
+/// @param load_phene Pointer to phene load function.
 template <class T>
 void load_ant_gene(ant_gene<T>& gene, resource_manager& resource_manager, deserialize_context& ctx, void (*load_phene)(T&, ::resource_manager&, deserialize_context&))
 {

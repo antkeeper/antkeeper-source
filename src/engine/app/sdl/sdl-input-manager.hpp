@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_APP_SDL_INPUT_MANAGER_HPP
@@ -11,16 +11,14 @@ namespace app {
 
 class sdl_window;
 
-/**
- * Input manager implementation using SDL2.
- */
+/// Input manager implementation using SDL2.
 class sdl_input_manager: public input_manager
 {
 public:
-	/** Constructs an SDL input manager. */
+	/// Constructs an SDL input manager.
 	sdl_input_manager();
 	
-	/** Destructs an SDL input manager. */
+	/// Destructs an SDL input manager.
 	~sdl_input_manager() override;
 	
 	void update() override;

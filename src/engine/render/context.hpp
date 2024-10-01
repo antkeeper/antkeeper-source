@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_RENDER_CONTEXT_HPP
@@ -17,9 +17,7 @@ namespace scene
 
 namespace render {
 
-/**
- * Context of a renderer.
- */
+/// Rendering context.
 struct context
 {
 	/// Pointer to the camera.

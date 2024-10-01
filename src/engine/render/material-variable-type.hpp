@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_RENDER_MATERIAL_VARIABLE_TYPE_HPP
@@ -8,9 +8,7 @@
 
 namespace render {
 
-/**
- * Material variable data types.
- */
+/// Material variable data types.
 enum class material_variable_type: std::uint8_t
 {
 	bvec1,

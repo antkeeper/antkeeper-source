@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_PLANCK_HPP
@@ -12,19 +12,13 @@ namespace physics {
 /// Various forms of Planck's law.
 namespace planck {
 
-/**
- * Wavelength variant of Planck's law.
- *
- * @param t Temperature of the blackbody, in kelvin.
- * @param lambda Wavelength of light, in meters.
- * @param c Speed of light in medium.
- * @return Spectral radiance, in watt per steradian per square meter per meter.
- */
+/// Wavelength variant of Planck's law.
+/// @param t Temperature of the blackbody, in kelvin.
+/// @param lambda Wavelength of light, in meters.
+/// @param c Speed of light in medium.
+/// @return Spectral radiance, in watt per steradian per square meter per meter.
 template <class T>
-T wavelength(T t, T lambda, T c = constants::speed_of_light<T>);
-
-template <class T>
-T wavelength(T t, T lambda, T c)
+T wavelength(T t, T lambda, T c = constants::speed_of_light<T>)
 {
 	const T hc = constants::planck<T> * c;
 	const T lambda2 = lambda * lambda;

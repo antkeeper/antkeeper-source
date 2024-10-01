@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_SCENE_LIGHT_HPP
@@ -9,13 +9,11 @@
 
 namespace scene {
 
-/**
- * Abstract base class for light objects.
- */
+/// Abstract base class for light objects.
 class light: public object<light>
 {
 public:
-	/** Destructs a light. */
+	/// Destructs a light.
 	~light() override = default;
 	
 	/// Returns an enumeration denoting the light object type.
@@ -26,18 +24,12 @@ public:
 		return m_bounds;
 	}
 	
-	/**
-	 * Sets the color of the light.
-	 *
-	 * @param color Scene-linear RGB color, on `[0, 1]`.
-	 */
+	/// Sets the color of the light.
+	/// @param color Scene-linear RGB color, on `[0, 1]`.
 	void set_color(const math::fvec3& color);
 	
-	/**
-	 * Sets the color of the light from a color temperature.
-	 *
-	 * @param temperature Color temperature, in Kelvin.
-	 */
+	/// Sets the color of the light from a color temperature.
+	/// @param temperature Color temperature, in Kelvin.
 	void set_color_temperature(float temperature);
 	
 	/// Returns the scene-linear RGB color of the light.

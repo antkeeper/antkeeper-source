@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ASTRONOMY_SYSTEM_HPP
@@ -16,9 +16,7 @@
 #include "game/components/orbit-component.hpp"
 #include <engine/geom/primitives/ray.hpp>
 
-/**
- * Calculates apparent properties of celestial bodies as seen by an observer.
- */
+/// Calculates apparent properties of celestial bodies as seen by an observer.
 class astronomy_system:
 	public updatable_system
 {
@@ -26,40 +24,25 @@ public:
 	explicit astronomy_system(entity::registry& registry);
 	~astronomy_system() override;
 	
-	/**
-	 * Adds the timestep `dt`, scaled by set time scale, to the current time, then calculates apparent properties of celestial bodies as seen by an observer.
-	 *
-	 * @param t Time, in seconds.
-	 * @param dt Delta time, in seconds.
-	 */
+	/// Adds the timestep `dt`, scaled by set time scale, to the current time, then calculates apparent properties of celestial bodies as seen by an observer.
+	/// @param t Time, in seconds.
+	/// @param dt Delta time, in seconds.
 	virtual void update(float t, float dt);
 	
-	/**
-	 * Sets the current time.
-	 *
-	 * @param t Time since epoch, in days.
-	 */
+	/// Sets the current time.
+	/// @param t Time since epoch, in days.
 	void set_time(double t);
 	
-	/**
-	 * Sets the factor by which the timestep `dt` will be scaled before being added to the current time.
-	 *
-	 * @param scale Factor by which to scale the timestep.
-	 */
+	/// Sets the factor by which the timestep `dt` will be scaled before being added to the current time.
+	/// @param scale Factor by which to scale the timestep.
 	void set_time_scale(double scale);
 	
-	/**
-	 * Sets the observer entity.
-	 *
-	 * @param eid Entity ID of the observer.
-	 */
+	/// Sets the observer entity.
+	/// @param eid Entity ID of the observer.
 	void set_observer(entity::id eid);
 	
-	/**
-	 * Sets the number of samples to take when integrating atmospheric transmittance.
-	 *
-	 * @param samples Number of integration samples.
-	 */
+	/// Sets the number of samples to take when integrating atmospheric transmittance.
+	/// @param samples Number of integration samples.
 	void set_transmittance_samples(std::size_t samples);
 	
 	void set_sun_light(scene::directional_light* light);
@@ -105,14 +88,10 @@ private:
 	/// Updates the ICRF to EUS transformation.
 	void update_icrf_to_eus(const ::celestial_body_component& body, const ::orbit_component& orbit);
 	
-	/**
-	 * Integrates a transmittance factor due to atmospheric extinction along a ray.
-	 *
-	 * @param ray Ray to cast, in the EUS frame.
-	 * @param samples Number of samples to integrate.
-	 *
-	 * @return Spectral transmittance factor.
-	 */
+	/// Integrates a transmittance factor due to atmospheric extinction along a ray.
+	/// @param ray Ray to cast, in the EUS frame.
+	/// @param samples Number of samples to integrate.
+	/// @return Spectral transmittance factor.
 	[[nodiscard]] math::dvec3 integrate_transmittance(const ::observer_component& observer, const ::celestial_body_component& body, const ::atmosphere_component& atmosphere, geom::ray<double, 3> ray) const;
 	
 	/// Time since epoch, in days.

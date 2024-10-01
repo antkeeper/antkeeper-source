@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/debug/crash-reporter.hpp>
@@ -16,18 +16,15 @@
 
 namespace
 {
-	/** Global crash reporter. */
+	/// Global crash reporter.
 	debug::crash_reporter* g_crash_reporter = nullptr;
 
 	#if defined(_WIN32)
 		
-		/**
-		 * Generates a minidump file.
-		 *
-		 * @param path Path to the output file.
-		 * @param exception_pointers Exception pointers of exception being handled.
-		 * @return `ERROR_SUCCESS` on success, and an error code otherwise.
-		 */
+		/// Generates a minidump file.
+		/// @param path Path to the output file.
+		/// @param exception_pointers Exception pointers of exception being handled.
+		/// @return `ERROR_SUCCESS` on success, and an error code otherwise.
 		void generate_minidump(const std::filesystem::path& path, EXCEPTION_POINTERS* exception_pointers)
 		{
 			auto file = CreateFileW
@@ -69,14 +66,10 @@ namespace
 			CloseHandle(file);
 		}
 
-		/**
-		 * Handles unhandled exceptions.
-		 *
-		 * @param exception_pointers Exception pointers of the exception being handled.
-		 * @return Exception handling status.
-		 *
-		 * @note Function must not return `EXCEPTION_CONTINUE_SEARCH`, otherwise `abort()` may be called, triggering the `SIGABRT` handler crash_reporter_handle_abort(), which in turn raises another exception and handles it with this function.
-		 */
+		/// Handles unhandled exceptions.
+		/// @param exception_pointers Exception pointers of the exception being handled.
+		/// @return Exception handling status.
+		/// @note Function must not return `EXCEPTION_CONTINUE_SEARCH`, otherwise `abort()` may be called, triggering the `SIGABRT` handler crash_reporter_handle_abort(), which in turn raises another exception and handles it with this function.
 		LONG WINAPI crash_reporter_unhandled_exception_filter(EXCEPTION_POINTERS* exception_pointers) noexcept
 		{
 			try
@@ -127,12 +120,9 @@ namespace
 			return EXCEPTION_EXECUTE_HANDLER;
 		}
 
-		/**
-		 * Handles heap corruption exceptions.
-		 *
-		 * @param exception_pointers Exception pointers of the exception being handled.
-		 * @return Exception handling status.
-		 */
+		/// Handles heap corruption exceptions.
+		/// @param exception_pointers Exception pointers of the exception being handled.
+		/// @return Exception handling status.
 		LONG WINAPI crash_reporter_vectored_exception_handler(EXCEPTION_POINTERS* exception_pointers)
 		{
 			if (exception_pointers->ExceptionRecord->ExceptionCode == STATUS_HEAP_CORRUPTION)
@@ -145,9 +135,7 @@ namespace
 
 	#endif
 
-	/**
-	 * Handles SIGABRT signals.
-	 */
+	/// Handles SIGABRT signals.
 	void crash_reporter_handle_abort(int)
 	{
 		debug::log_fatal("abort() called");

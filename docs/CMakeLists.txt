@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 C. J. Howard
+# SPDX-FileCopyrightText: 2024 C. J. Howard
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 option(ANTKEEPER_BUILD_DOCS "Build documentation" OFF)

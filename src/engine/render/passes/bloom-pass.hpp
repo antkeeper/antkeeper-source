@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_RENDER_BLOOM_PASS_HPP
@@ -19,63 +19,40 @@ class resource_manager;
 
 namespace render {
 
-/**
- * Physically-based bloom render pass.
- *
- * @see Jimenez, J. (2014). Next generation post processing in call of duty advanced warfare. SIGGRAPH Advances in Real-Time Rendering.
- * @see https://learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom
- */
+/// Physically-based bloom render pass.
+/// @see Jimenez, J. (2014). Next generation post processing in call of duty advanced warfare. SIGGRAPH Advances in Real-Time Rendering.
+/// @see https://learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom
 class bloom_pass: public pass
 {
 public:
-	/**
-	 * Constructs a bloom pass.
-	 *
-	 * @param pipeline Graphics pipeline.
-	 * @param resource_manager Resource manager.
-	 */
+	/// Constructs a bloom pass.
+	/// @param pipeline Graphics pipeline.
+	/// @param resource_manager Resource manager.
 	bloom_pass(gl::pipeline* pipeline, resource_manager* resource_manager);
 	
-	/** Destructs a bloom pass. */
+	/// Destructs a bloom pass.
 	~bloom_pass() override = default;
 	
-	/**
-	 * Renders a bloom texture.
-	 *
-	 * @param ctx Render context.
-	 * @param queue Render queue.
-	 */
+	/// Renders a bloom texture.
+	/// @param ctx Render context.
 	void render(render::context& ctx) override;
 	
-	/**
-	 * Resizes the mip chain resolution according to the resolution of the source texture.
-	 */
+	/// Resizes the mip chain resolution according to the resolution of the source texture.
 	void resize();
 	
-	/**
-	 * Sets the bloom source texture.
-	 *
-	 * @param texture Bloom source texture.
-	 */
+	/// Sets the bloom source texture.
+	/// @param texture Bloom source texture.
 	void set_source_texture(std::shared_ptr<gl::texture_2d> texture);
 	
-	/**
-	 * Sets the mip chain length. A length of `1` indicates a single stage bloom.
-	 *
-	 * @param length Mip chain length.
-	 */
+	/// Sets the mip chain length. A length of `1` indicates a single stage bloom.
+	/// @param length Mip chain length.
 	void set_mip_chain_length(unsigned int length);
 	
-	/**
-	 * Sets the upsample filter radius.
-	 *
-	 * @param radius Upsample filter radius, in texture coordinates.
-	 */
+	/// Sets the upsample filter radius.
+	/// @param radius Upsample filter radius, in texture coordinates.
 	void set_filter_radius(float radius);
 	
-	/**
-	 * Returns the texture containing the bloom result.
-	 */
+	/// Returns the texture containing the bloom result.
 	[[nodiscard]] inline std::shared_ptr<gl::texture_2d> get_bloom_texture() const
 	{
 		return m_target_textures.empty() ? nullptr : m_target_textures.front();

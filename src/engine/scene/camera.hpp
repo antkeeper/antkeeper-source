@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_SCENE_CAMERA_HPP
@@ -13,121 +13,86 @@
 
 namespace scene {
 
-/**
- *
- */
+/// Camera object.
 class camera: public object<camera>
 {
 public:
 	/// Camera view frustum type.
 	using view_frustum_type = geom::view_frustum<float>;
 	
-	/** Destructs a camera. */
+	/// Destructs a camera.
 	~camera() override = default;
 	
-	/**
-	 * Constructs a picking ray from normalized device coordinates (NDC).
-	 *
-	 * @param ndc NDC coordinates.
-	 *
-	 * @return Picking ray.
-	 */
+	/// Constructs a picking ray from normalized device coordinates (NDC).
+	/// @param ndc NDC coordinates.
+	/// @return Picking ray.
 	[[nodiscard]] geom::ray<float, 3> pick(const math::fvec2& ndc) const;
 
-	/**
-	 * Maps object coordinates to window coordinates.
-	 *
-	 * @param object Object coordinates.
-	 * @param viewport Vector containing the `x`, `y`, `w`, and `h` of the viewport.
-	 * @return Projected window coordinates.
-	 */
+	/// Maps object coordinates to window coordinates.
+	/// @param object Object coordinates.
+	/// @param viewport Vector containing the `x`, `y`, `w`, and `h` of the viewport.
+	/// @return Projected window coordinates.
 	[[nodiscard]] math::fvec3 project(const math::fvec3& object, const math::fvec4& viewport) const;
 
-	/**
-	 * Maps window coordinates to object coordinates.
-	 *
-	 * @param window Window coordinates.
-	 * @param viewport Vector containing the `x`, `y`, `w`, and `h` of the viewport.
-	 * @return Unprojected object coordinates.
-	 */
+	/// Maps window coordinates to object coordinates.
+	/// @param window Window coordinates.
+	/// @param viewport Vector containing the `x`, `y`, `w`, and `h` of the viewport.
+	/// @return Unprojected object coordinates.
 	[[nodiscard]] math::fvec3 unproject(const math::fvec3& window, const math::fvec4& viewport) const;
 
-	/**
-	 * Sets the camera's projection matrix using perspective projection.
-	 *
-	 * @param vertical_fov Vertical field of view, in radians.
-	 * @param aspect_ratio Aspect ratio.
-	 * @param near Distance to near clipping plane.
-	 * @param far Distance to far clipping plane.
-	 */
+	/// Sets the camera's projection matrix using perspective projection.
+	/// @param vertical_fov Vertical field of view, in radians.
+	/// @param aspect_ratio Aspect ratio.
+	/// @param near Distance to near clipping plane.
+	/// @param far Distance to far clipping plane.
 	void set_perspective(float vertical_fov, float aspect_ratio, float near, float far = std::numeric_limits<float>::infinity());
 	
-	/**
-	 * Sets the camera's vertical field of view.
-	 *
-	 * @param vertical_fov Vertical field of view, in radians.
-	 */
+	/// Sets the camera's vertical field of view.
+	/// @param vertical_fov Vertical field of view, in radians.
 	void set_vertical_fov(float vertical_fov);
 	
-	/**
-	 * Sets the camera's aspect ratio.
-	 *
-	 * @param aspect_ratio Aspect ratio.
-	 */
+	/// Sets the camera's aspect ratio.
+	/// @param aspect_ratio Aspect ratio.
 	void set_aspect_ratio(float aspect_ratio);
 	
-	/**
-	 * Sets the camera's projection matrix using orthographic projection.
-	 *
-	 * @param clip_left Signed distance to left clipping plane.
-	 * @param clip_right Signed distance to right clipping plane.
-	 * @param clip_bottom Signed distance to bottom clipping plane.
-	 * @param clip_top Signed distance to top clipping plane.
-	 * @param clip_near Signed distance to near clipping plane.
-	 * @param clip_far Signed distance to far clipping plane.
-	 */
+	/// Sets the camera's projection matrix using orthographic projection.
+	/// @param clip_left Signed distance to left clipping plane.
+	/// @param clip_right Signed distance to right clipping plane.
+	/// @param clip_bottom Signed distance to bottom clipping plane.
+	/// @param clip_top Signed distance to top clipping plane.
+	/// @param clip_near Signed distance to near clipping plane.
+	/// @param clip_far Signed distance to far clipping plane.
 	void set_orthographic(float clip_left, float clip_right, float clip_bottom, float clip_top, float clip_near, float clip_far);
 
-	/**
-	 * Sets the camera's ISO 100 exposure value.
-	 *
-	 * @param ev100 ISO 100 exposure value.
-	 */
+	/// Sets the camera's ISO 100 exposure value.
+	/// @param ev100 ISO 100 exposure value.
 	void set_exposure_value(float ev100);
 	
-	/**
-	 * Sets the camera's compositor.
-	 *
-	 * @param compositor Compositor.
-	 */
+	/// Sets the camera's compositor.
+	/// @param compositor Compositor.
 	inline void set_compositor(render::compositor* compositor) noexcept
 	{
 		m_compositor = compositor;
 	}
 	
-	/**
-	 * Sets the composite index of the camera.
-	 *
-	 * @param index Composite index.
-	 */
+	/// Sets the composite index of the camera.
+	/// @param index Composite index.
 	inline void set_composite_index(int index) noexcept
 	{
 		m_composite_index = index;
 	}
 	
-	/**
-	 * Returns the camera's compositor.
-	 */
-	/// @{
-	[[nodiscard]] inline constexpr const render::compositor* get_compositor() const noexcept
-	{
-		return m_compositor;
-	}
+	/// Returns the camera's compositor.
 	[[nodiscard]] inline constexpr render::compositor* get_compositor() noexcept
 	{
 		return m_compositor;
 	}
-	/// @}
+
+	/// @copydoc get_compositor()
+	[[nodiscard]] inline constexpr const render::compositor* get_compositor() const noexcept
+	{
+		return m_compositor;
+	}
 	
 	/// Returns the composite index of the camera.
 	[[nodiscard]] inline constexpr int get_composite_index() const noexcept
@@ -135,6 +100,7 @@ public:
 		return m_composite_index;
 	}
 	
+	/// Returns the camera's bounds.
 	[[nodiscard]] inline constexpr const aabb_type& get_bounds() const noexcept override
 	{
 		return m_bounds;

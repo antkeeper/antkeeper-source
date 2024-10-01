@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_PICKING_COMPONENT_HPP
@@ -6,7 +6,6 @@
 
 #include <engine/geom/primitives/sphere.hpp>
 #include <cstdint>
-
 
 struct picking_component
 {
@@ -16,6 +15,5 @@ struct picking_component
 	/// Picking flags.
 	std::uint32_t flags;
 };
-
 
 #endif // ANTKEEPER_GAME_PICKING_COMPONENT_HPP

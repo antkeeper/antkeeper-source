@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_SPECIES_HPP
@@ -16,7 +16,7 @@ struct ant_species
 	std::unordered_map<ant_caste_type, ant_phenome> phenomes;
 	
 	/// Caste-specific models
-	std::unordered_map<caste, std::shared_ptr<render::model>> models;
+	std::unordered_map<ant_caste_type, std::shared_ptr<render::model>> models;
 };
 
 #endif // ANTKEEPER_GAME_ANT_SPECIES_HPP

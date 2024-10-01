@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_RENDER_MATERIAL_SHADOW_MODE_HPP
@@ -8,9 +8,7 @@
 
 namespace render {
 
-/**
- * Material shadow casting modes.
- */
+/// Material shadow casting modes.
 enum class material_shadow_mode: std::uint8_t
 {
 	/// Material does not cast shadows.

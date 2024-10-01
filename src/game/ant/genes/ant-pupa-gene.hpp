@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_PUPA_GENE_HPP
@@ -8,9 +8,7 @@
 #include <engine/render/model.hpp>
 #include <memory>
 
-/**
- * Ant pupa phene.
- */
+/// Ant pupa phene.
 struct ant_pupa_phene
 {
 	/// Duration required for the pupa to develop into an adult, in days.

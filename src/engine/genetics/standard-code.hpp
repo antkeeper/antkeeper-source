@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GENETICS_STANDARD_CODE_HPP
@@ -8,11 +8,8 @@
 
 namespace genetics {
 
-/**
- * Codon table for standard genetic code.
- *
- * @see https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi#SG1
- */
+/// Codon table for standard genetic code.
+/// @see https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi#SG1
 constexpr codon::table standard_code =
 {
 	"FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",

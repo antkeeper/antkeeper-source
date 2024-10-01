@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP
@@ -10,9 +10,7 @@
 #include <memory>
 #include <vector>
 
-/**
- * Legged terrestrial locomotion.
- */
+/// Legged terrestrial locomotion.
 struct legged_locomotion_component
 {
 	/// Force vector.

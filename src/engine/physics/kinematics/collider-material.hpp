@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_COLLIDER_MATERIAL_HPP
@@ -9,83 +9,60 @@
 
 namespace physics {
 
-/**
- * Describes the collision response of a collider.
- */
+/// Describes the collision response of a collider.
 class collider_material
 {
 public:
-	/**
-	 * Constructs a collider material.
-	 *
-	 * @param restitution Restitution value.
-	 * @param static_friction Static friction value.
-	 * @param dynamic_friction Dynamic friction value.
-	 */
-	/// @{
+	/// Constructs a collider material.
+	/// @param restitution Restitution value.
+	/// @param static_friction Static friction value.
+	/// @param dynamic_friction Dynamic friction value.
 	inline constexpr collider_material(float restitution, float static_friction, float dynamic_friction) noexcept:
 		m_restitution{restitution},
 		m_static_friction{static_friction},
 		m_dynamic_friction{dynamic_friction}
 	{}
+
+	/// Constructs a collider material.
 	constexpr collider_material() noexcept = default;
-	/// @}
 	
-	/**
-	 * Sets the of restitution of the material.
-	 *
-	 * @param restitution Restitution value.
-	 */
+	/// Sets the of restitution of the material.
+	/// @param restitution Restitution value.
 	inline constexpr void set_restitution(float restitution) noexcept
 	{
 		m_restitution = restitution;
 	}
 	
-	/**
-	 * Sets the static friction of the material.
-	 *
-	 * @param friction Static friction value.
-	 */
+	/// Sets the static friction of the material.
+	/// @param friction Static friction value.
 	inline constexpr void set_static_friction(float friction) noexcept
 	{
 		m_static_friction = friction;
 	}
 	
-	/**
-	 * Sets the dynamic friction of the material.
-	 *
-	 * @param friction Dynamic friction value.
-	 */
+	/// Sets the dynamic friction of the material.
+	/// @param friction Dynamic friction value.
 	inline constexpr void set_dynamic_friction(float friction) noexcept
 	{
 		m_dynamic_friction = friction;
 	}
 	
-	/**
-	 * Sets the restitution combine mode of the material.
-	 *
-	 * @param mode Restitution combine mode.
-	 */
+	/// Sets the restitution combine mode of the material.
+	/// @param mode Restitution combine mode.
 	inline constexpr void set_restitution_combine_mode(restitution_combine_mode mode) noexcept
 	{
 		m_restitution_combine_mode = mode;
 	}
 	
-	/**
-	 * Sets the friction combine mode of the material.
-	 *
-	 * @param mode Friction combine mode.
-	 */
+	/// Sets the friction combine mode of the material.
+	/// @param mode Friction combine mode.
 	inline constexpr void set_friction_combine_mode(friction_combine_mode mode) noexcept
 	{
 		m_friction_combine_mode = mode;
 	}
 	
-	/**
-	 * Sets the density of the material.
-	 *
-	 * @param density Material density.
-	 */
+	/// Sets the density of the material.
+	/// @param density Material density.
 	inline constexpr void set_density(float density) noexcept
 	{
 		m_density = density;

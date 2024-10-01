@@ -1,10 +1,10 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_EVENT_HPP
 #define ANTKEEPER_EVENT_HPP
 
-/** Publish-subscribe messaging. */
+/// Publish-subscribe messaging
 namespace event {}
 
 #include <engine/event/channel.hpp>

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_SCENE_STATIC_MESH_HPP
@@ -11,55 +11,39 @@
 
 namespace scene {
 
-/**
- *
- */
+/// Static mesh object.
 class static_mesh: public object<static_mesh>
 {
 public:
-	/**
-	 * Constructs a static mesh from a model.
-	 *
-	 * @param model Model from which the static mesh will be constructed.
-	 */
+	/// Constructs a static mesh from a model.
+	/// @param model Model from which the static mesh will be constructed.
 	explicit static_mesh(std::shared_ptr<render::model> model);
 	
-	/**
-	 * Constructs a static mesh.
-	 */
+	/// Constructs a static mesh.
 	static_mesh() = default;
 	
-	/** Destructs a static mesh. */
+	/// Destructs a static mesh.
 	~static_mesh() override = default;
 	
-	/**
-	 * Sets the model with which this model instance is associated.
-	 *
-	 * @warning This will reset all overwritten materials.
-	 */
+	/// Sets the model with which this model instance is associated.
+	/// @param model Shared pointer to the model.
 	void set_model(std::shared_ptr<render::model> model);
 	
-	/**
-	 * Overwrites the material of a model group for this model instance.
-	 *
-	 * @param index Index of a model group.
-	 * @param material Pointer to the material which should overwrite the model group's material. A value of `nullptr` indicates the material will not be overwritten.
-	 */
+	/// Overwrites the material of a model group for this model instance.
+	/// @param index Index of a model group.
+	/// @param material Pointer to the material which should overwrite the model group's material. A value of `nullptr` indicates the material will not be overwritten.
 	void set_material(std::size_t index, std::shared_ptr<render::material> material);
 	
-	/**
-	 * Resets all overwritten materials.
-	 */
+	/// Resets all overwritten materials.
 	void reset_materials();
 	
+	/// Returns the bounds of the static mesh.
 	[[nodiscard]] inline const aabb_type& get_bounds() const noexcept override
 	{
 		return m_bounds;
 	}
 	
-	/**
-	 * Returns the model of the model instance.
-	 */
+	/// Returns the model of the model instance.
 	[[nodiscard]] inline const std::shared_ptr<render::model>& get_model() const noexcept
 	{
 		return m_model;

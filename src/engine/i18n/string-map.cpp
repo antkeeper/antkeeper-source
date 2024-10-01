@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/i18n/string-map.hpp>
@@ -12,14 +12,10 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
-/**
- * Serializes a string map.
- *
- * @param[in] map String map to serialize.
- * @param[in,out] ctx Serialize context.
- *
- * @throw serialize_error Write error.
- */
+/// Serializes a string map.
+/// @param[in] map String map to serialize.
+/// @param[in,out] ctx Serialize context.
+/// @throw serialize_error Write error.
 template <>
 void serializer<i18n::string_map>::serialize(const i18n::string_map& map, serialize_context& ctx)
 {
@@ -42,14 +38,10 @@ void serializer<i18n::string_map>::serialize(const i18n::string_map& map, serial
 	}
 }
 
-/**
- * Deserializes a string map.
- *
- * @param[out] map String map to deserialize.
- * @param[in,out] ctx Deserialize context.
- *
- * @throw deserialize_error Read error.
- */
+/// Deserializes a string map.
+/// @param[out] map String map to deserialize.
+/// @param[in,out] ctx Deserialize context.
+/// @throw deserialize_error Read error.
 template <>
 void deserializer<i18n::string_map>::deserialize(i18n::string_map& map, deserialize_context& ctx)
 {

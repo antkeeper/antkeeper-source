@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ATMOSPHERE_SYSTEM_HPP
@@ -10,9 +10,7 @@
 #include "game/components/atmosphere-component.hpp"
 #include "game/systems/updatable-system.hpp"
 
-/**
- * Updates variables related to atmospheric scattering.
- */
+/// Updates variables related to atmospheric scattering.
 class atmosphere_system:
 	public updatable_system
 {
@@ -22,20 +20,14 @@ public:
 	
 	virtual void update(float t, float dt);
 	
-	/**
-	 * Sets the wavelengths of red, green, and blue light.
-	 *
-	 * @param wavelengths Vector containing the wavelengths of red (x), green (y), and blue (z) light, in nanometers.
-	 */
+	/// Sets the wavelengths of red, green, and blue light.
+	/// @param wavelengths Vector containing the wavelengths of red (x), green (y), and blue (z) light, in nanometers.
 	void set_rgb_wavelengths(const math::dvec3& wavelengths);
 	
 	void set_sky_pass(::render::sky_pass* pass);
 	
-	/**
-	 * Sets the entity ID of the active atmosphere.
-	 *
-	 * @param entity_id Entity ID of the active atmosphere.
-	 */
+	/// Sets the entity ID of the active atmosphere.
+	/// @param entity_id Entity ID of the active atmosphere.
 	void set_active_atmosphere(entity::id entity_id);
 	
 private:

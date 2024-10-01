@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_PIPELINE_DEPTH_STENCIL_STATE_HPP
@@ -16,11 +16,8 @@ struct pipeline_depth_stencil_state
 	/// `true` if depth testing is enabled, `false` otherwise.
 	bool depth_test_enabled{true};
 	
-	/**
-	 * `true` if depth writes are enabled when depth testing is enabled, `false` otherwise.
-	 *
-	 * @note Depth writes are always disabled when depth testing is disabled.
-	 */
+	/// `true` if depth writes are enabled when depth testing is enabled, `false` otherwise.
+	/// @note Depth writes are always disabled when depth testing is disabled.
 	bool depth_write_enabled{true};
 	
 	/// Comparison operator to use in the depth comparison step of the depth test.

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ECOREGION_HPP
@@ -11,9 +11,6 @@
 #include <random>
 #include <memory>
 
-/**
- * 
- */
 struct ecoregion
 {
 	/// Ecoregion name.
@@ -43,6 +40,5 @@ struct ecoregion
 	/// Discrete probability distribution of gene pools.
 	std::discrete_distribution<std::size_t> gene_pool_distribution;
 };
-
 
 #endif // ANTKEEPER_GAME_ECOREGION_HPP

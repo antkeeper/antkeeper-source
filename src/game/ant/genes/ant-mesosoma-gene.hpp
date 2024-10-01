@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_MESOSOMA_GENE_HPP
@@ -8,11 +8,8 @@
 #include <engine/render/model.hpp>
 #include <memory>
 
-/**
- * Ant mesosoma phene.
- *
- * @see https://www.antwiki.org/wiki/Morphological_Measurements
- */
+/// Ant mesosoma phene.
+/// @see https://www.antwiki.org/wiki/Morphological_Measurements
 struct ant_mesosoma_phene
 {
 	/// Pronotum width, in mesosomal lengths.
@@ -27,28 +24,26 @@ struct ant_mesosoma_phene
 	/// Degree of spinescence on the propodeum.
 	float propodeum_spinescence{0.0f};
 	
-	/**
-	 * 3D model of the mesosoma.
-	 *
-	 * The mesosoma model skeleton must contain the following bones:
-	 *
-	 * * mesosoma
-	 * * * head_socket
-	 * * * procoxa_socket_l
-	 * * * procoxa_socket_r
-	 * * * mesocoxa_socket_l
-	 * * * mesocoxa_socket_r
-	 * * * metacoxa_socket_l
-	 * * * metacoxa_socket_r
-	 * * * petiole_socket
-	 *
-	 * In alate phenes, the mesosoma model skeleton must additionally contain the following bones:
-	 *
-	 * * forewing_socket_l
-	 * * forewing_socket_r
-	 * * hindwing_socket_l
-	 * * hindwing_socket_r
-	 */
+	/// 3D model of the mesosoma.
+	/// 
+	/// The mesosoma model skeleton must contain the following bones:
+	/// 
+	/// * mesosoma
+	/// * * head_socket
+	/// * * procoxa_socket_l
+	/// * * procoxa_socket_r
+	/// * * mesocoxa_socket_l
+	/// * * mesocoxa_socket_r
+	/// * * metacoxa_socket_l
+	/// * * metacoxa_socket_r
+	/// * * petiole_socket
+	/// 
+	/// In alate phenes, the mesosoma model skeleton must additionally contain the following bones:
+	/// 
+	/// * forewing_socket_l
+	/// * forewing_socket_r
+	/// * hindwing_socket_l
+	/// * hindwing_socket_r
 	std::shared_ptr<render::model> model;
 };
 

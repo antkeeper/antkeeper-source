@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_ORBIT_TRAJECTORY_HPP
@@ -12,11 +12,8 @@
 namespace physics {
 namespace orbit {
 
-/**
- * Describes the trajectory of an orbit with Chebyshev polynomials.
- *
- * @tparam t Real type.
- */
+/// Describes the trajectory of an orbit with Chebyshev polynomials.
+/// @tparam t Real type.
 template <class T>
 struct trajectory
 {
@@ -35,12 +32,9 @@ struct trajectory
 	/// Chebyshev polynomial coefficients.
 	std::vector<T> a;
 	
-	/**
-	 * Calculates the Cartesian position of a trajectory at a given time.
-	 *
-	 * @param t Time, on `[t0, t1)`.
-	 * @return Trajectory position at time @p t.
-	 */
+	/// Calculates the Cartesian position of a trajectory at a given time.
+	/// @param t Time, on `[t0, t1)`.
+	/// @return Trajectory position at time @p t.
 	[[nodiscard]] math::vec3<T> position(T t) const;
 };
 

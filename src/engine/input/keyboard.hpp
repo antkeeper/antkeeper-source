@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_INPUT_KEYBOARD_HPP
@@ -12,46 +12,32 @@
 
 namespace input {
 
-/**
- * A virtual keyboard which generates keyboard-related input events.
- */
+/// A virtual keyboard which generates keyboard-related input events.
 class keyboard: public device
 {
 public:
-	/** Destructs a keyboard. */
+	/// Destructs a keyboard.
 	~keyboard() override = default;
 	
-	/**
-	 * Simulates a key press.
-	 *
-	 * @param scancode Scancode of the key to press.
-	 * @param modifiers Bit mask containing the active modifier keys.
-	 * @param repeat `true` if the key press is from a key repeat, `false` otherwise.
-	 */
+	/// Simulates a key press.
+	/// @param scancode Scancode of the key to press.
+	/// @param modifiers Bit mask containing the active modifier keys.
+	/// @param repeat `true` if the key press is from a key repeat, `false` otherwise.
 	void press(scancode scancode, std::uint16_t modifiers = modifier_key::none, bool repeat = false);
 	
-	/**
-	 * Simulates a key release.
-	 *
-	 * @param scancode Scancode of the key to release.
-	 * @param modifiers Bit mask containing the active modifier keys.
-	 */
+	/// Simulates a key release.
+	/// @param scancode Scancode of the key to release.
+	/// @param modifiers Bit mask containing the active modifier keys.
 	void release(scancode scancode, std::uint16_t modifiers = modifier_key::none);
 	
-	/**
-	 * Simulates text input.
-	 *
-	 * @param text Input text.
-	 */
+	/// Simulates text input.
+	/// @param text Input text.
 	void input_text(const std::string& text);
 	
-	/**
-	 * Simulates text editing.
-	 *
-	 * @param text Editing text.
-	 * @param position Position from which to begin editing.
-	 * @param length Number of characters to edit.
-	 */
+	/// Simulates text editing.
+	/// @param text Editing text.
+	/// @param position Position from which to begin editing.
+	/// @param length Number of characters to edit.
 	void edit_text(const std::string& text, std::size_t position, std::size_t length);
 	
 	/// Returns the channel through which key pressed events are published.

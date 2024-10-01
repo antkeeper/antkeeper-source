@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_HPP
@@ -97,22 +97,15 @@ struct control_profile;
 class game
 {
 public:
-	/**
-	 * Boots up the game.
-	 *
-	 * @param argc Command line argument count.
-	 * @param argv Command line argument vector.
-	 */
+	/// Boots up the game.
+	/// @param argc Command line argument count.
+	/// @param argv Command line argument vector.
 	game(int argc, const char* const* argv);
 	
-	/**
-	 * Boots down the game.
-	 */
+	/// Boots down the game.
 	~game();
 	
-	/**
-	 * Executes the game.
-	 */
+	/// Executes the game.
 	void execute();
 	
 	// Command-line options

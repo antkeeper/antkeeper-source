@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_ANIMATION_EULER_IK_CONSTRAINT_HPP
@@ -8,42 +8,32 @@
 #include <engine/math/euler-angles.hpp>
 #include <engine/math/constants.hpp>
 
-/**
- * Euler angle IK constraint.
- */
+/// Euler angle IK constraint.
 class euler_ik_constraint: public ik_constraint
 {
 public:
-	/** Destructs an Euler angle IK constraint. */
+	/// Destructs an Euler angle IK constraint.
 	~euler_ik_constraint() override = default;
 	
+	/// Solves the Euler angle IK constraint.
 	void solve(math::fquat& q) override;
 	
-	/**
-	 * Sets the rotation sequence of the Euler angles of the constraint.
-	 *
-	 * @param sequence Euler angle rotation sequence.
-	 */
+	/// Sets the rotation sequence of the Euler angles of the constraint.
+	/// @param sequence Euler angle rotation sequence.
 	inline void set_rotation_sequence(math::rotation_sequence sequence) noexcept
 	{
 		m_rotation_sequence = sequence;
 	}
 	
-	/**
-	 * Sets the minimum Euler angles of the constraint.
-	 *
-	 * @param angles Minimum angles of the first, second, and third Euler angles, in radians.
-	 */
+	/// Sets the minimum Euler angles of the constraint.
+	/// @param angles Minimum angles of the first, second, and third Euler angles, in radians.
 	inline void set_min_angles(const math::fvec3& angles) noexcept
 	{
 		m_min_angles = angles;
 	}
 	
-	/**
-	 * Sets the maximum Euler angles of the constraint.
-	 *
-	 * @param angles Maximum angles of the first, second, and third Euler angles, in radians.
-	 */
+	/// Sets the maximum Euler angles of the constraint.
+	/// @param angles Maximum angles of the first, second, and third Euler angles, in radians.
 	inline void set_max_angles(const math::fvec3& angles) noexcept
 	{
 		m_max_angles = angles;

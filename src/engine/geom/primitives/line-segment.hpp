@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_PRIMITIVES_LINE_SEGMENT_HPP
@@ -9,12 +9,9 @@
 namespace geom {
 namespace primitives {
 
-/**
- * *n*-dimensional line segment.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- */
+/// *n*-dimensional line segment.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
 template <class T, std::size_t N>
 struct line_segment
 {
@@ -27,34 +24,24 @@ struct line_segment
 	/// Second endpoint.
 	vector_type b;
 	
-	/**
-	 * Calculates the square length of the line segment.
-	 *
-	 * @return Square length of the line segment.
-	 */
+	/// Calculates the square length of the line segment.
+	/// @return Square length of the line segment.
 	[[nodiscard]] inline T sqr_length() const noexcept
 	{
 		return math::sqr_distance(a, b);
 	}
 	
-	/**
-	 * Calculates the length of the line segment.
-	 *
-	 * @return Length of the line segment.
-	 */
+	/// Calculates the length of the line segment.
+	/// @return Length of the line segment.
 	[[nodiscard]] inline T length() const noexcept
 	{
 		const T d = sqr_length();
 		return d ? std::sqrt(d) : d;
 	}
 	
-	/**
-	 * Calculates the square distance from the line segment to a point.
-	 *
-	 * @param point Input point.
-	 *
-	 * @return Square distance from the line segment to @p point.
-	 */
+	/// Calculates the square distance from the line segment to a point.
+	/// @param point Input point.
+	/// @return Square distance from the line segment to @p point.
 	[[nodiscard]] T sqr_distance(const vector_type& point) const noexcept
 	{
 		const vector_type ab = b - a;
@@ -75,13 +62,9 @@ struct line_segment
 		return math::sqr_length(ap) - (t * t) / ab_sqr_length;
 	}
 	
-	/**
-	 * Calculates the distance from the line segment to a point.
-	 *
-	 * @param point Input point.
-	 *
-	 * @return Distance from the line segment to @p point.
-	 */
+	/// Calculates the distance from the line segment to a point.
+	/// @param point Input point.
+	/// @return Distance from the line segment to @p point.
 	[[nodiscard]] inline T distance(const vector_type& point) const
 	{
 		const T d = sqr_distance(point);

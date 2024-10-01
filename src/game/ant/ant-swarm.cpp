@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/ant/ant-swarm.hpp"
@@ -17,11 +17,8 @@
 #include <cmath>
 #include <random>
 
-/**
- * Generates a random point in a unit sphere.
- *
- * @see https://math.stackexchange.com/questions/87230/picking-random-points-in-the-volume-of-sphere-with-uniform-probability/87238#87238
- */
+/// Generates a random point in a unit sphere.
+/// @see https://math.stackexchange.com/questions/87230/picking-random-points-in-the-volume-of-sphere-with-uniform-probability/87238#87238
 template <class T, class URBG>
 static math::vec3<T> sphere_random(URBG& urbg)
 {

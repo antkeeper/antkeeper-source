@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_COLOR_CCT_HPP
@@ -13,14 +13,11 @@ namespace color {
 /// @name Correlated color temperature (CCT)
 /// @{
 
-/**
- * Calculates CIE 1960 UCS colorspace chromaticity coordinates given a correlated color temperature using Krystek's algorithm.
- *
- * @param t Correlated color temperature, in Kelvin.
- * @return CIE 1960 UCS colorspace chromaticity coordinates.
- *
- * @see Krystek, M. (1985), An algorithm to calculate correlated colour temperature. Color Res. Appl., 10: 38-40.
- */
+/// Calculates CIE 1960 UCS colorspace chromaticity coordinates given a correlated color temperature using Krystek's algorithm.
+/// @tparam T Scalar type.
+/// @param t Correlated color temperature, in Kelvin.
+/// @return CIE 1960 UCS colorspace chromaticity coordinates.
+/// @see Krystek, M. (1985), An algorithm to calculate correlated colour temperature. Color Res. Appl., 10: 38-40.
 template <class T>
 [[nodiscard]] math::vec2<T> cct_to_ucs(T t) noexcept
 {
@@ -32,24 +29,20 @@ template <class T>
 	};
 }
 
-/**
- * Calculates CIE xyY colorspace chromaticity coordinates given a correlated color temperature using Krystek's algorithm.
- *
- * @param t Correlated color temperature, in Kelvin.
- * @return CIE xyY color with `Y = 1`.
- */
+/// Calculates CIE xyY colorspace chromaticity coordinates given a correlated color temperature using Krystek's algorithm.
+/// @tparam T Scalar type.
+/// @param t Correlated color temperature, in Kelvin.
+/// @return CIE xyY color with `Y = 1`.
 template <class T>
 math::vec3<T> cct_to_xyy(T t)
 {
 	return ucs_to_xyy(cct_to_ucs(t), T{1});
 }
 
-/**
- * Calculates CIE XYZ colorspace chromaticity coordinates given a correlated color temperature using Krystek's algorithm.
- *
- * @param t Correlated color temperature, in Kelvin.
- * @return CIE XYZ color with `Y = 1`.
- */
+/// Calculates CIE XYZ colorspace chromaticity coordinates given a correlated color temperature using Krystek's algorithm.
+/// @tparam T Scalar type.
+/// @param t Correlated color temperature, in Kelvin.
+/// @return CIE XYZ color with `Y = 1`.
 template <class T>
 math::vec3<T> cct_to_xyz(T t)
 {

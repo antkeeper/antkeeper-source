@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_WINGS_GENE_HPP
@@ -8,9 +8,7 @@
 #include <engine/render/model.hpp>
 #include <memory>
 
-/**
- * Ant wings phene.
- */
+/// Ant wings phene.
 struct ant_wings_phene
 {
 	/// Wings presence.

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_APP_SDL_WINDOW_MANAGER_HPP
@@ -14,20 +14,14 @@ namespace app {
 
 class sdl_window;
 
-/**
- * SDL-based window manager.
- */
+/// SDL-based window manager.
 class sdl_window_manager: public window_manager
 {
 public:
-	/**
-	 * Constructs an SDL window manager.
-	 */
+	/// Constructs an SDL window manager.
 	sdl_window_manager();
 	
-	/**
-	 * Destructs an SDL window manager.
-	 */
+	/// Destructs an SDL window manager.
 	~sdl_window_manager() override;
 	
 	void update() override;

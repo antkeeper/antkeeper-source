@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_PIXEL_TYPE_HPP
@@ -8,6 +8,7 @@
 
 namespace gl {
 
+/// Pixel types.
 enum class pixel_type: std::uint8_t
 {
 	int_8,

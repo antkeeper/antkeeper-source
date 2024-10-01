@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_BREP_VERTEX_EDGE_LIST_HPP
@@ -12,9 +12,7 @@ namespace geom {
 
 class brep_vertex;
 
-/**
- * List of B-rep edges bounded by a common vertex.
- */
+/// List of B-rep edges bounded by a common vertex.
 class brep_vertex_edge_list
 {
 public:
@@ -22,9 +20,7 @@ public:
 	friend class brep_vertex_container;
 	friend class brep_edge_container;
 	
-	/**
-	 * B-rep edge list constant iterator.
-	 */
+	/// B-rep edge list constant iterator.
 	struct const_iterator
 	{
 	public:
@@ -96,19 +92,19 @@ public:
 		std::ptrdiff_t m_position{};
 	};
 	
-	/** B-rep edge list reverse constant iterator. */
+	/// B-rep edge list reverse constant iterator.
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 	
 	/// @name Element access
 	/// @{
 	
-	/** Returns the first edge. */
+	/// Returns the first edge.
 	[[nodiscard]] inline brep_edge* front() const noexcept
 	{
 		return m_head;
 	}
 	
-	/** Returns the last edge. */
+	/// Returns the last edge.
 	[[nodiscard]] inline brep_edge* back() const noexcept
 	{
 		return m_head->m_vertex_previous[m_head->vertices()[1] == m_vertex];
@@ -118,7 +114,7 @@ public:
 	/// @name Iterators
 	/// @{
 	
-	/** Returns an iterator to the first edge. */
+	/// Returns an iterator to the first edge.
 	[[nodiscard]] inline constexpr const_iterator begin() const noexcept
 	{
 		const_iterator it;
@@ -129,13 +125,13 @@ public:
 		return it;
 	}
 
-	/** @copydoc begin() */
+	/// @copydoc begin()
 	[[nodiscard]] inline constexpr const_iterator cbegin() const noexcept
 	{
 		return begin();
 	}
 	
-	/** Returns an iterator to the edge following the last edge. */
+	/// Returns an iterator to the edge following the last edge.
 	[[nodiscard]] inline constexpr const_iterator end() const noexcept
 	{
 		const_iterator it;
@@ -146,31 +142,31 @@ public:
 		return it;
 	}
 
-	/** @copydoc end() */
+	/// @copydoc end()
 	[[nodiscard]] inline constexpr const_iterator cend() const noexcept
 	{
 		return end();
 	}
 	
-	/** Returns a reverse iterator to the first edge of the reversed list. */
+	/// Returns a reverse iterator to the first edge of the reversed list.
 	[[nodiscard]] inline constexpr const_reverse_iterator rbegin() const noexcept
 	{
 		return std::make_reverse_iterator(end());
 	}
 
-	/** @copydoc rbegin() */
+	/// @copydoc rbegin()
 	[[nodiscard]] inline constexpr const_reverse_iterator crbegin() const noexcept
 	{
 		return rbegin();
 	}
 	
-	/** Returns a reverse iterator to the edge following the last edge of the reversed list. */
+	/// Returns a reverse iterator to the edge following the last edge of the reversed list.
 	[[nodiscard]] inline constexpr const_reverse_iterator rend() const noexcept
 	{
 		return std::make_reverse_iterator(begin());
 	}
 
-	/** @copydoc rend() */
+	/// @copydoc rend()
 	[[nodiscard]] inline constexpr const_reverse_iterator crend() const noexcept
 	{
 		return rend();
@@ -180,13 +176,13 @@ public:
 	/// @name Capacity
 	/// @{
 	
-	/** Returns `true` if the list is empty, `false` otherwise. */
+	/// Returns `true` if the list is empty, `false` otherwise.
 	[[nodiscard]] inline constexpr bool empty() const noexcept
 	{
 		return !m_size;
 	}
 	
-	/** Returns the number of edges in the list. */
+	/// Returns the number of edges in the list.
 	[[nodiscard]] inline constexpr std::size_t size() const noexcept
 	{
 		return m_size;
@@ -196,18 +192,12 @@ public:
 	/// @name Modifiers
 	/// @{
 	
-	/**
-	 * Appends an edge to the end of the list.
-	 *
-	 * @param edge Pointer to the edge to append.
-	 */
+	/// Appends an edge to the end of the list.
+	/// @param edge Pointer to the edge to append.
 	void push_back(brep_edge* edge);
 	
-	/**
-	 * Removes an edge from the list.
-	 *
-	 * @param edge Pointer to the edge to remove.
-	 */
+	/// Removes an edge from the list.
+	/// @param edge Pointer to the edge to remove.
 	void remove(brep_edge* edge);
 	
 	/// @}

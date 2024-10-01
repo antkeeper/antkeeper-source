@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_RENDER_OPERATION_HPP
@@ -15,9 +15,7 @@
 
 namespace render {
 
-/**
- * Atomic render operation.
- */
+/// Atomic render operation.
 struct operation
 {
 	gl::primitive_topology primitive_topology{gl::primitive_topology::triangle_list};

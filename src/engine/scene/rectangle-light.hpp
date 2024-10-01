@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_SCENE_RECTANGLE_LIGHT_HPP
@@ -9,16 +9,14 @@
 
 namespace scene {
 
-/**
- * Rectangular area light.
- */
+/// Rectangular area light.
 class rectangle_light: public light
 {
 public:
 	/// Constructs a rectangular area light.
 	rectangle_light();
 	
-	/** Destructs a rectangular area light. */
+	/// Destructs a rectangular area light.
 	~rectangle_light() override = default;
 	
 	/// Returns light_type::rectangle.
@@ -27,29 +25,20 @@ public:
 		return light_type::rectangle;
 	}
 	
-	/**
-	 * Sets the size of the light.
-	 *
-	 * @param size Dimensions of the light.
-	 */
+	/// Sets the size of the light.
+	/// @param size Dimensions of the light.
 	void set_size(const math::fvec2& size);
 	
-	/**
-	 * Sets the luminous flux of the light.
-	 *
-	 * @param luminous_flux Luminous flux.
-	 */
+	/// Sets the luminous flux of the light.
+	/// @param luminous_flux Luminous flux.
 	inline void set_luminous_flux(float luminous_flux) noexcept
 	{
 		m_luminous_flux = luminous_flux;
 		luminous_flux_updated();
 	}
 	
-	/**
-	 * Sets the luminance of the light.
-	 *
-	 * @param luminance Luminance.
-	 */
+	/// Sets the luminance of the light.
+	/// @param luminance Luminance.
 	inline void set_luminance(float luminance) noexcept
 	{
 		m_luminance = luminance;

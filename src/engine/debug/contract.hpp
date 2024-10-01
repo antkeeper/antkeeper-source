@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_DEBUG_CONTRACT_HPP
@@ -43,12 +43,9 @@ public:
 	[[nodiscard]] const char* what() const noexcept override;
 };
 
-/**
- * Enforces a precondition contract.
- * 
- * @param condition Contract condition.
- * @exception precondition_error Precondition violated.
- */
+/// Enforces a precondition contract.
+/// @param condition Contract condition.
+/// @exception precondition_error Precondition violated.
 inline void precondition([[maybe_unused]] bool condition)
 {
 	#if !defined(NDEBUG)
@@ -59,12 +56,9 @@ inline void precondition([[maybe_unused]] bool condition)
 	#endif
 }
 
-/**
- * Enforces a postcondition contract.
- *
- * @param condition Contract condition.
- * @exception postcondition_error Postcondition violated.
- */
+/// Enforces a postcondition contract.
+/// @param condition Contract condition.
+/// @exception postcondition_error Postcondition violated.
 inline void postcondition([[maybe_unused]] bool condition)
 {
 	#if !defined(NDEBUG)
@@ -75,12 +69,9 @@ inline void postcondition([[maybe_unused]] bool condition)
 	#endif
 }
 
-/**
- * Enforces an invariant contract.
- *
- * @param condition Contract condition.
- * @exception invariant_error Invariant violated.
- */
+/// Enforces an invariant contract.
+/// @param condition Contract condition.
+/// @exception invariant_error Invariant violated.
 inline void invariant([[maybe_unused]] bool condition)
 {
 	#if !defined(NDEBUG)

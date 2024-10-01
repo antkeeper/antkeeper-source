@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_BREP_ATTRIBUTE_MAP_HPP
@@ -15,9 +15,7 @@
 
 namespace geom {
 
-/**
- * Maps names to B-rep attributes.
- */
+/// Maps names to B-rep attributes.
 class brep_attribute_map
 {
 public:
@@ -133,7 +131,7 @@ public:
 	/// @name Iterators
 	/// @{
 	
-	/** Returns an iterator to the first attribute. */
+	/// Returns an iterator to the first attribute.
 	[[nodiscard]] inline iterator begin() noexcept
 	{
 		iterator it;
@@ -141,7 +139,7 @@ public:
 		return it;
 	}
 
-	/** @copydoc begin() */
+	/// @copydoc begin()
 	[[nodiscard]] inline const_iterator begin() const noexcept
 	{
 		const_iterator it;
@@ -149,13 +147,13 @@ public:
 		return it;
 	}
 
-	/** @copydoc begin() */
+	/// @copydoc begin()
 	[[nodiscard]] inline const_iterator cbegin() const noexcept
 	{
 		return begin();
 	}
 	
-	/** Returns an iterator to the attribute following the last attribute. */
+	/// Returns an iterator to the attribute following the last attribute.
 	[[nodiscard]] inline iterator end() noexcept
 	{
 		iterator it;
@@ -163,7 +161,7 @@ public:
 		return it;
 	}
 
-	/** @copydoc end() */
+	/// @copydoc end()
 	[[nodiscard]] inline const_iterator end() const noexcept
 	{
 		const_iterator it;
@@ -171,7 +169,7 @@ public:
 		return it;
 	}
 
-	/** @copydoc end() */
+	/// @copydoc end()
 	[[nodiscard]] inline const_iterator cend() const noexcept
 	{
 		return end();
@@ -181,13 +179,13 @@ public:
 	/// @name Capacity
 	/// @{
 	
-	/** Returns `true` if the container is empty, `false` otherwise. */
+	/// Returns `true` if the container is empty, `false` otherwise.
 	[[nodiscard]] inline bool empty() const noexcept
 	{
 		return m_attributes.empty();
 	}
 	
-	/** Returns the number of attributes in the container. */
+	/// Returns the number of attributes in the container.
 	[[nodiscard]] inline std::size_t size() const noexcept
 	{
 		return m_attributes.size();
@@ -197,21 +195,16 @@ public:
 	/// @name Modifiers
 	/// @{
 	
-	/** Removes all attributes from the container. */
+	/// Removes all attributes from the container.
 	inline void clear() noexcept
 	{
 		m_attributes.clear();
 	}
 	
-	/**
-	 * Constructs a new attribute. If an attribute with the given name exists, it will be replaced.
-	 *
-	 * @tparam T Attribute data type.
-	 *
-	 * @param name Name of the new attribute.
-	 *
-	 * @return Iterator to the new attribute.
-	 */
+	/// Constructs a new attribute. If an attribute with the given name exists, it will be replaced.
+	/// @tparam T Attribute data type.
+	/// @param name Name of the new attribute.
+	/// @return Iterator to the new attribute.
 	template <class T>
 	iterator emplace(const std::string& name)
 	{
@@ -230,13 +223,9 @@ public:
 		return it;
 	}
 	
-	/**
-	 * Removes an attribute from the container.
-	 *
-	 * @param pos Iterator to the attribute to remove.
-	 *
-	 * @return Iterator following the erased attribute.
-	 */
+	/// Removes an attribute from the container.
+	/// @param pos Iterator to the attribute to remove.
+	/// @return Iterator following the erased attribute.
 	inline iterator erase(iterator pos)
 	{
 		iterator it;
@@ -244,27 +233,18 @@ public:
 		return it;
 	}
 	
-	/**
-	 * Removes an attribute from the container.
-	 *
-	 * @param name Name of the attribute to remove.
-	 *
-	 * @return Number of attributes removed (0 or 1).
-	 */
+	/// Removes an attribute from the container.
+	/// @param name Name of the attribute to remove.
+	/// @return Number of attributes removed (0 or 1).
 	inline std::size_t erase(const std::string& name)
 	{
 		return m_attributes.erase(name);
 	}
 	
-	/**
-	 * Constructs a new attribute if an attribute with the given name does not exist.
-	 *
-	 * @tparam T Attribute data type.
-	 *
-	 * @param name Name of the new attribute.
-	 *
-	 * @return Pair consisting of an iterator to the new or pre-existing attribute, and a Boolean value that's `true` if the new attribute was constructed, or `false` if an attribute with the given name pre-existed.
-	 */
+	/// Constructs a new attribute if an attribute with the given name does not exist.
+	/// @tparam T Attribute data type.
+	/// @param name Name of the new attribute.
+	/// @return Pair consisting of an iterator to the new or pre-existing attribute, and a Boolean value that's `true` if the new attribute was constructed, or `false` if an attribute with the given name pre-existed.
 	template <class T>
 	std::pair<iterator, bool> try_emplace(const std::string& name)
 	{
@@ -285,15 +265,11 @@ public:
 	/// @name Lookup
 	/// @{
 	
-	/**
-	 * Returns a reference to the attribute with the given name. If no such attribute exists, an exception of type std::out_of_range is thrown.
-	 *
-	 * @tparam T Attribute data type.
-	 *
-	 * @return Reference to the attribute with the given name.
-	 *
-	 * @exception std::out_of_range B-rep attribute not found.
-	 */
+	/// Returns a reference to the attribute with the given name. If no such attribute exists, an exception of type std::out_of_range is thrown.
+	/// @tparam T Attribute data type.
+	/// @param name Attribute name.
+	/// @return Reference to the attribute with the given name.
+	/// @exception std::out_of_range B-rep attribute not found.
 	template <class T>
 	[[nodiscard]] brep_attribute<T>& at(const std::string& name)
 	{
@@ -306,7 +282,7 @@ public:
 		return static_cast<brep_attribute<T>&>(*it);
 	}
 
-	/** @copydoc at(const std::string&) */
+	/// @copydoc at(const std::string&)
 	template <class T>
 	[[nodiscard]] const brep_attribute<T>& at(const std::string& name) const
 	{
@@ -319,13 +295,9 @@ public:
 		return static_cast<const brep_attribute<T>&>(*it);
 	}
 	
-	/**
-	 * Finds an attribute with the given name.
-	 *
-	 * @param name Name of an attribute.
-	 *
-	 * @return Iterator to the attribute with the given name. If no such attribute is found, an end iterator is returned.
-	 */
+	/// Finds an attribute with the given name.
+	/// @param name Attribute name.
+	/// @return Iterator to the attribute with the given name. If no such attribute is found, an end iterator is returned.
 	[[nodiscard]] inline iterator find(const std::string& name)
 	{
 		iterator it;
@@ -333,7 +305,7 @@ public:
 		return it;
 	}
 
-	/** @copydoc find(const std::string&) */
+	/// @copydoc find(const std::string&)
 	[[nodiscard]] inline const_iterator find(const std::string& name) const
 	{
 		const_iterator it;
@@ -341,13 +313,9 @@ public:
 		return it;
 	}
 	
-	/**
-	 * Checks if there is an attribute with a given name in the container.
-	 *
-	 * @param name Attribute name.
-	 *
-	 * @return `true` if an attribute with the given name was found, `false` otherwise.
-	 */
+	/// Checks if there is an attribute with a given name in the container.
+	/// @param name Attribute name.
+	/// @return `true` if an attribute with the given name was found, `false` otherwise.
 	[[nodiscard]] inline bool contains(const std::string& name) const
 	{
 		return m_attributes.contains(name);

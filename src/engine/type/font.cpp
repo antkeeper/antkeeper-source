@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/type/font.hpp>
@@ -9,7 +9,7 @@
 
 namespace {
 	
-	/** Returns the next power of two for any unsigned integer. */
+	/// Returns the next power of two for any unsigned integer.
 	std::uint32_t next_power_of_two(std::uint32_t n)
 	{
 		return std::uint32_t{1} << std::bit_width(n);

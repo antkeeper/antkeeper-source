@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_EVENT_SUBSCRIBER_HPP
@@ -8,11 +8,8 @@
 
 namespace event {
 
-/**
- * Subscriber function object type.
- *
- * @tparam T Message type.
- */
+/// Subscriber function object type.
+/// @tparam T Message type.
 template <class T>
 using subscriber = std::function<void(const T&)>;
 

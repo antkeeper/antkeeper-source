@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_TIME_JD_HPP
@@ -18,12 +18,9 @@ constexpr T days_per_century = T{36525};
 template <class T>
 constexpr T centuries_per_day = T{1} / T{36525};
 
-/**
- * Converts JD to UT1.
- *
- * @param t JD time.
- * @return UT1 time.
- */
+/// Converts JD to UT1.
+/// @param t JD time.
+/// @return UT1 time.
 template <class T>
 T to_ut1(T t)
 {

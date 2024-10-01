@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_PRIMITIVES_POINT_HPP
@@ -9,12 +9,9 @@
 namespace geom {
 namespace primitives {
 
-/**
- * *n*-dimensional point.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- */
+/// *n*-dimensional point.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
 template <class T, std::size_t N>
 using point = math::vector<T, N>;
 

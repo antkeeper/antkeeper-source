@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_SCENE_COLLECTION_HPP
@@ -11,27 +11,19 @@
 
 namespace scene {
 
-/**
- * Collection of scene objects.
- */
+/// Collection of scene objects.
 class collection
 {
 public:
 	/// @name Objects
 	/// @{
 	
-	/**
-	 * Adds an object to the collection.
-	 *
-	 * @param object Object to add.
-	 */
+	/// Adds an object to the collection.
+	/// @param object Object to add.
 	void add_object(object_base& object);
 	
-	/**
-	 * Removes an object from the collection.
-	 *
-	 * @param object Object to remove.
-	 */
+	/// Removes an object from the collection.
+	/// @param object Object to remove.
 	void remove_object(const object_base& object);
 	
 	/// Removes all objects from the collection.
@@ -43,13 +35,9 @@ public:
 		return m_objects;
 	}
 	
-	/**
-	 * Returns all objects in the collection with the given type ID.
-	 *
-	 * @param type_id Scene object type ID.
-	 *
-	 * @return Scene objects with the given type ID.
-	 */
+	/// Returns all objects in the collection with the given type ID.
+	/// @param type_id Scene object type ID.
+	/// @return Scene objects with the given type ID.
 	[[nodiscard]] inline const std::vector<object_base*>& get_objects(std::size_t type_id) const
 	{
 		return m_object_map[type_id];
@@ -59,11 +47,8 @@ public:
 	/// @name Settings
 	/// @{
 	
-	/**
-	 * Sets the scale of the scene.
-	 *
-	 * @param scale Ratio of meters to scene units.
-	 */
+	/// Sets the scale of the scene.
+	/// @param scale Ratio of meters to scene units.
 	inline void set_scale(float scale) noexcept
 	{
 		m_scale = scale;

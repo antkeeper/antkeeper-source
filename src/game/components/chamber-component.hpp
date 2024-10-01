@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_CHAMBER_COMPONENT_HPP
@@ -7,7 +7,6 @@
 #include <array>
 #include <unordered_set>
 #include <engine/entity/id.hpp>
-
 
 /// Ant nest chamber.
 struct chamber_component
@@ -30,6 +29,5 @@ struct chamber_component
 	float tile_radius;
 	//std::unordered_set<std::array<int, 2>> tiles;
 };
-
 
 #endif // ANTKEEPER_GAME_CHAMBER_COMPONENT_HPP

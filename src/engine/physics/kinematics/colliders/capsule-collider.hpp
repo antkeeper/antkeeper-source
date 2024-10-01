@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_CAPSULE_COLLIDER_HPP
@@ -9,9 +9,7 @@
 
 namespace physics {
 
-/**
- * Capsule collision object.
- */
+/// Capsule collision object.
 class capsule_collider: public collider
 {
 public:
@@ -23,56 +21,41 @@ public:
 		return collider_type::capsule;
 	}
 	
-	/**
-	 * Constructs a capsule collider from a capsule.
-	 *
-	 * @param capsule Capsule shape.
-	 */
+	/// Constructs a capsule collider from a capsule.
+	/// @param capsule Capsule shape.
 	inline constexpr explicit capsule_collider(const capsule_type& capsule) noexcept:
 		m_capsule{capsule}
 	{}
 	
-	/**
-	 * Constructs a capsule collider.
-	 *
-	 * @param segment Capsule line segment.
-	 * @param radius Capsule hemisphere radius.
-	 */
-	/// @{
+	/// Constructs a capsule collider.
+	/// @param segment Capsule line segment.
+	/// @param radius Capsule hemisphere radius.
 	inline constexpr capsule_collider(const capsule_type::segment_type& segment, float radius) noexcept:
 		m_capsule{segment, radius}
 	{}
+
+	/// Constructs a capsule collider.
 	constexpr capsule_collider() noexcept = default;
-	/// @}
 	
-	/** Destructs a capsule collider. */
+	/// Destructs a capsule collider.
 	~capsule_collider() override = default;
 	
-	/**
-	 * Sets the collider's capsule.
-	 *
-	 * @param capsule Capsule shape.
-	 */
+	/// Sets the collider's capsule.
+	/// @param capsule Capsule shape.
 	inline constexpr void set_capsule(const capsule_type& capsule) noexcept
 	{
 		m_capsule = capsule;
 	}
 	
-	/**
-	 * Sets the segment of the capsule.
-	 *
-	 * @param segment Capsule segment, in object space.
-	 */
+	/// Sets the segment of the capsule.
+	/// @param segment Capsule segment, in object space.
 	inline constexpr void set_segment(const capsule_type::segment_type& segment) noexcept
 	{
 		m_capsule.segment = segment;
 	}
 	
-	/**
-	 * Sets the radius of the capsule hemispheres.
-	 *
-	 * @param radius Capsule hemisphere radius.
-	 */
+	/// Sets the radius of the capsule hemispheres.
+	/// @param radius Capsule hemisphere radius.
 	inline constexpr void set_radius(float radius) noexcept
 	{
 		m_capsule.radius = radius;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_AUDIO_PLAYBACK_STATE_HPP
@@ -6,16 +6,16 @@
 
 namespace audio {
 
-/** Playback states of a sound. */
+/// Playback states of a sound.
 enum class playback_state
 {
-	/** Sound is stopped. */
+	/// Sound is stopped.
 	stopped,
 	
-	/** Sound is playing. */
+	/// Sound is playing.
 	playing,
 	
-	/** Sound is paused. */
+	/// Sound is paused.
 	paused
 };
 

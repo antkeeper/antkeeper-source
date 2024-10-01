@@ -1,9 +1,8 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_CELESTIAL_BODY_COMPONENT_HPP
 #define ANTKEEPER_GAME_CELESTIAL_BODY_COMPONENT_HPP
-
 
 /// A simple celestial body.
 struct celestial_body_component
@@ -40,6 +39,5 @@ struct celestial_body_component
 	/// Geometric albedo
 	double albedo;
 };
-
 
 #endif // ANTKEEPER_GAME_CELESTIAL_BODY_COMPONENT_HPP

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_AUTOFOCUS_COMPONENT_HPP
@@ -8,9 +8,7 @@
 #include <engine/math/functions.hpp>
 #include <engine/physics/spring.hpp>
 
-/**
- * Modulates a camera's field of view and spring arm length.
- */
+/// Modulates a camera's field of view and spring arm length.
 struct autofocus_component
 {
 	/// Height of the focal plane at maximum zoom.

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_ANIMATION_IK_GOAL_HPP
@@ -8,37 +8,26 @@
 #include <engine/math/vector.hpp>
 #include <memory>
 
-/**
- * IK goal.
- */
+/// IK goal.
 class ik_goal
 {
 public:
-	/**
-	 * Sets the solver of the IK goal.
-	 *
-	 * @param solver Goal solver.
-	 */
+	/// Sets the solver of the IK goal.
+	/// @param solver Goal solver.
 	inline void set_solver(std::shared_ptr<ik_solver> solver) noexcept
 	{
 		m_solver = solver;
 	}
 	
-	/**
-	 * Sets the center of the IK goal.
-	 *
-	 * @param center Goal center, in world-space.
-	 */
+	/// Sets the center of the IK goal.
+	/// @param center Goal center, in world-space.
 	inline void set_center(const math::fvec3& center) noexcept
 	{
 		m_center = center;
 	}
 	
-	/**
-	 * Sets the radius of the IK goal.
-	 *
-	 * @param radius Goal radius.
-	 */
+	/// Sets the radius of the IK goal.
+	/// @param radius Goal radius.
 	inline void set_radius(float radius) noexcept
 	{
 		m_radius = radius;

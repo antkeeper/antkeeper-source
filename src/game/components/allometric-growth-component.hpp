@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ALLOMETRIC_GROWTH_COMPONENT_HPP
@@ -7,9 +7,7 @@
 #include <engine/animation/bone.hpp>
 #include <unordered_map>
 
-/**
- * Growth component with seperable rates for different body parts.
- */
+/// Growth component with seperable rates for different body parts.
 struct allometric_growth_component
 {
 	/// Growth rates of each bone.

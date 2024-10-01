@@ -1,22 +1,18 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/i18n/string-table.hpp>
 #include <engine/resources/deserializer.hpp>
 #include <engine/resources/resource-loader.hpp>
 
-/**
- * Deserializes a string table.
- *
- * @param[out] file Text file to serialize.
- * @param[in,out] ctx Deserialize context.
- *
- * @throw deserialize_error Read error.
- */
+/// Deserializes a string table.
+/// @param[out] value String table to deserialize.
+/// @param[in,out] ctx Deserialize context.
+/// @throw deserialize_error Read error.
 template <>
-void deserializer<i18n::string_table>::deserialize(i18n::string_table& table, deserialize_context& ctx)
+void deserializer<i18n::string_table>::deserialize(i18n::string_table& value, deserialize_context& ctx)
 {
-	table.rows.clear();
+	value.rows.clear();
 	
 	std::vector<std::string> row;
 	std::string entry;
@@ -33,7 +29,7 @@ void deserializer<i18n::string_table>::deserialize(i18n::string_table& table, de
 		{
 			row.push_back(entry);
 			entry.clear();
-			table.rows.push_back(row);
+			value.rows.push_back(row);
 			row.clear();
 		}
 		else if (c != '\r')
@@ -49,7 +45,7 @@ void deserializer<i18n::string_table>::deserialize(i18n::string_table& table, de
 	
 	if (!row.empty())
 	{
-		table.rows.push_back(row);
+		value.rows.push_back(row);
 	}
 }
 

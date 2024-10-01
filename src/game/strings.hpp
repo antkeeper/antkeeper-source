@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_STRINGS_HPP
@@ -8,14 +8,10 @@
 #include <cstdint>
 #include <string_view>
 
-/**
- * Returns a localized string.
- *
- * @param ctx Game context.
- * @param key String key.
- *
- * @return String value.
- */
+/// Returns a localized string.
+/// @param ctx Game context.
+/// @param key String key.
+/// @return String value.
 [[nodiscard]] std::string get_string(const ::game& ctx, std::string_view key);
 
 #endif // ANTKEEPER_GAME_STRINGS_HPP

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_MATH_EULER_ANGLES_HPP
@@ -19,11 +19,11 @@
 
 namespace math {
 
-/**
- * Rotation sequences of proper Euler and Tait-Bryan angles.
- *
- * Indices of the first, second, and third rotation axes are encoded in bits 0-1, 2-3, and 4-5, respectively.
- */
+/// @name Euler Angles
+/// @{
+
+/// Rotation sequences of proper Euler and Tait-Bryan angles.
+/// @details Indices of the first, second, and third rotation axes are encoded in bits 0-1, 2-3, and 4-5, respectively.
 enum class rotation_sequence
 {
 	/// *z-x-z* rotation sequence (proper Euler angles).
@@ -63,15 +63,10 @@ enum class rotation_sequence
 	yxz = 0b100001
 };
 
-/**
- * Returns the indices of the axes of a rotation sequence.
- *
- * @tparam T Index type.
- *
- * @param sequence Rotation sequence.
- *
- * @return Vector containing the indices of the axes of @p sequence.
- */
+/// Returns the indices of the axes of a rotation sequence.
+/// @tparam T Index type.
+/// @param sequence Rotation sequence.
+/// @return Vector containing the indices of the axes of @p sequence.
 template <std::integral T>
 [[nodiscard]] inline constexpr vec3<T> rotation_axes(rotation_sequence sequence) noexcept
 {
@@ -79,21 +74,13 @@ template <std::integral T>
 	return {x & 3, (x >> 2) & 3, x >> 4};
 }
 
-/**
- * Derives Euler angles from a unit quaternion.
- *
- * @tparam Sequence Rotation sequence of the Euler angles.
- * @tparam T Scalar type.
- *
- * @param sequence Rotation sequence of the Euler angles.
- * @param q Quaternion to convert.
- * @param tolerance Floating-point tolerance, in radians, for handling singularities.
- *
- * @return Euler angles representing the rotation described by the quaternion, in radians.
- *
- * @see Bernardes, Evandro & Viollet, Stéphane. (2022). Quaternion to Euler angles conversion: A direct, general and computationally efficient method. PLoS ONE. 17. 10.1371/journal.pone.0276302.
- */
-/// @{
+/// Derives Euler angles from a unit quaternion.
+/// @tparam Sequence Rotation sequence of the Euler angles.
+/// @tparam T Scalar type.
+/// @param q Quaternion to convert.
+/// @param tolerance Floating-point tolerance, in radians, for handling singularities.
+/// @return Euler angles, in radians.
+/// @see Bernardes, Evandro & Viollet, Stéphane. (2022). Quaternion to Euler angles conversion: A direct, general and computationally efficient method. PLoS ONE. 17. 10.1371/journal.pone.0276302.
 template <rotation_sequence Sequence, class T>
 [[nodiscard]] vec3<T> euler_from_quat(const quat<T>& q, T tolerance = T{1e-6})
 {
@@ -148,78 +135,144 @@ template <rotation_sequence Sequence, class T>
 	return angles;
 }
 
+/// Derives Euler angles from a unit quaternion using the *z-x-z* rotation sequence.
+/// @tparam T Scalar type.
+/// @param q Quaternion to convert.
+/// @param tolerance Floating-point tolerance, in radians, for handling singularities.
+/// @return Euler angles, in radians.
 template <class T>
 [[nodiscard]] inline vec3<T> euler_zxz_from_quat(const quat<T>& q, T tolerance = T{1e-6})
 {
 	return euler_from_quat<rotation_sequence::zxz, T>(q, tolerance);
 }
 
+/// Derives Euler angles from a unit quaternion using the *x-y-z* rotation sequence.
+/// @tparam T Scalar type.
+/// @param q Quaternion to convert.
+/// @param tolerance Floating-point tolerance, in radians, for handling singularities.
+/// @return Euler angles, in radians.
 template <class T>
 [[nodiscard]] inline vec3<T> euler_xyx_from_quat(const quat<T>& q, T tolerance = T{1e-6})
 {
 	return euler_from_quat<rotation_sequence::xyx, T>(q, tolerance);
 }
 
+/// Derives Euler angles from a unit quaternion using the *y-z-y* rotation sequence.
+/// @tparam T Scalar type.
+/// @param q Quaternion to convert.
+/// @param tolerance Floating-point tolerance, in radians, for handling singularities.
+/// @return Euler angles, in radians.
 template <class T>
 [[nodiscard]] inline vec3<T> euler_yzy_from_quat(const quat<T>& q, T tolerance = T{1e-6})
 {
 	return euler_from_quat<rotation_sequence::yzy, T>(q, tolerance);
 }
 
+/// Derives Euler angles from a unit quaternion using the *z-y-z* rotation sequence.
+/// @tparam T Scalar type.
+/// @param q Quaternion to convert.
+/// @param tolerance Floating-point tolerance, in radians, for handling singularities.
+/// @return Euler angles, in radians.
 template <class T>
 [[nodiscard]] inline vec3<T> euler_zyz_from_quat(const quat<T>& q, T tolerance = T{1e-6})
 {
 	return euler_from_quat<rotation_sequence::zyz, T>(q, tolerance);
 }
 
+/// Derives Euler angles from a unit quaternion using the *x-z-x* rotation sequence.
+/// @tparam T Scalar type.
+/// @param q Quaternion to convert.
+/// @param tolerance Floating-point tolerance, in radians, for handling singularities.
+/// @return Euler angles, in radians.
 template <class T>
 [[nodiscard]] inline vec3<T> euler_xzx_from_quat(const quat<T>& q, T tolerance = T{1e-6})
 {
 	return euler_from_quat<rotation_sequence::xzx, T>(q, tolerance);
 }
 
+/// Derives Euler angles from a unit quaternion using the *y-x-y* rotation sequence.
+/// @tparam T Scalar type.
+/// @param q Quaternion to convert.
+/// @param tolerance Floating-point tolerance, in radians, for handling singularities.
+/// @return Euler angles, in radians.
 template <class T>
 [[nodiscard]] inline vec3<T> euler_yxy_from_quat(const quat<T>& q, T tolerance = T{1e-6})
 {
 	return euler_from_quat<rotation_sequence::yxy, T>(q, tolerance);
 }
 
+/// Derives Euler angles from a unit quaternion using the *x-y-z* rotation sequence.
+/// @tparam T Scalar type.
+/// @param q Quaternion to convert.
+/// @param tolerance Floating-point tolerance, in radians, for handling singularities.
+/// @return Euler angles, in radians.
 template <class T>
 [[nodiscard]] inline vec3<T> euler_xyz_from_quat(const quat<T>& q, T tolerance = T{1e-6})
 {
 	return euler_from_quat<rotation_sequence::xyz, T>(q, tolerance);
 }
 
+/// Derives Euler angles from a unit quaternion using the *y-z-x* rotation sequence.
+/// @tparam T Scalar type.
+/// @param q Quaternion to convert.
+/// @param tolerance Floating-point tolerance, in radians, for handling singularities.
+/// @return Euler angles, in radians.
 template <class T>
 [[nodiscard]] inline vec3<T> euler_yzx_from_quat(const quat<T>& q, T tolerance = T{1e-6})
 {
 	return euler_from_quat<rotation_sequence::yzx, T>(q, tolerance);
 }
 
+/// Derives Euler angles from a unit quaternion using the *z-x-y* rotation sequence.
+/// @tparam T Scalar type.
+/// @param q Quaternion to convert.
+/// @param tolerance Floating-point tolerance, in radians, for handling singularities.
+/// @return Euler angles, in radians.
 template <class T>
 [[nodiscard]] inline vec3<T> euler_zxy_from_quat(const quat<T>& q, T tolerance = T{1e-6})
 {
 	return euler_from_quat<rotation_sequence::zxy, T>(q, tolerance);
 }
 
+/// Derives Euler angles from a unit quaternion using the *x-z-y* rotation sequence.
+/// @tparam T Scalar type.
+/// @param q Quaternion to convert.
+/// @param tolerance Floating-point tolerance, in radians, for handling singularities.
+/// @return Euler angles, in radians.
 template <class T>
 [[nodiscard]] inline vec3<T> euler_xzy_from_quat(const quat<T>& q, T tolerance = T{1e-6})
 {
 	return euler_from_quat<rotation_sequence::xzy, T>(q, tolerance);
 }
 
+/// Derives Euler angles from a unit quaternion using the *z-y-x* rotation sequence.
+/// @tparam T Scalar type.
+/// @param q Quaternion to convert.
+/// @param tolerance Floating-point tolerance, in radians, for handling singularities.
+/// @return Euler angles, in radians.
 template <class T>
 [[nodiscard]] inline vec3<T> euler_zyx_from_quat(const quat<T>& q, T tolerance = T{1e-6})
 {
 	return euler_from_quat<rotation_sequence::zyx, T>(q, tolerance);
 }
 
+/// Derives Euler angles from a unit quaternion using the *y-x-z* rotation sequence.
+/// @tparam T Scalar type.
+/// @param q Quaternion to convert.
+/// @param tolerance Floating-point tolerance, in radians, for handling singularities.
+/// @return Euler angles, in radians.
 template <class T>
 [[nodiscard]] inline vec3<T> euler_yxz_from_quat(const quat<T>& q, T tolerance = T{1e-6})
 {
 	return euler_from_quat<rotation_sequence::yxz, T>(q, tolerance);
 }
 
+/// Derives Euler angles from a unit quaternion.
+/// @tparam T Scalar type.
+/// @param sequence Rotation sequence of the Euler angles.
+/// @param q Quaternion to convert.
+/// @param tolerance Floating-point tolerance, in radians, for handling singularities.
+/// @return Euler angles, in radians.
 template <class T>
 [[nodiscard]] inline vec3<T> euler_from_quat(rotation_sequence sequence, const quat<T>& q, T tolerance = T{1e-6})
 {
@@ -253,21 +306,12 @@ template <class T>
 	}
 }
 
-/// @}
-
-/**
- * Constructs a quaternion from Euler angles.
- *
- * @tparam Sequence Rotation sequence of the Euler angles.
- * @tparam T Scalar type.
- *
- * @param angles Vector of Euler angles.
- *
- * @return Quaternion.
- *
- * @see Diebel, J. (2006). Representing attitude: Euler angles, unit quaternions, and rotation vectors. Matrix, 58(15-16), 1-35.
- */
-/// @{
+/// Constructs a quaternion from Euler angles.
+/// @tparam Sequence Rotation sequence of the Euler angles.
+/// @tparam T Scalar type.
+/// @param angles Vector of Euler angles.
+/// @return Quaternion.
+/// @see Diebel, J. (2006). Representing attitude: Euler angles, unit quaternions, and rotation vectors. Matrix, 58(15-16), 1-35.
 template <rotation_sequence Sequence, class T>
 [[nodiscard]] quat<T> euler_to_quat(const vec3<T>& angles)
 {
@@ -401,78 +445,131 @@ template <rotation_sequence Sequence, class T>
 	}
 }
 
+/// Constructs a quaternion from Euler angles using the *z-x-z* rotation sequence.
+/// @tparam T Scalar type.
+/// @param angles Vector of Euler angles.
+/// @return Quaternion.
 template <class T>
 [[nodiscard]] inline quat<T> euler_zxz_to_quat(const vec3<T>& angles)
 {
 	return euler_to_quat<rotation_sequence::zxz, T>(angles);
 }
 
+/// Constructs a quaternion from Euler angles using the *x-y-x* rotation sequence.
+/// @tparam T Scalar type.
+/// @param angles Vector of Euler angles.
+/// @return Quaternion.
 template <class T>
 [[nodiscard]] inline quat<T> euler_xyx_to_quat(const vec3<T>& angles)
 {
 	return euler_to_quat<rotation_sequence::xyx, T>(angles);
 }
 
+/// Constructs a quaternion from Euler angles using the *y-z-y* rotation sequence.
+/// @tparam T Scalar type.
+/// @param angles Vector of Euler angles.
+/// @return Quaternion.
 template <class T>
 [[nodiscard]] inline quat<T> euler_yzy_to_quat(const vec3<T>& angles)
 {
 	return euler_to_quat<rotation_sequence::yzy, T>(angles);
 }
 
+/// Constructs a quaternion from Euler angles using the *z-y-z* rotation sequence.
+/// @tparam T Scalar type.
+/// @param angles Vector of Euler angles.
+/// @return Quaternion.
 template <class T>
 [[nodiscard]] inline quat<T> euler_zyz_to_quat(const vec3<T>& angles)
 {
 	return euler_to_quat<rotation_sequence::zyz, T>(angles);
 }
 
+/// Constructs a quaternion from Euler angles using the *x-z-x* rotation sequence.
+/// @tparam T Scalar type.
+/// @param angles Vector of Euler angles.
+/// @return Quaternion.
 template <class T>
 [[nodiscard]] inline quat<T> euler_xzx_to_quat(const vec3<T>& angles)
 {
 	return euler_to_quat<rotation_sequence::xzx, T>(angles);
 }
 
+/// Constructs a quaternion from Euler angles using the *y-x-y* rotation sequence.
+/// @tparam T Scalar type.
+/// @param angles Vector of Euler angles.
+/// @return Quaternion.
 template <class T>
 [[nodiscard]] inline quat<T> euler_yxy_to_quat(const vec3<T>& angles)
 {
 	return euler_to_quat<rotation_sequence::yxy, T>(angles);
 }
 
+/// Constructs a quaternion from Euler angles using the *x-y-z* rotation sequence.
+/// @tparam T Scalar type.
+/// @param angles Vector of Euler angles.
+/// @return Quaternion.
 template <class T>
 [[nodiscard]] inline quat<T> euler_xyz_to_quat(const vec3<T>& angles)
 {
 	return euler_to_quat<rotation_sequence::xyz, T>(angles);
 }
 
+/// Constructs a quaternion from Euler angles using the *y-z-x* rotation sequence.
+/// @tparam T Scalar type.
+/// @param angles Vector of Euler angles.
+/// @return Quaternion.
 template <class T>
 [[nodiscard]] inline quat<T> euler_yzx_to_quat(const vec3<T>& angles)
 {
 	return euler_to_quat<rotation_sequence::yzx, T>(angles);
 }
 
+/// Constructs a quaternion from Euler angles using the *z-x-y* rotation sequence.
+/// @tparam T Scalar type.
+/// @param angles Vector of Euler angles.
+/// @return Quaternion.
 template <class T>
 [[nodiscard]] inline quat<T> euler_zxy_to_quat(const vec3<T>& angles)
 {
 	return euler_to_quat<rotation_sequence::zxy, T>(angles);
 }
 
+/// Constructs a quaternion from Euler angles using the *x-z-y* rotation sequence.
+/// @tparam T Scalar type.
+/// @param angles Vector of Euler angles.
+/// @return Quaternion.
 template <class T>
 [[nodiscard]] inline quat<T> euler_xzy_to_quat(const vec3<T>& angles)
 {
 	return euler_to_quat<rotation_sequence::xzy, T>(angles);
 }
 
+/// Constructs a quaternion from Euler angles using the *z-y-x* rotation sequence.
+/// @tparam T Scalar type.
+/// @param angles Vector of Euler angles.
+/// @return Quaternion.
 template <class T>
 [[nodiscard]] inline quat<T> euler_zyx_to_quat(const vec3<T>& angles)
 {
 	return euler_to_quat<rotation_sequence::zyx, T>(angles);
 }
 
+/// Constructs a quaternion from Euler angles using the *y-x-z* rotation sequence.
+/// @tparam T Scalar type.
+/// @param angles Vector of Euler angles.
+/// @return Quaternion.
 template <class T>
 [[nodiscard]] inline quat<T> euler_yxz_to_quat(const vec3<T>& angles)
 {
 	return euler_to_quat<rotation_sequence::yxz, T>(angles);
 }
 
+/// Constructs a quaternion from Euler angles.
+/// @tparam T Scalar type.
+/// @param sequence Rotation sequence of the Euler angles.
+/// @param angles Vector of Euler angles.
+/// @return Quaternion.
 template <class T>
 [[nodiscard]] inline quat<T> euler_to_quat(rotation_sequence sequence, const vec3<T>& angles)
 {
@@ -505,7 +602,8 @@ template <class T>
 			return euler_yxz_to_quat<T>(angles);
 	}
 }
-/// @}
+
+/// @} Euler Angles
 
 } // namespace math
 

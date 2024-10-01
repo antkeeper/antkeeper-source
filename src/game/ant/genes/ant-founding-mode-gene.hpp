@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_FOUNDING_MODE_GENE_HPP
@@ -7,11 +7,8 @@
 #include "game/ant/genes/ant-gene.hpp"
 #include <cstdint>
 
-/**
- * Colony founding mode phene.
- *
- * @see https://www.antwiki.org/wiki/Colony_Foundation
- */
+/// Colony founding mode phene.
+/// @see https://www.antwiki.org/wiki/Colony_Foundation
 enum class ant_founding_mode_phene: std::uint8_t
 {
 	/// Foraging outside the claustral chamber is required.

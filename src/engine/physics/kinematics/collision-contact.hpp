@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_COLLISION_CONTACT_HPP
@@ -8,9 +8,7 @@
 
 namespace physics {
 
-/**
- * Point of contact between two colliding bodies.
- */
+/// Point of contact between two colliding bodies.
 struct collision_contact
 {
 	/// World-space contact point.

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_MATH_QUATERNION_FUNCTIONS_HPP
@@ -26,321 +26,207 @@
 namespace math {
 namespace functions {
 
-/**
- * Adds two quaternions.
- *
- * @param a First quaternion.
- * @param b Second quaternion.
- *
- * @return Sum of the two quaternions.
- */
+/// Adds two quaternions.
+/// @param a First quaternion.
+/// @param b Second quaternion.
+/// @return Sum of the two quaternions.
 template <class T>
 [[nodiscard]] constexpr quaternion<T> add(const quaternion<T>& a, const quaternion<T>& b) noexcept;
 
-/**
- * Adds a quaternion and a scalar.
- *
- * @param a First value.
- * @param b Second second value.
- *
- * @return Sum of the quaternion and scalar.
- */
+/// Adds a quaternion and a scalar.
+/// @param a First value.
+/// @param b Second second value.
+/// @return Sum of the quaternion and scalar.
 template <class T>
 [[nodiscard]] constexpr quaternion<T> add(const quaternion<T>& a, T b) noexcept;
 
-/**
- * Calculates the conjugate of a quaternion.
- *
- * @param q Quaternion from which the conjugate will be calculated.
- *
- * @return Conjugate of the quaternion.
- */
+/// Calculates the conjugate of a quaternion.
+/// @param q Quaternion from which the conjugate will be calculated.
+/// @return Conjugate of the quaternion.
 template <class T>
 [[nodiscard]] constexpr quaternion<T> conjugate(const quaternion<T>& q) noexcept;
 
-/**
- * Calculates the dot product of two quaternions.
- *
- * @param a First quaternion.
- * @param b Second quaternion.
- *
- * @return Dot product of the two quaternions.
- */
+/// Calculates the dot product of two quaternions.
+/// @param a First quaternion.
+/// @param b Second quaternion.
+/// @return Dot product of the two quaternions.
 template <class T>
 [[nodiscard]] constexpr T dot(const quaternion<T>& a, const quaternion<T>& b) noexcept;
 
-/**
- * Divides a quaternion by another quaternion.
- *
- * @param a First value.
- * @param b Second value.
- *
- * @return Result of the division.
- */
+/// Divides a quaternion by another quaternion.
+/// @param a First value.
+/// @param b Second value.
+/// @return Result of the division.
 template <class T>
 [[nodiscard]] constexpr quaternion<T> div(const quaternion<T>& a, const quaternion<T>& b) noexcept;
 
-/**
- * Divides a quaternion by a scalar.
- *
- * @param a Quaternion.
- * @param b Scalar.
- *
- * @return Result of the division.
- */
+/// Divides a quaternion by a scalar.
+/// @param a Quaternion.
+/// @param b Scalar.
+/// @return Result of the division.
 template <class T>
 [[nodiscard]] constexpr quaternion<T> div(const quaternion<T>& a, T b) noexcept;
 
-/**
- * Divides a scalar by a quaternion.
- *
- * @param a Scalar.
- * @param b Quaternion.
- *
- * @return Result of the division.
- */
+/// Divides a scalar by a quaternion.
+/// @param a Scalar.
+/// @param b Quaternion.
+/// @return Result of the division.
 template <class T>
 [[nodiscard]] constexpr quaternion<T> div(T a, const quaternion<T>& b) noexcept;
 
-/**
- * Calculates the inverse length of a quaternion.
- * 
- * @param q Quaternion to calculate the inverse length of.
- *
- * @return Inverse length of the quaternion.
- */
+/// Calculates the inverse length of a quaternion.
+/// @param q Quaternion to calculate the inverse length of.
+/// @return Inverse length of the quaternion.
 template <class T>
 [[nodiscard]] T inv_length(const quaternion<T>& q);
 
-/**
- * Calculates the length of a quaternion.
- * 
- * @param q Quaternion to calculate the length of.
- *
- * @return Length of the quaternion.
- */
+/// Calculates the length of a quaternion.
+/// @param q Quaternion to calculate the length of.
+/// @return Length of the quaternion.
 template <class T>
 [[nodiscard]] T length(const quaternion<T>& q);
 
-/**
- * Performs linear interpolation between two quaternions.
- *
- * @param a First quaternion.
- * @param b Second quaternion.
- * @param t Interpolation factor.
- *
- * @return Interpolated quaternion.
- */
+/// Performs linear interpolation between two quaternions.
+/// @param a First quaternion.
+/// @param b Second quaternion.
+/// @param t Interpolation factor.
+/// @return Interpolated quaternion.
 template <class T>
 [[nodiscard]] constexpr quaternion<T> lerp(const quaternion<T>& a, const quaternion<T>& b, T t) noexcept;
 
-/**
- * Creates a unit quaternion rotation using forward and up vectors.
- *
- * @param forward Unit forward vector.
- * @param up Unit up vector.
- *
- * @return Unit rotation quaternion.
- */
+/// Creates a unit quaternion rotation using forward and up vectors.
+/// @param forward Unit forward vector.
+/// @param up Unit up vector.
+/// @return Unit rotation quaternion.
 template <class T>
 [[nodiscard]] quaternion<T> look_rotation(const vec3<T>& forward, vec3<T> up);
 
-/**
- * Multiplies two quaternions.
- *
- * @param a First quaternion.
- * @param b Second quaternion.
- *
- * @return Product of the two quaternions.
- */
+/// Multiplies two quaternions.
+/// @param a First quaternion.
+/// @param b Second quaternion.
+/// @return Product of the two quaternions.
 template <class T>
 [[nodiscard]] constexpr quaternion<T> mul(const quaternion<T>& a, const quaternion<T>& b) noexcept;
 
-/**
- * Multiplies a quaternion by a scalar.
- *
- * @param a First value.
- * @param b Second value.
- *
- * @return Product of the quaternion and scalar.
- */
+/// Multiplies a quaternion by a scalar.
+/// @param a First value.
+/// @param b Second value.
+/// @return Product of the quaternion and scalar.
 template <class T>
 [[nodiscard]] constexpr quaternion<T> mul(const quaternion<T>& a, T b) noexcept;
 
-/**
- * Rotates a vector by a unit quaternion.
- *
- * @param q Unit quaternion.
- * @param v Vector to rotate.
- *
- * @return Rotated vector.
- *
- * @warning @p q must be a unit quaternion.
- *
- * @see https://fgiesen.wordpress.com/2019/02/09/rotating-a-single-vector-using-a-quaternion/
- */
+/// Rotates a vector by a unit quaternion.
+/// @param q Unit quaternion.
+/// @param v Vector to rotate.
+/// @return Rotated vector.
+/// @warning @p q must be a unit quaternion.
+/// @see https://fgiesen.wordpress.com/2019/02/09/rotating-a-single-vector-using-a-quaternion/
 template <class T>
 [[nodiscard]] constexpr vec3<T> mul(const quaternion<T>& q, const vec3<T>& v) noexcept;
 
-/**
- * Rotates a vector by the inverse of a unit quaternion.
- *
- * @param v Vector to rotate.
- * @param q Unit quaternion.
- *
- * @return Rotated vector.
- *
- * @warning @p q must be a unit quaternion.
- */
+/// Rotates a vector by the inverse of a unit quaternion.
+/// @param v Vector to rotate.
+/// @param q Unit quaternion.
+/// @return Rotated vector.
+/// @warning @p q must be a unit quaternion.
 template <class T>
 [[nodiscard]] constexpr vec3<T> mul(const vec3<T>& v, const quaternion<T>& q) noexcept;
 
-/**
- * Negates a quaternion.
- *
- * @param q Quaternion to negate.
- *
- * @return Negated quaternion.
- */
+/// Negates a quaternion.
+/// @param q Quaternion to negate.
+/// @return Negated quaternion.
 template <class T>
 [[nodiscard]] constexpr quaternion<T> negate(const quaternion<T>& q) noexcept;
 
-/**
- * Performs normalized linear interpolation between two quaternions.
- *
- * @param a First quaternion.
- * @param b Second quaternion.
- * @param t Interpolation factor.
- *
- * @return Interpolated quaternion.
- */
+/// Performs normalized linear interpolation between two quaternions.
+/// @param a First quaternion.
+/// @param b Second quaternion.
+/// @param t Interpolation factor.
+/// @return Interpolated quaternion.
 template <class T>
 [[nodiscard]] quaternion<T> nlerp(const quaternion<T>& a, const quaternion<T>& b, T t);
 
-/**
- * Normalizes a quaternion.
- *
- * @param q Quaternion to normalize.
- *
- * @return Unit quaternion.
- */
+/// Normalizes a quaternion.
+/// @param q Quaternion to normalize.
+/// @return Unit quaternion.
 template <class T>
 [[nodiscard]] quaternion<T> normalize(const quaternion<T>& q);
 
-/**
- * Creates a rotation from an angle and axis.
- *
- * @param angle Angle of rotation (in radians).
- * @param axis Axis of rotation
- *
- * @return Quaternion representing the rotation.
- */
+/// Creates a rotation from an angle and axis.
+/// @param angle Angle of rotation (in radians).
+/// @param axis Axis of rotation
+/// @return Quaternion representing the rotation.
 template <class T>
 [[nodiscard]] quaternion<T> angle_axis(T angle, const vec3<T>& axis);
 
-/**
- * Constructs a quaternion representing the minimum rotation from one direction to another direction.
- *
- * @param from Unit vector pointing in the source direction.
- * @param to Unit vector pointing in the target direction.
- * @param tolerance Floating-point tolerance.
- *
- * @return Unit quaternion representing the minimum rotation from direction @p from to direction @p to.
- *
- * @warning @p from and @p to must be unit vectors.
- */
+/// Constructs a quaternion representing the minimum rotation from one direction to another direction.
+/// @param from Unit vector pointing in the source direction.
+/// @param to Unit vector pointing in the target direction.
+/// @param tolerance Floating-point tolerance.
+/// @return Unit quaternion representing the minimum rotation from direction @p from to direction @p to.
+/// @warning @p from and @p to must be unit vectors.
 template <class T>
 [[nodiscard]] quaternion<T> rotation(const vec3<T>& from, const vec3<T>& to, T tolerance = T{1e-6});
 
-/**
- * Constructs a quaternion representing an angle-limited rotation from one direction towards another direction.
- *
- * @param from Unit vector pointing in the source direction.
- * @param to Unit vector pointing in the target direction.
- * @param max_angle Maximum angle of rotation, in radians.
- *
- * @return Unit quaternion representing a rotation from direction @p from towards direction @p to.
- *
- * @warning @p from and @p to must be unit vectors.
- */
+/// Constructs a quaternion representing an angle-limited rotation from one direction towards another direction.
+/// @param from Unit vector pointing in the source direction.
+/// @param to Unit vector pointing in the target direction.
+/// @param max_angle Maximum angle of rotation, in radians.
+/// @return Unit quaternion representing a rotation from direction @p from towards direction @p to.
+/// @warning @p from and @p to must be unit vectors.
 template <class T>
 [[nodiscard]] quaternion<T> rotate_towards(const vec3<T>& from, const vec3<T>& to, T max_angle);
 
-/**
- * Performs spherical linear interpolation between two quaternions.
- *
- * @param a First quaternion.
- * @param b Second quaternion.
- * @param t Interpolation factor.
- * @param tolerance Floating-point tolerance.
- *
- * @return Interpolated quaternion.
- */
+/// Performs spherical linear interpolation between two quaternions.
+/// @param a First quaternion.
+/// @param b Second quaternion.
+/// @param t Interpolation factor.
+/// @param tolerance Floating-point tolerance.
+/// @return Interpolated quaternion.
 template <class T>
 [[nodiscard]] quaternion<T> slerp(const quaternion<T>& a, const quaternion<T>& b, T t, T tolerance = T{1e-6});
 
-/**
- * Calculates the square length of a quaternion. The square length can be calculated faster than the length because a call to `std::sqrt` is saved.
- * 
- * @param q Quaternion to calculate the square length of.
- *
- * @return Square length of the quaternion.
- */
+/// Calculates the square length of a quaternion. The square length can be calculated faster than the length because a call to `std::sqrt` is saved.
+/// @param q Quaternion to calculate the square length of.
+/// @return Square length of the quaternion.
 template <class T>
 [[nodiscard]] constexpr T sqr_length(const quaternion<T>& q) noexcept;
 
-/**
- * Subtracts a quaternion from another quaternion.
- *
- * @param a First quaternion.
- * @param b Second quaternion.
- *
- * @return Difference between the quaternions.
- */
+/// Subtracts a quaternion from another quaternion.
+/// @param a First quaternion.
+/// @param b Second quaternion.
+/// @return Difference between the quaternions.
 template <class T>
 [[nodiscard]] constexpr quaternion<T> sub(const quaternion<T>& a, const quaternion<T>& b) noexcept;
 
-/**
- * Subtracts a quaternion and a scalar.
- *
- * @param a First value.
- * @param b Second second.
- *
- * @return Difference between the quaternion and scalar.
- */
-/// @{
+/// Subtracts a quaternion and a scalar.
+/// @param a First value.
+/// @param b Second second.
+/// @return Difference between the quaternion and scalar.
 template <class T>
 [[nodiscard]] constexpr quaternion<T> sub(const quaternion<T>& a, T b) noexcept;
+
+/// Subtracts a quaternion and a scalar.
+/// @param a First value.
+/// @param b Second second.
+/// @return Difference between the quaternion and scalar.
 template <class T>
 [[nodiscard]] constexpr quaternion<T> sub(T a, const quaternion<T>& b) noexcept;
-/// @}
 
-/**
- * Decomposes a quaternion into swing and twist rotation components.
- *
- * @param[in] q Unit quaternion to decompose.
- * @param[in] twist_axis Axis of twist rotation.
- * @param[out] swing Swing rotation component.
- * @param[out] twist Twist rotation component.
- * @param[in] tolerance Floating-point tolerance.
- *
- * @return Array containing the swing rotation component, followed by the twist rotation component.
- *
- * @warning @p q must be a unit quaternion.
- * @warning @p twist_axis must be a unit vector.
- *
- * @see https://www.euclideanspace.com/maths/geometry/rotations/for/decomposition/
- */
+/// Decomposes a quaternion into swing and twist rotation components.
+/// @param[in] q Unit quaternion to decompose.
+/// @param[in] twist_axis Axis of twist rotation.
+/// @param[in] tolerance Floating-point tolerance.
+/// @return Array containing the swing rotation component, followed by the twist rotation component.
+/// @warning @p q must be a unit quaternion.
+/// @warning @p twist_axis must be a unit vector.
+/// @see https://www.euclideanspace.com/maths/geometry/rotations/for/decomposition/
 template <class T>
 [[nodiscard]] std::array<quaternion<T>, 2> swing_twist(const quaternion<T>& q, const vec3<T>& twist_axis, T tolerance = T{1e-6});
 
-/**
- * Converts a 3x3 rotation matrix to a quaternion.
- *
- * @param m Rotation matrix.
- *
- * @return Unit quaternion representing the rotation described by @p m.
- */
+/// Converts a 3x3 rotation matrix to a quaternion.
+/// @param m Rotation matrix.
+/// @return Unit quaternion representing the rotation described by @p m.
 template <class T>
 [[nodiscard]] quaternion<T> quaternion_cast(const mat3<T>& m);
 
@@ -655,193 +541,235 @@ using namespace functions;
 
 } // namespace math
 
-/// @copydoc math::add(const quaternion<T>&, const quaternion<T>&)
+/// Adds two quaternions.
+/// @param a First quaternion.
+/// @param b Second quaternion.
+/// @return Sum of the two quaternions.
 template <class T>
 [[nodiscard]] inline constexpr math::quaternion<T> operator+(const math::quaternion<T>& a, const math::quaternion<T>& b) noexcept
 {
 	return math::add(a, b);
 }
 
-/// @copydoc math::add(const quaternion<T>&, T)
-/// @{
+/// Adds a quaternion and a scalar.
+/// @param a First value.
+/// @param b Second second value.
+/// @return Sum of the quaternion and scalar.
 template <class T>
 [[nodiscard]] inline constexpr math::quaternion<T> operator+(const math::quaternion<T>& a, T b) noexcept
 {
 	return math::add(a, b);
 }
+
+/// Adds a quaternion and a scalar.
+/// @param a First value.
+/// @param b Second second value.
+/// @return Sum of the quaternion and scalar.
 template <class T>
 [[nodiscard]] inline constexpr math::quaternion<T> operator+(T a, const math::quaternion<T>& b) noexcept
 {
 	return math::add(b, a);
 }
-/// @}
 
-/// @copydoc math::div(const quaternion<T>&, const quaternion<T>&)
+/// Divides a quaternion by another quaternion.
+/// @param a First value.
+/// @param b Second value.
+/// @return Result of the division.
 template <class T>
 [[nodiscard]] inline constexpr math::quaternion<T> operator/(const math::quaternion<T>& a, const math::quaternion<T>& b) noexcept
 {
 	return math::div(a, b);
 }
 
-/// @copydoc math::div(const quaternion<T>&, T)
+/// Divides a quaternion by a scalar.
+/// @param a Quaternion.
+/// @param b Scalar.
+/// @return Result of the division.
 template <class T>
 [[nodiscard]] inline constexpr math::quaternion<T> operator/(const math::quaternion<T>& a, T b) noexcept
 {
 	return math::div(a, b);
 }
 
-/// @copydoc math::div(T, const quaternion<T>&)
+/// Divides a scalar by a quaternion.
+/// @param a Scalar.
+/// @param b Quaternion.
+/// @return Result of the division.
 template <class T>
 [[nodiscard]] inline constexpr math::quaternion<T> operator/(T a, const math::quaternion<T>& b) noexcept
 {
 	return math::div(a, b);
 }
 
-/// @copydoc math::mul(const quaternion<T>&, const quaternion<T>&)
+/// Multiplies two quaternions.
+/// @param a First quaternion.
+/// @param b Second quaternion.
+/// @return Product of the two quaternions.
 template <class T>
 [[nodiscard]] inline constexpr math::quaternion<T> operator*(const math::quaternion<T>& a, const math::quaternion<T>& b) noexcept
 {
 	return math::mul(a, b);
 }
 
-/// @copydoc math::mul(const quaternion<T>&, T)
-/// @{
+/// Multiplies a quaternion by a scalar.
+/// @param a First value.
+/// @param b Second value.
+/// @return Product of the quaternion and scalar.
 template <class T>
 [[nodiscard]] inline constexpr math::quaternion<T> operator*(const math::quaternion<T>& a, T b) noexcept
 {
 	return math::mul(a, b);
 }
+
+/// Multiplies a quaternion by a scalar.
+/// @param a First value.
+/// @param b Second value.
+/// @return Product of the quaternion and scalar.
 template <class T>
 [[nodiscard]] inline constexpr math::quaternion<T> operator*(T a, const math::quaternion<T>& b) noexcept
 {
 	return math::mul(b, a);
 }
-/// @}
 
-/// @copydoc math::mul(const quaternion<T>&, const vec3<T>&)
+/// Rotates a vector by a unit quaternion.
+/// @param q Unit quaternion.
+/// @param v Vector to rotate.
+/// @return Rotated vector.
+/// @warning @p q must be a unit quaternion.
 template <class T>
 [[nodiscard]] inline constexpr math::vec3<T> operator*(const math::quaternion<T>& q, const math::vec3<T>& v) noexcept
 {
 	return math::mul(q, v);
 }
 
-/// @copydoc math::mul(const vec3<T>&, const quaternion<T>&)
+/// Rotates a vector by the inverse of a unit quaternion.
+/// @param v Vector to rotate.
+/// @param q Unit quaternion.
+/// @return Rotated vector.
+/// @warning @p q must be a unit quaternion.
 template <class T>
 [[nodiscard]] inline constexpr math::vec3<T> operator*(const math::vec3<T>& v, const math::quaternion<T>& q) noexcept
 {
 	return math::mul(v, q);
 }
 
-/// @copydoc math::sub(const quaternion<T>&, const quaternion<T>&)
+/// Subtracts a quaternion from another quaternion.
+/// @param a First quaternion.
+/// @param b Second quaternion.
+/// @return Difference between the quaternions.
 template <class T>
 [[nodiscard]] inline constexpr math::quaternion<T> operator-(const math::quaternion<T>& a, const math::quaternion<T>& b) noexcept
 {
 	return math::sub(a, b);
 }
 
-/// @copydoc math::sub(const quaternion<T>&, T)
-/// @{
+/// Subtracts a quaternion and a scalar.
+/// @param a First value.
+/// @param b Second second.
+/// @return Difference between the quaternion and scalar.
 template <class T>
 [[nodiscard]] inline constexpr math::quaternion<T> operator-(const math::quaternion<T>& a, T b) noexcept
 {
 	return math::sub(a, b);
 }
+
+/// Subtracts a quaternion and a scalar.
+/// @param a First value.
+/// @param b Second second.
+/// @return Difference between the quaternion and scalar.
 template <class T>
 [[nodiscard]] inline constexpr math::quaternion<T> operator-(T a, const math::quaternion<T>& b) noexcept
 {
 	return math::sub(a, b);
 }
-/// @}
 
-/// @copydoc math::negate(const quaternion<T>&)
+/// Negates a quaternion.
+/// @param q Quaternion to negate.
+/// @return Negated quaternion.
 template <class T>
 [[nodiscard]] inline constexpr math::quaternion<T> operator-(const math::quaternion<T>& q) noexcept
 {
 	return math::negate(q);
 }
 
-/**
- * Adds two values and stores the result in the first value.
- *
- * @param a First value.
- * @param b Second value.
- *
- * @return Reference to the first value.
- */
-/// @{
+/// Adds two values and stores the result in the first value.
+/// @param a First value.
+/// @param b Second value.
+/// @return Reference to the first value.
 template <class T>
 inline constexpr math::quaternion<T>& operator+=(math::quaternion<T>& a, const math::quaternion<T>& b) noexcept
 {
 	return (a = a + b);
 }
+
+/// Adds two values and stores the result in the first value.
+/// @param a First value.
+/// @param b Second value.
+/// @return Reference to the first value.
 template <class T>
 inline constexpr math::quaternion<T>& operator+=(math::quaternion<T>& a, T b) noexcept
 {
 	return (a = a + b);
 }
-/// @}
 
-/**
- * Subtracts the first value by the second value and stores the result in the first value.
- *
- * @param a First value.
- * @param b Second value.
- *
- * @return Reference to the first value.
- */
-/// @{
+/// Subtracts the first value by the second value and stores the result in the first value.
+/// @param a First value.
+/// @param b Second value.
+/// @return Reference to the first value.
 template <class T>
 inline constexpr math::quaternion<T>& operator-=(math::quaternion<T>& a, const math::quaternion<T>& b) noexcept
 {
 	return (a = a - b);
 }
+
+/// Subtracts the first value by the second value and stores the result in the first value.
+/// @param a First value.
+/// @param b Second value.
+/// @return Reference to the first value.
 template <class T>
 inline constexpr math::quaternion<T>& operator-=(math::quaternion<T>& a, T b) noexcept
 {
 	return (a = a - b);
 }
-/// @}
 
-/**
- * Multiplies two values and stores the result in the first value.
- *
- * @param a First value.
- * @param b Second value.
- *
- * @return Reference to the first value.
- */
-/// @{
+/// Multiplies two values and stores the result in the first value.
+/// @param a First value.
+/// @param b Second value.
+/// @return Reference to the first value.
 template <class T>
 inline constexpr math::quaternion<T>& operator*=(math::quaternion<T>& a, const math::quaternion<T>& b) noexcept
 {
 	return (a = a * b);
 }
+
+/// Multiplies two values and stores the result in the first value.
+/// @param a First value.
+/// @param b Second value.
+/// @return Reference to the first value.
 template <class T>
 inline constexpr math::quaternion<T>& operator*=(math::quaternion<T>& a, T b) noexcept
 {
 	return (a = a * b);
 }
-/// @}
 
-/**
- * Divides the first value by the second value and stores the result in the first value.
- *
- * @param a First value.
- * @param b Second value.
- *
- * @return Reference to the first value.
- */
-/// @{
+/// Divides the first value by the second value and stores the result in the first value.
+/// @param a First value.
+/// @param b Second value.
+/// @return Reference to the first value.
 template <class T>
 inline constexpr math::quaternion<T>& operator/=(math::quaternion<T>& a, const math::quaternion<T>& b) noexcept
 {
 	return (a = a / b);
 }
+
+/// Divides the first value by the second value and stores the result in the first value.
+/// @param a First value.
+/// @param b Second value.
+/// @return Reference to the first value.
 template <class T>
 inline constexpr math::quaternion<T>& operator/=(math::quaternion<T>& a, T b) noexcept
 {
 	return (a = a / b);
 }
-/// @}
 
 #endif // ANTKEEPER_MATH_QUATERNION_FUNCTIONS_HPP

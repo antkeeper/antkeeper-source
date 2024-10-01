@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEER_INPUT_ACTION_MAP_HPP
@@ -20,110 +20,92 @@
 
 namespace input {
 
-/**
- * Maps input to a set of contextually-related actions.
- */
+/// Maps input to a set of contextually-related actions.
 class action_map
 {
 public:
-	/**
-	 * Enables the mapping of input events to actions.
-	 */
+	/// Enables the mapping of input events to actions.
 	void enable();
 	
-	/**
-	 * Disables the mapping of input events to actions.
-	 */
+	/// Disables the mapping of input events to actions.
 	void disable();
 	
-	/**
-	 * Resets the activation states of each action in the action map.
-	 */
+	/// Resets the activation states of each action in the action map.
 	void reset();
 	
-	/**
-	 * Sets the event dispatcher from which this action map will receive input events.
-	 *
-	 * @param dispatcher Event dispatcher from which this action map will receive input events.
-	 */
+	/// Sets the event dispatcher from which this action map will receive input events.
+	/// @param dispatcher Event dispatcher from which this action map will receive input events.
 	void set_event_dispatcher(event::dispatcher* dispatcher);
 	
-	/**
-	 * Maps input to an action.
-	 *
-	 * @param action Action to which input will be mapped.
-	 * @param mapping Input mapping to add.
-	 */
-	/// @{
+	/// Maps input to an action.
+	/// @param action Action to which input will be mapped.
+	/// @param mapping Input mapping to add.
 	void add_mapping(action& action, const mapping& mapping);
+
+	/// Maps a gamepad axis to an action.
+	/// @param action Action to which input will be mapped.
+	/// @param mapping Gamepad axis mapping to add.
 	void add_gamepad_axis_mapping(action& action, gamepad_axis_mapping mapping);
+
+	/// Maps a gamepad button to an action.
+	/// @param action Action to which input will be mapped.
+	/// @param mapping Gamepad button mapping to add.
 	void add_gamepad_button_mapping(action& action, gamepad_button_mapping mapping);
+
+	/// Maps a key to an action.
+	/// @param action Action to which input will be mapped.
+	/// @param mapping Key mapping to add.
 	void add_key_mapping(action& action, key_mapping mapping);
+
+	/// Maps a mouse button to an action.
+	/// @param action Action to which input will be mapped.
+	/// @param mapping Mouse button mapping to add.
 	void add_mouse_button_mapping(action& action, mouse_button_mapping mapping);
+
+	/// Maps mouse motion to an action.
+	/// @param action Action to which input will be mapped.
+	/// @param mapping Mouse motion mapping to add.
 	void add_mouse_motion_mapping(action& action, mouse_motion_mapping mapping);
+
+	/// Maps mouse scroll to an action.
+	/// @param action Action to which input will be mapped.
+	/// @param mapping Mouse scroll mapping to add.
 	void add_mouse_scroll_mapping(action& action, mouse_scroll_mapping mapping);
-	/// @}
 	
-	/**
-	 * Unmaps input from an action.
-	 *
-	 * @param action Action from which input will be unmapped.
-	 * @param type Type of input mapping to remove.
-	 */
+	/// Unmaps input from an action.
+	/// @param action Action from which input will be unmapped.
+	/// @param type Type of input mapping to remove.
 	void remove_mappings(action& action, mapping_type type);
 	
-	/**
-	 * Unmaps all input from an action.
-	 *
-	 * @param action Action from which input will be unmapped.
-	 */
+	/// Unmaps all input from an action.
+	/// @param action Action from which input will be unmapped.
 	void remove_mappings(action& action);
 	
-	/**
-	 * Unmaps all input from all actions in the action map.
-	 */
+	/// Unmaps all input from all actions in the action map.
 	void remove_mappings();
 	
-	/**
-	 * Returns all of the gamepad axis mappings associated with an action.
-	 *
-	 * @param action Action with which associated mappings will be returned.
-	 */
+	/// Returns all of the gamepad axis mappings associated with an action.
+	/// @param action Action with which associated mappings will be returned.
 	[[nodiscard]] std::vector<gamepad_axis_mapping> get_gamepad_axis_mappings(const action& action) const;
 	
-	/**
-	 * Returns all of the gamepad button mappings associated with an action.
-	 *
-	 * @param action Action with which associated mappings will be returned.
-	 */
+	/// Returns all of the gamepad button mappings associated with an action.
+	/// @param action Action with which associated mappings will be returned.
 	[[nodiscard]] std::vector<gamepad_button_mapping> get_gamepad_button_mappings(const action& action) const;
 	
-	/**
-	 * Returns all of the key mappings associated with an action.
-	 *
-	 * @param action Action with which associated mappings will be returned.
-	 */
+	/// Returns all of the key mappings associated with an action.
+	/// @param action Action with which associated mappings will be returned.
 	[[nodiscard]] std::vector<key_mapping> get_key_mappings(const action& action) const;
 	
-	/**
-	 * Returns all of the mouse button mappings associated with an action.
-	 *
-	 * @param action Action with which associated mappings will be returned.
-	 */
+	/// Returns all of the mouse button mappings associated with an action.
+	/// @param action Action with which associated mappings will be returned.
 	[[nodiscard]] std::vector<mouse_button_mapping> get_mouse_button_mappings(const action& action) const;
 	
-	/**
-	 * Returns all of the mouse motion mappings associated with an action.
-	 *
-	 * @param action Action with which associated mappings will be returned.
-	 */
+	/// Returns all of the mouse motion mappings associated with an action.
+	/// @param action Action with which associated mappings will be returned.
 	[[nodiscard]] std::vector<mouse_motion_mapping> get_mouse_motion_mappings(const action& action) const;
 	
-	/**
-	 * Returns all of the mouse scroll associated with an action.
-	 *
-	 * @param action Action with which associated mappings will be returned.
-	 */
+	/// Returns all of the mouse scroll associated with an action.
+	/// @param action Action with which associated mappings will be returned.
 	[[nodiscard]] std::vector<mouse_scroll_mapping> get_mouse_scroll_mappings(const action& action) const;
 	
 	/// Returns `true` if the action map is enabled, `false` otherwise.

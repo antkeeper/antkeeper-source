@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_COLLIDER_HPP
@@ -11,33 +11,25 @@
 
 namespace physics {
 
-/**
- * Abstract base class for collision objects.
- */
+/// Abstract base class for collision objects.
 class collider
 {
 public:
-	/** Destructs a collider. */
+	/// Destructs a collider.
 	virtual ~collider() = default;
 	
-	/**
-	 * Returns the collider type.
-	 */
+	/// Returns the collider type.
 	[[nodiscard]] virtual constexpr collider_type type() const noexcept = 0;
 	
-	/**
-	 * Sets the layer mask of the collider.
-	 *
-	 * @param mask 32-bit layer mask in which each set bit represents a layer with which the collider can interact.
-	 */
+	/// Sets the layer mask of the collider.
+	/// @param mask 32-bit layer mask in which each set bit represents a layer with which the collider can interact.
 	inline constexpr void set_layer_mask(std::uint32_t mask) noexcept
 	{
 		m_layer_mask = mask;
 	}
 	
-	/**
-	 * Sets the collider material.
-	 */
+	/// Sets the collider material.
+	/// @param material Collider material.
 	inline void set_material(std::shared_ptr<collider_material> material) noexcept
 	{
 		m_material = material;

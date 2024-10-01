@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_GENOME_HPP
@@ -27,9 +27,7 @@
 #include "game/ant/genes/ant-waist-gene.hpp"
 #include "game/ant/genes/ant-wings-gene.hpp"
 
-/**
- * Complete set of ant genes.
- */
+/// Complete set of ant genes.
 struct ant_genome
 {
 	std::shared_ptr<ant_antennae_gene> antennae;

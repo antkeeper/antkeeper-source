@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_INPUT_DEVICE_HPP
@@ -13,25 +13,18 @@
 
 namespace input {
 
-/**
- * Abstract base class for virtual devices that generate input events.
- */
+/// Abstract base class for virtual devices that generate input events.
 class device
 {
 public:
-	/** Destructs an input device. */
+	/// Destructs an input device.
 	virtual ~device() = default;
 	
-	/**
-	 * Simulates the device being connected.
-	 */
+	/// Simulates the device being connected.
 	void connect();
 	
-	/**
-	 * Simulates the device being disconnected.
-	 *
-	 * @note Disconnected devices can still generate input events.
-	 */
+	/// Simulates the device being disconnected.
+	/// @note Disconnected devices can still generate input events.
 	void disconnect();
 	
 	/// Returns `true` if the device is currently connected.
@@ -40,11 +33,8 @@ public:
 		return m_connected;
 	}
 	
-	/**
-	 * Sets the universally unique identifier (UUID) of this input device.
-	 *
-	 * @param id UUID.
-	 */
+	/// Sets the universally unique identifier (UUID) of this input device.
+	/// @param id UUID.
 	void set_uuid(const ::uuid& id);
 	
 	/// Returns the universally unique identifier (UUID) of this input device.

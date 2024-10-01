@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_RENDER_MATERIAL_PASS_HPP
@@ -19,15 +19,14 @@ class resource_manager;
 
 namespace render {
 
-/**
- * Renders scene objects using their material-specified shaders and properties.
- */
+/// Renders scene objects using their material-specified shaders and properties.
 class material_pass: public pass
 {
 public:
+	/// Constructs a material pass.
 	material_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	
-	/** Destructs a material pass. */
+	/// Destructs a material pass.
 	~material_pass() override = default;
 	
 	void render(render::context& ctx) override;
@@ -58,14 +57,10 @@ private:
 	/// Map of state hashes to shader cache entries.
 	std::unordered_map<std::size_t, shader_cache_entry> shader_cache;
 	
-	/**
-	 * Evaluates the active camera and stores camera information in local variables to be passed to shaders.
-	 */
+	/// Evaluates the active camera and stores camera information in local variables to be passed to shaders.
 	void evaluate_camera(const render::context& ctx);
 	
-	/**
-	 * Evaluates scene lights and stores lighting information in local variables to be passed to shaders.
-	 */
+	/// Evaluates scene lights and stores lighting information in local variables to be passed to shaders.
 	void evaluate_lighting(const render::context& ctx, std::uint32_t layer_mask);
 	
 	void evaluate_misc(const render::context& ctx);

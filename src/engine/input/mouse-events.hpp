@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_INPUT_MOUSE_EVENTS_HPP
@@ -13,63 +13,55 @@ namespace input {
 
 class mouse;
 
-/**
- * Event generated when a mouse has been moved.
- */
+/// Event generated when a mouse has been moved.
 struct mouse_moved_event
 {
-	/** Mouse that generated the event. */
+	/// Mouse that generated the event.
 	mouse* mouse{nullptr};
 	
-	/** Mouse position, in pixels, relative to the window. */
+	/// Mouse position, in pixels, relative to the window.
 	math::ivec2 position{0, 0};
 	
-	/** Relative movement of the mouse, in pixels. */
+	/// Relative movement of the mouse, in pixels.
 	math::ivec2 difference{0, 0};
 };
 
-/**
- * Event generated when a mouse button has been pressed.
- */
+/// Event generated when a mouse button has been pressed.
 struct mouse_button_pressed_event
 {
-	/** Mouse that generated the event. */
+	/// Mouse that generated the event.
 	mouse* mouse{nullptr};
 	
-	/** Mouse position, in pixels, relative to the window, when the button was pressed. */
+	/// Mouse position, in pixels, relative to the window, when the button was pressed.
 	math::ivec2 position{0, 0};
 	
-	/** Mouse button being pressed. */
+	/// Mouse button being pressed.
 	mouse_button button{0};
 };
 
-/**
- * Event generated when a mouse button has been released.
- */
+/// Event generated when a mouse button has been released.
 struct mouse_button_released_event
 {
-	/** Mouse that generated the event. */
+	/// Mouse that generated the event.
 	mouse* mouse{nullptr};
 	
-	/** Mouse position, in pixels, relative to the window, when the button was released. */
+	/// Mouse position, in pixels, relative to the window, when the button was released.
 	math::ivec2 position{0, 0};
 	
-	/** Mouse button being released. */
+	/// Mouse button being released.
 	mouse_button button{0};
 };
 
-/**
- * Event generated when a mouse has been scrolled.
- */
+/// Event generated when a mouse has been scrolled.
 struct mouse_scrolled_event
 {
-	/** Mouse that generated the event. */
+	/// Mouse that generated the event.
 	mouse* mouse{nullptr};
 	
-	/** Mouse position, in pixels, relative to the window, when the mouse was scrolled. */
+	/// Mouse position, in pixels, relative to the window, when the mouse was scrolled.
 	math::ivec2 position{0, 0};
 	
-	/** Scroll velocity. */
+	/// Scroll velocity.
 	math::fvec2 velocity{0.0f, 0.0f};
 };
 

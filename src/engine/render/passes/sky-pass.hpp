@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_RENDER_SKY_PASS_HPP
@@ -25,17 +25,15 @@ namespace render {
 class material;
 class model;
 
-/**
- *
- *
- * @see Hillaire, Sébastien. "A scalable and production ready sky and atmosphere rendering technique." Computer Graphics Forum. Vol. 39. No. 4. 2020.
- */
+/// Sky pass.
+/// @see Hillaire, Sébastien. "A scalable and production ready sky and atmosphere rendering technique." Computer Graphics Forum. Vol. 39. No. 4. 2020.
 class sky_pass: public pass
 {
 public:
+	/// Constructs a sky pass.
 	sky_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	
-	/** Destructs a sky pass. */
+	/// Destructs a sky pass.
 	~sky_pass() override = default;
 	
 	void render(render::context& ctx) override;
@@ -43,23 +41,15 @@ public:
 	/// @name Transmittance LUT
 	/// @{
 	
-	/**
-	 * Sets the number of transmittance integration samples.
-	 *
-	 * @param count Integration sample count.
-	 *
-	 * @note Triggers rebuilding of transmittance LUT shader.
-	 * @note Triggers rendering of transmittance LUT.
-	 */
+	/// Sets the number of transmittance integration samples.
+	/// @param count Integration sample count.
+	/// @note Triggers rebuilding of transmittance LUT shader.
+	/// @note Triggers rendering of transmittance LUT.
 	void set_transmittance_lut_sample_count(std::uint16_t count);
 	
-	/**
-	 * Sets the resolution of the transmittance LUT.
-	 *
-	 * @param resolution Resolution of the transmittance LUT texture, in pixels.
-	 *
-	 * @note Triggers rendering of transmittance LUT.
-	 */
+	/// Sets the resolution of the transmittance LUT.
+	/// @param resolution Resolution of the transmittance LUT texture, in pixels.
+	/// @note Triggers rendering of transmittance LUT.
 	void set_transmittance_lut_resolution(const math::vec2<std::uint16_t>& resolution);
 	
 	/// Returns the number of transmittance integration samples.
@@ -78,33 +68,21 @@ public:
 	/// @name Multiscattering LUT
 	/// @{
 	
-	/**
-	 * Sets the number of multiscattering directions to sample.
-	 *
-	 * @param count Multiscattering direction sample count.
-	 *
-	 * @note Triggers rebuilding of multiscattering LUT shader.
-	 * @note Triggers rendering of multiscattering LUT.
-	 */
+	/// Sets the number of multiscattering directions to sample.
+	/// @param count Multiscattering direction sample count.
+	/// @note Triggers rebuilding of multiscattering LUT shader.
+	/// @note Triggers rendering of multiscattering LUT.
 	void set_multiscattering_lut_direction_sample_count(std::uint16_t count);
 	
-	/**
-	 * Sets the number of multiscattering scatter events to sample per sample direction.
-	 *
-	 * @param count Multiscattering scatter sample count.
-	 *
-	 * @note Triggers rebuilding of multiscattering LUT shader.
-	 * @note Triggers rendering of multiscattering LUT.
-	 */
+	/// Sets the number of multiscattering scatter events to sample per sample direction.
+	/// @param count Multiscattering scatter sample count.
+	/// @note Triggers rebuilding of multiscattering LUT shader.
+	/// @note Triggers rendering of multiscattering LUT.
 	void set_multiscattering_lut_scatter_sample_count(std::uint16_t count);
 	
-	/**
-	 * Sets the resolution of the multiscattering LUT.
-	 *
-	 * @param resolution Resolution of the multiscattering LUT texture, in pixels.
-	 *
-	 * @note Triggers rendering of multiscattering LUT.
-	 */
+	/// Sets the resolution of the multiscattering LUT.
+	/// @param resolution Resolution of the multiscattering LUT texture, in pixels.
+	/// @note Triggers rendering of multiscattering LUT.
 	void set_multiscattering_lut_resolution(const math::vec2<std::uint16_t>& resolution);
 	
 	/// Returns the number of multiscattering direction samples.
@@ -129,23 +107,15 @@ public:
 	/// @name Luminance LUT
 	/// @{
 	
-	/**
-	 * Sets the number of luminance integration samples.
-	 *
-	 * @param count Integration sample count.
-	 *
-	 * @note Triggers rebuilding of luminance LUT shader.
-	 * @note Triggers rendering of luminance LUT.
-	 */
+	/// Sets the number of luminance integration samples.
+	/// @param count Integration sample count.
+	/// @note Triggers rebuilding of luminance LUT shader.
+	/// @note Triggers rendering of luminance LUT.
 	void set_luminance_lut_sample_count(std::uint16_t count);
 	
-	/**
-	 * Sets the resolution of the luminance LUT.
-	 *
-	 * @param resolution Resolution of the luminance LUT texture, in pixels.
-	 *
-	 * @note Triggers rendering of luminance LUT.
-	 */
+	/// Sets the resolution of the luminance LUT.
+	/// @param resolution Resolution of the luminance LUT texture, in pixels.
+	/// @note Triggers rendering of luminance LUT.
 	void set_luminance_lut_resolution(const math::vec2<std::uint16_t>& resolution);
 	
 	/// Returns the number of luminance integration samples.
@@ -196,11 +166,8 @@ public:
 	
 	void set_sky_probe(std::shared_ptr<scene::light_probe> probe);
 	
-	/**
-	 * Sets the layer mask of the sky.
-	 *
-	 * @param mask 32-bit layer mask in which each set bit represents a layer in which the sky is visible.
-	 */
+	/// Sets the layer mask of the sky.
+	/// @param mask 32-bit layer mask in which each set bit represents a layer in which the sky is visible.
 	inline constexpr void set_layer_mask(std::uint32_t mask) noexcept
 	{
 		m_layer_mask = mask;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_SUBCASTE_HPP
@@ -6,9 +6,7 @@
 
 #include <cstdint>
 
-/**
- * Ant subcaste types.
- */
+/// Ant subcaste types.
 enum class ant_subcaste: std::uint8_t
 {
 	/// Worker from the queen's first batch of eggs, smaller than normal workers.

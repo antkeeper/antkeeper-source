@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_EVENT_PUBLISHER_HPP
@@ -8,26 +8,20 @@
 
 namespace event {
 
-/**
- * Publishes messages to subscribers.
- *
- * @tparam T Message type.
- */
+/// Publishes messages to subscribers.
+/// @tparam T Message type.
 template <class T>
 class publisher
 {
 public:
-	/** Message type. */
+	/// Message type.
 	using message_type = T;
 	
-	/** Channel type. */
+	/// Channel type.
 	using channel_type = channel<message_type>;
 	
-	/**
-	 * Publishes a message.
-	 *
-	 * @param message Message to publish.
-	 */
+	/// Publishes a message.
+	/// @param message Message to publish.
 	void publish(const message_type& message) const
 	{
 		for (const auto& subscriber: m_channel.m_subscribers)
@@ -36,13 +30,13 @@ public:
 		}
 	}
 	
-	/** Returns the channel through which messages are published. */
+	/// Returns the channel through which messages are published.
 	[[nodiscard]] inline auto& channel() noexcept
 	{
 		return m_channel;
 	}
 
-	/** @copydoc channel() */
+	/// @copydoc channel()
 	[[nodiscard]] inline const auto& channel() const noexcept
 	{
 		return m_channel;

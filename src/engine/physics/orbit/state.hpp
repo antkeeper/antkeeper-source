@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_ORBIT_STATE_HPP
@@ -9,11 +9,8 @@
 namespace physics {
 namespace orbit {
 
-/**
- * Pair of orbital state Cartesian position (r) and velocity (v) vectors.
- *
- * @tparam T Scalar type.
- */
+/// Pair of orbital state Cartesian position (r) and velocity (v) vectors.
+/// @tparam T Scalar type.
 template <class T>
 struct state
 {

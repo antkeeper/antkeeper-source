@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_INPUT_SCANCODE_HPP
@@ -8,11 +8,8 @@
 
 namespace input {
 
-/**
- * Keyboard scancodes.
- *
- * @see HID Usage Tables for Universal Serial Bus (USB) version 1.3, 2022, https://usb.org/sites/default/files/hut1_3_0.pdf.
- */
+/// Keyboard scancodes.
+/// @see HID Usage Tables for Universal Serial Bus (USB) version 1.3, 2022, https://usb.org/sites/default/files/hut1_3_0.pdf.
 enum class scancode: std::uint16_t
 {
 	// reserved            = 0x00,

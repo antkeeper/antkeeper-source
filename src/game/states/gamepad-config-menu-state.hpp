@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAMEPAD_CONFIG_MENU_STATE_HPP
@@ -12,7 +12,6 @@
 #include <cstdint>
 #include <engine/scene/text.hpp>
 #include <memory>
-
 
 class gamepad_config_menu_state: public game_state
 {
@@ -33,6 +32,5 @@ private:
 	
 	bool action_remapped;
 };
-
 
 #endif // ANTKEEPER_GAMEPAD_CONFIG_MENU_STATE_HPP

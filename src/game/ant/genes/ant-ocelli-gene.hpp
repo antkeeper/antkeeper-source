@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_PHENE_OCELLI_GENE_HPP
@@ -8,9 +8,7 @@
 #include <engine/render/model.hpp>
 #include <memory>
 
-/**
- * Ant ocelli phene.
- */
+/// Ant ocelli phene.
 struct ant_ocelli_phene
 {
 	/// Lateral ocelli present.

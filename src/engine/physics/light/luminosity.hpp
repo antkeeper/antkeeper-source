@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_LIGHT_LUMINOSITY_HPP
@@ -12,14 +12,10 @@ namespace light {
 /// Luminous efficiency functions.
 namespace luminosity {
 
-/**
- * Fitted Gaussian approximation to the CIE 1931 standard observer photopic luminosity function.
- *
- * @param lambda Wavelength of light, in nanometers.
- * @return Luminous efficiency, on `[0, 1]`.
- *
- * @see Wyman, C., Sloan, P.J., & Shirley, P. (2013). Simple Analytic Approximations to the CIE XYZ Color Matching Functions.
- */
+/// Fitted Gaussian approximation to the CIE 1931 standard observer photopic luminosity function.
+/// @param lambda Wavelength of light, in nanometers.
+/// @return Luminous efficiency, on `[0, 1]`.
+/// @see Wyman, C., Sloan, P.J., & Shirley, P. (2013). Simple Analytic Approximations to the CIE XYZ Color Matching Functions.
 template <class T>
 T photopic(T lambda)
 {

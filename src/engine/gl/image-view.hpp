@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_IMAGE_VIEW_HPP
@@ -11,13 +11,11 @@
 
 namespace gl {
 
-/**
- * Image view.
- */
+/// Image view base class.
 class image_view
 {
 public:
-	/** Destructs an image view. */
+	/// Destructs an image view.
 	virtual ~image_view() = 0;
 	
 	image_view(const image_view&) = delete;
@@ -98,28 +96,24 @@ public:
 	}
 	
 protected:
-	/**
-	 * Constructs an image view from an image.
-	 *
-	 * @param image Image on which the view will be created.
-	 * @param dimensionality Image view dimensionality, on `[1, 3]`.
-	 * @param format Format and type used to interpret texel blocks of the image. If gl::format::undefined, the format will be set to the format of the image.
-	 * @param first_mip_level First mipmap level accessible to the view.
-	 * @param mip_level_count Number of mipmap levels accessible to the view.
-	 * @param first_array_layer First array layer accessible to the view.
-	 * @param array_layer Number of array layers accessible to the view.
-	 * @param flags Image view flags.
-	 *
-	 * @exception std::invalid_argument Image view has null image.
-	 * @exception std::invalid_argument Image view has unsupported format.
-	 * @exception std::invalid_argument Image view has zero mip levels.
-	 * @exception std::out_of_range Image view mip range out of image mip range.
-	 * @exception std::invalid_argument Image view has zero array layers.
-	 * @exception std::out_of_range Image view array layer range out of image array layer range.
-	 * @exception std::invalid_argument Image view dimensionality must match image dimensionality.
-	 * @exception std::invalid_argument Cube image views must be constructed from cube-compatible images.
-	 * @exception std::invalid_argument Cube image views array layer count must be a multiple of 6.
-	 */
+	/// Constructs an image view from an image.
+	/// @param image Image on which the view will be created.
+	/// @param dimensionality Image view dimensionality, on `[1, 3]`.
+	/// @param format Format and type used to interpret texel blocks of the image. If gl::format::undefined, the format will be set to the format of the image.
+	/// @param first_mip_level First mipmap level accessible to the view.
+	/// @param mip_level_count Number of mipmap levels accessible to the view.
+	/// @param first_array_layer First array layer accessible to the view.
+	/// @param array_layer_count Number of array layers accessible to the view.
+	/// @param flags Image view flags.
+	/// @exception std::invalid_argument Image view has null image.
+	/// @exception std::invalid_argument Image view has unsupported format.
+	/// @exception std::invalid_argument Image view has zero mip levels.
+	/// @exception std::out_of_range Image view mip range out of image mip range.
+	/// @exception std::invalid_argument Image view has zero array layers.
+	/// @exception std::out_of_range Image view array layer range out of image array layer range.
+	/// @exception std::invalid_argument Image view dimensionality must match image dimensionality.
+	/// @exception std::invalid_argument Cube image views must be constructed from cube-compatible images.
+	/// @exception std::invalid_argument Cube image views array layer count must be a multiple of 6.
 	image_view
 	(
 		std::shared_ptr<gl::image> image,
@@ -150,9 +144,7 @@ private:
 	std::uint8_t m_flags{0};
 };
 
-/**
- * 1D image view.
- */
+/// 1D image view.
 class image_view_1d: public image_view
 {
 public:
@@ -166,13 +158,11 @@ public:
 		std::uint32_t first_array_layer = 0
 	);
 	
-	/** Destructs a 1D image view. */
+	/// Destructs a 1D image view.
 	~image_view_1d() override = default;
 };
 
-/**
- * 1D image array view.
- */
+/// 1D image array view.
 class image_view_1d_array: public image_view
 {
 public:
@@ -187,13 +177,11 @@ public:
 		std::uint32_t array_layer_count = 1
 	);
 	
-	/** Destructs a 1D image array view. */
+	/// Destructs a 1D image array view.
 	~image_view_1d_array() override = default;
 };
 
-/**
- * 2D image view.
- */
+/// 2D image view.
 class image_view_2d: public image_view
 {
 public:
@@ -207,13 +195,11 @@ public:
 		std::uint32_t first_array_layer = 0
 	);
 	
-	/** Destructs a 2D image view. */
+	/// Destructs a 2D image view.
 	~image_view_2d() override = default;
 };
 
-/**
- * 2D image array view.
- */
+/// 2D image array view.
 class image_view_2d_array: public image_view
 {
 public:
@@ -228,13 +214,11 @@ public:
 		std::uint32_t array_layer_count = 1
 	);
 	
-	/** Destructs a 2D image array view. */
+	/// Destructs a 2D image array view.
 	~image_view_2d_array() override = default;
 };
 
-/**
- * 3D image view.
- */
+/// 3D image view.
 class image_view_3d: public image_view
 {
 public:
@@ -247,13 +231,11 @@ public:
 		std::uint32_t mip_level_count = 1
 	);
 	
-	/** Destructs a 3D image view. */
+	/// Destructs a 3D image view.
 	~image_view_3d() override = default;
 };
 
-/**
- * Cube image view.
- */
+/// Cube image view.
 class image_view_cube: public image_view
 {
 public:
@@ -267,13 +249,11 @@ public:
 		std::uint32_t first_array_layer = 0
 	);
 	
-	/** Destructs a cube image view. */
+	/// Destructs a cube image view.
 	~image_view_cube() override = default;
 };
 
-/**
- * Cube image array view.
- */
+/// Cube image array view.
 class image_view_cube_array: public image_view
 {
 public:
@@ -288,7 +268,7 @@ public:
 		std::uint32_t array_layer_count = 6
 	);
 	
-	/** Destructs a cube image array view. */
+	/// Destructs a cube image array view.
 	~image_view_cube_array() override = default;
 };
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_WINGED_LOCOMOTION_COMPONENT_HPP
@@ -6,9 +6,7 @@
 
 #include <engine/math/vector.hpp>
 
-/**
- * Winged aerial locomotion.
- */
+/// Winged aerial locomotion.
 struct winged_locomotion_component
 {
 	/// Force vector.

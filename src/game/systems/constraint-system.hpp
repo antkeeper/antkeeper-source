@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_CONSTRAINT_SYSTEM_HPP
@@ -21,9 +21,7 @@
 #include <engine/entity/id.hpp>
 
 
-/**
- * Applies constraint stacks to transform components.
- */
+/// Applies constraint stacks to transform components.
 class constraint_system:
 	public updatable_system
 {
@@ -33,11 +31,8 @@ public:
 	
 	virtual void update(float t, float dt);
 	
-	/**
-	 * Manually evaluates an entity's constraints.
-	 *
-	 * @param entity_id ID of a constrained entity.
-	 */
+	/// Manually evaluates an entity's constraints.
+	/// @param entity_id ID of a constrained entity.
 	void evaluate(entity::id entity_id);
 	
 private:

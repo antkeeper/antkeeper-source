@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_MATH_TRANSFORM_HPP
@@ -16,11 +16,8 @@
 namespace math {
 namespace types {
 
-/**
- * SRT transformation.
- *
- * @tparam T Scalar type.
- */
+/// SRT transformation.
+/// @tparam T Scalar type.
 template <class T>
 struct transform
 {
@@ -45,48 +42,40 @@ struct transform
 	/// Scale vector.
 	vector_type scale;
 	
-	/**
-	 * Constructs a matrix representing the transformation.
-	 *
-	 * @return Transformation matrix.
-	 */
-	/// @{
-	[[nodiscard]] constexpr explicit operator matrix_type() const noexcept
+	/// Constructs a matrix representing the transformation.
+	/// @return Transformation matrix.
+	[[nodiscard]] constexpr matrix_type matrix() const noexcept
 	{
 		auto matrix = mat4<T>(mat3<T>(rotation));
-		
+
 		matrix[0][0] *= scale[0];
 		matrix[0][1] *= scale[0];
 		matrix[0][2] *= scale[0];
-		
+
 		matrix[1][0] *= scale[1];
 		matrix[1][1] *= scale[1];
 		matrix[1][2] *= scale[1];
-		
+
 		matrix[2][0] *= scale[2];
 		matrix[2][1] *= scale[2];
 		matrix[2][2] *= scale[2];
-		
+
 		matrix[3][0] = translation[0];
 		matrix[3][1] = translation[1];
 		matrix[3][2] = translation[2];
-		
+
 		return matrix;
 	}
-	
-	[[nodiscard]] inline constexpr matrix_type matrix() const noexcept
+
+	/// @copydoc matrix() const
+	[[nodiscard]] inline constexpr explicit operator matrix_type() const noexcept
 	{
-		return matrix_type(*this);
+		return matrix();
 	}
-	/// @}
 	
-	/*
-	 * Type-casts the transform scalars using `static_cast`.
-	 *
-	 * @tparam U Target scalar type.
-	 *
-	 * @return Type-casted transform.
-	 */
+	/// Type-casts the transform scalars using `static_cast`.
+	/// @tparam U Target scalar type.
+	/// @return Type-casted transform.
 	template <class U>
 	[[nodiscard]] inline constexpr explicit operator transform<U>() const noexcept
 	{
@@ -117,44 +106,29 @@ using namespace constants;
 
 namespace functions {
 
-/**
- * Calculates the inverse of a transform.
- *
- * @param t Transform of which to take the inverse.
- */
+/// Calculates the inverse of a transform.
+/// @param t Transform of which to take the inverse.
 template <class T>
 [[nodiscard]] transform<T> inverse(const transform<T>& t) noexcept;
 
-/**
- * Combines two transforms.
- *
- * @param x First transform.
- * @param y Second transform.
- *
- * @return Product of the two transforms.
- */
+/// Combines two transforms.
+/// @param x First transform.
+/// @param y Second transform.
+/// @return Product of the two transforms.
 template <class T>
 [[nodiscard]] transform<T> mul(const transform<T>& x, const transform<T>& y);
 
-/**
- * Transforms a vector by a transform.
- *
- * @param t Transform.
- * @param v Vector.
- *
- * @return Transformed vector.
- */
+/// Transforms a vector by a transform.
+/// @param t Transform.
+/// @param v Vector.
+/// @return Transformed vector.
 template <class T>
 [[nodiscard]] constexpr vector<T, 3> mul(const transform<T>& t, const vector<T, 3>& v) noexcept;
 
-/**
- * Transforms a vector by the inverse of a transform.
- *
- * @param v Vector.
- * @param t Transform.
- *
- * @return Transformed vector.
- */
+/// Transforms a vector by the inverse of a transform.
+/// @param v Vector.
+/// @param t Transform.
+/// @return Transformed vector.
 template <class T>
 [[nodiscard]] constexpr vector<T, 3> mul(const vector<T, 3>& v, const transform<T>& t) noexcept;
 
@@ -194,35 +168,40 @@ using namespace functions;
 
 } // namespace math
 
-/// @copydoc math::mul(const math::transform<T>&, const math::transform<T>&)
+/// Combines two transforms.
+/// @param x First transform.
+/// @param y Second transform.
+/// @return Product of the two transforms.
 template <class T>
 [[nodiscard]] inline math::transform<T> operator*(const math::transform<T>& x, const math::transform<T>& y)
 {
 	return math::mul(x, y);
 }
 
-/// @copydoc math::mul(const math::transform<T>&, const math::vec3<T>&)
+/// Transforms a vector by a transform.
+/// @param t Transform.
+/// @param v Vector.
+/// @return Transformed vector.
 template <class T>
 [[nodiscard]] inline constexpr math::vec3<T> operator*(const math::transform<T>& t, const math::vec3<T>& v) noexcept
 {
 	return math::mul(t, v);
 }
 
-/// @copydoc math::mul(const math::vec3<T>&, const math::transform<T>&)
+/// Transforms a vector by the inverse of a transform.
+/// @param v Vector.
+/// @param t Transform.
+/// @return Transformed vector.
 template <class T>
 [[nodiscard]] inline constexpr math::vec3<T> operator*(const math::vec3<T>& v, const math::transform<T>& t) noexcept
 {
 	return math::mul(v, t);
 }
 
-/**
- * Combines two transforms and stores the result in the first transform.
- *
- * @param x First transform.
- * @param y Second transform.
- *
- * @return Reference to the first transform.
- */
+/// Combines two transforms and stores the result in the first transform.
+/// @param x First transform.
+/// @param y Second transform.
+/// @return Reference to the first transform.
 template <class T>
 inline math::transform<T>& operator*=(math::transform<T>& x, const math::transform<T>& y)
 {

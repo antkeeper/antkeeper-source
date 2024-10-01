@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_WAIST_GENE_HPP
@@ -8,14 +8,11 @@
 #include <engine/render/model.hpp>
 #include <memory>
 
-/**
- * Trait that describes the waist (petiole plus postpetiole) of an ant.
- *
- * @see https://www.antwiki.org/wiki/Morphological_Measurements
- */
+/// Trait that describes the waist (petiole plus postpetiole) of an ant.
+/// @see https://www.antwiki.org/wiki/Morphological_Measurements
 struct ant_waist_phene
 {
-	//// Waist presence.
+	/// Waist presence.
 	bool present{false};
 	
 	/// Petiole length, in mesosomal lengths.
@@ -45,22 +42,20 @@ struct ant_waist_phene
 	/// Degree of postpetiole spinescence
 	float postpetiole_spinescence{0.0f};
 	
-	/**
-	 * 3D model of the waist.
-	 *
-	 * If the waist is present, the waist model skeleton can have one of two forms: single-segmented or double-segmented.
-	 *
-	 * If the postpetiole is absent, the waist is single-segmented and its skeleton must contain the following bones:
-	 *
-	 * * petiole
-	 * * * gaster_socket
-	 *
-	 * If the postpetiole is present, the waist is double-segmented and its skeleton must contains the following bones:
-	 *
-	 * * petiole
-	 * * * postpetiole
-	 * * * * gaster_socket
-	 */
+	/// 3D model of the waist.
+	/// 
+	/// If the waist is present, the waist model skeleton can have one of two forms: single-segmented or double-segmented.
+	/// 
+	/// If the postpetiole is absent, the waist is single-segmented and its skeleton must contain the following bones:
+	/// 
+	/// - petiole
+	///     - gaster_socket
+	/// 
+	/// If the postpetiole is present, the waist is double-segmented and its skeleton must contains the following bones:
+	/// 
+	/// - petiole
+	///     - postpetiole
+	///         - gaster_socket
 	std::shared_ptr<render::model> model;
 };
 

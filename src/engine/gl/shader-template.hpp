@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_SHADER_TEMPLATE_HPP
@@ -16,96 +16,67 @@
 
 namespace gl {
 
-/**
- * Template used to for generating one or more shader variants from a single source.
- *
- * Shader templates support the following preprocessor directives:
- *
- * * `#pragma vertex`: Replaced with `#define __VERTEX__` when generating vertex shader objects.
- * * `#pragma fragment`: Replaced with `#define __FRAGMENT__` when generating fragment shader objects.
- * * `#pragma geometry`: Replaced with `#define __GEOMETRY__` when generating geometry shader objects.
- * * `#pragma define <key>`: Will be replaced with `#define <key> <value>` if its definition is passed to the shader template.
- *
- * @see gl::shader_stage
- * @see gl::shader_object
- * @see gl::shader_program
- */
+/// Template used to for generating one or more shader variants from a single source.
+/// 
+/// Shader templates support the following preprocessor directives:
+/// 
+/// * `#pragma vertex`: Replaced with `#define __VERTEX__` when generating vertex shader objects.
+/// * `#pragma fragment`: Replaced with `#define __FRAGMENT__` when generating fragment shader objects.
+/// * `#pragma geometry`: Replaced with `#define __GEOMETRY__` when generating geometry shader objects.
+/// * `#pragma define <key>`: Will be replaced with `#define <key> <value>` if its definition is passed to the shader template.
+/// 
+/// @see gl::shader_stage
+/// @see gl::shader_object
+/// @see gl::shader_program
 class shader_template
 {
 public:
 	/// Container of definitions used to generate `#pragma define <key> <value>` directives.
 	using dictionary_type = std::unordered_map<std::string, std::string>;
 	
-	/**
-	 * Constructs a shader template and sets its source code.
-	 *
-	 * @param source_code Shader template source code.
-	 */
-	/// @{
+	/// Constructs a shader template and sets its source code.
+	/// @param source_code Shader template source code.
 	explicit shader_template(const text_file& source_code);
+
+	/// @copydoc shader_template(const text_file&)
 	explicit shader_template(text_file&& source_code);
-	/// @}
 	
-	/**
-	 * Constructs a shader template and sets its source code.
-	 *
-	 * @param source_code Shader template source code.
-	 * @param include_files Shader template include files.
-	 *
-	 * @note This constuctor is used to keep the loaded include files cached.
-	 */
+	/// Constructs a shader template and sets its source code.
+	/// @param source_code Shader template source code.
+	/// @param include_files Shader template include files.
+	/// @note This constuctor is used to keep the loaded include files cached.
 	shader_template(text_file&& source_code, std::vector<std::shared_ptr<text_file>>&& include_files);
 	
-	/**
-	 * Constructs an empty shader template.
-	 */
-	constexpr shader_template() noexcept = default;
+	/// Constructs an empty shader template.
+	shader_template() noexcept = default;
 	
-	/**
-	 * Replaces the source code of the shader template.
-	 *
-	 * @param source_code Shader template source code.
-	 */
-	/// @{
+	/// Replaces the source code of the shader template.
+	/// @param source_code Shader template source code.
 	void source(const text_file& source_code);
+
+	/// @copydoc source(const text_file&)
 	void source(text_file&& source_code);
-	/// @}
 	
-	/**
-	 * Configures shader object source code for a given shader stage and template dictionary.
-	 *
-	 * @param stage Shader stage of the shader object to generate. Instances of `#pragma <stage>` in the template source will be replaced with `#define __<STAGE>__`.
-	 * @param definitions Container of definitions used to replace `#pragma define <key> <value>` directives.
-	 *
-	 * @return Configured shader object source code.
-	 */
+	/// Configures shader object source code for a given shader stage and template dictionary.
+	/// @param stage Shader stage of the shader object to generate. Instances of `#pragma <stage>` in the template source will be replaced with `#define __<STAGE>__`.
+	/// @param definitions Container of definitions used to replace `#pragma define <key> <value>` directives.
+	/// @return Configured shader object source code.
 	[[nodiscard]] std::string configure(gl::shader_stage stage, const dictionary_type& definitions = {}) const;
 	
-	/**
-	 * Configures and compiles a shader object.
-	 *
-	 * @param stage Shader stage of the shader object to generate. Instances of `#pragma <stage>` in the template source will be replaced with `#define __<STAGE>__`.
-	 * @param definitions Container of definitions used to replace `#pragma define <key> <value>` directives.
-	 *
-	 * @return Compiled shader object.
-	 *
-	 * @exception std::runtime_error Any exceptions thrown by gl::shader_object.
-	 */
+	/// Configures and compiles a shader object.
+	/// @param stage Shader stage of the shader object to generate. Instances of `#pragma <stage>` in the template source will be replaced with `#define __<STAGE>__`.
+	/// @param definitions Container of definitions used to replace `#pragma define <key> <value>` directives.
+	/// @return Compiled shader object.
+	/// @exception std::runtime_error Any exceptions thrown by gl::shader_object.
 	[[nodiscard]] std::unique_ptr<gl::shader_object> compile(gl::shader_stage stage, const dictionary_type& definitions = {}) const;
 	
-	/**
-	 * Configures and compiles shader objects, then links them into a shader program. Shader object stages are determined according to the presence of `#pragma <stage>` directives.
-	 *
-	 * @param definitions Container of definitions used to replace `#pragma define <key> <value>` directives.
-	 *
-	 * @return Linked shader program.
-	 *
-	 * @exception std::runtime_error Any exceptions thrown by gl::shader_object or gl::shader_program.
-	 *
-	 * @see has_vertex_directive() const
-	 * @see has_fragment_directive() const
-	 * @see has_geometry_directive() const
-	 */
+	/// Configures and compiles shader objects, then links them into a shader program. Shader object stages are determined according to the presence of `#pragma <stage>` directives.
+	/// @param definitions Container of definitions used to replace `#pragma define <key> <value>` directives.
+	/// @return Linked shader program.
+	/// @exception std::runtime_error Any exceptions thrown by gl::shader_object or gl::shader_program.
+	/// @see has_vertex_directive() const
+	/// @see has_fragment_directive() const
+	/// @see has_geometry_directive() const
 	[[nodiscard]] std::unique_ptr<gl::shader_program> build(const dictionary_type& definitions = {}) const;
 	
 	/// Returns `true` if the template source contains one or more `#pragma vertex` directive.
@@ -126,11 +97,8 @@ public:
 		return !m_geometry_directives.empty();
 	}
 	
-	/**
-	 * Returns `true` if the template source contains one or more instance of `#pragma define <key>`.
-	 *
-	 * @param key Definition key.
-	 */
+	/// Returns `true` if the template source contains one or more instance of `#pragma define <key>`.
+	/// @param key Definition key.
 	[[nodiscard]] bool has_define_directive(const std::string& key) const;
 	
 	/// Returns a hash of the template source code.

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_SPRING_ARM_COMPONENT_HPP
@@ -10,9 +10,7 @@
 #include <engine/math/functions.hpp>
 #include <engine/physics/spring.hpp>
 
-/**
- * Attaches a camera to an entity using springs.
- */
+/// Attaches a camera to an entity using springs.
 struct spring_arm_component
 {
 	/// ID of the entity to which the spring arm is attached.
@@ -43,9 +41,6 @@ struct spring_arm_component
 	
 	/// Arm length spring.
 	// physics::numeric_spring<double, double> arm_length_spring;
-	
-	
-	
 	
 	/// Height of the view frustum at the far clipping distance.
 	double far_focal_plane_height{50.0};

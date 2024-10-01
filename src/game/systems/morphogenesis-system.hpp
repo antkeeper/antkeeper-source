@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_MORPHOGENESIS_SYSTEM_HPP
@@ -6,9 +6,7 @@
 
 #include "game/systems/updatable-system.hpp"
 
-/**
- * Generates 3D models from genomes.
- */
+/// Generates 3D models from genomes.
 class morphogenesis_system:
 	public updatable_system
 {

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_CONTROLS_HPP
@@ -9,28 +9,18 @@
 #include <engine/input/gamepad.hpp>
 #include <filesystem>
 
-
-/**
- * Resets a control profile to default settings.
- *
- * @param profile Control profile to reset.
- */
+/// Resets a control profile to default settings.
+/// @param profile Control profile to reset.
 void reset_control_profile(::control_profile& profile);
 
-/**
- * Applies a control profile to the game context.
- *
- * @param ctx Game context.
- * @param profile Control profile to apply.
- */
+/// Applies a control profile to the game context.
+/// @param ctx Game context.
+/// @param profile Control profile to apply.
 void apply_control_profile(::game& ctx, const ::control_profile& profile);
 
-/**
- * Updates a control profile after actions have been remapped.
- *
- * @param ctx Game context.
- * @param profile Control profile to update.
- */
+/// Updates a control profile after actions have been remapped.
+/// @param ctx Game context.
+/// @param profile Control profile to update.
 void update_control_profile(::game& ctx, ::control_profile& profile);
 
 void setup_window_controls(::game& ctx);

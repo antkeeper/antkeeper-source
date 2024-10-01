@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/controls.hpp"
@@ -24,11 +24,8 @@ namespace {
 		}
 	}
 
-	/**
-	 * Updates the locomotive speed of the controlled ant.
-	 *
-	 * @param ctx Game context.
-	 */
+	/// Updates the locomotive speed of the controlled ant.
+	/// @param ctx Game context.
 	void steer_controlled_ant(::game& ctx)
 	{
 		if (ctx.controlled_ant_eid == entt::null)
@@ -101,12 +98,9 @@ namespace {
 		locomotion.target_direction = math::fquat(math::normalize(spring_arm.up_rotation * spring_arm_yaw_rotation)) * math::fvec3{control_direction.x(), 0.0f, (spring_arm.angles_spring.get_value().x() > 0.0) ? -control_direction.y() : control_direction.y()};
 	}
 	
-	/**
-	 * Turns the controlled ant.
-	 *
-	 * @param ctx Game context.
-	 * @param scale Angular velocity scale.
-	 */
+	/// Turns the controlled ant.
+	/// @param ctx Game context.
+	/// @param scale Angular velocity scale.
 	void turn_controlled_ant(::game& ctx, float scale)
 	{
 		if (ctx.controlled_ant_eid == entt::null)

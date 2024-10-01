@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_SAMPLER_HPP
@@ -12,29 +12,24 @@
 
 namespace gl {
 
-/**
- * Sampler object.
- */
+/// Sampler object.
 class sampler
 {
 public:
-	/**
-	 * Constructs a sampler object.
-	 *
-	 * @param mag_filter Magnification filter to apply to lookups.
-	 * @param min_filter Minification filter to apply to lookups.
-	 * @param mipmap_mode Mipmap filter to apply to lookups.
-	 * @param address_mode_u Addressing mode for U-coordinates outside `[0, 1)`.
-	 * @param address_mode_v Addressing mode for V-coordinates outside `[0, 1)`.
-	 * @param address_mode_w Addressing mode for W-coordinates outside `[0, 1)`.
-	 * @param mip_lod_bias Bias to be added to mipmap LOD calculation.
-	 * @param max_anisotropy Anisotropy clamp value.
-	 * @param compare_enabled `true` to enable comparison against a reference value during lookups, `false` otherwise.
-	 * @param compare_op Comparison operator to apply to fetched data, if compare is enabled.
-	 * @param min_lod Minimum clamp value of the computed LOD.
-	 * @param max_lod Maximum clamp value of the computed LOD.
-	 * @param border_color Border color used for texture lookups.
-	 */
+	/// Constructs a sampler object.
+	/// @param mag_filter Magnification filter to apply to lookups.
+	/// @param min_filter Minification filter to apply to lookups.
+	/// @param mipmap_mode Mipmap filter to apply to lookups.
+	/// @param address_mode_u Addressing mode for U-coordinates outside `[0, 1)`.
+	/// @param address_mode_v Addressing mode for V-coordinates outside `[0, 1)`.
+	/// @param address_mode_w Addressing mode for W-coordinates outside `[0, 1)`.
+	/// @param mip_lod_bias Bias to be added to mipmap LOD calculation.
+	/// @param max_anisotropy Anisotropy clamp value.
+	/// @param compare_enabled `true` to enable comparison against a reference value during lookups, `false` otherwise.
+	/// @param compare_op Comparison operator to apply to fetched data, if compare is enabled.
+	/// @param min_lod Minimum clamp value of the computed LOD.
+	/// @param max_lod Maximum clamp value of the computed LOD.
+	/// @param border_color Border color used for texture lookups.
 	explicit sampler
 	(
 		sampler_filter mag_filter = sampler_filter::linear,
@@ -60,95 +55,56 @@ public:
 	sampler& operator=(const sampler&) = delete;
 	sampler& operator=(sampler&&) = delete;
 	
-	/**
-	 * Sets the magnification filter to apply to lookups.
-	 *
-	 * @param filter Magnification filter to apply to lookups.
-	 */
+	/// Sets the magnification filter to apply to lookups.
+	/// @param filter Magnification filter to apply to lookups.
 	void set_mag_filter(sampler_filter filter);
 	
-	/**
-	 * Sets the minification filter to apply to lookups.
-	 *
-	 * @param filter Minification filter to apply to lookups.
-	 */
+	/// Sets the minification filter to apply to lookups.
+	/// @param filter Minification filter to apply to lookups.
 	void set_min_filter(sampler_filter filter);
 	
-	/**
-	 * Sets the mipmap filter to apply to lookups.
-	 *
-	 * @param mode Mipmap filter to apply to lookups.
-	 */
+	/// Sets the mipmap filter to apply to lookups.
+	/// @param mode Mipmap filter to apply to lookups.
 	void set_mipmap_mode(sampler_mipmap_mode mode);
 	
-	/**
-	 * Sets the addressing mode for U-coordinates outside `[0, 1)`.
-	 *
-	 * @param Addressing mode for U-coordinates outside `[0, 1)`.
-	 */
+	/// Sets the addressing mode for U-coordinates outside `[0, 1)`.
+	/// @param mode Addressing mode for U-coordinates outside `[0, 1)`.
 	void set_address_mode_u(sampler_address_mode mode);
 	
-	/**
-	 * Sets the addressing mode for V-coordinates outside `[0, 1)`.
-	 *
-	 * @param Addressing mode for V-coordinates outside `[0, 1)`.
-	 */
+	/// Sets the addressing mode for V-coordinates outside `[0, 1)`.
+	/// @param mode Addressing mode for V-coordinates outside `[0, 1)`.
 	void set_address_mode_v(sampler_address_mode mode);
 	
-	/**
-	 * Sets the addressing mode for W-coordinates outside `[0, 1)`.
-	 *
-	 * @param Addressing mode for W-coordinates outside `[0, 1)`.
-	 */
+	/// Sets the addressing mode for W-coordinates outside `[0, 1)`.
+	/// @param mode Addressing mode for W-coordinates outside `[0, 1)`.
 	void set_address_mode_w(sampler_address_mode mode);
 	
-	/**
-	 * Sets the bias to be added to mipmap LOD calculation.
-	 *
-	 * @param bias Bias to be added to mipmap LOD calculation.
-	 */
+	/// Sets the bias to be added to mipmap LOD calculation.
+	/// @param bias Bias to be added to mipmap LOD calculation.
 	void set_mip_lod_bias(float bias);
 	
-	/**
-	 * Sets the anisotropy clamp value.
-	 *
-	 * @param anisotropy Anisotropy clamp value.
-	 */
+	/// Sets the anisotropy clamp value.
+	/// @param anisotropy Anisotropy clamp value.
 	void set_max_anisotropy(float anisotropy);
 	
-	/**
-	 * Enables or disables a comparison against a reference value during lookups.
-	 *
-	 * @param enabled `true` to enable comparison against a reference value during lookups, `false` otherwise.
-	 */
+	/// Enables or disables a comparison against a reference value during lookups.
+	/// @param enabled `true` to enable comparison against a reference value during lookups, `false` otherwise.
 	void set_compare_enabled(bool enabled);
 	
-	/**
-	 * Sets the comparison operator to apply to fetched data, if compare is enabled.
-	 *
-	 * @param op Comparison operator to apply to fetched data, if compare is enabled.
-	 */
+	/// Sets the comparison operator to apply to fetched data, if compare is enabled.
+	/// @param op Comparison operator to apply to fetched data, if compare is enabled.
 	void set_compare_op(gl::compare_op op);
 	
-	/**
-	 * Sets the minimum clamp value of the computed LOD.
-	 *
-	 * @param lod Minimum clamp value of the computed LOD.
-	 */
+	/// Sets the minimum clamp value of the computed LOD.
+	/// @param lod Minimum clamp value of the computed LOD.
 	void set_min_lod(float lod);
 	
-	/**
-	 * Sets the maximum clamp value of the computed LOD.
-	 *
-	 * @param lod Maximum clamp value of the computed LOD.
-	 */
+	/// Sets the maximum clamp value of the computed LOD.
+	/// @param lod Maximum clamp value of the computed LOD.
 	void set_max_lod(float lod);
 	
-	/**
-	 * Sets the border color used for texture lookups.
-	 *
-	 * @param color Border color used for texture lookups.
-	 */
+	/// Sets the border color used for texture lookups.
+	/// @param color Border color used for texture lookups.
 	void set_border_color(const std::array<float, 4>& color);
 	
 	/// Returns the magnification filter to apply to lookups.

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_RECT_PACK_HPP
@@ -9,50 +9,43 @@
 
 namespace geom {
 
-/**
- * Packs 2D rectangles.
- *
- * @tparam T Scalar type.
- *
- * @see http://www.blackpawn.com/texts/lightmaps/
- */
+/// Packs 2D rectangles.
+/// @tparam T Scalar type.
+/// @see http://www.blackpawn.com/texts/lightmaps/
 template <class T>
 class rect_pack
 {
 public:
-	/** Scalar type. */
+	/// Scalar type.
 	using scalar_type = T;
 	
-	/** Vector type. */
+	/// Vector type.
 	using vector_type = math::vec2<T>;
 	
-	/** Rectangle type. */
+	/// Rectangle type.
 	using rect_type = rectangle<T>;
 	
-	/** Node type. */
+	/// Node type.
 	struct node_type
 	{
-		/** Pointers to the two children of the node, if any. */
+		/// Pointers to the two children of the node, if any.
 		std::unique_ptr<node_type> children[2];
 		
-		/** Bounds of the node. */
+		/// Bounds of the node.
 		rect_type bounds{};
 		
-		/** Whether the node is occupied. */
+		/// Whether the node is occupied.
 		bool occupied{false};
 	};
 	
-	/**
-	 * Constructs a rect pack.
-	 *
-	 * @param dimensions Dimensions of the root node.
-	 */
+	/// Constructs a rect pack.
+	/// @param dimensions Dimensions of the root node.
 	explicit rect_pack(const vector_type& dimensions = {})
 	{
 		m_root_node.bounds.max = dimensions;
 	}
 	
-	/** Clear the pack, deallocating all non-root nodes. */
+	/// Clear the pack, deallocating all non-root nodes.
 	void clear()
 	{
 		m_root_node.children[0].reset();
@@ -60,30 +53,23 @@ public:
 		m_root_node.occupied = false;
 	}
 	
-	/**
-	 * Resizes the pack, deallocating all non-root nodes.
-	 *
-	 * @param dimensions New dimensions of the root node.
-	 */
+	/// Resizes the pack, deallocating all non-root nodes.
+	/// @param dimensions New dimensions of the root node.
 	void resize(const vector_type& dimensions)
 	{
 		clear();
 		m_root_node.bounds.max = dimensions;
 	}
 	
-	/**
-	 * Inserts a rect.
-	 *
-	 * @param dimensions Dimensions of the rect.
-	 * 
-	 * @return Pointer to the node in which the rect was inserted, or `nullptr` if the rect could not be inserted.
-	 */
+	/// Inserts a rect.
+	/// @param dimensions Dimensions of the rect.
+	/// @return Pointer to the node in which the rect was inserted, or `nullptr` if the rect could not be inserted.
 	inline const node_type* insert(const vector_type& dimensions)
 	{
 		return insert(m_root_node, dimensions);
 	}
 	
-	/** Returns a reference to the root node. */
+	/// Returns a reference to the root node.
 	[[nodiscard]] inline constexpr const node_type& front() const noexcept
 	{
 		return m_root_node;

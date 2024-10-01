@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_INPUT_GAMEPAD_EVENTS_HPP
@@ -11,9 +11,7 @@ namespace input {
 
 class gamepad;
 
-/**
- * Event generated when a gamepad button has been pressed.
- */
+/// Event generated when a gamepad button has been pressed.
 struct gamepad_button_pressed_event
 {
 	/// Gamepad that generated the event.
@@ -23,9 +21,7 @@ struct gamepad_button_pressed_event
 	gamepad_button button{0};
 };
 
-/**
- * Event generated when a gamepad button has been released.
- */
+/// Event generated when a gamepad button has been released.
 struct gamepad_button_released_event
 {
 	/// Gamepad that generated the event.
@@ -35,9 +31,7 @@ struct gamepad_button_released_event
 	gamepad_button button{0};
 };
 
-/**
- * Event generated when a gamepad axis has been moved.
- */
+/// Event generated when a gamepad axis has been moved.
 struct gamepad_axis_moved_event
 {
 	/// Gamepad that generated the event.

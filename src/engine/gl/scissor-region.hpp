@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_SCISSOR_REGION_HPP
@@ -8,9 +8,7 @@
 
 namespace gl {
 
-/**
- * Scissor region offset and extents.
- */
+/// Scissor region offset and extents.
 struct scissor_region
 {
 	/// X-coordinate offset of the scissor region.

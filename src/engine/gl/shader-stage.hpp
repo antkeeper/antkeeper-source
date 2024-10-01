@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_SHADER_STAGE_HPP
@@ -8,9 +8,7 @@
 
 namespace gl {
 
-/**
- * Enumerates all supported shader stages.
- */
+/// Enumerates all supported shader stages.
 enum class shader_stage: std::uint8_t
 {
 	/// Vertex shader stage.

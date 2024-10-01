@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_NOISE_FBM_HPP
@@ -19,20 +19,15 @@
 
 namespace noise {
 
-/**
- * Fractional Brownian motion (fBm).
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- *
- * @param position Input position.
- * @param octaves Number of octaves.
- * @param lacunarity Frequency multiplier.
- * @param gain Amplitude multiplier.
- * @param noise Noise function.
- * @param hash Hash function.
- *
- */
+/// Fractional Brownian motion (fBm).
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @param position Input position.
+/// @param octaves Number of octaves.
+/// @param lacunarity Frequency multiplier.
+/// @param gain Amplitude multiplier.
+/// @param noise Noise function.
+/// @param hash Hash function.
 template <class T, std::size_t N>
 [[nodiscard]] T fbm
 (

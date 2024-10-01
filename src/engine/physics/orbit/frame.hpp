@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_ORBIT_FRAME_HPP
@@ -16,12 +16,9 @@ namespace frame {
 /// Perifocal (PQW) frame.
 namespace pqw {
 	
-	/**
-	 * Converts PQW coordinates from Cartesian to spherical.
-	 *
-	 * @param v PQW Cartesian coordinates.
-	 * @return PQW spherical coordinates, in the ISO order of radial distance, inclination (radians), and true anomaly (radians).
-	 */
+	/// Converts PQW coordinates from Cartesian to spherical.
+	/// @param v PQW Cartesian coordinates.
+	/// @return PQW spherical coordinates, in the ISO order of radial distance, inclination (radians), and true anomaly (radians).
 	template <class T>
 	math::vec3<T> spherical(const math::vec3<T>& v)
 	{
@@ -35,15 +32,12 @@ namespace pqw {
 		};
 	}
 	
-	/**
-	 * Constructs spherical PQW coordinates from Keplerian orbital elements.
-	 *
-	 * @param ec Eccentricity (e).
-	 * @param a Semimajor axis (a).
-	 * @param ea Eccentric anomaly (E), in radians.
-	 * @param b Semiminor axis (b).
-	 * @return PQW spherical coordinates, in the ISO order of radial distance, inclination (radians), and true anomaly (radians).
-	 */
+	/// Constructs spherical PQW coordinates from Keplerian orbital elements.
+	/// @param ec Eccentricity (e).
+	/// @param a Semimajor axis (a).
+	/// @param ea Eccentric anomaly (E), in radians.
+	/// @param b Semiminor axis (b).
+	/// @return PQW spherical coordinates, in the ISO order of radial distance, inclination (radians), and true anomaly (radians).
 	template <class T>
 	math::vec3<T> spherical(T ec, T a, T ea, T b)
 	{
@@ -55,14 +49,11 @@ namespace pqw {
 		return math::vec3<T>{d, T(0), ta};
 	}
 	
-	/**
-	 * Constructs spherical PQW coordinates from Keplerian orbital elements.
-	 *
-	 * @param ec Eccentricity (e).
-	 * @param a Semimajor axis (a).
-	 * @param ea Eccentric anomaly (E), in radians.
-	 * @return PQW spherical coordinates, in the ISO order of radial distance, inclination (radians), and true anomaly (radians).
-	 */
+	/// Constructs spherical PQW coordinates from Keplerian orbital elements.
+	/// @param ec Eccentricity (e).
+	/// @param a Semimajor axis (a).
+	/// @param ea Eccentric anomaly (E), in radians.
+	/// @return PQW spherical coordinates, in the ISO order of radial distance, inclination (radians), and true anomaly (radians).
 	template <class T>
 	math::vec3<T> spherical(T ec, T a, T ea)
 	{
@@ -70,12 +61,9 @@ namespace pqw {
 		return spherical<T>(ec, a, ea, b);
 	}
 	
-	/**
-	 * Converts PQW coordinates from spherical to Cartesian.
-	 *
-	 * @param PQW spherical coordinates, in the ISO order of radial distance, inclination (radians), and true anomaly (radians).
-	 * @return PQW Cartesian coordinates.
-	 */
+	/// Converts PQW coordinates from spherical to Cartesian.
+	/// @param v PQW spherical coordinates, in the ISO order of radial distance, inclination (radians), and true anomaly (radians).
+	/// @return PQW Cartesian coordinates.
 	template <class T>
 	math::vec3<T> cartesian(const math::vec3<T>& v)
 	{
@@ -89,43 +77,34 @@ namespace pqw {
 		};
 	}
 	
-	/**
-	 * Constructs Cartesian PQW coordinates from Keplerian orbital elements.
-	 *
-	 * @param ec Eccentricity (e).
-	 * @param a Semimajor axis (a).
-	 * @param ea Eccentric anomaly (E), in radians.
-	 * @param b Semiminor axis (b).
-	 * @return PQW Cartesian coordinates.
-	 */
+	/// Constructs Cartesian PQW coordinates from Keplerian orbital elements.
+	/// @param ec Eccentricity (e).
+	/// @param a Semimajor axis (a).
+	/// @param ea Eccentric anomaly (E), in radians.
+	/// @param b Semiminor axis (b).
+	/// @return PQW Cartesian coordinates.
 	template <class T>
 	math::vec3<T> cartesian(T ec, T a, T ea, T b)
 	{
 		return cartesian<T>(spherical<T>(ec, a, ea, b));
 	}
 	
-	/**
-	 * Constructs Cartesian PQW coordinates from Keplerian orbital elements.
-	 *
-	 * @param ec Eccentricity (e).
-	 * @param a Semimajor axis (a).
-	 * @param ea Eccentric anomaly (E), in radians.
-	 * @return PQW Cartesian coordinates.
-	 */
+	/// Constructs Cartesian PQW coordinates from Keplerian orbital elements.
+	/// @param ec Eccentricity (e).
+	/// @param a Semimajor axis (a).
+	/// @param ea Eccentric anomaly (E), in radians.
+	/// @return PQW Cartesian coordinates.
 	template <class T>
 	math::vec3<T> cartesian(T ec, T a, T ea)
 	{
 		return cartesian<T>(spherical<T>(ec, a, ea));
 	}
 
-	/**
-	 * Constructs an SE(3) transformation from a PQW frame to a BCI frame.
-	 *
-	 * @param om Right ascension of the ascending node (OMEGA), in radians.
-	 * @param in Orbital inclination (i), in radians.
-	 * @param w Argument of periapsis (omega), in radians.
-	 * @return PQW to BCI transformation.
-	 */
+	/// Constructs an SE(3) transformation from a PQW frame to a BCI frame.
+	/// @param om Right ascension of the ascending node (OMEGA), in radians.
+	/// @param in Orbital inclination (i), in radians.
+	/// @param w Argument of periapsis (omega), in radians.
+	/// @return PQW to BCI transformation.
 	template <typename T>
 	math::se3<T> to_bci(T om, T in, T w)
 	{
@@ -144,12 +123,9 @@ namespace pqw {
 /// Body-centered inertial (BCI) frame.
 namespace bci {
 	
-	/**
-	 * Converts BCI coordinates from spherical to Cartesian.
-	 *
-	 * @param v BCI spherical coordinates, in the ISO order of radial distance, declination (radians), and right ascension (radians).
-	 * @return BCI Cartesian coordinates.
-	 */
+	/// Converts BCI coordinates from spherical to Cartesian.
+	/// @param v BCI spherical coordinates, in the ISO order of radial distance, declination (radians), and right ascension (radians).
+	/// @return BCI Cartesian coordinates.
 	template <class T>
 	math::vec3<T> cartesian(const math::vec3<T>& v)
 	{
@@ -163,12 +139,9 @@ namespace bci {
 		};
 	}
 	
-	/**
-	 * Converts BCI coordinates from Cartesian to spherical.
-	 *
-	 * @param v BCI Cartesian coordinates.
-	 * @return BCI spherical coordinates, in the ISO order of radial distance, declination (radians), and right ascension (radians).
-	 */
+	/// Converts BCI coordinates from Cartesian to spherical.
+	/// @param v BCI Cartesian coordinates.
+	/// @return BCI spherical coordinates, in the ISO order of radial distance, declination (radians), and right ascension (radians).
 	template <class T>
 	math::vec3<T> spherical(const math::vec3<T>& v)
 	{
@@ -182,17 +155,12 @@ namespace bci {
 		};
 	}
 	
-	/**
-	 * Constructs an SE(3) transformation from a BCI frame to a BCBF frame.
-	 *
-	 * @param ra Right ascension of the north pole, in radians.
-	 * @param dec Declination of the north pole, in radians.
-	 * @param w Location of the prime meridian, as a rotation about the north pole, in radians.
-	 *
-	 * @return BCI to BCBF transformation.
-	 *
-	 * @see Archinal, B.A., A’Hearn, M.F., Bowell, E. et al. Report of the IAU Working Group on Cartographic Coordinates and Rotational Elements: 2009. Celest Mech Dyn Astr 109, 101–135 (2011). https://doi.org/10.1007/s10569-010-9320-4
-	 */
+	/// Constructs an SE(3) transformation from a BCI frame to a BCBF frame.
+	/// @param ra Right ascension of the north pole, in radians.
+	/// @param dec Declination of the north pole, in radians.
+	/// @param w Location of the prime meridian, as a rotation about the north pole, in radians.
+	/// @return BCI to BCBF transformation.
+	/// @see Archinal, B.A., A’Hearn, M.F., Bowell, E. et al. Report of the IAU Working Group on Cartographic Coordinates and Rotational Elements: 2009. Celest Mech Dyn Astr 109, 101–135 (2011). https://doi.org/10.1007/s10569-010-9320-4
 	template <typename T>
 	math::se3<T> to_bcbf(T ra, T dec, T w)
 	{
@@ -206,14 +174,11 @@ namespace bci {
 		return math::se3<T>{{T(0), T(0), T(0)}, r};
 	}
 	
-	/**
-	 * Constructs an SE(3) transformation from a BCI frame to a PQW frame.
-	 *
-	 * @param om Right ascension of the ascending node (OMEGA), in radians.
-	 * @param in Orbital inclination (i), in radians.
-	 * @param w Argument of periapsis (omega), in radians.
-	 * @return BCI to PQW transformation.
-	 */
+	/// Constructs an SE(3) transformation from a BCI frame to a PQW frame.
+	/// @param om Right ascension of the ascending node (OMEGA), in radians.
+	/// @param in Orbital inclination (i), in radians.
+	/// @param w Argument of periapsis (omega), in radians.
+	/// @return BCI to PQW transformation.
 	template <typename T>
 	math::se3<T> to_pqw(T om, T in, T w)
 	{
@@ -232,12 +197,9 @@ namespace bci {
 /// Body-centered, body-fixed (BCBF) frame.
 namespace bcbf {
 	
-	/**
-	 * Converts BCBF coordinates from spherical to Cartesian.
-	 *
-	 * @param v BCBF spherical coordinates, in the ISO order of radial distance, latitude (radians), and longitude (radians).
-	 * @return BCBF Cartesian coordinates.
-	 */
+	/// Converts BCBF coordinates from spherical to Cartesian.
+	/// @param v BCBF spherical coordinates, in the ISO order of radial distance, latitude (radians), and longitude (radians).
+	/// @return BCBF Cartesian coordinates.
 	template <class T>
 	math::vec3<T> cartesian(const math::vec3<T>& v)
 	{
@@ -251,12 +213,9 @@ namespace bcbf {
 		};
 	}
 	
-	/**
-	 * Converts BCBF coordinates from Cartesian to spherical.
-	 *
-	 * @param v BCBF Cartesian coordinates.
-	 * @return BCBF spherical coordinates, in the ISO order of radial distance, latitude (radians), and longitude (radians).
-	 */
+	/// Converts BCBF coordinates from Cartesian to spherical.
+	/// @param v BCBF Cartesian coordinates.
+	/// @return BCBF spherical coordinates, in the ISO order of radial distance, latitude (radians), and longitude (radians).
 	template <class T>
 	math::vec3<T> spherical(const math::vec3<T>& v)
 	{
@@ -270,17 +229,12 @@ namespace bcbf {
 		};
 	}
 	
-	/**
-	 * Constructs an SE(3) transformation from a BCBF frame to a BCI frame.
-	 *
-	 * @param ra Right ascension of the north pole, in radians.
-	 * @param dec Declination of the north pole, in radians.
-	 * @param w Location of the prime meridian, as a rotation about the north pole, in radians.
-	 *
-	 * @return BCBF to BCI transformation.
-	 *
-	 * @see Archinal, B.A., A’Hearn, M.F., Bowell, E. et al. Report of the IAU Working Group on Cartographic Coordinates and Rotational Elements: 2009. Celest Mech Dyn Astr 109, 101–135 (2011). https://doi.org/10.1007/s10569-010-9320-4
-	 */
+	/// Constructs an SE(3) transformation from a BCBF frame to a BCI frame.
+	/// @param ra Right ascension of the north pole, in radians.
+	/// @param dec Declination of the north pole, in radians.
+	/// @param w Location of the prime meridian, as a rotation about the north pole, in radians.
+	/// @return BCBF to BCI transformation.
+	/// @see Archinal, B.A., A’Hearn, M.F., Bowell, E. et al. Report of the IAU Working Group on Cartographic Coordinates and Rotational Elements: 2009. Celest Mech Dyn Astr 109, 101–135 (2011). https://doi.org/10.1007/s10569-010-9320-4
 	template <typename T>
 	math::se3<T> to_bci(T ra, T dec, T w)
 	{
@@ -295,14 +249,11 @@ namespace bcbf {
 		return math::se3<T>{{T(0), T(0), T(0)}, r};
 	}
 	
-	/**
-	 * Constructs an SE(3) transformation from a BCBF frame to an ENU frame.
-	 *
-	 * @param distance Radial distance of the observer from the center of the body.
-	 * @param latitude Latitude of the observer, in radians.
-	 * @param longitude Longitude of the observer, in radians.
-	 * @return BCBF to ENU transformation.
-	 */
+	/// Constructs an SE(3) transformation from a BCBF frame to an ENU frame.
+	/// @param distance Radial distance of the observer from the center of the body.
+	/// @param latitude Latitude of the observer, in radians.
+	/// @param longitude Longitude of the observer, in radians.
+	/// @return BCBF to ENU transformation.
 	template <typename T>
 	math::se3<T> to_enu(T distance, T latitude, T longitude)
 	{
@@ -321,12 +272,9 @@ namespace bcbf {
 /// East, North, Up (ENU) horizontal frame.
 namespace enu {
 	
-	/**
-	 * Converts ENU coordinates from spherical to Cartesian.
-	 *
-	 * @param v ENU spherical coordinates, in the ISO order of radial distance, elevation (radians), and azimuth (radians).
-	 * @return ENU Cartesian coordinates.
-	 */
+	/// Converts ENU coordinates from spherical to Cartesian.
+	/// @param v ENU spherical coordinates, in the ISO order of radial distance, elevation (radians), and azimuth (radians).
+	/// @return ENU Cartesian coordinates.
 	template <class T>
 	math::vec3<T> cartesian(const math::vec3<T>& v)
 	{
@@ -341,12 +289,9 @@ namespace enu {
 		};
 	}
 	
-	/**
-	 * Converts ENU coordinates from Cartesian to spherical.
-	 *
-	 * @param v ENU Cartesian coordinates.
-	 * @return ENU spherical coordinates, in the ISO order of radial distance, elevation (radians), and azimuth (radians).
-	 */
+	/// Converts ENU coordinates from Cartesian to spherical.
+	/// @param v ENU Cartesian coordinates.
+	/// @return ENU spherical coordinates, in the ISO order of radial distance, elevation (radians), and azimuth (radians).
 	template <class T>
 	math::vec3<T> spherical(const math::vec3<T>& v)
 	{
@@ -360,14 +305,11 @@ namespace enu {
 		};
 	}
 	
-	/**
-	 * Constructs an SE(3) transformation from an ENU frame to a BCBF frame.
-	 *
-	 * @param distance Radial distance of the observer from the center of the body.
-	 * @param latitude Latitude of the observer, in radians.
-	 * @param longitude Longitude of the observer, in radians.
-	 * @return ENU to BCBF transformation.
-	 */
+	/// Constructs an SE(3) transformation from an ENU frame to a BCBF frame.
+	/// @param distance Radial distance of the observer from the center of the body.
+	/// @param latitude Latitude of the observer, in radians.
+	/// @param longitude Longitude of the observer, in radians.
+	/// @return ENU to BCBF transformation.
 	template <typename T>
 	math::se3<T> to_bcbf(T distance, T latitude, T longitude)
 	{

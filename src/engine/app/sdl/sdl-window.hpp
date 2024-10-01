@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_APP_SDL_WINDOW_HPP
@@ -10,12 +10,11 @@
 
 namespace app {
 
-/**
- * 
- */
+/// Window implementation using SDL.
 class sdl_window: public window
 {
 public:
+	/// Constructs an SDL window.
 	sdl_window
 	(
 		const std::string& title,
@@ -26,6 +25,7 @@ public:
 		bool v_sync
 	);
 	
+	/// Destructs an SDL window.
 	~sdl_window() override;
 	
 	sdl_window(const sdl_window&) = delete;

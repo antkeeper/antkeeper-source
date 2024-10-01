@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GENETICS_MATRIX_HPP
@@ -9,11 +9,8 @@ namespace genetics {
 /// Substitution matrix constants.
 namespace matrix {
 
-/**
- * BLOSUM62 substitution matrix.
- *
- * @see ftp://ftp.ncbi.nih.gov/blast/matrices/
- */
+/// BLOSUM62 substitution matrix.
+/// @see ftp://ftp.ncbi.nih.gov/blast/matrices/
 template <class T>
 constexpr T blosum62[27][27] =
 {
@@ -47,11 +44,8 @@ constexpr T blosum62[27][27] =
 	{ -4, -4, -4, -4, -4, -4, -4, -4, -4,  0, -4, -4, -4, -4,  0, -4, -4, -4, -4, -4,  0, -4, -4, -4, -4, -4,  1 }  // *
 };
 
-/**
- * BLOSUM80 substitution matrix.
- *
- * @see ftp://ftp.ncbi.nih.gov/blast/matrices/
- */
+/// BLOSUM80 substitution matrix.
+/// @see ftp://ftp.ncbi.nih.gov/blast/matrices/
 template <class T>
 constexpr T blosum80[27][27] =
 {

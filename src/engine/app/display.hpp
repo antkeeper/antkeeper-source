@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_APP_DISPLAY_HPP
@@ -12,75 +12,54 @@
 
 namespace app {
 
-/**
- * Virtual display.
- */
+/// Virtual display.
 class display
 {
 public:
-	/**
-	 * Sets the index of the display.
-	 *
-	 * @param index Index of the display.
-	 */
+	/// Sets the index of the display.
+	/// @param index Index of the display.
 	inline void set_index(int index) noexcept
 	{
 		m_index = index;
 	}
 	
-	/**
-	 * Sets the name of the display.
-	 *
-	 * @param name Name of the display.
-	 */
+	/// Sets the name of the display.
+	/// @param name Name of the display.
 	inline void set_name(const std::string& name) noexcept
 	{
 		m_name = name;
 	}
 	
-	/**
-	 * Sets the bounds of the display.
-	 *
-	 * @param bounds Bounds of the display, in display units.
-	 */
+	/// Sets the bounds of the display.
+	/// @param bounds Bounds of the display, in display units.
 	inline void set_bounds(const geom::rectangle<int>& bounds) noexcept
 	{
 		m_bounds = bounds;
 	}
 	
-	/**
-	 * Sets the usable bounds of the display, which excludes areas reserved by the OS for things like menus or docks.
-	 */
+	/// Sets the usable bounds of the display, which excludes areas reserved by the OS for things like menus or docks.
+	/// @param bounds Usable bounds of the display, in display units.
 	inline void set_usable_bounds(const geom::rectangle<int>& bounds) noexcept
 	{
 		m_usable_bounds = bounds;
 	}
 	
-	/**
-	 * Sets the refresh rate of the display.
-	 *
-	 * @param rate Refresh rate, in Hz.
-	 */
+	/// Sets the refresh rate of the display.
+	/// @param rate Refresh rate, in Hz.
 	inline void set_refresh_rate(int rate) noexcept
 	{
 		m_refresh_rate = rate;
 	}
 	
-	/**
-	 * Sets the DPI of the display.
-	 *
-	 * @param dpi DPI.
-	 */
+	/// Sets the DPI of the display.
+	/// @param dpi DPI.
 	inline void set_dpi(float dpi) noexcept
 	{
 		m_dpi = dpi;
 	}
 	
-	/**
-	 * Sets the orientation of the display.
-	 *
-	 * @param orientation Display orientation.
-	 */
+	/// Sets the orientation of the display.
+	/// @param orientation Display orientation.
 	inline void set_orientation(display_orientation orientation) noexcept
 	{
 		m_orientation = orientation;

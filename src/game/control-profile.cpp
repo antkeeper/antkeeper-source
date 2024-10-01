@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/control-profile.hpp"
@@ -9,15 +9,11 @@
 #include <engine/resources/resource-loader.hpp>
 #include <engine/debug/log.hpp>
 
-/**
- * Serializes a control profile.
- *
- * @param[in] profile Control profile to serialize.
- * @param[in,out] ctx Serialize context.
- *
- * @throw serialize_error Write error.
- * @throw serialize_error Unsupported mapping type.
- */
+/// Serializes a control profile.
+/// @param[in] profile Control profile to serialize.
+/// @param[in,out] ctx Serialize context.
+/// @throw serialize_error Write error.
+/// @throw serialize_error Unsupported mapping type.
 template <>
 void serializer<::control_profile>::serialize(const ::control_profile& profile, serialize_context& ctx)
 {
@@ -72,15 +68,11 @@ void serializer<::control_profile>::serialize(const ::control_profile& profile, 
 	serializer<dict<hash::fnv1a32_t>>().serialize(profile.settings, ctx);
 }
 
-/**
- * Deserializes a control profile.
- *
- * @param[out] profile Control profile to deserialize.
- * @param[in,out] ctx Deserialize context.
- *
- * @throw deserialize_error Read error.
- * @throw deserialize_error Unsupported mapping type.
- */
+/// Deserializes a control profile.
+/// @param[out] profile Control profile to deserialize.
+/// @param[in,out] ctx Deserialize context.
+/// @throw deserialize_error Read error.
+/// @throw deserialize_error Unsupported mapping type.
 template <>
 void deserializer<::control_profile>::deserialize(::control_profile& profile, deserialize_context& ctx)
 {

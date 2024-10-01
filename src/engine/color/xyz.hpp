@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_COLOR_XYZ_HPP
@@ -11,26 +11,20 @@ namespace color {
 /// @name CIE XYZ color space
 /// @{
 
-/**
- * Returns the luminance of a CIE XYZ color.
- *
- * @param x CIE XYZ color.
- *
- * @return return Luminance of @p x.
- */
+/// Returns the luminance of a CIE XYZ color.
+/// @tparam T Scalar type.
+/// @param x CIE XYZ color.
+/// @return return Luminance of @p x.
 template <class T>
 [[nodiscard]] inline constexpr T xyz_to_luminance(const math::vec3<T>& x) noexcept
 {
 	return x[1];
 }
 
-/**
- * Transforms a CIE XYZ color into the CIE xyY color space.
- *
- * @param x CIE XYZ color.
- *
- * @return CIE xyY color.
- */
+/// Transforms a CIE XYZ color into the CIE xyY color space.
+/// @tparam T Scalar type.
+/// @param x CIE XYZ color.
+/// @return CIE xyY color.
 template <class T>
 [[nodiscard]] constexpr math::vec3<T> xyz_to_xyy(const math::vec3<T>& x) noexcept
 {
@@ -38,15 +32,11 @@ template <class T>
 	return math::vec3<T>{x[0] / sum, x[1] / sum, x[1]};
 }
 
-/**
- * CIE 1931 standard observer color matching function for the X tristimulus value.
- *
- * @param lambda Wavelength of light, in nanometers.
- *
- * @return Matching X tristimulus value.
- *
- * @see xyz_match()
- */
+/// CIE 1931 standard observer color matching function for the X tristimulus value.
+/// @tparam T Scalar type.
+/// @param lambda Wavelength of light, in nanometers.
+/// @return Matching X tristimulus value.
+/// @see xyz_match()
 template <class T>
 [[nodiscard]] T xyz_match_x(T lambda)
 {
@@ -61,15 +51,11 @@ template <class T>
 	return x0 + x1 + x2;
 }
 
-/**
- * CIE 1931 standard observer color matching function for the Y tristimulus value.
- *
- * @param lambda Wavelength of light, in nanometers.
- *
- * @return Matching Y tristimulus value.
- *
- * @see xyz_match()
- */
+/// CIE 1931 standard observer color matching function for the Y tristimulus value.
+/// @tparam T Scalar type.
+/// @param lambda Wavelength of light, in nanometers.
+/// @return Matching Y tristimulus value.
+/// @see xyz_match()
 template <class T>
 [[nodiscard]] T xyz_match_y(T lambda)
 {
@@ -82,15 +68,11 @@ template <class T>
 	return y0 + y1;
 }
 
-/**
- * CIE 1931 standard observer color matching function for the Z tristimulus value.
- *
- * @param lambda Wavelength of light, in nanometers.
- *
- * @return Matching Z tristimulus value.
- *
- * @see xyz_match()
- */
+/// CIE 1931 standard observer color matching function for the Z tristimulus value.
+/// @tparam T Scalar type.
+/// @param lambda Wavelength of light, in nanometers.
+/// @return Matching Z tristimulus value.
+/// @see xyz_match()
 template <class T>
 [[nodiscard]] T xyz_match_z(T lambda)
 {
@@ -103,19 +85,14 @@ template <class T>
 	return z0 + z1;
 }
 
-/**
- * Fitted piecewise gaussian approximation to the CIE 1931 standard observer color matching function.
- *
- * @param lambda Wavelength of light, in nanometers.
- *
- * @return Matching CIE XYZ color.
- *
- * @see xyz_match_x()
- * @see xyz_match_y()
- * @see xyz_match_z()
- *
- * @see Wyman, C., Sloan, P.J., & Shirley, P. (2013). Simple Analytic Approximations to the CIE XYZ Color Matching Functions.
- */
+/// Fitted piecewise gaussian approximation to the CIE 1931 standard observer color matching function.
+/// @tparam T Scalar type.
+/// @param lambda Wavelength of light, in nanometers.
+/// @return Matching CIE XYZ color.
+/// @see xyz_match_x()
+/// @see xyz_match_y()
+/// @see xyz_match_z()
+/// @see Wyman, C., Sloan, P.J., & Shirley, P. (2013). Simple Analytic Approximations to the CIE XYZ Color Matching Functions.
 template <class T>
 [[nodiscard]] math::vec3<T> xyz_match(T lambda)
 {

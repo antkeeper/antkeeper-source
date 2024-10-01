@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_NAVMESH_AGENT_COMPONENT_HPP
@@ -9,9 +9,6 @@
 #include <engine/geom/brep/brep-mesh.hpp>
 #include <engine/geom/brep/brep-feature.hpp>
 
-/**
- * 
- */
 struct navmesh_agent_component
 {
 	/// Entity ID of the navmesh

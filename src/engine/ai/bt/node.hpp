@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_AI_BT_NODE_HPP
@@ -9,22 +9,16 @@
 namespace ai {
 namespace bt {
 
-/**
- * Abstract base class for behavior tree nodes.
- *
- * @tparam T Data type on which nodes operate.
- */
+/// Abstract base class for behavior tree nodes.
+/// @tparam T Data type on which nodes operate.
 template <class T>
 struct node
 {
 	/// Data type on which nodes operate.
 	typedef T context_type;
 
-	/**
-	 * Executes a node's function and returns its status.
-	 *
-	 * @param context Context data on which the node will operate.
-	 */
+	/// Executes a node's function and returns its status.
+	/// @param context Context data on which the node will operate.
 	virtual status execute(context_type& context) const = 0;
 };
 

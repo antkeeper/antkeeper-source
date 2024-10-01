@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_GAS_OZONE_HPP
@@ -12,11 +12,8 @@ namespace gas {
 /// Ozone-related constants and functions.
 namespace ozone {
 
-/**
- * Cross sections of ozone from wavelength 280nm to 780nm, in increments of 1nm, at a temperature of 293K, in m-2/molecule.
- *
- * @see https://www.iup.uni-bremen.de/gruppen/molspec/databases/referencespectra/o3spectra2011/index.html
- */
+/// Cross sections of ozone from wavelength 280nm to 780nm, in increments of 1nm, at a temperature of 293K, in m-2/molecule.
+/// @see https://www.iup.uni-bremen.de/gruppen/molspec/databases/referencespectra/o3spectra2011/index.html
 constexpr double cross_sections_280nm_780nm_293k[781 - 280] =
 {
 	4.08020162329358e-22,
@@ -522,12 +519,9 @@ constexpr double cross_sections_280nm_780nm_293k[781 - 280] =
 	3.13148927506362e-26
 };
 
-/**
- * Returns the cross section of ozone at temperature 293k and a given wavelength in the visible spectrum.
- *
- * @param wavelength Wavelength, in nanometers, on `[280, 780)`.
- * @return Ozone cross section at temperature 293k and the given wavelength, in m-2/molecule.
- */
+/// Returns the cross section of ozone at temperature 293k and a given wavelength in the visible spectrum.
+/// @param wavelength Wavelength, in nanometers, on `[280, 780)`.
+/// @return Ozone cross section at temperature 293k and the given wavelength, in m-2/molecule.
 template <class T>
 constexpr T cross_section_293k(T wavelength)
 {
@@ -543,16 +537,11 @@ constexpr T cross_section_293k(T wavelength)
 	return math::lerp<T>(x, y, wavelength - static_cast<T>(i));
 }
 
-/**
- * Calculates an ozone absorption coefficient (wavelength-dependent).
- *
- * @param cross_section Ozone cross section of a wavelength, in m-2/molecule.
- * @param density Molecular number density of ozone, in mol/m-3.
- *
- * @return Ozone absorption coefficient.
- *
- * @see https://skyrenderer.blogspot.com/2012/10/ozone-absorption.html
- */
+/// Calculates an ozone absorption coefficient (wavelength-dependent).
+/// @param cross_section Ozone cross section of a wavelength, in m-2/molecule.
+/// @param density Molecular number density of ozone, in mol/m-3.
+/// @return Ozone absorption coefficient.
+/// @see https://skyrenderer.blogspot.com/2012/10/ozone-absorption.html
 template <class T>
 T absorption(T cross_section, T density)
 {

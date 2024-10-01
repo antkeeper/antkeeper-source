@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_MATH_SE3_HPP
@@ -16,11 +16,8 @@
 namespace math {
 namespace types {
 
-/**
- * SE(3) proper rigid transformation (rototranslation).
- *
- * @tparam T Scalar type.
- */
+/// SE(3) proper rigid transformation (rototranslation).
+/// @tparam T Scalar type.
 template <class T>
 struct se3
 {
@@ -50,7 +47,6 @@ public:
 	}
 	
 	/// Returns a matrix representation of this transformation.
-	/// @{
 	[[nodiscard]] constexpr matrix_type matrix() const noexcept
 	{
 		matrix_type m = mat4<T>(mat3<T>(r));
@@ -62,57 +58,43 @@ public:
 		return m;
 	}
 	
+	/// @copydoc matrix() const
 	[[nodiscard]] inline constexpr explicit operator matrix_type() const noexcept
 	{
 		return matrix();
 	}
-	/// @}
 	
-	/**
-	 * Transforms a vector by this transformation.
-	 *
-	 * @param v Untransformed vector.
-	 *
-	 * @return Transformed vector.
-	 */
-	/// @{
+	/// Transforms a vector by this transformation.
+	/// @param v Untransformed vector.
+	/// @return Transformed vector.
 	[[nodiscard]] inline constexpr vector_type transform(const vector_type& v) const noexcept
 	{
 		return r * v + t;
 	}
 	
+	/// @copydoc transform(const vector_type&) const
 	[[nodiscard]] inline constexpr vector_type operator*(const vector_type& v) const noexcept
 	{
 		return transform(v);
 	}
-	/// @}
 	
-	/**
-	 * Transforms an SE(3) transformation by this transformation.
-	 *
-	 * @param xf SE(3) transformation.
-	 *
-	 * @return Frame in this se3's space.
-	 */
-	/// @{
+	/// Transforms an SE(3) transformation by this transformation.
+	/// @param xf SE(3) transformation.
+	/// @return Frame in this se3's space.
 	[[nodiscard]] constexpr se3 transform(const se3& xf) const noexcept
 	{
 		return {xf.transform(t), normalize(xf.r * r)};
 	}
 	
+	/// @copydoc transform(const se3&) const
 	[[nodiscard]] inline constexpr se3 operator*(const se3& xf) const noexcept
 	{
 		return transform(xf);
 	}
-	/// @}
 	
-	/*
-	 * Type-casts the transform scalars using `static_cast`.
-	 *
-	 * @tparam U Target scalar type.
-	 *
-	 * @return Type-casted transform.
-	 */
+	/// Type-casts the transform scalars using `static_cast`.
+	/// @tparam U Target scalar type.
+	/// @return Type-casted transform.
 	template <class U>
 	[[nodiscard]] inline constexpr explicit operator se3<U>() const noexcept
 	{

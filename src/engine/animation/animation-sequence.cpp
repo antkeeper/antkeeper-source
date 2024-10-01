@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/animation/animation-sequence.hpp>
@@ -38,14 +38,10 @@ float animation_sequence::duration() const
 	return max_duration;
 }
 
-/**
- * Deserializes an animation sequence.
- *
- * @param[out] sequence Animation sequence to deserialize.
- * @param[in,out] ctx Deserialize context.
- *
- * @throw deserialize_error Read error.
- */
+/// Deserializes an animation sequence.
+/// @param[out] sequence Animation sequence to deserialize.
+/// @param[in,out] ctx Deserialize context.
+/// @throw deserialize_error Read error.
 template <>
 void deserializer<animation_sequence>::deserialize(animation_sequence& sequence, deserialize_context& ctx)
 {

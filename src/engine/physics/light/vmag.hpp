@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_LIGHT_VMAG_HPP
@@ -12,14 +12,10 @@ namespace light {
 /// Apparent (visual) magnitude functions.
 namespace vmag {
 
-/**
- * Converts apparent magnitude to a brightness factor relative to a 0th magnitude star.
- *
- * @param mv Apparent magnitude.
- * @return Brightness factor relative to a 0th magnitude star.
- *
- * @see https://en.wikipedia.org/wiki/Illuminance
- */
+/// Converts apparent magnitude to a brightness factor relative to a 0th magnitude star.
+/// @param mv Apparent magnitude.
+/// @return Brightness factor relative to a 0th magnitude star.
+/// @see https://en.wikipedia.org/wiki/Illuminance
 template <class T>
 T to_brightness(T mv)
 {
@@ -28,28 +24,20 @@ T to_brightness(T mv)
 	return std::pow(fifth_root_100, -mv);
 }
 
-/**
- * Converts apparent magnitude to illuminance.
- *
- * @param mv Apparent magnitude.
- * @return Illuminance, in lux.
- *
- * @see https://en.wikipedia.org/wiki/Illuminance
- */
+/// Converts apparent magnitude to illuminance.
+/// @param mv Apparent magnitude.
+/// @return Illuminance, in lux.
+/// @see https://en.wikipedia.org/wiki/Illuminance
 template <class T>
 T to_illuminance(T mv)
 {
 	return std::pow(T{10}, (T{-14.18} - mv) * T{0.4});
 }
 
-/**
- * Converts illuminance to apparent  magnitude.
- *
- * @param ev Illuminance, in lux.
- * @return Apparent magnitude.
- *
- * @see https://en.wikipedia.org/wiki/Illuminance
- */
+/// Converts illuminance to apparent  magnitude.
+/// @param ev Illuminance, in lux.
+/// @return Apparent magnitude.
+/// @see https://en.wikipedia.org/wiki/Illuminance
 template <class T>
 T from_illuminance(T ev)
 {

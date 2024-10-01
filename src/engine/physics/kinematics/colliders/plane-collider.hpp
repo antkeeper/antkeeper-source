@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_PLANE_COLLIDER_HPP
@@ -9,9 +9,7 @@
 
 namespace physics {
 
-/**
- * Plane collision object.
- */
+/// Plane collision object.
 class plane_collider: public collider
 {
 public:
@@ -23,69 +21,54 @@ public:
 		return collider_type::plane;
 	}
 	
-	/**
-	 * Constructs a plane collider from a plane.
-	 *
-	 * @param plane Plane shape.
-	 */
+	/// Constructs a plane collider from a plane.
+	/// @param plane Plane shape.
 	inline constexpr explicit plane_collider(const plane_type& plane) noexcept:
 		m_plane{plane}
 	{}
 	
-	/**
-	 * Constructs a plane collider from a normal and constant.
-	 *
-	 * @param normal Plane normal, in object space.
-	 * @param constant Plane constant.
-	 */
-	/// @{
+	/// Constructs a plane collider from a normal and constant.
+	/// @param normal Plane normal, in object space.
+	/// @param constant Plane constant.
 	inline constexpr plane_collider(const math::fvec3& normal, float constant) noexcept:
 		m_plane{normal, constant}
 	{}
+
+	/// Constructs a plane collider from a normal.
+	/// @param normal Plane normal, in object space.
 	inline constexpr explicit plane_collider(const math::fvec3& normal) noexcept:
 		m_plane{normal, 0.0f}
 	{}
+
+	/// Constructs a plane collider.
 	constexpr plane_collider() noexcept = default;
-	/// @}
 	
-	/** Destructs a plane collider. */
+	/// Destructs a plane collider.
 	~plane_collider() override = default;
 	
-	/**
-	 * Constructs a plane collider from a normal and offset.
-	 *
-	 * @param normal Plane normal, in object space.
-	 * @param offset Offset from the origin, in object space.
-	 */
+	/// Constructs a plane collider from a normal and offset.
+	/// @param normal Plane normal, in object space.
+	/// @param offset Offset from the origin, in object space.
 	inline constexpr plane_collider(const math::fvec3& normal, const math::fvec3& offset) noexcept:
 		m_plane(normal, offset)
 	{}
 	
-	/**
-	 * Sets the collider's plane.
-	 *
-	 * @param plane Plane shape.
-	 */
+	/// Sets the collider's plane.
+	/// @param plane Plane shape.
 	inline constexpr void set_plane(const plane_type& plane) noexcept
 	{
 		m_plane = plane;
 	}
 	
-	/**
-	 * Sets the plane normal.
-	 *
-	 * @param normal Plane normal, in object space.
-	 */
+	/// Sets the plane normal.
+	/// @param normal Plane normal, in object space.
 	inline constexpr void set_normal(const math::fvec3& normal) noexcept
 	{
 		m_plane.normal = normal;
 	}
 	
-	/**
-	 * Sets the plane constant.
-	 *
-	 * @param constant Plane constant.
-	 */
+	/// Sets the plane constant.
+	/// @param constant Plane constant.
 	inline constexpr void set_constant(float constant) noexcept
 	{
 		m_plane.constant = constant;

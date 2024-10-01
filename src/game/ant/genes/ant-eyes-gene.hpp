@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_EYES_GENE_HPP
@@ -9,11 +9,8 @@
 #include <cstdint>
 #include <memory>
 
-/**
- * Ant eyes phene.
- *
- * @see https://www.antwiki.org/wiki/Morphological_Measurements
- */
+/// Ant eyes phene.
+/// @see https://www.antwiki.org/wiki/Morphological_Measurements
 struct ant_eyes_phene
 {
 	/// Indicates whether eyes are present.

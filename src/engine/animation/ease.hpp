@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /*
@@ -38,18 +38,16 @@
 #include <engine/math/functions.hpp>
 #include <cmath>
 
-/**
- * Container for templated easing functions.
- *
- * All easing functions require the following operators to be defined:
- *
- *     value_type operator+(const value_type&, const value_type&);
- *     value_type operator-(const value_type&, const value_type&);
- *     value_type operator*(const value_type&, scalar_type);
- *
- * @tparam T Value type.
- * @tparam S Scalar type.
- */
+/// Container for templated easing functions.
+/// 
+/// All easing functions require the following operators to be defined:
+/// 
+///     value_type operator+(const value_type&, const value_type&);
+///     value_type operator-(const value_type&, const value_type&);
+///     value_type operator*(const value_type&, scalar_type);
+/// 
+/// @tparam T Value type.
+/// @tparam S Scalar type.
 template <typename T, typename S = float>
 struct ease
 {

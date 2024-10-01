@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_VIEWPORT_HPP
@@ -8,9 +8,7 @@
 
 namespace gl {
 
-/**
- * Viewport position, dimensions, and depth range.
- */
+/// Viewport position, dimensions, and depth range.
 struct viewport
 {
 	/// X-coordinate of the viewport's lower left corner.

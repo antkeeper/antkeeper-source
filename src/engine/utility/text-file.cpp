@@ -1,18 +1,14 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/utility/text-file.hpp>
 #include <engine/resources/deserializer.hpp>
 #include <engine/resources/resource-loader.hpp>
 
-/**
- * Deserializes a text file.
- *
- * @param[out] file Text file to deserialize.
- * @param[in,out] ctx Deserialize context.
- *
- * @throw deserialize_error Read error.
- */
+/// Deserializes a text file.
+/// @param[out] file Text file to deserialize.
+/// @param[in,out] ctx Deserialize context.
+/// @throw deserialize_error Read error.
 template <>
 void deserializer<text_file>::deserialize(text_file& file, deserialize_context& ctx)
 {

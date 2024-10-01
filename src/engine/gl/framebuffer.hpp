@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_FRAMEBUFFER_HPP
@@ -13,32 +13,23 @@
 
 namespace gl {
 
-/**
- *
- */
+/// Framebuffer object.
 class framebuffer
 {
 public:
-	/**
-	 * Constructs a framebuffer.
-	 *
-	 * @param attachments Framebuffer attachments.
-	 * @param width Width of the framebuffer.
-	 * @param height Height of the framebuffer.
-	 */
+	/// Constructs a framebuffer.
+	/// @param attachments Framebuffer attachments.
+	/// @param width Width of the framebuffer.
+	/// @param height Height of the framebuffer.
 	framebuffer(std::span<const framebuffer_attachment> attachments, std::uint32_t width, std::uint32_t height);
 	
 	/// Destroys a framebuffer.
 	~framebuffer();
 	
-	/**
-	 * Resizes the framebuffer.
-	 *
-	 * @param width New width of the framebuffer.
-	 * @param height New height of the framebuffer.
-	 *
-	 * @warning Does not resize framebuffer attachments.
-	 */
+	/// Resizes the framebuffer.
+	/// @param width New width of the framebuffer.
+	/// @param height New height of the framebuffer.
+	/// @warning Does not resize framebuffer attachments.
 	void resize(std::uint32_t width, std::uint32_t height);
 	
 	/// Returns the framebuffer attachments.

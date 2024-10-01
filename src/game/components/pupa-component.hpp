@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_PUPA_COMPONENT_HPP
@@ -7,9 +7,6 @@
 #include <engine/entity/id.hpp>
 #include <engine/render/material-variable.hpp>
 
-/**
- * Pupal development parameters.
- */
 struct pupa_component
 {
 	/// Duration of the development period, in days.

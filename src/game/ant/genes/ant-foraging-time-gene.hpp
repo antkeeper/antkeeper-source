@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_FORAGING_TIME_GENE_HPP
@@ -6,9 +6,7 @@
 
 #include "game/ant/genes/ant-gene.hpp"
 
-/**
- * Ant foraging time phene.
- */
+/// Ant foraging time phene.
 struct ant_foraging_time_phene
 {
 	/// Minimum solar altitude, in radians, at which foraging occurs.

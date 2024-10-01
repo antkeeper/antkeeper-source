@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_SCENE_DIRECTIONAL_LIGHT_HPP
@@ -12,16 +12,14 @@
 
 namespace scene {
 
-/**
- * Light source with parallel rays and constant intensity.
- */
+/// Light source with parallel rays and constant intensity.
 class directional_light: public light
 {
 public:
 	/// Creates a directional light.
 	directional_light();
 	
-	/** Destructs a directional light. */
+	/// Destructs a directional light.
 	~directional_light() override = default;
 	
 	/// Returns light_type::directional.
@@ -33,29 +31,20 @@ public:
 	/// @name Light
 	/// @{
 	
-	/**
-	 * Sets the direction of the directional light.
-	 *
-	 * @param direction Unit-length light direction vector.
-	 */
+	/// Sets the direction of the directional light.
+	/// @param direction Unit-length light direction vector.
 	void set_direction(const math::fvec3& direction);
 	
-	/**
-	 * Sets the color of the light.
-	 *
-	 * @param color Light color.
-	 */
+	/// Sets the color of the light.
+	/// @param color Light color.
 	inline void set_color(const math::fvec3& color) noexcept
 	{
 		m_color = color;
 		color_updated();
 	}
 	
-	/**
-	 * Sets the illuminance of the light on a surface perpendicular to the light direction.
-	 *
-	 * @param illuminance Illuminance on a surface perpendicular to the light direction.
-	 */
+	/// Sets the illuminance of the light on a surface perpendicular to the light direction.
+	/// @param illuminance Illuminance on a surface perpendicular to the light direction.
 	inline void set_illuminance(float illuminance) noexcept
 	{
 		m_illuminance = illuminance;
@@ -91,55 +80,33 @@ public:
 	/// @name Shadow
 	/// @{
 	
-	/**
-	 * Enables or disables shadow casting.
-	 *
-	 * @param caster `true` if the light should cast shadows, `false` otherwise.
-	 */
+	/// Enables or disables shadow casting.
+	/// @param caster `true` if the light should cast shadows, `false` otherwise.
 	void set_shadow_caster(bool caster) noexcept;
 	
-	/**
-	 * Sets the shadow map framebuffer.
-	 *
-	 * @param framebuffer Pointer to a shadow map framebuffer.
-	 */
+	/// Sets the shadow map framebuffer.
+	/// @param framebuffer Pointer to a shadow map framebuffer.
 	void set_shadow_framebuffer(std::shared_ptr<gl::framebuffer> framebuffer) noexcept;
 	
-	/**
-	 * Sets the shadow bias factor for reducing self-shadowing.
-	 *
-	 * @param bias Shadow bias factor.
-	 */
+	/// Sets the shadow bias factor for reducing self-shadowing.
+	/// @param bias Shadow bias factor.
 	void set_shadow_bias(float bias) noexcept;
 	
-	/**
-	 * Sets the number of shadow cascades.
-	 *
-	 * @param count Number of shadow cascades, on `[1, 4]`.
-	 *
-	 * @note The number of shadow cascades will be clamped to `[1, 4]`.
-	 */
+	/// Sets the number of shadow cascades.
+	/// @param count Number of shadow cascades, on `[1, 4]`.
+	/// @note The number of shadow cascades will be clamped to `[1, 4]`.
 	void set_shadow_cascade_count(unsigned int count) noexcept;
 	
-	/**
-	 * Sets the maximum distance from a camera's near clipping plane up to which shadows are visible.
-	 *
-	 * @param distance Maximum shadow distance.
-	 */
+	/// Sets the maximum distance from a camera's near clipping plane up to which shadows are visible.
+	/// @param distance Maximum shadow distance.
 	void set_shadow_max_distance(float distance) noexcept;
 	
-	/**
-	 * Sets the distance from the maximum shadow distance at which shadows will begin to fade out.
-	 *
-	 * @param range Shadow fade range.
-	 */
+	/// Sets the distance from the maximum shadow distance at which shadows will begin to fade out.
+	/// @param range Shadow fade range.
 	void set_shadow_fade_range(float range) noexcept;
 	
-	/**
-	 * Sets the shadow cascade distribution.
-	 *
-	 * @param weight Linear interpolation weight between uniform and logarithmic cascade distributions. A weight of `0.0` results in a uniform cascade distribution, while `1.0` results in a logarithmic distribution.
-	 */
+	/// Sets the shadow cascade distribution.
+	/// @param weight Linear interpolation weight between uniform and logarithmic cascade distributions. A weight of `0.0` results in a uniform cascade distribution, while `1.0` results in a logarithmic distribution.
 	void set_shadow_cascade_distribution(float weight) noexcept;
 	
 	/// Returns `true` if the light casts shadows, `false` otherwise.
@@ -191,16 +158,16 @@ public:
 	}
 	
 	/// Returns the array of shadow cascade far clipping plane distances.
-	/// @{
-	[[nodiscard]] inline constexpr const math::fvec4& get_shadow_cascade_distances() const noexcept
-	{
-		return m_shadow_cascade_distances;
-	}
 	[[nodiscard]] inline constexpr math::fvec4& get_shadow_cascade_distances() noexcept
 	{
 		return m_shadow_cascade_distances;
 	}
-	/// @}
+
+	/// @copydoc get_shadow_cascade_distances()
+	[[nodiscard]] inline constexpr const math::fvec4& get_shadow_cascade_distances() const noexcept
+	{
+		return m_shadow_cascade_distances;
+	}
 	
 	/// Returns the array of shadow cascade scale-bias matrices.
 	[[nodiscard]] inline constexpr std::span<const math::fmat4> get_shadow_scale_bias_matrices() const noexcept
@@ -209,16 +176,16 @@ public:
 	}
 	
 	/// Returns the array of world-space to cascade texture-space transformation matrices.
-	/// @{
-	[[nodiscard]] inline constexpr std::span<const math::fmat4> get_shadow_cascade_matrices() const noexcept
-	{
-		return m_shadow_cascade_matrices;
-	}
 	[[nodiscard]] inline constexpr std::span<math::fmat4> get_shadow_cascade_matrices() noexcept
 	{
 		return m_shadow_cascade_matrices;
 	}
-	/// @}
+
+	/// @copydoc get_shadow_cascade_matrices()
+	[[nodiscard]] inline constexpr std::span<const math::fmat4> get_shadow_cascade_matrices() const noexcept
+	{
+		return m_shadow_cascade_matrices;
+	}
 	
 	/// @}
 

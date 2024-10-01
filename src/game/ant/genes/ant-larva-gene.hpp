@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_LARVA_GENE_HPP
@@ -9,9 +9,7 @@
 #include <cstdint>
 #include <memory>
 
-/**
- * Ant larva phene.
- */
+/// Ant larva phene.
 struct ant_larva_phene
 {
 	/// Duration required for the larva to develop into a pupa, in days.

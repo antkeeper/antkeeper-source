@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_PHYSICS_SYSTEM_HPP
@@ -16,9 +16,6 @@
 #include <optional>
 #include <tuple>
 
-/**
- *
- */
 class physics_system:
 	public updatable_system
 {
@@ -30,25 +27,18 @@ public:
 	
 	void interpolate(float alpha);
 	
-	/**
-	 * Sets the gravity vector.
-	 *
-	 * @param gravity Gravity vector.
-	 */
+	/// Sets the gravity vector.
+	/// @param gravity Gravity vector.
 	inline void set_gravity(const math::fvec3& gravity) noexcept
 	{
 		m_gravity = gravity;
 	}
 	
-	/**
-	 * Traces a ray to the nearest point of intersection.
-	 *
-	 * @param ray World-spce ray.
-	 * @param ignore_eid Entity ID with which to ignore intersection.
-	 * @param layer_mask Mask of collision layers with which the ray can intersect.
-	 *
-	 * @return Tuple containing the ID of the nearest intersecting entity, distance along the ray to the point of intersection, index of the hit face, and surface normal at the point of intersection; or std::nullopt if no intersection occurred.
-	 */
+	/// Traces a ray to the nearest point of intersection.
+	/// @param ray World-spce ray.
+	/// @param ignore_eid Entity ID with which to ignore intersection.
+	/// @param layer_mask Mask of collision layers with which the ray can intersect.
+	/// @return Tuple containing the ID of the nearest intersecting entity, distance along the ray to the point of intersection, index of the hit face, and surface normal at the point of intersection; or std::nullopt if no intersection occurred.
 	[[nodiscard]] std::optional<std::tuple<entity::id, float, std::uint32_t, math::fvec3>> trace(const geom::ray<float, 3>& ray, entity::id ignore_eid = entt::null, std::uint32_t layer_mask = ~std::uint32_t{0}) const;
 	
 private:

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_MATH_MOVING_AVERAGE_HPP
@@ -15,11 +15,8 @@
 
 namespace math {
 
-/**
- * Calculates a moving average.
- * 
- * @tparam T Sample value type.
- */
+/// Calculates a moving average.
+/// @tparam T Sample value type.
 template <class T>
 class moving_average
 {
@@ -27,25 +24,18 @@ public:
 	/// Type of value to average.
 	using sample_type = T;
 	
-	/**
-	 * Constructs a moving average
-	 *
-	 * @param capacity Sample capacity.
-	 */
-	/// @{
+	/// Constructs a moving average.
+	/// @param capacity Sample capacity.
 	explicit moving_average(std::size_t capacity):
 		m_samples(capacity)
 	{}
+
+	/// Constructs a moving average.
 	moving_average() noexcept = default;
-	/// @}
 	
-	/**
-	 * Adds a sample to the moving average. If the moving average has reached its sample capacity, the oldest sample will be discarded.
-	 *
-	 * @param value Sample value.
-	 *
-	 * @return Current average value.
-	 */
+	/// Adds a sample to the moving average. If the moving average has reached its sample capacity, the oldest sample will be discarded.
+	/// @param value Sample value.
+	/// @return Current average value.
 	sample_type operator()(sample_type value) noexcept
 	{
 		m_sum += value;
@@ -67,9 +57,7 @@ public:
 		return m_average;
 	}
 	
-	/**
-	 * Resets the moving average.
-	 */
+	/// Resets the moving average.
 	void reset() noexcept
 	{
 		m_sample_index = 0;
@@ -77,21 +65,15 @@ public:
 		m_average = sample_type{0};
 	}
 	
-	/**
-	 * Changes the sample capacity of the moving average.
-	 *
-	 * @param capacity Sample capacity.
-	 */
+	/// Changes the sample capacity of the moving average.
+	/// @param capacity Sample capacity.
 	void reserve(std::size_t capacity)
 	{
 		m_samples.resize(capacity, sample_type{0});
 	}
 	
-	/**
-	 * Changes the current number of samples of the moving average.
-	 *
-	 * @param size Number of samples
-	 */
+	/// Changes the current number of samples of the moving average.
+	/// @param size Number of samples
 	void resize(std::size_t size)
 	{
 		if (size > m_samples.size())

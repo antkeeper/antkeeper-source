@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_NOISE_SIMPLEX_HPP
@@ -19,57 +19,39 @@
 
 namespace noise {
 
-/**
- * Number of corners in an *n*-dimensional simplex lattice cell.
- *
- * @private
- */
+/// Number of corners in an *n*-dimensional simplex lattice cell.
+/// @private
 template <std::size_t N>
 constexpr std::size_t simplex_corner_count = std::size_t(2) << std::max<std::size_t>(0, N - 1);
 
-/**
- * Number of edges in an *n*-dimensional simplex lattice cell.
- *
- * @private
- */
+/// Number of edges in an *n*-dimensional simplex lattice cell.
+/// @private
 template <std::size_t N>
 constexpr std::size_t simplex_edge_count = (N > 1) ? N * simplex_corner_count<N - 1> : 2;
 
-/**
- * Returns the simplex lattice cell corner vector for a given dimension and index.
- *
- * @private
- */
+/// Returns the simplex lattice cell corner vector for a given dimension and index.
+/// @private
 template <class T, std::size_t N, std::size_t... I>
 [[nodiscard]] constexpr math::vector<T, N> make_simplex_corner(std::size_t i, std::index_sequence<I...>)
 {
 	return {((i >> I) % 2) * T{2} - T{1}...};
 }
 
-/**
- * Builds an array of simplex lattice cell corner vectors for a given dimension.
- *
- * @private
- */
+/// Builds an array of simplex lattice cell corner vectors for a given dimension.
+/// @private
 template <class T, std::size_t N, std::size_t... I>
 [[nodiscard]] constexpr std::array<math::vector<T, N>, simplex_corner_count<N>> make_simplex_corners(std::index_sequence<I...>)
 {
 	return {make_simplex_corner<T, N>(I, std::make_index_sequence<N>{})...};
 }
 
-/**
- * Array of simplex lattice cell corner vectors for a given dimension.
- *
- * @private
- */
+/// Array of simplex lattice cell corner vectors for a given dimension.
+/// @private
 template <class T, std::size_t N>
 constexpr auto simplex_corners = make_simplex_corners<T, N>(std::make_index_sequence<simplex_corner_count<N>>{});
 
-/**
- * Returns the simplex lattice cell edge vector for a given dimension and index.
- *
- * @private
- */
+/// Returns the simplex lattice cell edge vector for a given dimension and index.
+/// @private
 template <class T, std::size_t N, std::size_t... I>
 [[nodiscard]] constexpr math::vector<T, N> make_simplex_edge(std::size_t i, std::index_sequence<I...>)
 {
@@ -88,11 +70,8 @@ template <class T, std::size_t N, std::size_t... I>
 	};
 }
 
-/**
- * Builds an array of simplex lattice cell edge vectors for a given dimension.
- *
- * @private
- */
+/// Builds an array of simplex lattice cell edge vectors for a given dimension.
+/// @private
 template <class T, std::size_t N, std::size_t... I>
 [[nodiscard]] constexpr std::array<math::vector<T, N>, simplex_edge_count<N>> make_simplex_edges(std::index_sequence<I...>)
 {
@@ -102,31 +81,22 @@ template <class T, std::size_t N, std::size_t... I>
 		return {make_simplex_edge<T, N>(I, std::make_index_sequence<N>{})...};
 }
 
-/**
- * Array of simplex lattice cell edge vectors for a given dimension.
- *
- * @private
- */
+/// Array of simplex lattice cell edge vectors for a given dimension.
+/// @private
 template <class T, std::size_t N>
 constexpr auto simplex_edges = make_simplex_edges<T, N>(std::make_index_sequence<simplex_edge_count<N>>{});
 
-/**
- * *n*-dimensional simplex noise.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- *
- * @param position Input position.
- * @param hash Hash function.
- *
- * @return Noise value, on `[-1, 1]`.
- *
- * @see https://en.wikipedia.org/wiki/Simplex_noise
- * @see https://catlikecoding.com/unity/tutorials/pseudorandom-noise/simplex-noise/
- * @see https://briansharpe.wordpress.com/2012/01/13/simplex-noise/
- * @see https://briansharpe.wordpress.com/2011/11/14/two-useful-interpolation-functions-for-noise-development/
- * @see https://math.stackexchange.com/questions/474638/radius-and-amplitude-of-kernel-for-simplex-noise/1901116
- */
+/// *n*-dimensional simplex noise.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @param position Input position.
+/// @param hash Hash function.
+/// @return Noise value, on `[-1, 1]`.
+/// @see https://en.wikipedia.org/wiki/Simplex_noise
+/// @see https://catlikecoding.com/unity/tutorials/pseudorandom-noise/simplex-noise/
+/// @see https://briansharpe.wordpress.com/2012/01/13/simplex-noise/
+/// @see https://briansharpe.wordpress.com/2011/11/14/two-useful-interpolation-functions-for-noise-development/
+/// @see https://math.stackexchange.com/questions/474638/radius-and-amplitude-of-kernel-for-simplex-noise/1901116
 template <class T, std::size_t N>
 [[nodiscard]] T simplex
 (
@@ -141,13 +111,9 @@ template <class T, std::size_t N>
 	// Kernel radius set to the height of the equilateral triangle, `sqrt(0.5)`
 	constexpr T sqr_kernel_radius = T{0.5};
 	
-	/**
-	 * C2-continuous kernel falloff function.
-	 *
-	 * @param sqr_distance Squared distance from the kernel center.
-	 *
-	 * @return Kernel strength at the given distance.
-	 */
+	// C2-continuous kernel falloff function.
+	// @param sqr_distance Squared distance from the kernel center.
+	// @return Kernel strength at the given distance.
 	auto falloff = [sqr_kernel_radius](T sqr_distance) constexpr
 	{
 		sqr_distance = sqr_kernel_radius - sqr_distance;

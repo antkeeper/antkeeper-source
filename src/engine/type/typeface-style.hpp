@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_TYPE_TYPEFACE_STYLE_HPP
@@ -8,13 +8,13 @@
 
 namespace type {
 
-/** Typeface style bitmask bits. */
+/// Typeface style bitmask bits.
 enum typeface_style_bits: std::uint32_t
 {
-	/** Inidicates a typeface is italic. */
+	/// Inidicates a typeface is italic.
 	typeface_style_italic_bit = 0b01,
 	
-	/** Inidicates a typeface is bold. */
+	/// Inidicates a typeface is bold.
 	typeface_style_bold_bit   = 0b10
 };
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GEOM_SOLID_ANGLE_HPP
@@ -12,15 +12,12 @@ namespace geom {
 /// Solid angle functions.
 namespace solid_angle {
 
-/**
- * Calculates the solid angle of a cone.
- * 
- * @param theta Apex angle of the cone, in radians.
- *
- * @return Solid angle of the cone, in steradians.
- */
+/// Calculates the solid angle of a cone.
+/// @tparam T Real type.
+/// @param theta Apex angle of the cone, in radians.
+/// @return Solid angle of the cone, in steradians.
 template <class T>
-T cone(T theta)
+[[nodiscard]] T cone(T theta)
 {
 	return math::two_pi<T> * (T(1) - std::cos(theta));
 }

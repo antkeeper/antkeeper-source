@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_MATH_QUADRATURE_HPP
@@ -13,16 +13,11 @@
 
 namespace math {
 
-/**
- * Approximates the definite integral of a function using Simpson's 1/3 rule.
- *
- * @param f Unary function object to integrate.
- * @param first,last Range of sample points on `[first, last)`.
- *
- * @return Approximated integral of @p f.
- *
- * @see https://en.wikipedia.org/wiki/Simpson%27s_rule
- */
+/// Approximates the definite integral of a function using Simpson's 1/3 rule.
+/// @param f Unary function object to integrate.
+/// @param first,last Range of sample points on `[first, last)`.
+/// @return Approximated integral of @p f.
+/// @see https://en.wikipedia.org/wiki/Simpson%27s_rule
 template<class UnaryOp, class InputIt>
 [[nodiscard]] typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::value_type>::type
 	simpson(UnaryOp f, InputIt first, InputIt last)
@@ -66,16 +61,11 @@ template<class UnaryOp, class InputIt>
 	return sum / difference_type(6);
 }
 
-/**
- * Approximates the definite integral of a function using the trapezoidal rule.
- *
- * @param f Unary function object to integrate.
- * @param first,last Range of sample points on `[first, last)`.
- *
- * @return Approximated integral of @p f.
- *
- * @see https://en.wikipedia.org/wiki/Trapezoidal_rule
- */
+/// Approximates the definite integral of a function using the trapezoidal rule.
+/// @param f Unary function object to integrate.
+/// @param first,last Range of sample points on `[first, last)`.
+/// @return Approximated integral of @p f.
+/// @see https://en.wikipedia.org/wiki/Trapezoidal_rule
 template<class UnaryOp, class InputIt>
 [[nodiscard]] typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::value_type>::type
 	trapezoid(UnaryOp f, InputIt first, InputIt last)

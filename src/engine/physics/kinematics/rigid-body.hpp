@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_PHYSICS_RIGID_BODY_HPP
@@ -12,204 +12,150 @@
 
 namespace physics {
 
-/**
- * Rigid body.
- */
+/// Rigid body.
 class rigid_body
 {
 public:
-	/**
-	 * Sets the transformation representing the current state of the rigid body.
-	 *
-	 * @param transform Transformation representing the current state of the rigid body.
-	 */
+	/// Sets the transformation representing the current state of the rigid body.
+	/// @param transform Transformation representing the current state of the rigid body.
 	inline constexpr void set_transform(const math::transform<float>& transform) noexcept
 	{
 		m_current_transform = transform;
 	}
 	
-	/**
-	 * Sets the current position of the rigid body.
-	 *
-	 * @param position Position of the rigid body.
-	 */
+	/// Sets the current position of the rigid body.
+	/// @param position Position of the rigid body.
 	inline constexpr void set_position(const math::fvec3& position) noexcept
 	{
 		m_current_transform.translation = position;
 	}
 	
-	/**
-	 * Sets the current orientation of the rigid body.
-	 *
-	 * @param orientation Orientation of the rigid body.
-	 */
+	/// Sets the current orientation of the rigid body.
+	/// @param orientation Orientation of the rigid body.
 	inline constexpr void set_orientation(const math::fquat& orientation) noexcept
 	{
 		m_current_transform.rotation = orientation;
 	}
 	
-	/**
-	 * Sets the current scale of the rigid body.
-	 *
-	 * @param scale Scale of the rigid body.
-	 */
-	/// @{
+	/// Sets the current scale of the rigid body.
+	/// @param scale Scale of the rigid body.
 	inline constexpr void set_scale(const math::fvec3& scale) noexcept
 	{
 		m_current_transform.scale = scale;
 	}
+
+	/// Sets the current scale of the rigid body.
+	/// @param scale Scale of the rigid body.
 	inline constexpr void set_scale(float scale) noexcept
 	{
 		m_current_transform.scale = {scale, scale, scale};
 	}
-	/// @}
 	
-	/**
-	 * Sets the transformation representing the previous state of the rigid body.
-	 *
-	 * @param transform Transformation representing the previous state of the rigid body.
-	 */
+	/// Sets the transformation representing the previous state of the rigid body.
+	/// @param transform Transformation representing the previous state of the rigid body.
 	inline constexpr void set_previous_transform(const math::transform<float>& transform) noexcept
 	{
 		m_previous_transform = transform;
 	}
 	
-	/**
-	 * Sets the previous position of the rigid body.
-	 *
-	 * @param position Position of the rigid body.
-	 */
+	/// Sets the previous position of the rigid body.
+	/// @param position Position of the rigid body.
 	inline constexpr void set_previous_position(const math::fvec3& position) noexcept
 	{
 		m_previous_transform.translation = position;
 	}
 	
-	/**
-	 * Sets the previous orientation of the rigid body.
-	 *
-	 * @param orientation Orientation of the rigid body.
-	 */
+	/// Sets the previous orientation of the rigid body.
+	/// @param orientation Orientation of the rigid body.
 	inline constexpr void set_previous_orientation(const math::fquat& orientation) noexcept
 	{
 		m_previous_transform.rotation = orientation;
 	}
 	
-	/**
-	 * Sets the previous scale of the rigid body.
-	 *
-	 * @param scale Scale of the rigid body.
-	 */
-	/// @{
+	/// Sets the previous scale of the rigid body.
+	/// @param scale Scale of the rigid body.
 	inline constexpr void set_previous_scale(const math::fvec3& scale) noexcept
 	{
 		m_previous_transform.scale = scale;
 	}
+
+	/// Sets the previous scale of the rigid body.
+	/// @param scale Scale of the rigid body.
 	inline constexpr void set_previous_scale(float scale) noexcept
 	{
 		m_previous_transform.scale = {scale, scale, scale};
 	}
-	/// @}
 	
-	/**
-	 * Sets the center of mass of the rigid body.
-	 *
-	 * @param point World-space center of mass.
-	 */
+	/// Sets the center of mass of the rigid body.
+	/// @param point World-space center of mass.
 	inline constexpr void set_center_of_mass(const math::fvec3& point) noexcept
 	{
 		m_center_of_mass = point;
 	}
 	
-	/**
-	 * Sets mass of the rigid body.
-	 *
-	 * @param mass Mass, in kg.
-	 */
+	/// Sets mass of the rigid body.
+	/// @param mass Mass, in kg.
 	inline constexpr void set_mass(float mass) noexcept
 	{
 		m_mass = mass;
 		m_inverse_mass = (mass) ? 1.0f / mass : 0.0f;
 	}
 	
-	/**
-	 * Sets the moment of inertia of the rigid body.
-	 *
-	 * @param inertia Moment of inertia, in kg⋅m^2.
-	 */
+	/// Sets the moment of inertia of the rigid body.
+	/// @param inertia Moment of inertia, in kg⋅m^2.
 	inline constexpr void set_inertia(float inertia) noexcept
 	{
 		m_inertia = inertia;
 		m_inverse_inertia = (inertia) ? 1.0f / inertia : 0.0f;
 	}
 	
-	/**
-	 * Sets the collider of the rigid body.
-	 *
-	 * @param collider Shared pointer to a collider.
-	 */
+	/// Sets the collider of the rigid body.
+	/// @param collider Shared pointer to a collider.
 	inline void set_collider(std::shared_ptr<collider> collider) noexcept
 	{
 		m_collider = collider;
 	}
 	
-	/**
-	 * Sets the linear damping factor of the rigid body.
-	 *
-	 * @param damping Linear damping factor.
-	 */
+	/// Sets the linear damping factor of the rigid body.
+	/// @param damping Linear damping factor.
 	inline constexpr void set_linear_damping(float damping) noexcept
 	{
 		m_linear_damping = damping;
 	}
 	
-	/**
-	 * Sets the angular damping factor of the rigid body.
-	 *
-	 * @param damping Angular damping factor.
-	 */
+	/// Sets the angular damping factor of the rigid body.
+	/// @param damping Angular damping factor.
 	inline constexpr void set_angular_damping(float damping) noexcept
 	{
 		m_angular_damping = damping;
 	}
 	
-	/**
-	 * Sets the linear momentum of the rigid body.
-	 *
-	 * @param momentum Linear momentum, in kg⋅m/s.
-	 */
+	/// Sets the linear momentum of the rigid body.
+	/// @param momentum Linear momentum, in kg⋅m/s.
 	inline constexpr void set_linear_momentum(const math::fvec3& momentum) noexcept
 	{
 		m_linear_momentum = momentum;
 		m_linear_velocity = m_inverse_mass * m_linear_momentum;
 	}
 	
-	/**
-	 * Sets the angular momentum of the rigid body.
-	 *
-	 * @param momentum Angular momentum, in kg⋅m^2⋅s^-1.
-	 */
+	/// Sets the angular momentum of the rigid body.
+	/// @param momentum Angular momentum, in kg⋅m^2⋅s^-1.
 	inline constexpr void set_angular_momentum(const math::fvec3& momentum) noexcept
 	{
 		m_angular_momentum = momentum;
 		m_angular_velocity = m_inverse_inertia * m_angular_momentum;
 	}
 	
-	/**
-	 * Sets the linear velocity of the rigid body.
-	 *
-	 * @param velocity Linear velocity, in m/s.
-	 */
+	/// Sets the linear velocity of the rigid body.
+	/// @param velocity Linear velocity, in m/s.
 	inline constexpr void set_linear_velocity(const math::fvec3& velocity) noexcept
 	{
 		m_linear_velocity = velocity;
 		m_linear_momentum = m_mass * m_linear_velocity;
 	}
 	
-	/**
-	 * Sets the angular velocity of the rigid body.
-	 *
-	 * @param velocity Angular velocity, rad/s.
-	 */
+	/// Sets the angular velocity of the rigid body.
+	/// @param velocity Angular velocity, rad/s.
 	inline constexpr void set_angular_velocity(const math::fvec3& velocity) noexcept
 	{
 		m_angular_velocity = velocity;
@@ -348,64 +294,46 @@ public:
 		return m_applied_torque;
 	}
 	
-	/**
-	 * Calculates the total velocity at a point on the rigid body.
-	 *
-	 * @param radius Radius vector from the center of mass to the point at which the velocity should be calculated.
-	 *
-	 * @return Point velocity.
-	 */
+	/// Calculates the total velocity at a point on the rigid body.
+	/// @param radius Radius vector from the center of mass to the point at which the velocity should be calculated.
+	/// @return Point velocity.
 	[[nodiscard]] inline constexpr math::fvec3 get_point_velocity(const math::fvec3& radius) const noexcept
 	{
 		return m_linear_velocity + math::cross(m_angular_velocity, radius);
 	}
 	
-	/**
-	 * Returns `true` if the rigid body is static, `false` otherwise.
-	 */
+	/// Returns `true` if the rigid body is static, `false` otherwise.
 	[[nodiscard]] inline constexpr bool is_static() const noexcept
 	{
 		return (m_mass == 0.0f);
 	}
 	
-	/**
-	 * Applies a force at a point on the rigid body.
-	 *
-	 * @param force Force to apply, in N.
-	 * @param radius Radius vector from the center of mass to the point at which the force should be applied.
-	 */
+	/// Applies a force at a point on the rigid body.
+	/// @param force Force to apply, in N.
+	/// @param radius Radius vector from the center of mass to the point at which the force should be applied.
 	inline constexpr void apply_force(const math::fvec3& force, const math::fvec3& radius) noexcept
 	{
 		m_applied_force += force;
 		m_applied_torque += math::cross(radius, force);
 	}
 	
-	/**
-	 * Applies a force at the center of mass of the rigid body.
-	 *
-	 * @param force Force to apply, in N.
-	 */
+	/// Applies a force at the center of mass of the rigid body.
+	/// @param force Force to apply, in N.
 	inline constexpr void apply_central_force(const math::fvec3& force) noexcept
 	{
 		m_applied_force += force;
 	}
 	
-	/**
-	 * Applies a torque to the rigid body.
-	 *
-	 * @param torque Torque to apply.
-	 */
+	/// Applies a torque to the rigid body.
+	/// @param torque Torque to apply.
 	inline constexpr void apply_torque(const math::fvec3& torque) noexcept
 	{
 		m_applied_torque += torque;
 	}
 	
-	/**
-	 * Applies an impulse at a point on the rigid body.
-	 *
-	 * @param impulse Impulse to apply, in N⋅s.
-	 * @param radius Radius vector from the center of mass to the point at which the impulse should be applied.
-	 */
+	/// Applies an impulse at a point on the rigid body.
+	/// @param impulse Impulse to apply, in N⋅s.
+	/// @param radius Radius vector from the center of mass to the point at which the impulse should be applied.
 	inline constexpr void apply_impulse(const math::fvec3& impulse, const math::fvec3& radius) noexcept
 	{
 		m_linear_momentum += impulse;
@@ -416,11 +344,8 @@ public:
 		m_angular_velocity = m_inverse_inertia * m_angular_momentum;
 	}
 	
-	/**
-	 * Applies an impulse at the center of mass of the rigid body.
-	 *
-	 * @param impulse Impulse to apply, in N⋅s.
-	 */
+	/// Applies an impulse at the center of mass of the rigid body.
+	/// @param impulse Impulse to apply, in N⋅s.
 	inline constexpr void apply_central_impulse(const math::fvec3& impulse) noexcept
 	{
 		m_linear_momentum += impulse;
@@ -429,11 +354,8 @@ public:
 		m_linear_velocity = m_inverse_mass * m_linear_momentum;
 	}
 	
-	/**
-	 * Applies a torque impulse to the rigid body.
-	 *
-	 * @param torque Torque impulse to apply.
-	 */
+	/// Applies a torque impulse to the rigid body.
+	/// @param torque Torque impulse to apply.
 	inline constexpr void apply_torque_impulse(const math::fvec3& torque) noexcept
 	{
 		m_angular_momentum += torque;
@@ -449,38 +371,25 @@ public:
 		m_applied_torque = {};
 	}
 	
-	/**
-	 * Integrates forces, updating the momentums and velocities of the rigid body.
-	 *
-	 * @param dt Timestep, in seconds.
-	 */
+	/// Integrates forces, updating the momentums and velocities of the rigid body.
+	/// @param dt Timestep, in seconds.
 	void integrate_forces(float dt) noexcept;
 	
-	/**
-	 * Integrates velocities, updating the center of mass and orientation of the rigid body.
-	 *
-	 * @param dt Timestep, in seconds.
-	 */
+	/// Integrates velocities, updating the center of mass and orientation of the rigid body.
+	/// @param dt Timestep, in seconds.
 	void integrate_velocities(float dt) noexcept;
 	
-	/**
-	 * Integrates forces and velocities.
-	 *
-	 * @param dt Timestep, in seconds.
-	 */
+	/// Integrates forces and velocities.
+	/// @param dt Timestep, in seconds.
 	inline void integrate(float dt) noexcept
 	{
 		integrate_forces(dt);
 		integrate_velocities(dt);
 	}
 	
-	/**
-	 * Returns a transformation representing a state of the rigid body between its current and previous states.
-	 *
-	 * @param alpha State interpolation factor.
-	 *
-	 * @return Interpolated transformation.
-	 */
+	/// Returns a transformation representing a state of the rigid body between its current and previous states.
+	/// @param alpha State interpolation factor.
+	/// @return Interpolated transformation.
 	[[nodiscard]] math::transform<float> interpolate(float alpha) const;
 	
 private:

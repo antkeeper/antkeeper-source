@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_NOISE_VORONOI_HPP
@@ -27,76 +27,52 @@
 
 namespace noise {
 
-/**
- * Number of Voronoi cells to search.
- *
- * @tparam N Number of dimensions.
- *
- * @private
- */
+/// Number of Voronoi cells to search.
+/// @tparam N Number of dimensions.
+/// @private
 template <std::size_t N>
 constexpr std::size_t voronoi_kernel_size = 4 << std::max<std::size_t>(0, (2 * (N - 1)));
 
-/**
- * Generates an kernel offset vector for a given index.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- * @tparam I Index sequence.
- *
- * @param i Index of a kernel offset vector.
- *
- * @return Kernel offset vector.
- *
- * @private
- */
+/// Generates an kernel offset vector for a given index.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @tparam I Index sequence.
+/// @param i Index of a kernel offset vector.
+/// @return Kernel offset vector.
+/// @private
 template <class T, std::size_t N, std::size_t... I>
 [[nodiscard]] constexpr math::vector<T, N> voronoi_kernel_offset(std::size_t i, std::index_sequence<I...>)
 {
 	return {static_cast<T>((I ? (i / (2 << std::max<std::size_t>(0, 2 * I - 1))) : i) % 4)...};
 }
 
-/**
- * Generates a Voronoi search kernel.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- * @tparam I Index sequence.
- *
- * @return Voronoi search kernel.
- *
- * @private
- */
+/// Generates a Voronoi search kernel.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @tparam I Index sequence.
+/// @return Voronoi search kernel.
+/// @private
 template <class T, std::size_t N, std::size_t... I>
 [[nodiscard]] constexpr std::array<math::vector<T, N>, voronoi_kernel_size<N>> voronoi_generate_kernel(std::index_sequence<I...>)
 {
 	return {voronoi_kernel_offset<T, N>(I, std::make_index_sequence<N>{})...};
 }
 
-/**
- * *n*-dimensional search kernel.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- *
- * @private
- */
+/// *n*-dimensional search kernel.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @private
 template <class T, std::size_t N>
 constexpr auto voronoi_kernel = voronoi_generate_kernel<T, N>(std::make_index_sequence<voronoi_kernel_size<N>>{});
 
-/**
- * Finds the Voronoi cell (F1) containing the input position.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- *
- * @param position Input position.
- * @param randomness Degree of randomness, on `[0, 1]`.
- * @param tiling Distance at which the Voronoi pattern should repeat. A value of `0` indicates no repetition.
- * @param hash Hash function.
- *
- * @return Tuple containing the square Euclidean distance from @p position to the F1 cell, the displacement vector from the input position to the F1 cell center, and a hash value indicating the ID of the F1 cell.
- */
+/// Finds the Voronoi cell (F1) containing the input position.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @param position Input position.
+/// @param randomness Degree of randomness, on `[0, 1]`.
+/// @param tiling Distance at which the Voronoi pattern should repeat. A value of `0` indicates no repetition.
+/// @param hash Hash function.
+/// @return Tuple containing the square Euclidean distance from @p position to the F1 cell, the displacement vector from the input position to the F1 cell center, and a hash value indicating the ID of the F1 cell.
 template <class T, std::size_t N>
 [[nodiscard]] std::tuple
 <
@@ -174,19 +150,14 @@ voronoi_f1
 	};
 }
 
-/**
- * Finds the Voronoi cell (F1) containing the input position, along with the distance to the nearest edge.
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- *
- * @param position Input position.
- * @param randomness Degree of randomness, on `[0, 1]`.
- * @param tiling Distance at which the Voronoi pattern should repeat. A value of `0` indicates no repetition.
- * @param hash Hash function.
- *
- * @return Tuple containing the square Euclidean distance from @p position to the F1 cell center, the displacement vector from the input position to the F1 cell center, a hash value indicating the ID of the F1 cell, and the square Euclidean distance from @p position to the nearest edge.
- */
+/// Finds the Voronoi cell (F1) containing the input position, along with the distance to the nearest edge.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @param position Input position.
+/// @param randomness Degree of randomness, on `[0, 1]`.
+/// @param tiling Distance at which the Voronoi pattern should repeat. A value of `0` indicates no repetition.
+/// @param hash Hash function.
+/// @return Tuple containing the square Euclidean distance from @p position to the F1 cell center, the displacement vector from the input position to the F1 cell center, a hash value indicating the ID of the F1 cell, and the square Euclidean distance from @p position to the nearest edge.
 template <class T, std::size_t N>
 [[nodiscard]] std::tuple
 <
@@ -297,19 +268,14 @@ voronoi_f1_edge
 	};
 }
 
-/**
- * Finds the Voronoi cell (F1) containing the input position, as well as the nearest neighboring cell (F2).
- *
- * @tparam T Real type.
- * @tparam N Number of dimensions.
- *
- * @param position Input position.
- * @param randomness Degree of randomness, on `[0, 1]`.
- * @param tiling Distance at which the Voronoi pattern should repeat. A value of `0` indicates no repetition.
- * @param hash Hash function.
- *
- * @return Tuple containing the square Euclidean distances, displacement vectors from the input position to the cell centers, and hash values indicating the cell IDs, for both the F1 and F2 cells.
- */
+/// Finds the Voronoi cell (F1) containing the input position, as well as the nearest neighboring cell (F2).
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @param position Input position.
+/// @param randomness Degree of randomness, on `[0, 1]`.
+/// @param tiling Distance at which the Voronoi pattern should repeat. A value of `0` indicates no repetition.
+/// @param hash Hash function.
+/// @return Tuple containing the square Euclidean distances, displacement vectors from the input position to the cell centers, and hash values indicating the cell IDs, for both the F1 and F2 cells.
 template <class T, std::size_t N>
 [[nodiscard]] std::tuple
 <

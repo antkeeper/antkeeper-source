@@ -1,157 +1,112 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_BIT_MATH_HPP
 #define ANTKEEPER_BIT_MATH_HPP
 
-#include <stdint.h>
+#include <cstdint>
 
 /// Bitwise math
 namespace bit {
 
-/**
- * Compresses the even bits of a value into the lower half, then clears the upper half.
- *
- * @param x Value to compress.
- * @return Compressed value.
- */
+/// Compresses the even bits of a value into the lower half, then clears the upper half.
+/// @param x Value to compress.
+/// @return Compressed value.
 template <class T>
 constexpr T compress(T x) noexcept;
 
-/**
- * Returns the number of set bits in a value, known as a *population count* or *Hamming weight*.
- *
- * @param x Value to count.
- * @return Number of set bits in @p x.
- */
+/// Returns the number of set bits in a value, known as a *population count* or *Hamming weight*.
+/// @param x Value to count.
+/// @return Number of set bits in @p x.
 template <class T>
 constexpr int count(T x) noexcept;
 
-/**
- * Performs a single-point crossover between two values.
- *
- * @param a First value.
- * @param b Second value.
- * @param i Index of the crossover point.
- * @return Crossed over value.
- */
+/// Performs a single-point crossover between two values.
+/// @param a First value.
+/// @param b Second value.
+/// @param i Index of the crossover point.
+/// @return Crossed over value.
 template <class T>
 constexpr T crossover(T a, T b, int i) noexcept;
 
-/**
- * Performs an n-point crossover between two values.
- *
- * @param a First value.
- * @param b Second value.
- * @param mask Bit mask with set bits marking crossover points.
- * @return Crossed over value.
- */
+/// Performs an n-point crossover between two values.
+/// @param a First value.
+/// @param b Second value.
+/// @param mask Bit mask with set bits marking crossover points.
+/// @return Crossed over value.
 template <class T>
 constexpr T crossover_n(T a, T b, T mask) noexcept;
 
-/**
- * Reads bits from the least significant bits of a value and returns them in the positions marked by a mask.
- *
- * @param x Value from which bits should be read.
- * @param mask Bit mask indicating where bits should be deposited.
- * @return Bits from the least significant bits of @p x in the positions marked by @p mask.
- */
+/// Reads bits from the least significant bits of a value and returns them in the positions marked by a mask.
+/// @param x Value from which bits should be read.
+/// @param mask Bit mask indicating where bits should be deposited.
+/// @return Bits from the least significant bits of @p x in the positions marked by @p mask.
 template <class T>
 constexpr T deposit(T x, T mask) noexcept;
 
-/**
- * Interleaves bits of the lower and upper halves of a value.
- *
- * @param x Value to desegregate.
- * @return Value with bits from the upper half of @p x interleaved with bits from the lower half.
- */
+/// Interleaves bits of the lower and upper halves of a value.
+/// @param x Value to desegregate.
+/// @return Value with bits from the upper half of @p x interleaved with bits from the lower half.
 template <class T>
 constexpr T desegregate(T x) noexcept;
 
-/**
- * Returns the number of differing bits between two values, known as *Hamming distance*.
- *
- * @param x First value.
- * @param y Second value.
- * @return Hamming distance between @p x and @p y.
- */	
+/// Returns the number of differing bits between two values, known as *Hamming distance*.
+/// @param x First value.
+/// @param y Second value.
+/// @return Hamming distance between @p x and @p y.
 template <class T>
 constexpr int difference(T x, T y) noexcept;
 
-/**
- * Moves bits from the lower half of a value to occupy all even bits, and clears all odd bits.
- *
- * @param x Value to expand.
- * @return Expanded value.
- */
+/// Moves bits from the lower half of a value to occupy all even bits, and clears all odd bits.
+/// @param x Value to expand.
+/// @return Expanded value.
 template <class T>
 constexpr T expand(T x) noexcept;
 
-/**
- * Reads bits from a value in the positions marked by a mask and returns them in the least significant bits.
- *
- * @param x Value from which bits should be read.
- * @param mask Bit mask indicating which bits to extract.
- * @return Bits of @p x from the positions marked by @p mask in the least significant bits.
- */
+/// Reads bits from a value in the positions marked by a mask and returns them in the least significant bits.
+/// @param x Value from which bits should be read.
+/// @param mask Bit mask indicating which bits to extract.
+/// @return Bits of @p x from the positions marked by @p mask in the least significant bits.
 template <class T>
 constexpr T extract(T x, T mask) noexcept;
 
-/**
- * Flips a single bit in a value.
- *
- * @param x Value to modify.
- * @param i Index of the bit to flip.
- * @return Copy of @p x with one bit flipped.
- */
+/// Flips a single bit in a value.
+/// @param x Value to modify.
+/// @param i Index of the bit to flip.
+/// @return Copy of @p x with one bit flipped.
 template <class T>
 constexpr T flip(T x, int i) noexcept;
 
-/**
- * Returns a value with even bits containing the first value's lower half, and odd bits containing the second value's lower half.
- *
- * @param a First value.
- * @param b Second value.
- * @return Value with bits from the lower halves of @p a and @p b interleaved.
- */
+/// Returns a value with even bits containing the first value's lower half, and odd bits containing the second value's lower half.
+/// @param a First value.
+/// @param b Second value.
+/// @return Value with bits from the lower halves of @p a and @p b interleaved.
 template <class T, class U = T>
 constexpr U interleave(T a, T b) noexcept;
 
-/**
- * Merges the bits of two values using a bit mask.
- *
- * @param a First value.
- * @param b Second value.
- * @param mask Bit mask with zeros where bits from @p a should be used, and ones where bits from @p b should be used.
- * @return Merged value.
- */
+/// Merges the bits of two values using a bit mask.
+/// @param a First value.
+/// @param b Second value.
+/// @param mask Bit mask with zeros where bits from @p a should be used, and ones where bits from @p b should be used.
+/// @return Merged value.
 template <class T>
 constexpr T merge(T a, T b, T mask) noexcept;
 
-/**
- * Returns the parity of a value.
- *
- * @param x Value to test.
- * @return `1` if an odd number of bits are set, `0` otherwise.
- */
+/// Returns the parity of a value.
+/// @param x Value to test.
+/// @return `1` if an odd number of bits are set, `0` otherwise.
 template <class T>
 constexpr T parity(T x) noexcept;
 
-/**
- * Segregates the odd and even bits of a value.
- *
- * @param x Value to segregate.
- * @return Value with even bits of @p x in the lower half, and odd bits in the upper half.
- */
+/// Segregates the odd and even bits of a value.
+/// @param x Value to segregate.
+/// @return Value with even bits of @p x in the lower half, and odd bits in the upper half.
 template <class T>
 constexpr T segregate(T x) noexcept;
 
-/**
- * Swaps the each odd bit with its following even bit.
- *
- * @param x Value in which adjacent bits should be swap.
- * @return Copy of @p x with adjacent bits swapped.
- */
+/// Swaps the each odd bit with its following even bit.
+/// @param x Value in which adjacent bits should be swap.
+/// @return Copy of @p x with adjacent bits swapped.
 template <class T>
 constexpr T swap_adjacent(T x) noexcept;
 

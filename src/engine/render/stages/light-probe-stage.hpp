@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_RENDER_LIGHT_PROBE_STAGE_HPP
@@ -18,62 +18,43 @@
 
 namespace render {
 
-/**
- * Updates light probes.
- */
+/// Updates light probes.
 class light_probe_stage: public stage
 {
 public:
-	/**
-	 * Constructs a light probe stage.
-	 *
-	 * @param pipeline Graphics pipeline.
-	 * @param resource_manager Resource manager for loading shader templates.
-	 *
-	 * @exception std::runtime_error Failed to build cubemap to spherical harmonics shader program.
-	 * @exception std::runtime_error Cubemap to spherical harmonics shader program has no `cubemap` variable.
-	 * @exception std::runtime_error Failed to build cubemap downsample shader program.
-	 * @exception std::runtime_error Cubemap downsample shader program has no `cubemap` variable.
-	 * @exception std::runtime_error Failed to build cubemap filter LUT shader program.
-	 * @exception std::runtime_error Cubemap filter LUT shader program is missing one or more required shader variables.
-	 */
+	/// Constructs a light probe stage.
+	/// @param pipeline Graphics pipeline.
+	/// @param resource_manager Resource manager for loading shader templates.
+	/// @exception std::runtime_error Failed to build cubemap to spherical harmonics shader program.
+	/// @exception std::runtime_error Cubemap to spherical harmonics shader program has no `cubemap` variable.
+	/// @exception std::runtime_error Failed to build cubemap downsample shader program.
+	/// @exception std::runtime_error Cubemap downsample shader program has no `cubemap` variable.
+	/// @exception std::runtime_error Failed to build cubemap filter LUT shader program.
+	/// @exception std::runtime_error Cubemap filter LUT shader program is missing one or more required shader variables.
 	light_probe_stage(gl::pipeline& pipeline, ::resource_manager& resource_manager);
 	
-	/** Destructs a light probe stage. */
+	/// Destructs a light probe stage.
 	~light_probe_stage() override = default;
 	
 	void execute(render::context& ctx) override;
 	
-	/**
-	 * Sets the number of samples to use when projecting luminance cubemaps into spherical harmonics.
-	 *
-	 * @param count Spherical harmonics sample count.
-	 *
-	 * @warning Triggers rebuilding of cubemap to spherical harmonics shader program.
-	 * @warning Triggers recalculation of the illuminance of all light probes on next call to `execute()`.
-	 *
-	 * @exception std::runtime_error Failed to build cubemap to spherical harmonics shader program.
-	 * @exception std::runtime_error Cubemap to spherical harmonics shader program has no `cubemap` variable.
-	 */
+	/// Sets the number of samples to use when projecting luminance cubemaps into spherical harmonics.
+	/// @param count Spherical harmonics sample count.
+	/// @warning Triggers rebuilding of cubemap to spherical harmonics shader program.
+	/// @warning Triggers recalculation of the illuminance of all light probes on next call to `execute()`.
+	/// @exception std::runtime_error Failed to build cubemap to spherical harmonics shader program.
+	/// @exception std::runtime_error Cubemap to spherical harmonics shader program has no `cubemap` variable.
 	void set_sh_sample_count(std::size_t count);
 	
-	/**
-	 * Sets the number of samples to use when filtering luminance cubemap mip chains.
-	 *
-	 * @param count Cubemap filter sample count.
-	 */
+	/// Sets the number of samples to use when filtering luminance cubemap mip chains.
+	/// @param count Cubemap filter sample count.
 	void set_cubemap_filter_sample_count(std::size_t count);
 	
-	/**
-	 * Sets the mip bias to use when filtering luminance cubemap mip chains.
-	 *
-	 * @param bias Cubemap filter mip bias.
-	 *
-	 * @warning Triggers recalculation of the luminance of all light probes on next call to `execute()`.
-	 *
-	 * @exception std::runtime_error Failed to build cubemap filter LUT shader program.
-	 * @exception std::runtime_error Cubemap filter LUT shader program is missing one or more required shader variables.
-	 */
+	/// Sets the mip bias to use when filtering luminance cubemap mip chains.
+	/// @param bias Cubemap filter mip bias.
+	/// @warning Triggers recalculation of the luminance of all light probes on next call to `execute()`.
+	/// @exception std::runtime_error Failed to build cubemap filter LUT shader program.
+	/// @exception std::runtime_error Cubemap filter LUT shader program is missing one or more required shader variables.
 	void set_cubemap_filter_mip_bias(float bias);
 	
 	/// Returns the number of samples used when projecting luminance cubemaps into spherical harmonics.

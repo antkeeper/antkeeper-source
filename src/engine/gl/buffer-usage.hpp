@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GL_BUFFER_USAGE_HPP
@@ -8,11 +8,8 @@
 
 namespace gl {
 
-/**
- * Usage hints for vertex buffers.
- *
- * @see gl::vertex_buffer
- */
+/// Usage hints for vertex buffers.
+/// @see gl::vertex_buffer
 enum class buffer_usage: std::uint8_t
 {
 	/// Data will be modified once, by the application, and used at most a few times, for drawing commands.

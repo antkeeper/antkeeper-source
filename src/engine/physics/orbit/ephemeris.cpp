@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/physics/orbit/ephemeris.hpp>
@@ -112,17 +112,15 @@ static constexpr std::uint8_t jpl_de_component_count[jpl_de_max_item_count] =
 	1  // TT-TDB: t (seconds)
 };
 
-/**
- * Deserializes an ephemeris.
- *
- * @param[out] file Text file to serialize.
- * @param[in,out] ctx Deserialize context.
- *
- * @throw deserialize_error Read error.
- */
+/// Deserializes an ephemeris.
+/// @param[out] value Ephemeris to deserialize.
+/// @param[in,out] ctx Deserialize context.
+/// @throw deserialize_error Read error.
 template <>
-void deserializer<physics::orbit::ephemeris<double>>::deserialize(physics::orbit::ephemeris<double>& ephemeris, deserialize_context& ctx)
+void deserializer<physics::orbit::ephemeris<double>>::deserialize(physics::orbit::ephemeris<double>& value, deserialize_context& ctx)
 {
+	auto& ephemeris = value;
+
 	ephemeris.trajectories.clear();
 	
 	// Init file reading function pointers

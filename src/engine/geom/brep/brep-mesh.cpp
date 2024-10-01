@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/geom/brep/brep-mesh.hpp>
@@ -143,14 +143,10 @@ namespace
 	}
 }
 
-/**
- * Deserializes a mesh.
- *
- * @param[out] mesh Mesh to deserialize.
- * @param[in,out] ctx Deserialize context.
- *
- * @throw deserialize_error Read error.
- */
+/// Deserializes a mesh.
+/// @param[out] mesh Mesh to deserialize.
+/// @param[in,out] ctx Deserialize context.
+/// @throw deserialize_error Read error.
 template <>
 void deserializer<geom::brep_mesh>::deserialize(geom::brep_mesh& mesh, deserialize_context& ctx)
 {

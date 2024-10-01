@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_GENE_HPP
@@ -10,12 +10,10 @@
 #include <unordered_map>
 #include <engine/hash/fnv1a.hpp>
 
-/**
- * Abstract base class for ant genes.
- */
+/// Abstract base class for ant genes.
 struct ant_gene_base
 {
-	/** Destructs an ant gene base. */
+	/// Destructs an ant gene base.
 	virtual ~ant_gene_base() = default;
 	
 	/// Returns the ant gene type.
@@ -25,17 +23,13 @@ struct ant_gene_base
 	hash::fnv1a32_t name;
 };
 
-/**
- * Ant gene with caste-specific phenes.
- *
- * @tparam T Ant phene type.
- *
- * @see https://en.wikipedia.org/wiki/Polyphenism
- */
+/// Ant gene with caste-specific phenes.
+/// @tparam T Ant phene type.
+/// @see https://en.wikipedia.org/wiki/Polyphenism
 template <class T>
 struct ant_gene: public ant_gene_base
 {
-	/** Destructs an ant gene. */
+	/// Destructs an ant gene.
 	virtual ~ant_gene() = default;
 	
 	[[nodiscard]] constexpr ant_gene_type type() const noexcept override;

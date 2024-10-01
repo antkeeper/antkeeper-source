@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_HASH_PCG_HPP
@@ -152,71 +152,75 @@ template <class T>
 	return x;
 }
 
-/**
- * PCG hash function.
- *
- * @param x Input value.
- *
- * @return Unsigned pseudorandom output value.
- *
- * @warning Floating point and signed input values will be converted to unsigned integers via `static_cast`.
- * @warning Vectors with more than 4 elements are not supported.
- *
- * @see https://en.wikipedia.org/wiki/Permuted_congruential_generator
- * @see O'Neill, M.E. (2014). PCG : A Family of Simple Fast Space-Efficient Statistically Good Algorithms for Random Number Generation.
- * @see Mark Jarzynski and Marc Olano, Hash Functions for GPU Rendering, Journal of Computer Graphics Techniques (JCGT), vol. 9, no. 3, 21-38, 2020.
- */
-/// @{
+/// PCG hash function.
+/// @param x Input value.
+/// @return Unsigned pseudorandom output value.
+/// @warning Floating point and signed input values will be converted to unsigned integers via `static_cast`.
+/// @warning Vectors with more than 4 elements are not supported.
+/// 
+/// @see https://en.wikipedia.org/wiki/Permuted_congruential_generator
+/// @see O'Neill, M.E. (2014). PCG : A Family of Simple Fast Space-Efficient Statistically Good Algorithms for Random Number Generation.
+/// @see Mark Jarzynski and Marc Olano, Hash Functions for GPU Rendering, Journal of Computer Graphics Techniques (JCGT), vol. 9, no. 3, 21-38, 2020.
 [[nodiscard]] inline constexpr std::uint8_t pcg(std::uint8_t x) noexcept
 {
 	return pcg_uint<std::uint8_t>(x);
 }
 
+/// @copydoc pcg(std::uint8_t)
 [[nodiscard]] inline constexpr std::uint16_t pcg(std::uint16_t x) noexcept
 {
 	return pcg_uint<std::uint16_t>(x);
 }
 
+/// @copydoc pcg(std::uint8_t)
 [[nodiscard]] inline constexpr std::uint32_t pcg(std::uint32_t x) noexcept
 {
 	return pcg_uint<std::uint32_t>(x);
 }
 
+/// @copydoc pcg(std::uint8_t)
 [[nodiscard]] inline constexpr std::uint64_t pcg(std::uint64_t x) noexcept
 {
 	return pcg_uint<std::uint64_t>(x);
 }
 
+/// @copydoc pcg(std::uint8_t)
 [[nodiscard]] inline constexpr std::uint8_t pcg(std::int8_t x) noexcept
 {
 	return pcg_uint<std::uint8_t>(static_cast<std::uint8_t>(x));
 }
 
+/// @copydoc pcg(std::uint8_t)
 [[nodiscard]] inline constexpr std::uint16_t pcg(std::int16_t x) noexcept
 {
 	return pcg_uint<std::uint16_t>(static_cast<std::uint16_t>(x));
 }
 
+/// @copydoc pcg(std::uint8_t)
 [[nodiscard]] inline constexpr std::uint32_t pcg(std::int32_t x) noexcept
 {
 	return pcg_uint<std::uint32_t>(static_cast<std::uint32_t>(x));
 }
 
+/// @copydoc pcg(std::uint8_t)
 [[nodiscard]] inline constexpr std::uint64_t pcg(std::int64_t x) noexcept
 {
 	return pcg_uint<std::uint64_t>(static_cast<std::uint64_t>(x));
 }
 
+/// @copydoc pcg(std::uint8_t)
 [[nodiscard]] inline constexpr std::uint32_t pcg(float x) noexcept
 {
 	return pcg_uint<std::uint32_t>(static_cast<std::uint32_t>(x));
 }
 
+/// @copydoc pcg(std::uint8_t)
 [[nodiscard]] inline constexpr std::uint64_t pcg(double x) noexcept
 {
 	return pcg_uint<std::uint64_t>(static_cast<std::uint64_t>(x));
 }
 
+/// @copydoc pcg(std::uint8_t)
 template <class T, std::size_t N>
 [[nodiscard]] inline constexpr math::vector<make_uint_t<T>, N> pcg(const math::vector<T, N>& x) noexcept
 {
@@ -239,7 +243,6 @@ template <class T, std::size_t N>
 		return pcg_uvec4<make_uint_t<T>>(math::vector<make_uint_t<T>, N>(x));
 	}
 }
-/// @}
 
 } // namespace hash
 

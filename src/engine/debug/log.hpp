@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_DEBUG_LOG_HPP
@@ -16,7 +16,7 @@ namespace debug {
 /// @name Logging
 /// @{
 
-/** Minimum log message severity. */
+/// Minimum log message severity.
 inline constexpr auto min_log_message_severity =
 #if !defined(NDEBUG)
 	log_message_severity::trace;
@@ -24,22 +24,16 @@ inline constexpr auto min_log_message_severity =
 	log_message_severity::debug;
 #endif
 
-/**
- * Log message that formats and logs itself to the default logger on construction.
- *
- * @tparam Severity Message severity. A message will not be logged if @p Severity is less than min_log_message_severity.
- * @tparam Args Types of arguments to be formatted.
- */
+/// Log message that formats and logs itself to the default logger on construction.
+/// @tparam Severity Message severity. A message will not be logged if @p Severity is less than min_log_message_severity.
+/// @tparam Args Types of arguments to be formatted.
 template <log_message_severity Severity, class... Args>
 struct log_message
 {
-	/**
-	 * Formats and logs a message.
-	 *
-	 * @param format Message format string.
-	 * @param args Arguments to be formatted.
-	 * @param location Source location from which the message was logged.
-	 */
+	/// Formats and logs a message.
+	/// @param format Message format string.
+	/// @param args Arguments to be formatted.
+	/// @param location Source location from which the message was logged.
 	constexpr log_message
 	(
 		[[maybe_unused]] std::format_string<Args...> format,
@@ -58,51 +52,33 @@ struct log_message
 template <log_message_severity Severity, class... Args>
 log_message(std::format_string<Args...>, Args&&...) -> log_message<Severity, Args...>;
 
-/**
- * Formats and logs a trace message.
- *
- * @tparam Args Types of arguments to be formatted.
- */
+/// Formats and logs a trace message.
+/// @tparam Args Types of arguments to be formatted.
 template <class... Args>
 using log_trace = log_message<log_message_severity::trace, Args...>;
 
-/**
- * Formats and logs a debug message.
- *
- * @tparam Args Types of arguments to be formatted.
- */
+/// Formats and logs a debug message.
+/// @tparam Args Types of arguments to be formatted.
 template <class... Args>
 using log_debug = log_message<log_message_severity::debug, Args...>;
 
-/**
- * Formats and logs an info message.
- *
- * @tparam Args Types of arguments to be formatted.
- */
+/// Formats and logs an info message.
+/// @tparam Args Types of arguments to be formatted.
 template <class... Args>
 using log_info = log_message<log_message_severity::info, Args...>;
 
-/**
- * Formats and logs a warning message.
- *
- * @tparam Args Types of arguments to be formatted.
- */
+/// Formats and logs a warning message.
+/// @tparam Args Types of arguments to be formatted.
 template <class... Args>
 using log_warning = log_message<log_message_severity::warning, Args...>;
 
-/**
- * Formats and logs an error message.
- *
- * @tparam Args Types of arguments to be formatted.
- */
+/// Formats and logs an error message.
+/// @tparam Args Types of arguments to be formatted.
 template <class... Args>
 using log_error = log_message<log_message_severity::error, Args...>;
 
-/**
- * Formats and logs a fatal error message.
- *
- * @tparam Args Types of arguments to be formatted.
- */
+/// Formats and logs a fatal error message.
+/// @tparam Args Types of arguments to be formatted.
 template <class... Args>
 using log_fatal = log_message<log_message_severity::fatal, Args...>;
 

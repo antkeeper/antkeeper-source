@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_SCENE_BILLBOARD_HPP
@@ -15,39 +15,28 @@
 
 namespace scene {
 
-/**
- * 2D unit quad with a single material.
- */
+/// 2D unit quad with a single material.
 class billboard: public object<billboard>
 {
 public:
 	/// Constructs a billboard.
 	billboard();
 	
-	/** Destructs a billboard. */
+	/// Destructs a billboard.
 	~billboard() override = default;
 	
 	void render(render::context& ctx) const override;
 	
-	/**
-	 * Sets the billboard material.
-	 *
-	 * @param material Billboard material.
-	 */
+	/// Sets the billboard material.
+	/// @param material Billboard material.
 	void set_material(std::shared_ptr<render::material> material);
 	
-	/**
-	 * Sets the billboard type.
-	 *
-	 * @param type Billboard type.
-	 */
+	/// Sets the billboard type.
+	/// @param type Billboard type.
 	void set_billboard_type(billboard_type type);
 	
-	/**
-	 * Sets alignment axis for cylindrical billboards.
-	 *
-	 * @param axis Cylindral billboard aligmment axis.
-	 */
+	/// Sets alignment axis for cylindrical billboards.
+	/// @param axis Cylindral billboard aligmment axis.
 	inline void set_alignment_axis(const math::fvec3& axis) noexcept
 	{
 		m_alignment_axis = axis;

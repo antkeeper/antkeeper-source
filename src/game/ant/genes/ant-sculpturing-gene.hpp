@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_ANT_SCULPTURING_GENE_HPP
@@ -8,9 +8,7 @@
 #include <engine/gl/texture.hpp>
 #include <memory>
 
-/**
- * Ant surface sculpturing phene.
- */
+/// Ant surface sculpturing phene.
 struct ant_sculpturing_phene
 {
 	/// Surface roughness.

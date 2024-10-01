@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/debug/commands.hpp"
@@ -23,7 +23,7 @@ namespace {
 		return 0;
 	}
 	
-	/** Prints a string in the current language. */
+	/// Prints a string in the current language.
 	int command_string(std::span<const std::string> arguments, [[maybe_unused]] std::istream& cin, std::ostream& cout, [[maybe_unused]] std::ostream& cerr, const ::game* ctx)
 	{
 		if (arguments.size() != 2)
@@ -40,7 +40,7 @@ namespace {
 		return 404;
 	}
 	
-	/** Copies text to or pastes text from the clipboard. */
+	/// Copies text to or pastes text from the clipboard.
 	int command_clipboard(std::span<const std::string> arguments, std::istream& cin, std::ostream& cout, [[maybe_unused]] std::ostream& cerr, ::game* ctx)
 	{
 		if (arguments.size() == 2)

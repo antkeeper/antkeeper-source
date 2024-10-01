@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_COPY_SCALE_CONSTRAINT_HPP
@@ -6,10 +6,7 @@
 
 #include <engine/entity/id.hpp>
 
-
-/**
- * Copies the scale of a target entity.
- */
+/// Copies the scale of a target entity.
 struct copy_scale_constraint
 {
 	/// Target entity ID.
@@ -24,6 +21,5 @@ struct copy_scale_constraint
 	/// Copy Z scale.
 	bool copy_z;
 };
-
 
 #endif // ANTKEEPER_GAME_COPY_SCALE_CONSTRAINT_HPP

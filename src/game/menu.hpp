@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_GAME_MENU_HPP
@@ -14,8 +14,6 @@ void setup_animations(::game& ctx);
 void clear_callbacks(::game& ctx);
 void remove_text_from_ui(::game& ctx);
 void delete_text(::game& ctx);
-
-
 
 void fade_in(::game& ctx, const std::function<void()>& end_callback);
 void fade_out(::game& ctx, const std::function<void()>& end_callback);

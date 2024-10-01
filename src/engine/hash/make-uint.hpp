@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_HASH_MAKE_UINT_HPP
@@ -13,9 +13,7 @@
 
 namespace hash {
 
-/**
- * Provides an unsigned integer type of equivalent size to type @p T.
- */
+/// Provides an unsigned integer type of equivalent size to type @p T.
 template <class T>
 struct make_uint
 {

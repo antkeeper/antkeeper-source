@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/render/passes/material-pass.hpp>
@@ -33,9 +33,7 @@ namespace render {
 
 namespace {
 
-/**
- * Sorts render operations for the material pass.
- */
+/// Sorts render operations for the material pass.
 bool operation_compare(const render::operation* a, const render::operation* b)
 {
 	// Render operations with materials first

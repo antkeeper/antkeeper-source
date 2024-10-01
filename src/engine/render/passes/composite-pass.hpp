@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-FileCopyrightText: 2024 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_RENDER_COMPOSITE_PASS_HPP
@@ -18,41 +18,31 @@ class resource_manager;
 
 namespace render {
 
-/**
- * Combines multiple images to form a single, output display image.
- */
+/// Combines multiple images to form a single, output display image.
 class composite_pass: public pass
 {
 public:
+	/// Constructs a composite pass.
 	composite_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	
-	/** Destructs a composite pass. */
+	/// Destructs a composite pass.
 	~composite_pass() override = default;
 	
 	void render(render::context& ctx) override;
 	
-	/**
-	 * Sets the luminance texture.
-	 *
-	 * @param texture Luminance texture containing scene-referred open domain tristimulus values.
-	 */
+	/// Sets the luminance texture.
+	/// @param texture Luminance texture containing scene-referred open domain tristimulus values.
 	void set_luminance_texture(std::shared_ptr<gl::texture_2d> texture);
 
 	/// @name Bloom
 	/// @{
 
-	/**
-	 * Sets the bloom texture.
-	 *
-	 * @param texture Bloom texture containing scene-referred open domain tristimulus values.
-	 */
+	/// Sets the bloom texture.
+	/// @param texture Bloom texture containing scene-referred open domain tristimulus values.
 	void set_bloom_texture(std::shared_ptr<gl::texture_2d> texture) noexcept;
 
-	/**
-	 * Sets the bloom strength.
-	 *
-	 * @param strength Bloom strength, on [0, 1].
-	 */
+	/// Sets the bloom strength.
+	/// @param strength Bloom strength, on [0, 1].
 	void set_bloom_strength(float strength) noexcept;
 
 	/// @}
@@ -60,18 +50,12 @@ public:
 	/// @name Noise
 	/// @{
 
-	/**
-     * Sets the noise texture.
-	 *
-	 * @param texture Noise texture.
-	 */
+    /// Sets the noise texture.
+	/// @param texture Noise texture.
 	void set_noise_texture(std::shared_ptr<gl::texture_2d> texture);
 
-	/**
-	 * Sets the noise strength.
-	 *
-	 * @param noise Noise strength, on [0, 1].
-	 */
+	/// Sets the noise strength.
+	/// @param strength Noise strength, on [0, 1].
 	void set_noise_strength(float strength) noexcept;
 
 	/// @}
@@ -79,11 +63,8 @@ public:
 	/// @name Overlay
 	/// @{
 
-	/**
-	 * Sets the overlay texture.
-	 *
-	 * @param texture Overlay texture containing linear, closed domain tristimulus values, in the display color space.
-	 */
+	/// Sets the overlay texture.
+	/// @param texture Overlay texture containing linear, closed domain tristimulus values, in the display color space.
 	void set_overlay_texture(std::shared_ptr<gl::texture_2d> texture);
 
 	/// @}
