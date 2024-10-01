@@ -6,12 +6,12 @@
 
 #include <string>
 #include <unordered_map>
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 
 namespace i18n {
 
 /// Maps 32-bit keys to strings.
-using string_map = std::unordered_map<hash::fnv1a32_t, std::string>;
+using string_map = std::unordered_map<hash::fnv32_t, std::string>;
 
 } // namespace i18n
 

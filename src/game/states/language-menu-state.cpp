@@ -10,7 +10,7 @@
 #include "game/menu.hpp"
 #include "game/strings.hpp"
 #include "game/debug/shell.hpp"
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <algorithm>
 #include <cctype>
@@ -41,7 +41,7 @@ language_menu_state::language_menu_state(::game& ctx):
 	update_text_content();
 	
 	// Init menu item index
-	::menu::init_menu_item_index(ctx, "language");
+	::menu::init_menu_item_index(ctx, "language"_fnv1a32);
 	
 	::menu::update_text_color(ctx);
 	::menu::update_text_font(ctx);

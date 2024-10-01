@@ -9,7 +9,7 @@
 #include <engine/render/material-blend-mode.hpp>
 #include <engine/render/material-variable.hpp>
 #include <engine/render/material-shadow-mode.hpp>
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 #include <unordered_map>
 
 namespace render {
@@ -94,16 +94,16 @@ public:
 	/// Sets the value of a material variable with the given name.
 	/// @param key 32-bit FNV-1a hash value of the variable name.
 	/// @param value Shared pointer to the material variable value.
-	void set_variable(hash::fnv1a32_t key, std::shared_ptr<material_variable_base> value);
+	void set_variable(hash::fnv32_t key, std::shared_ptr<material_variable_base> value);
 	
 	/// Returns a shared pointer to the material variable with the given name, or `nullptr` if not found.
 	/// @param key 32-bit FNV-1a hash value of the variable name.
 	/// @return Shared pointer to the material variable with the given name, or `nullptr` if not found.
-	[[nodiscard]] std::shared_ptr<material_variable_base> get_variable(hash::fnv1a32_t key) const;
+	[[nodiscard]] std::shared_ptr<material_variable_base> get_variable(hash::fnv32_t key) const;
 	
 	/// Returns all material variables.
 	/// @return Map of 32-bit FNV-1a hash values of variable names to variables.
-	[[nodiscard]] inline const std::unordered_map<hash::fnv1a32_t, std::shared_ptr<material_variable_base>>& get_variables() const noexcept
+	[[nodiscard]] inline const std::unordered_map<hash::fnv32_t, std::shared_ptr<material_variable_base>>& get_variables() const noexcept
 	{
 		return m_variable_map;
 	}
@@ -134,7 +134,7 @@ private:
 	material_shadow_mode m_shadow_mode{material_shadow_mode::opaque};
 	std::uint32_t m_flags{0};
 	std::shared_ptr<gl::shader_template> m_shader_template;
-	std::unordered_map<hash::fnv1a32_t, std::shared_ptr<material_variable_base>> m_variable_map;
+	std::unordered_map<hash::fnv32_t, std::shared_ptr<material_variable_base>> m_variable_map;
 	std::size_t m_hash{0};
 };
 

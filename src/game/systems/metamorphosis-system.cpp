@@ -12,6 +12,9 @@
 #include <engine/scene/static-mesh.hpp>
 #include <engine/scene/skeletal-mesh.hpp>
 #include <engine/debug/log.hpp>
+#include <engine/hash/fnv.hpp>
+
+using namespace hash::literals;
 
 metamorphosis_system::metamorphosis_system(entity::registry& registry):
 	updatable_system(registry)
@@ -101,7 +104,7 @@ void metamorphosis_system::update([[maybe_unused]] float t, float dt)
 				auto cocoon_material = std::make_shared<render::material>(*cocoon_mesh->get_model()->materials().front());
 				
 				// Store cocoon material spinning phase variable
-				larva.spinning_phase_matvar = std::static_pointer_cast<render::matvar_float>(cocoon_material->get_variable("spinning_phase"));
+				larva.spinning_phase_matvar = std::static_pointer_cast<render::matvar_float>(cocoon_material->get_variable("spinning_phase"_fnv1a32));
 				larva.spinning_phase_matvar->set(0.0f);
 				
 				// Replace cocoon mesh material

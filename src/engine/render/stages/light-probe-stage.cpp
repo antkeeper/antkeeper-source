@@ -5,7 +5,10 @@
 #include <engine/render/vertex-attribute-location.hpp>
 #include <engine/scene/light-probe.hpp>
 #include <engine/scene/collection.hpp>
+#include <engine/hash/fnv.hpp>
 #include <stdexcept>
+
+using namespace hash::literals;
 
 namespace render {
 
@@ -307,7 +310,7 @@ void light_probe_stage::rebuild_cubemap_to_sh_shader_program()
 	}
 	else
 	{
-		m_cubemap_to_sh_cubemap_var = m_cubemap_to_sh_shader_program->variable("cubemap");
+		m_cubemap_to_sh_cubemap_var = m_cubemap_to_sh_shader_program->variable("cubemap"_fnv1a32);
 		if (!m_cubemap_to_sh_cubemap_var)
 		{
 			throw std::runtime_error("Cubemap to spherical harmonics shader program has no `cubemap` variable.");
@@ -328,7 +331,7 @@ void light_probe_stage::rebuild_cubemap_downsample_shader_program()
 	}
 	else
 	{
-		m_cubemap_downsample_cubemap_var = m_cubemap_downsample_shader_program->variable("cubemap");
+		m_cubemap_downsample_cubemap_var = m_cubemap_downsample_shader_program->variable("cubemap"_fnv1a32);
 		if (!m_cubemap_downsample_cubemap_var)
 		{
 			throw std::runtime_error("Cubemap downsample shader program has no `cubemap` variable.");
@@ -351,9 +354,9 @@ void light_probe_stage::rebuild_cubemap_filter_lut_shader_program()
 	}
 	else
 	{
-		m_cubemap_filter_lut_resolution_var = m_cubemap_filter_lut_shader_program->variable("resolution");
-		m_cubemap_filter_lut_face_size_var = m_cubemap_filter_lut_shader_program->variable("face_size");
-		m_cubemap_filter_lut_mip_bias_var = m_cubemap_filter_lut_shader_program->variable("mip_bias");
+		m_cubemap_filter_lut_resolution_var = m_cubemap_filter_lut_shader_program->variable("resolution"_fnv1a32);
+		m_cubemap_filter_lut_face_size_var = m_cubemap_filter_lut_shader_program->variable("face_size"_fnv1a32);
+		m_cubemap_filter_lut_mip_bias_var = m_cubemap_filter_lut_shader_program->variable("mip_bias"_fnv1a32);
 		if (!m_cubemap_filter_lut_resolution_var || !m_cubemap_filter_lut_face_size_var || !m_cubemap_filter_lut_mip_bias_var)
 		{
 			throw std::runtime_error("Cubemap filter LUT shader program is missing one or more required shader variables.");
@@ -402,9 +405,9 @@ void light_probe_stage::rebuild_cubemap_filter_shader_program()
 	}
 	else
 	{
-		m_cubemap_filter_cubemap_var = m_cubemap_filter_shader_program->variable("cubemap");
-		m_cubemap_filter_filter_lut_var = m_cubemap_filter_shader_program->variable("filter_lut");
-		m_cubemap_filter_mip_level_var = m_cubemap_filter_shader_program->variable("mip_level");
+		m_cubemap_filter_cubemap_var = m_cubemap_filter_shader_program->variable("cubemap"_fnv1a32);
+		m_cubemap_filter_filter_lut_var = m_cubemap_filter_shader_program->variable("filter_lut"_fnv1a32);
+		m_cubemap_filter_mip_level_var = m_cubemap_filter_shader_program->variable("mip_level"_fnv1a32);
 		
 		if (!m_cubemap_filter_cubemap_var || !m_cubemap_filter_filter_lut_var || !m_cubemap_filter_mip_level_var)
 		{

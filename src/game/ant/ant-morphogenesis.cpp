@@ -13,6 +13,8 @@
 #include <unordered_set>
 #include <optional>
 
+using namespace hash::literals;
+
 namespace {
 
 /// Reskins model vertices.
@@ -201,16 +203,16 @@ float calculate_uv_area
 	std::unique_ptr<render::material> exoskeleton_material = std::make_unique<render::material>(*phenome.pigmentation->material);
 	
 	// Set roughness variable
-	exoskeleton_material->set_variable("exoskeleton_roughness", std::make_shared<render::matvar_float>(1, phenome.sculpturing->roughness));
+	exoskeleton_material->set_variable("exoskeleton_roughness"_fnv1a32, std::make_shared<render::matvar_float>(1, phenome.sculpturing->roughness));
 	
 	// Set normal map variable
-	exoskeleton_material->set_variable("exoskeleton_normal_map", std::make_shared<render::matvar_texture_2d>(1, phenome.sculpturing->normal_map));
+	exoskeleton_material->set_variable("exoskeleton_normal_map"_fnv1a32, std::make_shared<render::matvar_texture_2d>(1, phenome.sculpturing->normal_map));
 	
 	if (phenome.eyes->present)
 	{
 		// Set ommatidia scale variable
 		const float ommatidia_scale = calculate_ommatidia_scale(eye_uv_area, static_cast<float>(phenome.eyes->ommatidia_count));
-		exoskeleton_material->set_variable("ommatidia_scale", std::make_shared<render::matvar_float>(1, ommatidia_scale));
+		exoskeleton_material->set_variable("ommatidia_scale"_fnv1a32, std::make_shared<render::matvar_float>(1, ommatidia_scale));
 	}
 	
 	return exoskeleton_material;
@@ -700,7 +702,7 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	
 	// Construct model group
 	render::model_group& model_group = model->get_groups()[0];
-	model_group.id = "exoskeleton";
+	model_group.id = "exoskeleton"_fnv1a32;
 	model_group.primitive_topology = gl::primitive_topology::triangle_list;
 	model_group.first_vertex = 0;
 	model_group.vertex_count = mesosoma_vertex_count +
@@ -719,7 +721,7 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	{
 		// Construct wings model group
 		render::model_group& wings_group = model->get_groups()[1];
-		wings_group.id = "wings";
+		wings_group.id = "wings"_fnv1a32;
 		wings_group.primitive_topology = gl::primitive_topology::triangle_list;
 		wings_group.first_vertex = model_group.vertex_count;
 		wings_group.vertex_count = wings_vertex_count;

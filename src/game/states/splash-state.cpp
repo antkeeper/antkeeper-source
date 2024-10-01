@@ -11,6 +11,9 @@
 #include <engine/render/material-flags.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/gl/pipeline.hpp>
+#include <engine/hash/fnv.hpp>
+
+using namespace hash::literals;
 
 splash_state::splash_state(::game& ctx):
 	game_state(ctx)
@@ -30,10 +33,10 @@ splash_state::splash_state(::game& ctx):
 	splash_billboard_material = std::make_shared<render::material>();
 	splash_billboard_material->set_blend_mode(render::material_blend_mode::translucent);
 	splash_billboard_material->set_shader_template(ctx.resource_manager->load<gl::shader_template>("ui-element-textured.glsl"));
-	splash_billboard_material->set_variable("background", std::make_shared<render::matvar_texture_2d>(1, splash_texture));
+	splash_billboard_material->set_variable("background"_fnv1a32, std::make_shared<render::matvar_texture_2d>(1, splash_texture));
 	
 	auto splash_tint = std::make_shared<render::matvar_fvec4>(1, math::fvec4{1, 1, 1, 1});
-	splash_billboard_material->set_variable("tint", splash_tint);
+	splash_billboard_material->set_variable("tint"_fnv1a32, splash_tint);
 	
 	// Construct splash billboard
 	splash_billboard.set_material(splash_billboard_material);

@@ -6,7 +6,7 @@
 
 #include <engine/input/mapping.hpp>
 #include <engine/utility/dict.hpp>
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 #include <map>
 #include <memory>
 
@@ -15,10 +15,10 @@ struct control_profile
 {
 public:
 	/// Input mappings.
-	std::multimap<hash::fnv1a32_t, std::unique_ptr<input::mapping>> mappings;
+	std::multimap<hash::fnv32_t, std::unique_ptr<input::mapping>> mappings;
 	
 	/// Profile-specific settings.
-	dict<hash::fnv1a32_t> settings;
+	dict<hash::fnv32_t> settings;
 };
 
 

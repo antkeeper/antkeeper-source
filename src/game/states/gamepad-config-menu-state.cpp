@@ -11,7 +11,7 @@
 #include "game/menu.hpp"
 #include "game/controls.hpp"
 #include "game/strings.hpp"
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 
 using namespace hash::literals;
 
@@ -41,7 +41,7 @@ gamepad_config_menu_state::gamepad_config_menu_state(::game& ctx):
 	back_text->set_content(get_string(ctx, "back"));
 	
 	// Init menu item index
-	::menu::init_menu_item_index(ctx, "gamepad_config");
+	::menu::init_menu_item_index(ctx, "gamepad_config"_fnv1a32);
 	
 	::menu::update_text_color(ctx);
 	::menu::update_text_font(ctx);

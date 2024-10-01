@@ -11,7 +11,7 @@
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/render/material.hpp>
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -22,7 +22,7 @@ namespace render {
 /// Part of a model which is associated with exactly one material.
 struct model_group
 {
-	hash::fnv1a32_t id{};
+	hash::fnv32_t id{};
 	gl::primitive_topology primitive_topology{gl::primitive_topology::triangle_list};
 	std::uint32_t first_vertex{};
 	std::uint32_t vertex_count{};

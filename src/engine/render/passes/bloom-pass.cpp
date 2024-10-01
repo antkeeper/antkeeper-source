@@ -15,6 +15,8 @@
 #include <algorithm>
 #include <cmath>
 
+using namespace hash::literals;
+
 namespace render {
 
 bloom_pass::bloom_pass(gl::pipeline* pipeline, resource_manager* resource_manager):
@@ -182,7 +184,7 @@ void bloom_pass::rebuild_command_buffer()
 	);
 	
 	// Downsample first mip with Karis average
-	if (auto source_texture_var = m_downsample_karis_shader->variable("source_texture"))
+	if (auto source_texture_var = m_downsample_karis_shader->variable("source_texture"_fnv1a32))
 	{
 		m_command_buffer.emplace_back
 		(
@@ -206,7 +208,7 @@ void bloom_pass::rebuild_command_buffer()
 	// Downsample remaining mips
 	if (m_mip_chain_length > 1)
 	{
-		if (auto source_texture_var = m_downsample_shader->variable("source_texture"))
+		if (auto source_texture_var = m_downsample_shader->variable("source_texture"_fnv1a32))
 		{
 			m_command_buffer.emplace_back([&](){m_pipeline->bind_shader_program(m_downsample_shader.get());});
 			
@@ -256,13 +258,13 @@ void bloom_pass::rebuild_command_buffer()
 	);
 	
 	// Update upsample filter radius
-	if (auto filter_radius_var = m_upsample_shader->variable("filter_radius"))
+	if (auto filter_radius_var = m_upsample_shader->variable("filter_radius"_fnv1a32))
 	{
 		m_command_buffer.emplace_back([&, filter_radius_var](){filter_radius_var->update(m_corrected_filter_radius);});
 	}
 	
 	// Upsample
-	if (auto source_texture_var = m_upsample_shader->variable("source_texture"))
+	if (auto source_texture_var = m_upsample_shader->variable("source_texture"_fnv1a32))
 	{
 		for (int i = static_cast<int>(m_mip_chain_length) - 1; i > 0; --i)
 		{

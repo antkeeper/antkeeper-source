@@ -77,6 +77,8 @@
 #include <engine/ai/navmesh.hpp>
 #include <engine/animation/ik/constraints/euler-ik-constraint.hpp>
 
+using namespace hash::literals;
+
 treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	game_state(ctx)
 {
@@ -190,7 +192,7 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 		// Create light rectangle
 		auto light_rectangle_model = ctx.resource_manager->load<render::model>("light-rectangle.mdl");
 		auto light_rectangle_material = std::make_shared<render::material>(*light_rectangle_model->materials().front());
-		light_rectangle_emissive = std::static_pointer_cast<render::matvar_fvec3>(light_rectangle_material->get_variable("emissive"));
+		light_rectangle_emissive = std::static_pointer_cast<render::matvar_fvec3>(light_rectangle_material->get_variable("emissive"_fnv1a32));
 		light_rectangle_emissive->set(area_light->get_colored_luminance());
 		auto light_rectangle_static_mesh = std::make_shared<scene::static_mesh>(light_rectangle_model);
 		light_rectangle_static_mesh->set_material(0, light_rectangle_material);

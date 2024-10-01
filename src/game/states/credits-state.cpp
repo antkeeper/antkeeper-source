@@ -9,7 +9,7 @@
 #include <engine/debug/log.hpp>
 #include "game/strings.hpp"
 #include "game/components/animation-component.hpp"
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 #include <engine/math/vector.hpp>
 
 credits_state::credits_state(::game& ctx):

@@ -10,7 +10,7 @@
 #include "game/menu.hpp"
 #include "game/graphics.hpp"
 #include "game/strings.hpp"
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 
 using namespace hash::literals;
 
@@ -55,7 +55,7 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 	update_value_text_content();
 	
 	// Init menu item index
-	::menu::init_menu_item_index(ctx, "graphics");
+	::menu::init_menu_item_index(ctx, "graphics"_fnv1a32);
 	
 	::menu::update_text_color(ctx);
 	::menu::update_text_font(ctx);

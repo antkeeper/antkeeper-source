@@ -24,6 +24,8 @@
 #include <cmath>
 #include <stdexcept>
 
+using namespace hash::literals;
+
 namespace render {
 
 sky_pass::sky_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
@@ -526,22 +528,22 @@ void sky_pass::set_sky_model(std::shared_ptr<render::model> model)
 			
 			if (sky_shader_program->linked())
 			{
-				sky_model_view_projection_var = sky_shader_program->variable("model_view_projection");
-				sky_view_var = sky_shader_program->variable("view");
-				sky_view_projection_var = sky_shader_program->variable("view_projection");
-				sky_inv_view_projection_var = sky_shader_program->variable("inv_view_projection");
-				sky_camera_position_var = sky_shader_program->variable("camera_position");
-				sky_mouse_var = sky_shader_program->variable("mouse");
-				sky_resolution_var = sky_shader_program->variable("resolution");
-				sky_light_direction_var = sky_shader_program->variable("light_direction");
-				sky_sun_luminance_var = sky_shader_program->variable("sun_luminance");
-				sky_sun_angular_radius_var = sky_shader_program->variable("sun_angular_radius");
-				sky_atmosphere_radii_var = sky_shader_program->variable("atmosphere_radii");
-				sky_observer_position_var = sky_shader_program->variable("observer_position");
-				sky_transmittance_lut_var = sky_shader_program->variable("sky_transmittance_lut");
-				sky_transmittance_lut_resolution_var = sky_shader_program->variable("sky_transmittance_lut_resolution");
-				sky_luminance_lut_var = sky_shader_program->variable("sky_luminance_lut");
-				sky_luminance_lut_resolution_var = sky_shader_program->variable("sky_luminance_lut_resolution");
+				sky_model_view_projection_var = sky_shader_program->variable("model_view_projection"_fnv1a32);
+				sky_view_var = sky_shader_program->variable("view"_fnv1a32);
+				sky_view_projection_var = sky_shader_program->variable("view_projection"_fnv1a32);
+				sky_inv_view_projection_var = sky_shader_program->variable("inv_view_projection"_fnv1a32);
+				sky_camera_position_var = sky_shader_program->variable("camera_position"_fnv1a32);
+				sky_mouse_var = sky_shader_program->variable("mouse"_fnv1a32);
+				sky_resolution_var = sky_shader_program->variable("resolution"_fnv1a32);
+				sky_light_direction_var = sky_shader_program->variable("light_direction"_fnv1a32);
+				sky_sun_luminance_var = sky_shader_program->variable("sun_luminance"_fnv1a32);
+				sky_sun_angular_radius_var = sky_shader_program->variable("sun_angular_radius"_fnv1a32);
+				sky_atmosphere_radii_var = sky_shader_program->variable("atmosphere_radii"_fnv1a32);
+				sky_observer_position_var = sky_shader_program->variable("observer_position"_fnv1a32);
+				sky_transmittance_lut_var = sky_shader_program->variable("sky_transmittance_lut"_fnv1a32);
+				sky_transmittance_lut_resolution_var = sky_shader_program->variable("sky_transmittance_lut_resolution"_fnv1a32);
+				sky_luminance_lut_var = sky_shader_program->variable("sky_luminance_lut"_fnv1a32);
+				sky_luminance_lut_resolution_var = sky_shader_program->variable("sky_luminance_lut_resolution"_fnv1a32);
 			}
 			else
 			{
@@ -582,19 +584,19 @@ void sky_pass::set_moon_model(std::shared_ptr<render::model> model)
 			
 			if (moon_shader_program->linked())
 			{
-				moon_model_var = moon_shader_program->variable("model");
-				moon_view_projection_var = moon_shader_program->variable("view_projection");
-				moon_normal_model_var = moon_shader_program->variable("normal_model");
-				moon_camera_position_var = moon_shader_program->variable("camera_position");
-				moon_sunlight_direction_var = moon_shader_program->variable("sunlight_direction");
-				moon_sunlight_illuminance_var = moon_shader_program->variable("sunlight_illuminance");
-				moon_planetlight_direction_var = moon_shader_program->variable("planetlight_direction");
-				moon_planetlight_illuminance_var = moon_shader_program->variable("planetlight_illuminance");
-				moon_albedo_map_var = moon_shader_program->variable("albedo_map");
-				moon_normal_map_var = moon_shader_program->variable("normal_map");
-				moon_observer_position_var = moon_shader_program->variable("observer_position");
-				moon_sky_transmittance_lut_var = moon_shader_program->variable("sky_transmittance_lut");
-				moon_atmosphere_radii_var = moon_shader_program->variable("atmosphere_radii");
+				moon_model_var = moon_shader_program->variable("model"_fnv1a32);
+				moon_view_projection_var = moon_shader_program->variable("view_projection"_fnv1a32);
+				moon_normal_model_var = moon_shader_program->variable("normal_model"_fnv1a32);
+				moon_camera_position_var = moon_shader_program->variable("camera_position"_fnv1a32);
+				moon_sunlight_direction_var = moon_shader_program->variable("sunlight_direction"_fnv1a32);
+				moon_sunlight_illuminance_var = moon_shader_program->variable("sunlight_illuminance"_fnv1a32);
+				moon_planetlight_direction_var = moon_shader_program->variable("planetlight_direction"_fnv1a32);
+				moon_planetlight_illuminance_var = moon_shader_program->variable("planetlight_illuminance"_fnv1a32);
+				moon_albedo_map_var = moon_shader_program->variable("albedo_map"_fnv1a32);
+				moon_normal_map_var = moon_shader_program->variable("normal_map"_fnv1a32);
+				moon_observer_position_var = moon_shader_program->variable("observer_position"_fnv1a32);
+				moon_sky_transmittance_lut_var = moon_shader_program->variable("sky_transmittance_lut"_fnv1a32);
+				moon_atmosphere_radii_var = moon_shader_program->variable("atmosphere_radii"_fnv1a32);
 			}
 			else
 			{
@@ -635,9 +637,9 @@ void sky_pass::set_stars_model(std::shared_ptr<render::model> model)
 			
 			if (star_shader_program->linked())
 			{
-				star_model_view_projection_var = star_shader_program->variable("model_view_projection");
-				star_exposure_var = star_shader_program->variable("camera_exposure");
-				star_inv_resolution_var = star_shader_program->variable("inv_resolution");
+				star_model_view_projection_var = star_shader_program->variable("model_view_projection"_fnv1a32);
+				star_exposure_var = star_shader_program->variable("camera_exposure"_fnv1a32);
+				star_inv_resolution_var = star_shader_program->variable("inv_resolution"_fnv1a32);
 			}
 			else
 			{
@@ -915,27 +917,27 @@ void sky_pass::rebuild_transmittance_lut_command_buffer()
 	);
 	
 	// Update shader variables
-	if (auto atmosphere_radii_var = m_transmittance_lut_shader_program->variable("atmosphere_radii"))
+	if (auto atmosphere_radii_var = m_transmittance_lut_shader_program->variable("atmosphere_radii"_fnv1a32))
 	{
 		m_transmittance_lut_command_buffer.emplace_back([&, atmosphere_radii_var](){atmosphere_radii_var->update(atmosphere_radii);});
 	}
-	if (auto rayleigh_parameters_var = m_transmittance_lut_shader_program->variable("rayleigh_parameters"))
+	if (auto rayleigh_parameters_var = m_transmittance_lut_shader_program->variable("rayleigh_parameters"_fnv1a32))
 	{
 		m_transmittance_lut_command_buffer.emplace_back([&, rayleigh_parameters_var](){rayleigh_parameters_var->update(rayleigh_parameters);});
 	}
-	if (auto mie_parameters_var = m_transmittance_lut_shader_program->variable("mie_parameters"))
+	if (auto mie_parameters_var = m_transmittance_lut_shader_program->variable("mie_parameters"_fnv1a32))
 	{
 		m_transmittance_lut_command_buffer.emplace_back([&, mie_parameters_var](){mie_parameters_var->update(mie_parameters);});
 	}
-	if (auto ozone_distribution_var = m_transmittance_lut_shader_program->variable("ozone_distribution"))
+	if (auto ozone_distribution_var = m_transmittance_lut_shader_program->variable("ozone_distribution"_fnv1a32))
 	{
 		m_transmittance_lut_command_buffer.emplace_back([&, ozone_distribution_var](){ozone_distribution_var->update(ozone_distribution);});
 	}
-	if (auto ozone_absorption_var = m_transmittance_lut_shader_program->variable("ozone_absorption"))
+	if (auto ozone_absorption_var = m_transmittance_lut_shader_program->variable("ozone_absorption"_fnv1a32))
 	{
 		m_transmittance_lut_command_buffer.emplace_back([&, ozone_absorption_var](){ozone_absorption_var->update(ozone_absorption);});
 	}
-	if (auto resolution_var = m_transmittance_lut_shader_program->variable("resolution"))
+	if (auto resolution_var = m_transmittance_lut_shader_program->variable("resolution"_fnv1a32))
 	{
 		m_transmittance_lut_command_buffer.emplace_back([&, resolution_var](){resolution_var->update(math::fvec2(m_transmittance_lut_resolution));});
 	}
@@ -1024,35 +1026,35 @@ void sky_pass::rebuild_multiscattering_lut_command_buffer()
 	);
 	
 	// Update shader variables
-	if (auto atmosphere_radii_var = m_multiscattering_lut_shader_program->variable("atmosphere_radii"))
+	if (auto atmosphere_radii_var = m_multiscattering_lut_shader_program->variable("atmosphere_radii"_fnv1a32))
 	{
 		m_multiscattering_lut_command_buffer.emplace_back([&, atmosphere_radii_var](){atmosphere_radii_var->update(atmosphere_radii);});
 	}
-	if (auto rayleigh_parameters_var = m_multiscattering_lut_shader_program->variable("rayleigh_parameters"))
+	if (auto rayleigh_parameters_var = m_multiscattering_lut_shader_program->variable("rayleigh_parameters"_fnv1a32))
 	{
 		m_multiscattering_lut_command_buffer.emplace_back([&, rayleigh_parameters_var](){rayleigh_parameters_var->update(rayleigh_parameters);});
 	}
-	if (auto mie_parameters_var = m_multiscattering_lut_shader_program->variable("mie_parameters"))
+	if (auto mie_parameters_var = m_multiscattering_lut_shader_program->variable("mie_parameters"_fnv1a32))
 	{
 		m_multiscattering_lut_command_buffer.emplace_back([&, mie_parameters_var](){mie_parameters_var->update(mie_parameters);});
 	}
-	if (auto ozone_distribution_var = m_multiscattering_lut_shader_program->variable("ozone_distribution"))
+	if (auto ozone_distribution_var = m_multiscattering_lut_shader_program->variable("ozone_distribution"_fnv1a32))
 	{
 		m_multiscattering_lut_command_buffer.emplace_back([&, ozone_distribution_var](){ozone_distribution_var->update(ozone_distribution);});
 	}
-	if (auto ozone_absorption_var = m_multiscattering_lut_shader_program->variable("ozone_absorption"))
+	if (auto ozone_absorption_var = m_multiscattering_lut_shader_program->variable("ozone_absorption"_fnv1a32))
 	{
 		m_multiscattering_lut_command_buffer.emplace_back([&, ozone_absorption_var](){ozone_absorption_var->update(ozone_absorption);});
 	}
-	if (auto ground_albedo_var = m_multiscattering_lut_shader_program->variable("ground_albedo"))
+	if (auto ground_albedo_var = m_multiscattering_lut_shader_program->variable("ground_albedo"_fnv1a32))
 	{
 		m_multiscattering_lut_command_buffer.emplace_back([&, ground_albedo_var](){ground_albedo_var->update(m_ground_albedo);});
 	}
-	if (auto resolution_var = m_multiscattering_lut_shader_program->variable("resolution"))
+	if (auto resolution_var = m_multiscattering_lut_shader_program->variable("resolution"_fnv1a32))
 	{
 		m_multiscattering_lut_command_buffer.emplace_back([&, resolution_var](){resolution_var->update(math::fvec2(m_multiscattering_lut_resolution));});
 	}
-	if (auto transmittance_lut_var = m_multiscattering_lut_shader_program->variable("transmittance_lut"))
+	if (auto transmittance_lut_var = m_multiscattering_lut_shader_program->variable("transmittance_lut"_fnv1a32))
 	{
 		m_multiscattering_lut_command_buffer.emplace_back([&, transmittance_lut_var](){transmittance_lut_var->update(*m_transmittance_lut_texture);});
 	}
@@ -1140,51 +1142,51 @@ void sky_pass::rebuild_luminance_lut_command_buffer()
 	);
 	
 	// Update shader variables
-	if (auto light_direction_var = m_luminance_lut_shader_program->variable("light_direction"))
+	if (auto light_direction_var = m_luminance_lut_shader_program->variable("light_direction"_fnv1a32))
 	{
 		m_luminance_lut_command_buffer.emplace_back([&, light_direction_var](){light_direction_var->update(dominant_light_direction);});
 	}
-	if (auto light_illuminance_var = m_luminance_lut_shader_program->variable("light_illuminance"))
+	if (auto light_illuminance_var = m_luminance_lut_shader_program->variable("light_illuminance"_fnv1a32))
 	{
 		m_luminance_lut_command_buffer.emplace_back([&, light_illuminance_var](){light_illuminance_var->update(dominant_light_illuminance);});
 	}
-	if (auto atmosphere_radii_var = m_luminance_lut_shader_program->variable("atmosphere_radii"))
+	if (auto atmosphere_radii_var = m_luminance_lut_shader_program->variable("atmosphere_radii"_fnv1a32))
 	{
 		m_luminance_lut_command_buffer.emplace_back([&, atmosphere_radii_var](){atmosphere_radii_var->update(atmosphere_radii);});
 	}
-	if (auto observer_position_var = m_luminance_lut_shader_program->variable("observer_position"))
+	if (auto observer_position_var = m_luminance_lut_shader_program->variable("observer_position"_fnv1a32))
 	{
 		m_luminance_lut_command_buffer.emplace_back([&, observer_position_var](){observer_position_var->update(m_observer_position);});
 	}
-	if (auto rayleigh_parameters_var = m_luminance_lut_shader_program->variable("rayleigh_parameters"))
+	if (auto rayleigh_parameters_var = m_luminance_lut_shader_program->variable("rayleigh_parameters"_fnv1a32))
 	{
 		m_luminance_lut_command_buffer.emplace_back([&, rayleigh_parameters_var](){rayleigh_parameters_var->update(rayleigh_parameters);});
 	}
-	if (auto mie_parameters_var = m_luminance_lut_shader_program->variable("mie_parameters"))
+	if (auto mie_parameters_var = m_luminance_lut_shader_program->variable("mie_parameters"_fnv1a32))
 	{
 		m_luminance_lut_command_buffer.emplace_back([&, mie_parameters_var](){mie_parameters_var->update(mie_parameters);});
 	}
-	if (auto ozone_distribution_var = m_luminance_lut_shader_program->variable("ozone_distribution"))
+	if (auto ozone_distribution_var = m_luminance_lut_shader_program->variable("ozone_distribution"_fnv1a32))
 	{
 		m_luminance_lut_command_buffer.emplace_back([&, ozone_distribution_var](){ozone_distribution_var->update(ozone_distribution);});
 	}
-	if (auto ozone_absorption_var = m_luminance_lut_shader_program->variable("ozone_absorption"))
+	if (auto ozone_absorption_var = m_luminance_lut_shader_program->variable("ozone_absorption"_fnv1a32))
 	{
 		m_luminance_lut_command_buffer.emplace_back([&, ozone_absorption_var](){ozone_absorption_var->update(ozone_absorption);});
 	}
-	if (auto airglow_luminance_var = m_luminance_lut_shader_program->variable("airglow_luminance"))
+	if (auto airglow_luminance_var = m_luminance_lut_shader_program->variable("airglow_luminance"_fnv1a32))
 	{
 		m_luminance_lut_command_buffer.emplace_back([&, airglow_luminance_var](){airglow_luminance_var->update(airglow_luminance * camera_exposure);});
 	}
-	if (auto resolution_var = m_luminance_lut_shader_program->variable("resolution"))
+	if (auto resolution_var = m_luminance_lut_shader_program->variable("resolution"_fnv1a32))
 	{
 		m_luminance_lut_command_buffer.emplace_back([&, resolution_var](){resolution_var->update(math::fvec2(m_luminance_lut_resolution));});
 	}
-	if (auto transmittance_lut_var = m_luminance_lut_shader_program->variable("transmittance_lut"))
+	if (auto transmittance_lut_var = m_luminance_lut_shader_program->variable("transmittance_lut"_fnv1a32))
 	{
 		m_luminance_lut_command_buffer.emplace_back([&, transmittance_lut_var](){transmittance_lut_var->update(*m_transmittance_lut_texture);});
 	}
-	if (auto multiscattering_lut_var = m_luminance_lut_shader_program->variable("multiscattering_lut"))
+	if (auto multiscattering_lut_var = m_luminance_lut_shader_program->variable("multiscattering_lut"_fnv1a32))
 	{
 		m_luminance_lut_command_buffer.emplace_back([&, multiscattering_lut_var](){multiscattering_lut_var->update(*m_multiscattering_lut_texture);});
 	}
@@ -1231,27 +1233,27 @@ void sky_pass::rebuild_sky_probe_command_buffer()
 		}
 	);
 	
-	if (auto luminance_lut_var = m_sky_probe_shader_program->variable("luminance_lut"))
+	if (auto luminance_lut_var = m_sky_probe_shader_program->variable("luminance_lut"_fnv1a32))
 	{
 		m_sky_probe_command_buffer.emplace_back([&, luminance_lut_var](){luminance_lut_var->update(*m_luminance_lut_texture);});
 	}
-	if (auto light_direction_var = m_sky_probe_shader_program->variable("light_direction"))
+	if (auto light_direction_var = m_sky_probe_shader_program->variable("light_direction"_fnv1a32))
 	{
 		m_sky_probe_command_buffer.emplace_back([&, light_direction_var](){light_direction_var->update(dominant_light_direction);});
 	}
-	if (auto light_illuminance_var = m_sky_probe_shader_program->variable("light_illuminance"))
+	if (auto light_illuminance_var = m_sky_probe_shader_program->variable("light_illuminance"_fnv1a32))
 	{
 		m_sky_probe_command_buffer.emplace_back([&, light_illuminance_var](){light_illuminance_var->update(dominant_light_illuminance);});
 	}
-	if (auto observer_position_var = m_sky_probe_shader_program->variable("observer_position"))
+	if (auto observer_position_var = m_sky_probe_shader_program->variable("observer_position"_fnv1a32))
 	{
 		m_sky_probe_command_buffer.emplace_back([&, observer_position_var](){observer_position_var->update(m_observer_position);});
 	}
-	if (auto atmosphere_radii_var = m_sky_probe_shader_program->variable("atmosphere_radii"))
+	if (auto atmosphere_radii_var = m_sky_probe_shader_program->variable("atmosphere_radii"_fnv1a32))
 	{
 		m_sky_probe_command_buffer.emplace_back([&, atmosphere_radii_var](){atmosphere_radii_var->update(atmosphere_radii);});
 	}
-	if (auto ground_albedo_var = m_sky_probe_shader_program->variable("ground_albedo"))
+	if (auto ground_albedo_var = m_sky_probe_shader_program->variable("ground_albedo"_fnv1a32))
 	{
 		m_sky_probe_command_buffer.emplace_back([&, ground_albedo_var](){ground_albedo_var->update(m_ground_albedo);});
 	}

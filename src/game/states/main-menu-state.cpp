@@ -24,7 +24,7 @@
 #include <engine/render/model.hpp>
 #include <engine/render/passes/sky-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 #include <engine/render/passes/material-pass.hpp>
 #include <engine/input/clipboard-events.hpp>
 #include <engine/input/keyboard-events.hpp>
@@ -32,6 +32,8 @@
 #include <limits>
 #include <print>
 #include <stacktrace>
+
+using namespace hash::literals;
 
 main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	game_state(ctx)
@@ -107,7 +109,7 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	quit_text->set_content(get_string(ctx, "main_menu_quit"));
 	
 	// Init menu item index
-	::menu::init_menu_item_index(ctx, "main");
+	::menu::init_menu_item_index(ctx, "main"_fnv1a32);
 	
 	::menu::update_text_color(ctx);
 	::menu::update_text_font(ctx);
@@ -245,7 +247,7 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 		::menu::fade_in(ctx, nullptr);
 	}
 	
-	if (ctx.entities.find("earth") == ctx.entities.end())
+	if (ctx.entities.find("earth"_fnv1a32) == ctx.entities.end())
 	{
 		::world::cosmogenesis(ctx);
 		::world::create_observer(ctx);

@@ -13,7 +13,7 @@
 #include <engine/debug/log.hpp>
 #include <engine/config.hpp>
 #include "game/strings.hpp"
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 
 using namespace hash::literals;
 
@@ -41,7 +41,7 @@ pause_menu_state::pause_menu_state(::game& ctx):
 	ctx.menu_item_texts.push_back({quit_text.get(), nullptr});
 	
 	// Init menu item index
-	::menu::init_menu_item_index(ctx, "pause");
+	::menu::init_menu_item_index(ctx, "pause"_fnv1a32);
 	
 	::menu::update_text_color(ctx);
 	::menu::update_text_font(ctx);

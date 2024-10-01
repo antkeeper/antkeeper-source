@@ -43,7 +43,7 @@
 #include <engine/physics/light/exposure.hpp>
 #include <engine/color/color.hpp>
 #include <engine/input/mouse.hpp>
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 #include <random>
 
 using namespace hash::literals;
@@ -58,7 +58,7 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	selected_eid = entt::null;
 	
 	// Create world if not yet created
-	if (ctx.entities.find("earth") == ctx.entities.end())
+	if (ctx.entities.find("earth"_fnv1a32) == ctx.entities.end())
 	{
 		// Create cosmos
 		::world::cosmogenesis(ctx);

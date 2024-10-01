@@ -42,6 +42,9 @@
 #include <fstream>
 #include <engine/animation/ease.hpp>
 #include <engine/math/functions.hpp>
+#include <engine/hash/fnv.hpp>
+
+using namespace hash::literals;
 
 namespace world {
 
@@ -82,13 +85,13 @@ void create_observer(::game& ctx)
 	{
 		// Create observer entity
 		entity::id observer_eid = ctx.entity_registry->create();
-		ctx.entities["observer"] = observer_eid;
+		ctx.entities["observer"_fnv1a32] = observer_eid;
 		
 		// Construct observer component
 		::observer_component observer;
 		
 		// Set observer reference body
-		if (auto it = ctx.entities.find("earth"); it != ctx.entities.end())
+		if (auto it = ctx.entities.find("earth"_fnv1a32); it != ctx.entities.end())
 			observer.reference_body_eid = it->second;
 		else
 			observer.reference_body_eid = entt::null;
@@ -113,7 +116,7 @@ void create_observer(::game& ctx)
 
 void set_location(::game& ctx, double elevation, double latitude, double longitude)
 {
-	if (auto it = ctx.entities.find("observer"); it != ctx.entities.end())
+	if (auto it = ctx.entities.find("observer"_fnv1a32); it != ctx.entities.end())
 	{
 		entity::id observer_eid = it->second;
 		
@@ -154,7 +157,7 @@ void set_time(::game& ctx, int year, int month, int day, int hour, int minute, d
 	double longitude = 0.0;
 	
 	// Get longitude of observer
-	if (auto it = ctx.entities.find("observer"); it != ctx.entities.end())
+	if (auto it = ctx.entities.find("observer"_fnv1a32); it != ctx.entities.end())
 	{
 		entity::id observer_eid = it->second;
 		if (ctx.entity_registry->valid(observer_eid))
@@ -298,7 +301,7 @@ void create_stars(::game& ctx)
 	// Construct star model group
 	stars_model->get_groups().resize(1);
 	render::model_group& stars_model_group = stars_model->get_groups().front();
-	stars_model_group.id = "stars";
+	stars_model_group.id = "stars"_fnv1a32;
 	stars_model_group.primitive_topology = gl::primitive_topology::point_list;
 	stars_model_group.first_vertex = 0;
 	stars_model_group.vertex_count = static_cast<std::uint32_t>(star_count);
@@ -321,7 +324,7 @@ void create_sun(::game& ctx)
 		// Create sun entity
 		auto sun_archetype = ctx.resource_manager->load<entity::archetype>("sun.ent");
 		entity::id sun_eid = sun_archetype->create(*ctx.entity_registry);
-		ctx.entities["sun"] = sun_eid;
+		ctx.entities["sun"_fnv1a32] = sun_eid;
 		
 		// Create sun directional light scene object
 		ctx.sun_light = std::make_unique<scene::directional_light>();
@@ -351,7 +354,7 @@ void create_earth_moon_system(::game& ctx)
 		// Create Earth-Moon barycenter entity
 		auto em_bary_archetype = ctx.resource_manager->load<entity::archetype>("em-bary.ent");
 		entity::id em_bary_eid = em_bary_archetype->create(*ctx.entity_registry);
-		ctx.entities["em_bary"] = em_bary_eid;
+		ctx.entities["em_bary"_fnv1a32] = em_bary_eid;
 		
 		// Create Earth
 		create_earth(ctx);
@@ -371,10 +374,10 @@ void create_earth(::game& ctx)
 		// Create earth entity
 		auto earth_archetype = ctx.resource_manager->load<entity::archetype>("earth.ent");
 		entity::id earth_eid = earth_archetype->create(*ctx.entity_registry);
-		ctx.entities["earth"] = earth_eid;
+		ctx.entities["earth"_fnv1a32] = earth_eid;
 		
 		// Assign orbital parent
-		ctx.entity_registry->get<::orbit_component>(earth_eid).parent = ctx.entities["em_bary"];
+		ctx.entity_registry->get<::orbit_component>(earth_eid).parent = ctx.entities["em_bary"_fnv1a32];
 	}
 	
 	debug::log_trace("Generating Earth... OK");
@@ -388,10 +391,10 @@ void create_moon(::game& ctx)
 		// Create lunar entity
 		auto moon_archetype = ctx.resource_manager->load<entity::archetype>("moon.ent");
 		entity::id moon_eid = moon_archetype->create(*ctx.entity_registry);
-		ctx.entities["moon"] = moon_eid;
+		ctx.entities["moon"_fnv1a32] = moon_eid;
 		
 		// Assign orbital parent
-		ctx.entity_registry->get<::orbit_component>(moon_eid).parent = ctx.entities["em_bary"];
+		ctx.entity_registry->get<::orbit_component>(moon_eid).parent = ctx.entities["em_bary"_fnv1a32];
 		
 		// Pass moon model to sky pass
 		ctx.sky_pass->set_moon_model(ctx.resource_manager->load<render::model>("moon.mdl"));

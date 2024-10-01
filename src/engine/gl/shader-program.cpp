@@ -191,7 +191,7 @@ void shader_program::load_variables()
 		}
 		
 		// Hash variable name to get variable key
-		const hash::fnv1a32_t variable_key = hash::fnv1a32<char>({uniform_name.c_str(), uniform_base_name_length});
+		const hash::fnv32_t variable_key = hash::fnv1a32<char>({uniform_name.c_str(), uniform_base_name_length});
 		
 		// Get size of variable
 		const std::size_t variable_size = static_cast<std::size_t>(uniform_size);

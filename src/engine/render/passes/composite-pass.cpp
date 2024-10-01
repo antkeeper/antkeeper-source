@@ -14,8 +14,10 @@
 #include <engine/render/context.hpp>
 #include <cmath>
 #include <cstdint>
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 #include <engine/debug/log.hpp>
+
+using namespace hash::literals;
 
 namespace render {
 
@@ -111,7 +113,7 @@ void composite_pass::rebuild_command_buffer()
 	
 	if (m_luminance_texture)
 	{
-		if (const auto var = m_shader_program->variable("luminance_texture"))
+		if (const auto var = m_shader_program->variable("luminance_texture"_fnv1a32))
 		{
 			m_command_buffer.emplace_back([&, var](){var->update(*m_luminance_texture);});
 		}
@@ -120,12 +122,12 @@ void composite_pass::rebuild_command_buffer()
 	// Bloom
 	if (m_bloom_texture)
 	{
-		if (const auto var = m_shader_program->variable("bloom_texture"))
+		if (const auto var = m_shader_program->variable("bloom_texture"_fnv1a32))
 		{
 			m_command_buffer.emplace_back([&, var](){var->update(*m_bloom_texture);});
 		}
 	}
-	if (const auto var = m_shader_program->variable("bloom_strength"))
+	if (const auto var = m_shader_program->variable("bloom_strength"_fnv1a32))
 	{
 		m_command_buffer.emplace_back([&, var](){var->update(m_bloom_strength);});
 	}
@@ -133,12 +135,12 @@ void composite_pass::rebuild_command_buffer()
 	// Noise
 	if (m_noise_texture)
 	{
-		if (const auto var = m_shader_program->variable("noise_texture"))
+		if (const auto var = m_shader_program->variable("noise_texture"_fnv1a32))
 		{
 			m_command_buffer.emplace_back([&, var](){var->update(*m_noise_texture);});
 		}
 	}
-	if (const auto var = m_shader_program->variable("noise_strength"))
+	if (const auto var = m_shader_program->variable("noise_strength"_fnv1a32))
 	{
 		m_command_buffer.emplace_back([&, var](){var->update(m_noise_strength);});
 	}
@@ -146,21 +148,21 @@ void composite_pass::rebuild_command_buffer()
 	// Overlay
 	if (m_overlay_texture)
 	{
-		if (const auto var = m_shader_program->variable("overlay_texture"))
+		if (const auto var = m_shader_program->variable("overlay_texture"_fnv1a32))
 		{
 			m_command_buffer.emplace_back([&, var](){var->update(*m_overlay_texture);});
 		}
 	}
 
-	if (const auto var = m_shader_program->variable("resolution"))
+	if (const auto var = m_shader_program->variable("resolution"_fnv1a32))
 	{
 		m_command_buffer.emplace_back([&, var](){var->update(m_resolution);});
 	}
-	if (const auto var = m_shader_program->variable("time"))
+	if (const auto var = m_shader_program->variable("time"_fnv1a32))
 	{
 		m_command_buffer.emplace_back([&, var](){var->update(m_time);});
 	}
-	if (const auto frame_var = m_shader_program->variable("frame"))
+	if (const auto frame_var = m_shader_program->variable("frame"_fnv1a32))
 	{
 		m_command_buffer.emplace_back([&, frame_var](){frame_var->update(m_frame);});
 	}

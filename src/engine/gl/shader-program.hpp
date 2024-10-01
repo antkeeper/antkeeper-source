@@ -9,7 +9,7 @@
 #include <unordered_set>
 #include <cstdint>
 #include <memory>
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 
 namespace gl {
 
@@ -72,7 +72,7 @@ public:
 	
 	/// Returns all active shader variables in the shader program.
 	/// @return Map of 32-bit FNV-1a hash values of shader variable names to shader variables.
-	[[nodiscard]] inline const std::unordered_map<hash::fnv1a32_t, const std::unique_ptr<const shader_variable>>& variables() const noexcept
+	[[nodiscard]] inline const std::unordered_map<hash::fnv32_t, const std::unique_ptr<const shader_variable>>& variables() const noexcept
 	{
 		return m_variable_map;
 	}
@@ -80,7 +80,7 @@ public:
 	/// Returns a pointer to an active shader variable with the given name, or `nullptr` if not found.
 	/// @param key 32-bit FNV-1a hash value of a shader variable name.
 	/// @return Pointer to the active shader variable with the given name, or `nullptr` if not found.
-	[[nodiscard]] inline const shader_variable* variable(hash::fnv1a32_t key) const
+	[[nodiscard]] inline const shader_variable* variable(hash::fnv32_t key) const
 	{
 		if (auto i = m_variable_map.find(key); i != m_variable_map.end())
 		{
@@ -104,7 +104,7 @@ private:
 	unsigned int m_gl_program_id{0};
 	bool m_linked{false};
 	std::unordered_set<const shader_object*> m_attached_objects;
-	std::unordered_map<hash::fnv1a32_t, const std::unique_ptr<const shader_variable>> m_variable_map;
+	std::unordered_map<hash::fnv32_t, const std::unique_ptr<const shader_variable>> m_variable_map;
 	std::string m_info_log;
 };
 

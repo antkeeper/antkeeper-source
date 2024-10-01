@@ -8,7 +8,7 @@
 
 namespace menu {
 
-void init_menu_item_index(::game& ctx, hash::fnv1a32_t menu_name);
+void init_menu_item_index(::game& ctx, hash::fnv32_t menu_name);
 void setup_animations(::game& ctx);
 
 void clear_callbacks(::game& ctx);

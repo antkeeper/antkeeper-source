@@ -8,7 +8,7 @@
 #include <engine/debug/log.hpp>
 #include "game/menu.hpp"
 #include "game/strings.hpp"
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 
 using namespace hash::literals;
 
@@ -53,7 +53,7 @@ sound_menu_state::sound_menu_state(::game& ctx):
 	update_value_text_content();
 	
 	// Init menu item index
-	::menu::init_menu_item_index(ctx, "sound");
+	::menu::init_menu_item_index(ctx, "sound"_fnv1a32);
 	
 	::menu::update_text_color(ctx);
 	::menu::update_text_font(ctx);

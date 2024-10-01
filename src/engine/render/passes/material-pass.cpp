@@ -29,6 +29,8 @@
 #include <cmath>
 #include <execution>
 
+using namespace hash::literals;
+
 namespace render {
 
 namespace {
@@ -540,33 +542,33 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 	command_buffer.emplace_back([&](){m_pipeline->bind_shader_program(&shader_program);});
 	
 	// Update camera variables
-	if (auto view_var = shader_program.variable("view"))
+	if (auto view_var = shader_program.variable("view"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, view_var](){view_var->update(*view);});
 	}
-	if (auto inv_view_var = shader_program.variable("inv_view"))
+	if (auto inv_view_var = shader_program.variable("inv_view"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, inv_view_var](){inv_view_var->update(*inv_view);});
 	}
-	if (auto projection_var = shader_program.variable("projection"))
+	if (auto projection_var = shader_program.variable("projection"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, projection_var](){projection_var->update(*projection);});
 	}
-	if (auto view_projection_var = shader_program.variable("view_projection"))
+	if (auto view_projection_var = shader_program.variable("view_projection"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, view_projection_var](){view_projection_var->update(*view_projection);});
 	}
-	if (auto camera_position_var = shader_program.variable("camera_position"))
+	if (auto camera_position_var = shader_program.variable("camera_position"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, camera_position_var](){camera_position_var->update(*camera_position);});
 	}
-	if (auto camera_exposure_var = shader_program.variable("camera_exposure"))
+	if (auto camera_exposure_var = shader_program.variable("camera_exposure"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, camera_exposure_var](){camera_exposure_var->update(camera_exposure);});
 	}
 	
 	// Update IBL variables
-	if (auto brdf_lut_var = shader_program.variable("brdf_lut"))
+	if (auto brdf_lut_var = shader_program.variable("brdf_lut"_fnv1a32))
 	{
 		command_buffer.emplace_back
 		(
@@ -580,7 +582,7 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 	// Update light probe variables
 	if (light_probe_count)
 	{
-		if (auto light_probe_luminance_texture_var = shader_program.variable("light_probe_luminance_texture"))
+		if (auto light_probe_luminance_texture_var = shader_program.variable("light_probe_luminance_texture"_fnv1a32))
 		{
 			command_buffer.emplace_back
 			(
@@ -591,7 +593,7 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 			);
 		}
 		
-		if (auto light_probe_luminance_mip_scale_var = shader_program.variable("light_probe_luminance_mip_scale"))
+		if (auto light_probe_luminance_mip_scale_var = shader_program.variable("light_probe_luminance_mip_scale"_fnv1a32))
 		{
 			command_buffer.emplace_back
 			(
@@ -602,7 +604,7 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 			);
 		}
 		
-		if (auto light_probe_illuminance_texture_var = shader_program.variable("light_probe_illuminance_texture"))
+		if (auto light_probe_illuminance_texture_var = shader_program.variable("light_probe_illuminance_texture"_fnv1a32))
 		{
 			command_buffer.emplace_back
 			(
@@ -615,9 +617,9 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 	}
 	
 	// Update LTC variables
-	if (auto ltc_lut_1_var = shader_program.variable("ltc_lut_1"))
+	if (auto ltc_lut_1_var = shader_program.variable("ltc_lut_1"_fnv1a32))
 	{
-		if (auto ltc_lut_2_var = shader_program.variable("ltc_lut_2"))
+		if (auto ltc_lut_2_var = shader_program.variable("ltc_lut_2"_fnv1a32))
 		{
 			command_buffer.emplace_back
 			(
@@ -631,9 +633,9 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 	}
 	if (rectangle_light_count)
 	{
-		if (auto rectangle_light_colors_var = shader_program.variable("rectangle_light_colors"))
+		if (auto rectangle_light_colors_var = shader_program.variable("rectangle_light_colors"_fnv1a32))
 		{
-			auto rectangle_light_corners_var = shader_program.variable("rectangle_light_corners");
+			auto rectangle_light_corners_var = shader_program.variable("rectangle_light_corners"_fnv1a32);
 			
 			if (rectangle_light_corners_var)
 			{
@@ -652,9 +654,9 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 	// Update directional light variables
 	if (directional_light_count)
 	{
-		if (auto directional_light_colors_var = shader_program.variable("directional_light_colors"))
+		if (auto directional_light_colors_var = shader_program.variable("directional_light_colors"_fnv1a32))
 		{
-			if (auto directional_light_directions_var = shader_program.variable("directional_light_directions"))
+			if (auto directional_light_directions_var = shader_program.variable("directional_light_directions"_fnv1a32))
 			{
 				command_buffer.emplace_back
 				(
@@ -671,11 +673,11 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 	// Update directional shadow variables
 	if (directional_shadow_count)
 	{
-		if (auto directional_shadow_maps_var = shader_program.variable("directional_shadow_maps"))
+		if (auto directional_shadow_maps_var = shader_program.variable("directional_shadow_maps"_fnv1a32))
 		{
-			auto directional_shadow_splits_var = shader_program.variable("directional_shadow_splits");
-			auto directional_shadow_fade_ranges_var = shader_program.variable("directional_shadow_fade_ranges");
-			auto directional_shadow_matrices_var = shader_program.variable("directional_shadow_matrices");
+			auto directional_shadow_splits_var = shader_program.variable("directional_shadow_splits"_fnv1a32);
+			auto directional_shadow_fade_ranges_var = shader_program.variable("directional_shadow_fade_ranges"_fnv1a32);
+			auto directional_shadow_matrices_var = shader_program.variable("directional_shadow_matrices"_fnv1a32);
 			
 			if (directional_shadow_maps_var && directional_shadow_splits_var && directional_shadow_fade_ranges_var && directional_shadow_matrices_var)
 			{
@@ -702,9 +704,9 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 	// Update point light variables
 	if (point_light_count)
 	{
-		if (auto point_light_colors_var = shader_program.variable("point_light_colors"))
+		if (auto point_light_colors_var = shader_program.variable("point_light_colors"_fnv1a32))
 		{
-			auto point_light_positions_var = shader_program.variable("point_light_positions");
+			auto point_light_positions_var = shader_program.variable("point_light_positions"_fnv1a32);
 			
 			if (point_light_positions_var)
 			{
@@ -723,11 +725,11 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 	// Update spot light variables
 	if (spot_light_count)
 	{
-		if (auto spot_light_colors_var = shader_program.variable("spot_light_colors"))
+		if (auto spot_light_colors_var = shader_program.variable("spot_light_colors"_fnv1a32))
 		{
-			auto spot_light_positions_var = shader_program.variable("spot_light_positions");
-			auto spot_light_directions_var = shader_program.variable("spot_light_directions");
-			auto spot_light_cutoffs_var = shader_program.variable("spot_light_cutoffs");
+			auto spot_light_positions_var = shader_program.variable("spot_light_positions"_fnv1a32);
+			auto spot_light_directions_var = shader_program.variable("spot_light_directions"_fnv1a32);
+			auto spot_light_cutoffs_var = shader_program.variable("spot_light_cutoffs"_fnv1a32);
 			
 			if (spot_light_positions_var && spot_light_directions_var && spot_light_cutoffs_var)
 			{
@@ -746,37 +748,37 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 	}
 	
 	// Update time variable
-	if (auto time_var = shader_program.variable("time"))
+	if (auto time_var = shader_program.variable("time"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, time_var](){time_var->update(time);});
 	}
 	
 	// Update timestep variable
-	if (auto timestep_var = shader_program.variable("timestep"))
+	if (auto timestep_var = shader_program.variable("timestep"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, timestep_var](){timestep_var->update(timestep);});
 	}
 	
 	// Update frame variable
-	if (auto frame_var = shader_program.variable("frame"))
+	if (auto frame_var = shader_program.variable("frame"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, frame_var](){frame_var->update(frame);});
 	}
 	
 	// Update subframe variable
-	if (auto subframe_var = shader_program.variable("subframe"))
+	if (auto subframe_var = shader_program.variable("subframe"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, subframe_var](){subframe_var->update(subframe);});
 	}
 	
 	// Update resolution variable
-	if (auto resolution_var = shader_program.variable("resolution"))
+	if (auto resolution_var = shader_program.variable("resolution"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, resolution_var](){resolution_var->update(resolution);});
 	}
 	
 	// Update mouse position variable
-	if (auto mouse_position_var = shader_program.variable("mouse_position"))
+	if (auto mouse_position_var = shader_program.variable("mouse_position"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, mouse_position_var](){mouse_position_var->update(mouse_position);});
 	}
@@ -785,13 +787,13 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 void material_pass::build_geometry_command_buffer(std::vector<std::function<void()>>& command_buffer, const gl::shader_program& shader_program) const
 {
 	// Update model matrix variable
-	if (auto model_var = shader_program.variable("model"))
+	if (auto model_var = shader_program.variable("model"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, model_var](){model_var->update(*model);});
 	}
 	
 	// Update normal-model matrix variable
-	if (auto normal_model_var = shader_program.variable("normal_model"))
+	if (auto normal_model_var = shader_program.variable("normal_model"_fnv1a32))
 	{
 		command_buffer.emplace_back
 		(
@@ -803,8 +805,8 @@ void material_pass::build_geometry_command_buffer(std::vector<std::function<void
 	}
 	
 	// Update model-view matrix and normal-model-view matrix variables
-	auto model_view_var = shader_program.variable("model_view");
-	auto normal_model_view_var = shader_program.variable("normal_model_view");
+	auto model_view_var = shader_program.variable("model_view"_fnv1a32);
+	auto normal_model_view_var = shader_program.variable("normal_model_view"_fnv1a32);
 	if (model_view_var && normal_model_view_var)
 	{
 		command_buffer.emplace_back
@@ -835,13 +837,13 @@ void material_pass::build_geometry_command_buffer(std::vector<std::function<void
 	}
 	
 	// Update model-view-projection matrix variable
-	if (auto model_view_projection_var = shader_program.variable("model_view_projection"))
+	if (auto model_view_projection_var = shader_program.variable("model_view_projection"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, model_view_projection_var](){model_view_projection_var->update((*projection) * model_view);});
 	}
 	
 	// Update skinning matrices variable
-	if (auto skinning_matrices_var = shader_program.variable("skinning_matrices"))
+	if (auto skinning_matrices_var = shader_program.variable("skinning_matrices"_fnv1a32))
 	{
 		command_buffer.emplace_back([&, skinning_matrices_var](){skinning_matrices_var->update(skinning_matrices);});
 	}

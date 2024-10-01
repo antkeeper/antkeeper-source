@@ -19,8 +19,11 @@
 #include <engine/math/quaternion.hpp>
 #include <engine/math/projection.hpp>
 #include <engine/geom/primitives/view-frustum.hpp>
+#include <engine/hash/fnv.hpp>
 #include <cmath>
 #include <execution>
+
+using namespace hash::literals;
 
 namespace render {
 
@@ -382,7 +385,7 @@ void cascaded_shadow_map_stage::rebuild_static_mesh_shader_program()
 	}
 	else
 	{
-		m_static_mesh_model_view_projection_var = m_static_mesh_shader_program->variable("model_view_projection");
+		m_static_mesh_model_view_projection_var = m_static_mesh_shader_program->variable("model_view_projection"_fnv1a32);
 	}
 }
 
@@ -399,8 +402,8 @@ void cascaded_shadow_map_stage::rebuild_skeletal_mesh_shader_program()
 	}
 	else
 	{
-		m_skeletal_mesh_model_view_projection_var = m_skeletal_mesh_shader_program->variable("model_view_projection");
-		m_skeletal_mesh_skinning_matrices_var = m_skeletal_mesh_shader_program->variable("skinning_matrices");
+		m_skeletal_mesh_model_view_projection_var = m_skeletal_mesh_shader_program->variable("model_view_projection"_fnv1a32);
+		m_skeletal_mesh_skinning_matrices_var = m_skeletal_mesh_shader_program->variable("skinning_matrices"_fnv1a32);
 	}
 }
 

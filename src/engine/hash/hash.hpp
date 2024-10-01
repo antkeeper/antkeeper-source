@@ -5,7 +5,7 @@
 #define ANTKEEPER_HASH_HPP
 
 #include <engine/hash/combine-hash.hpp>
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 #include <engine/hash/make-uint.hpp>
 #include <engine/hash/pcg.hpp>
 

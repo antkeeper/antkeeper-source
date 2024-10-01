@@ -11,7 +11,7 @@
 
 namespace menu {
 
-void init_menu_item_index(::game& ctx, hash::fnv1a32_t menu_name)
+void init_menu_item_index(::game& ctx, hash::fnv32_t menu_name)
 {
 	if (auto it = ctx.menu_item_indices.find(menu_name); it != ctx.menu_item_indices.end())
 	{

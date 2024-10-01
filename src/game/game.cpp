@@ -69,7 +69,7 @@
 #include <engine/resources/resource-manager.hpp>
 #include <engine/scene/scene.hpp>
 #include <engine/utility/dict.hpp>
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 #include <engine/utility/paths.hpp>
 #include <engine/ui/label.hpp>
 #include <entt/entt.hpp>
@@ -775,7 +775,7 @@ void game::setup_ui()
 	menu_bg_material = std::make_shared<render::material>();
 	menu_bg_material->set_shader_template(resource_manager->load<gl::shader_template>("ui-element-untextured.glsl"));
 	std::shared_ptr<render::matvar_fvec4> menu_bg_tint = std::make_shared<render::matvar_fvec4>(1, math::fvec4{0.0f, 0.0f, 0.0f, 0.5f});
-	menu_bg_material->set_variable("tint", menu_bg_tint);
+	menu_bg_material->set_variable("tint"_fnv1a32, menu_bg_tint);
 	menu_bg_material->set_blend_mode(render::material_blend_mode::translucent);
 	
 	// Menu BG billboard
@@ -788,7 +788,7 @@ void game::setup_ui()
 	screen_transition_material = std::make_shared<render::material>();
 	screen_transition_material->set_shader_template(resource_manager->load<gl::shader_template>("ui-element-untextured.glsl"));
 	std::shared_ptr<render::matvar_fvec4> screen_transition_tint = std::make_shared<render::matvar_fvec4>(1, math::fvec4{0.0f, 0.0f, 0.0f, 1.0f});
-	screen_transition_material->set_variable("tint", screen_transition_tint);
+	screen_transition_material->set_variable("tint"_fnv1a32, screen_transition_tint);
 	screen_transition_material->set_blend_mode(render::material_blend_mode::translucent);
 
 	// Screen transition billboard

@@ -65,7 +65,7 @@ void serializer<::control_profile>::serialize(const ::control_profile& profile, 
 	}
 	
 	// Write settings
-	serializer<dict<hash::fnv1a32_t>>().serialize(profile.settings, ctx);
+	serializer<dict<hash::fnv32_t>>().serialize(profile.settings, ctx);
 }
 
 /// Deserializes a control profile.
@@ -86,7 +86,7 @@ void deserializer<::control_profile>::deserialize(::control_profile& profile, de
 	for (std::uint64_t i = 0; i < size; ++i)
 	{
 		// Read key
-		hash::fnv1a32_t key;
+		hash::fnv32_t key;
 		ctx.read32<std::endian::big>(reinterpret_cast<std::byte*>(&key), 1);
 		
 		// Read mapping type
@@ -151,7 +151,7 @@ void deserializer<::control_profile>::deserialize(::control_profile& profile, de
 	}
 	
 	// Read settings
-	deserializer<dict<hash::fnv1a32_t>>().deserialize(profile.settings, ctx);
+	deserializer<dict<hash::fnv32_t>>().deserialize(profile.settings, ctx);
 }
 
 template <>

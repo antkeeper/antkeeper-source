@@ -7,7 +7,7 @@
 #include <engine/resources/deserializer.hpp>
 #include <engine/resources/deserialize-error.hpp>
 #include <engine/resources/resource-loader.hpp>
-#include <engine/hash/fnv1a.hpp>
+#include <engine/hash/fnv.hpp>
 #include <algorithm>
 #include <utility>
 #include <nlohmann/json.hpp>
@@ -79,7 +79,7 @@ void deserializer<i18n::string_map>::deserialize(i18n::string_map& map, deserial
 		for (std::uint32_t i = 0; i < size; ++i)
 		{
 			// Read key
-			hash::fnv1a32_t key;
+			hash::fnv32_t key;
 			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&key), 1);
 			
 			// Read string length

@@ -76,12 +76,12 @@ void material::set_shader_template(std::shared_ptr<gl::shader_template> shader_t
 	rehash();
 }
 
-void material::set_variable(hash::fnv1a32_t key, std::shared_ptr<material_variable_base> value)
+void material::set_variable(hash::fnv32_t key, std::shared_ptr<material_variable_base> value)
 {
 	m_variable_map[key] = std::move(value);
 }
 
-std::shared_ptr<material_variable_base> material::get_variable(hash::fnv1a32_t key) const
+std::shared_ptr<material_variable_base> material::get_variable(hash::fnv32_t key) const
 {
 	if (auto i = m_variable_map.find(key); i != m_variable_map.end())
 	{
@@ -119,7 +119,7 @@ static bool read_value(T* value, const nlohmann::json& json, const std::string& 
 	return false;
 }
 
-static bool load_texture_1d_property(resource_manager& resource_manager, render::material& material, hash::fnv1a32_t key, const nlohmann::json& json)
+static bool load_texture_1d_property(resource_manager& resource_manager, render::material& material, hash::fnv32_t key, const nlohmann::json& json)
 {
 	// If JSON element is an array
 	if (json.is_array())
@@ -151,7 +151,7 @@ static bool load_texture_1d_property(resource_manager& resource_manager, render:
 	return true;
 }
 
-static bool load_texture_2d_property(resource_manager& resource_manager, render::material& material, hash::fnv1a32_t key, const nlohmann::json& json)
+static bool load_texture_2d_property(resource_manager& resource_manager, render::material& material, hash::fnv32_t key, const nlohmann::json& json)
 {
 	// If JSON element is an array
 	if (json.is_array())
@@ -183,7 +183,7 @@ static bool load_texture_2d_property(resource_manager& resource_manager, render:
 	return true;
 }
 
-static bool load_texture_3d_property(resource_manager& resource_manager, render::material& material, hash::fnv1a32_t key, const nlohmann::json& json)
+static bool load_texture_3d_property(resource_manager& resource_manager, render::material& material, hash::fnv32_t key, const nlohmann::json& json)
 {
 	// If JSON element is an array
 	if (json.is_array())
@@ -215,7 +215,7 @@ static bool load_texture_3d_property(resource_manager& resource_manager, render:
 	return true;
 }
 
-static bool load_texture_cube_property(resource_manager& resource_manager, render::material& material, hash::fnv1a32_t key, const nlohmann::json& json)
+static bool load_texture_cube_property(resource_manager& resource_manager, render::material& material, hash::fnv32_t key, const nlohmann::json& json)
 {
 	// If JSON element is an array
 	if (json.is_array())
@@ -248,7 +248,7 @@ static bool load_texture_cube_property(resource_manager& resource_manager, rende
 }
 
 template <typename T>
-static bool load_scalar_property(render::material& material, hash::fnv1a32_t key, const nlohmann::json& json)
+static bool load_scalar_property(render::material& material, hash::fnv32_t key, const nlohmann::json& json)
 {
 	// If JSON element is an array
 	if (json.is_array())
@@ -274,7 +274,7 @@ static bool load_scalar_property(render::material& material, hash::fnv1a32_t key
 }
 
 template <typename T>
-static bool load_vector_property(render::material& material, hash::fnv1a32_t key, const nlohmann::json& json)
+static bool load_vector_property(render::material& material, hash::fnv32_t key, const nlohmann::json& json)
 {
 	// If JSON element is an array of arrays
 	if (json.is_array() && json.begin().value().is_array())
@@ -314,7 +314,7 @@ static bool load_vector_property(render::material& material, hash::fnv1a32_t key
 }
 
 template <typename T>
-static bool load_matrix_property(render::material& material, hash::fnv1a32_t key, const nlohmann::json& json)
+static bool load_matrix_property(render::material& material, hash::fnv32_t key, const nlohmann::json& json)
 {
 	// If JSON element is an array of arrays of arrays
 	if (json.is_array() && json.begin().value().is_array())
@@ -478,7 +478,7 @@ std::unique_ptr<render::material> resource_loader<render::material>::load(::reso
 			}
 			
 			// Hash variable name
-			const hash::fnv1a32_t key = hash::fnv1a32<char>(name);
+			const hash::fnv32_t key = hash::fnv1a32<char>(name);
 			
 			if (type == "texture_1d")
 			{

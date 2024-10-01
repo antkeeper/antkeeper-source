@@ -156,7 +156,7 @@ public:
 	std::shared_ptr<json> string_map;
 	
 	// Fonts
-	std::unordered_map<hash::fnv1a32_t, std::shared_ptr<type::typeface>> typefaces;
+	std::unordered_map<hash::fnv32_t, std::shared_ptr<type::typeface>> typefaces;
 	std::shared_ptr<type::font> debug_font;
 	std::shared_ptr<type::font> menu_font;
 	std::shared_ptr<type::font> title_font;
@@ -328,7 +328,7 @@ public:
 	std::vector<std::function<void()>> menu_right_callbacks;
 	std::function<void()> menu_back_callback;
 	std::vector<std::tuple<scene::text*, scene::text*>> menu_item_texts;
-	std::unordered_map<hash::fnv1a32_t, int> menu_item_indices;
+	std::unordered_map<hash::fnv32_t, int> menu_item_indices;
 	int* menu_item_index;
 	
 	// Scene
@@ -373,7 +373,7 @@ public:
 	
 	// Entities
 	std::unique_ptr<entity::registry> entity_registry;
-	std::unordered_map<hash::fnv1a32_t, entity::id> entities;
+	std::unordered_map<hash::fnv32_t, entity::id> entities;
 	entity::id controlled_ant_eid{entt::null};
 	entity::id active_camera_eid{entt::null};
 	
