@@ -103,8 +103,6 @@ bool shader_program::link()
 	{
 		throw std::runtime_error("Invalid OpenGL shader program");
 	}
-
-	debug::log_trace("Linking shader program {}...", m_gl_program_id);
 	
 	// Link OpenGL shader program
 	glLinkProgram(m_gl_program_id);
@@ -114,36 +112,35 @@ bool shader_program::link()
 	glGetProgramiv(m_gl_program_id, GL_LINK_STATUS, &gl_link_status);
 	m_linked = (gl_link_status == GL_TRUE);
 
-	if (!m_linked)
+	// Get OpenGL shader program info log length
+	GLint gl_info_log_length;
+	glGetProgramiv(m_gl_program_id, GL_INFO_LOG_LENGTH, &gl_info_log_length);
+
+	if (gl_info_log_length > 0)
 	{
-		debug::log_error("Failed to link shader program {}", m_gl_program_id);
+		// Resize string to accommodate OpenGL shader program info log
+		m_info_log.resize(gl_info_log_length);
+
+		// Read OpenGL shader program info log into string
+		glGetProgramInfoLog(m_gl_program_id, gl_info_log_length, &gl_info_log_length, m_info_log.data());
+
+		// Remove redundant null terminator from string
+		m_info_log.pop_back();
 	}
 
-	debug::log_trace("Linking shader program {}... {}", m_gl_program_id, m_linked ? "OK" : "FAILED");
-	
-	// Populate info log string
 	if (m_linked)
 	{
+		if (!m_info_log.empty())
+		{
+			debug::log_warning("Linked shader program {} with warnings: {}", m_gl_program_id, m_info_log);
+		}
+
 		// Load shader variables
 		load_variables();
 	}
 	else
 	{
-		// Get OpenGL shader program info log length
-		GLint gl_info_log_length;
-		glGetProgramiv(m_gl_program_id, GL_INFO_LOG_LENGTH, &gl_info_log_length);
-		
-		if (gl_info_log_length > 0)
-		{
-			// Resize string to accommodate OpenGL shader program info log
-			m_info_log.resize(gl_info_log_length);
-			
-			// Read OpenGL shader program info log into string
-			glGetProgramInfoLog(m_gl_program_id, gl_info_log_length, &gl_info_log_length, m_info_log.data());
-			
-			// Remove redundant null terminator from string
-			m_info_log.pop_back();
-		}
+		debug::log_error("Failed to link shader program {}: {}", m_gl_program_id, m_info_log.empty() ? "Unknown error" : m_info_log);
 	}
 	
 	return m_linked;

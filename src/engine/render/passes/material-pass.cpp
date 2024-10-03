@@ -239,8 +239,12 @@ void material_pass::render(render::context& ctx)
 					// Construct cache entry
 					active_cache_entry = &shader_cache[cache_key];
 					active_cache_entry->shader_program = generate_shader_program(*material->get_shader_template(), material->get_blend_mode());
-					build_shader_command_buffer(active_cache_entry->shader_command_buffer, *active_cache_entry->shader_program);
-					build_geometry_command_buffer(active_cache_entry->geometry_command_buffer, *active_cache_entry->shader_program);
+
+					if (active_cache_entry->shader_program)
+					{
+						build_shader_command_buffer(active_cache_entry->shader_command_buffer, *active_cache_entry->shader_program);
+						build_geometry_command_buffer(active_cache_entry->geometry_command_buffer, *active_cache_entry->shader_program);
+					}
 					
 					debug::log_trace("Generated material cache entry {:x}", cache_key);
 				}
@@ -263,9 +267,13 @@ void material_pass::render(render::context& ctx)
 			else
 			{
 				material_command_buffer = &active_cache_entry->material_command_buffers[material];
-				build_material_command_buffer(*material_command_buffer, *active_cache_entry->shader_program, *material);
-				
-				debug::log_trace("Generated material command buffer");
+
+				if (active_cache_entry->shader_program)
+				{
+					build_material_command_buffer(*material_command_buffer, *active_cache_entry->shader_program, *material);
+
+					debug::log_trace("Generated material command buffer");
+				}
 			}
 			
 			// Update material-dependent shader variables
@@ -276,6 +284,11 @@ void material_pass::render(render::context& ctx)
 			
 			active_material = material;
 			active_lighting_state_hash = lighting_state_hash;
+		}
+
+		if (!active_cache_entry->shader_program)
+		{
+			continue;
 		}
 		
 		
@@ -527,10 +540,9 @@ std::unique_ptr<gl::shader_program> material_pass::generate_shader_program(const
 	
 	auto shader_program = shader_template.build(definitions);
 	
-	if (!shader_program->linked())
+	if (shader_program)
 	{
-		debug::log_error("Failed to link material shader program: {}", shader_program->info());
-		debug::log_warning("{}", shader_template.configure(gl::shader_stage::fragment, definitions));
+		debug::log_error("Failed to build material pass shader program:\n{}", shader_template.configure(gl::shader_stage::fragment, definitions));
 	}
 	
 	return shader_program;

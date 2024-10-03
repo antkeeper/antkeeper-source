@@ -98,25 +98,53 @@ std::unique_ptr<gl::shader_program> shader_template::build(const dictionary_type
 	{
 		// Compile vertex shader object and attach to shader program
 		vertex_object = compile(gl::shader_stage::vertex, definitions);
-		program->attach(*vertex_object);
+		if (vertex_object->compiled())
+		{
+			program->attach(*vertex_object);
+		}
+		else
+		{
+			debug::log_error("Failed to build shader program from shader template: Failed to compile vertex shader object.");
+			return nullptr;
+		}
 	}
 	
 	if (has_fragment_directive())
 	{
 		// Compile fragment shader object and attach to shader program
 		fragment_object = compile(gl::shader_stage::fragment, definitions);
-		program->attach(*fragment_object);
+		if (fragment_object->compiled())
+		{
+			program->attach(*fragment_object);
+		}
+		else
+		{
+			debug::log_error("Failed to build shader program from shader template: Failed to compile fragment shader object.");
+			return nullptr;
+		}
 	}
 	
 	if (has_geometry_directive())
 	{
 		// Compile geometry shader object and attach to shader program
 		geometry_object = compile(gl::shader_stage::geometry, definitions);
-		program->attach(*geometry_object);
+		if (geometry_object->compiled())
+		{
+			program->attach(*geometry_object);
+		}
+		else
+		{
+			debug::log_error("Failed to build shader program from shader template: Failed to compile geometry shader object.");
+			return nullptr;
+		}
 	}
 	
 	// Link attached shader objects into shader program
-	program->link();
+	if (!program->link())
+	{
+		debug::log_error("Failed to build shader program from shader template: Failed to link shader program.");
+		return nullptr;
+	}
 	
 	// Detach all attached shader objects
 	program->detach_all();

@@ -6,14 +6,17 @@
 #include <glad/gl.h>
 #include <stdexcept>
 
-namespace gl {
-
-static constexpr GLenum gl_shader_type_lut[] =
+namespace
 {
-	GL_VERTEX_SHADER,
-	GL_FRAGMENT_SHADER,
-	GL_GEOMETRY_SHADER
-};
+	constexpr GLenum gl_shader_type_lut[] =
+	{
+		GL_VERTEX_SHADER,
+		GL_FRAGMENT_SHADER,
+		GL_GEOMETRY_SHADER
+	};
+}
+
+namespace gl {
 
 shader_object::shader_object(shader_stage stage):
 	m_stage{stage}
@@ -47,8 +50,6 @@ bool shader_object::compile()
 	m_compiled = false;
 	m_info_log.clear();
 
-	debug::log_trace("Compiling shader object {}...", m_gl_shader_id);
-	
 	// Compile OpenGL shader object
 	glCompileShader(m_gl_shader_id);
 	
@@ -57,27 +58,32 @@ bool shader_object::compile()
 	glGetShaderiv(m_gl_shader_id, GL_COMPILE_STATUS, &gl_compile_status);
 	m_compiled = (gl_compile_status == GL_TRUE);
 
-	if (!m_compiled)
-	{
-		debug::log_error("Failed to compile shader object {}", m_gl_shader_id);
-	}
-
-	debug::log_trace("Compiling shader object {}... {}", m_gl_shader_id, m_compiled ? "OK" : "FAILED");
-	
 	// Get OpenGL shader object info log length
 	GLint gl_info_log_length;
 	glGetShaderiv(m_gl_shader_id, GL_INFO_LOG_LENGTH, &gl_info_log_length);
-	
+
 	if (gl_info_log_length > 0)
 	{
 		// Resize string to accommodate OpenGL shader object info log
 		m_info_log.resize(gl_info_log_length);
-		
+
 		// Read OpenGL shader object info log into string
 		glGetShaderInfoLog(m_gl_shader_id, gl_info_log_length, &gl_info_log_length, m_info_log.data());
-		
+
 		// Remove redundant null terminator from string
 		m_info_log.pop_back();
+	}
+
+	if (m_compiled)
+	{
+		if (!m_info_log.empty())
+		{
+			debug::log_warning("Compiled shader object {} with warnings: {}", m_gl_shader_id, m_info_log);
+		}
+	}
+	else
+	{
+		debug::log_error("Failed to compile shader object {}: {}", m_gl_shader_id, m_info_log.empty() ? "Unknown error" : m_info_log);
 	}
 	
 	// Return compilation status

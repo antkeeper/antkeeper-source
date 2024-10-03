@@ -59,7 +59,9 @@ public:
 	}
 	
 	shader_object(const shader_object&) = delete;
+	shader_object(shader_object&&) = delete;
 	shader_object& operator=(const shader_object&) = delete;
+	shader_object& operator=(shader_object&&) = delete;
 
 private:
 	friend class shader_program;
