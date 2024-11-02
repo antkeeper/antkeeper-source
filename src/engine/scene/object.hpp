@@ -27,7 +27,7 @@ public:
 	virtual ~object_base() = default;
 	
 	/// Returns the type ID for this scene object type.
-	[[nodiscard]] virtual const std::size_t get_object_type_id() const noexcept = 0;
+	[[nodiscard]] virtual std::size_t get_object_type_id() const noexcept = 0;
 	
 	/// Adds render operations to a render context.
 	/// @param ctx Render context.
@@ -142,7 +142,7 @@ public:
 	~object() override = default;
 	
 	/// Returns the type ID for this scene object type.
-	[[nodiscard]] inline const std::size_t get_object_type_id() const noexcept final
+	[[nodiscard]] inline std::size_t get_object_type_id() const noexcept final
 	{
 		return object_type_id;
 	}

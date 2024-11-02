@@ -255,9 +255,9 @@ void setup_ant_controls(::game& ctx)
 					return;
 				}
 				
-				if (auto ovary_component = ctx.entity_registry->try_get<ovary_component>(ctx.controlled_ant_eid))
+				if (auto component = ctx.entity_registry->try_get<ovary_component>(ctx.controlled_ant_eid))
 				{
-					ovary_component->ovipositing = true;
+					component->ovipositing = true;
 				}
 			}
 		)
@@ -273,9 +273,9 @@ void setup_ant_controls(::game& ctx)
 					return;
 				}
 				
-				if (auto ovary_component = ctx.entity_registry->try_get<ovary_component>(ctx.controlled_ant_eid))
+				if (auto component = ctx.entity_registry->try_get<ovary_component>(ctx.controlled_ant_eid))
 				{
-					ovary_component->ovipositing = false;
+					component->ovipositing = false;
 				}
 			}
 		)

@@ -3,7 +3,7 @@
 
 #include <engine/type/font.hpp>
 #include <engine/debug/log.hpp>
-#include <engine/type/unicode/unicode.hpp>
+#include <engine/type/unicode.hpp>
 #include <bit>
 #include <stdexcept>
 
@@ -203,8 +203,8 @@ std::size_t font::cache_glyphs(std::u32string_view text)
 
 std::size_t font::cache_glyphs(std::string_view text)
 {
-	auto u32_text = unicode::u32(text);
-	return cache_glyphs(u32_text);
+	auto utf32 = to_utf32(text);
+	return cache_glyphs(utf32);
 }
 
 const glyph* font::get_cached_glyph(char32_t code) const

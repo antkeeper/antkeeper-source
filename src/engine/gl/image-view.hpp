@@ -8,6 +8,7 @@
 #include <engine/gl/image-view-flag.hpp>
 #include <cstdint>
 #include <memory>
+#include <utility>
 
 namespace gl {
 

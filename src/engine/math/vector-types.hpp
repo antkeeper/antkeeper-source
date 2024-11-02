@@ -302,7 +302,7 @@ struct vector
 	
 	/// Exchanges the elements of this vector with the elements of another.
 	/// @param other Vector with which to exchange elements.
-	[[nodiscard]] inline constexpr void swap(vector& other) noexcept
+	inline constexpr void swap(vector& other) noexcept
 	{
 		std::swap(elements, other.elements);
 	};

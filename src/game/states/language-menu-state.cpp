@@ -165,6 +165,6 @@ void language_menu_state::update_text_content()
 	auto [back_name, back_value] = ctx.menu_item_texts[1];
 	
 	language_name->set_content(get_string(ctx, "language_menu_language"));
-	language_value->set_content((*ctx.languages)[ctx.language_tag]["name"]);
+	language_value->set_content((*ctx.languages)[ctx.language_tag]["name"].get_ref<const std::string&>());
 	back_name->set_content(get_string(ctx, "back"));
 }

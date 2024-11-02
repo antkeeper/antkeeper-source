@@ -3,7 +3,7 @@
 
 #include <engine/scene/text.hpp>
 #include <engine/render/vertex-attribute-location.hpp>
-#include <engine/type/unicode/convert.hpp>
+#include <engine/type/unicode.hpp>
 #include <engine/scene/camera.hpp>
 #include <engine/debug/log.hpp>
 #include <cstddef>
@@ -122,7 +122,7 @@ void text::set_content(std::string_view content)
 	if (m_content_u8 != content)
 	{
 		m_content_u8 = content;
-		m_content_u32 = type::unicode::u32(m_content_u8);
+		m_content_u32 = type::to_utf32(m_content_u8);
 		update_content();
 	}
 }

@@ -4,6 +4,7 @@
 #include <engine/physics/orbit/ephemeris.hpp>
 #include <bit>
 #include <cstdint>
+#include <functional>
 #include <engine/resources/deserializer.hpp>
 #include <engine/resources/resource-loader.hpp>
 

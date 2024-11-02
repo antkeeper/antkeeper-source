@@ -5,6 +5,7 @@
 #define ANTKEEPER_SCENE_DIRECTIONAL_LIGHT_HPP
 
 #include <engine/scene/light.hpp>
+#include <engine/gl/framebuffer.hpp>
 #include <engine/gl/texture.hpp>
 #include <engine/math/vector.hpp>
 #include <memory>

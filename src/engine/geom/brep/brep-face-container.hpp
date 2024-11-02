@@ -37,6 +37,9 @@ public:
 	
 private:
 	friend class brep_mesh;
+
+	// Suppress -Werror=overloaded-virtual
+	using brep_element_container<brep_face>::emplace_back;
 };
 
 } // namespace geom

@@ -14,25 +14,25 @@ namespace config {
 /// @{
 
 /// Application name string.
-inline constexpr const char* application_name = "@APPLICATION_NAME@";
+inline constexpr const char* application_name = "@PROJECT_NAME@";
 
 /// Application slug string.
-inline constexpr const char* application_slug = "@APPLICATION_SLUG@";
+inline constexpr const char* application_slug = "$<LOWER_CASE:@PROJECT_NAME@>";
 
 /// Application major version number.
-inline constexpr int application_version_major = @APPLICATION_VERSION_MAJOR@;
+inline constexpr int application_version_major = @PROJECT_VERSION_MAJOR@;
 
 /// Application minor version number.
-inline constexpr int application_version_minor = @APPLICATION_VERSION_MINOR@;
+inline constexpr int application_version_minor = @PROJECT_VERSION_MINOR@;
 
 /// Application patch version number.
-inline constexpr int application_version_patch = @APPLICATION_VERSION_PATCH@;
+inline constexpr int application_version_patch = @PROJECT_VERSION_PATCH@;
 
 /// Application build type string.
-inline constexpr const char* application_build_type = "@APPLICATION_BUILD_TYPE@";
+inline constexpr const char* application_build_type = "$<LOWER_CASE:$<CONFIG>>";
 
 /// Application version string.
-inline constexpr const char* application_version = "@APPLICATION_VERSION@";
+inline constexpr const char* application_version = "@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@$<$<CONFIG:Debug>:+$<LOWER_CASE:$<CONFIG>>>";
 
 /// @}
 

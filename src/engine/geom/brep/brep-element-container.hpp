@@ -12,6 +12,8 @@
 
 namespace geom {
 
+class brep_mesh;
+
 /// Container for B-rep elements.
 /// @tparam T Element type.
 template <class T>

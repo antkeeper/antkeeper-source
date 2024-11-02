@@ -10,7 +10,7 @@ physfs_serialize_context::physfs_serialize_context(const std::filesystem::path& 
 	file = PHYSFS_openWrite(path.string().c_str());
 	if (!file)
 	{
-		throw serialize_error(PHYSFS_getLastError());
+		throw serialize_error(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 	}
 	
 	// Store file path
@@ -40,7 +40,7 @@ void physfs_serialize_context::open(const std::filesystem::path& path)
 	file = PHYSFS_openWrite(path.string().c_str());
 	if (!file)
 	{
-		throw serialize_error(PHYSFS_getLastError());
+		throw serialize_error(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 	}
 	
 	// Store file path
@@ -82,14 +82,14 @@ std::size_t physfs_serialize_context::write8(const std::byte* data, std::size_t 
 	if (status < 0)
 	{
 		m_error = true;
-		throw serialize_error(PHYSFS_getLastError());
+		throw serialize_error(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 		//return 0;
 	}
 	
 	if (static_cast<std::size_t>(status) != count)
 	{
 		m_error = true;
-		throw serialize_error(PHYSFS_getLastError());
+		throw serialize_error(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 		//return static_cast<std::size_t>(count);
 	}
 	
@@ -105,7 +105,7 @@ std::size_t physfs_serialize_context::write16_le(const std::byte* data, std::siz
 		if (!PHYSFS_writeULE16(file, *data16))
 		{
 			m_error = true;
-			throw serialize_error(PHYSFS_getLastError());
+			throw serialize_error(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 			//return i;
 		}
 		
@@ -124,7 +124,7 @@ std::size_t physfs_serialize_context::write16_be(const std::byte* data, std::siz
 		if (!PHYSFS_writeUBE16(file, *data16))
 		{
 			m_error = true;
-			throw serialize_error(PHYSFS_getLastError());
+			throw serialize_error(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 			//return i;
 		}
 		
@@ -143,7 +143,7 @@ std::size_t physfs_serialize_context::write32_le(const std::byte* data, std::siz
 		if (!PHYSFS_writeULE32(file, *data32))
 		{
 			m_error = true;
-			throw serialize_error(PHYSFS_getLastError());
+			throw serialize_error(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 			//return i;
 		}
 		
@@ -162,7 +162,7 @@ std::size_t physfs_serialize_context::write32_be(const std::byte* data, std::siz
 		if (!PHYSFS_writeUBE32(file, *data32))
 		{
 			m_error = true;
-			throw serialize_error(PHYSFS_getLastError());
+			throw serialize_error(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 			//return i;
 		}
 		
@@ -181,7 +181,7 @@ std::size_t physfs_serialize_context::write64_le(const std::byte* data, std::siz
 		if (!PHYSFS_writeULE64(file, *data64))
 		{
 			m_error = true;
-			throw serialize_error(PHYSFS_getLastError());
+			throw serialize_error(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 			//return i;
 		}
 		
@@ -200,7 +200,7 @@ std::size_t physfs_serialize_context::write64_be(const std::byte* data, std::siz
 		if (!PHYSFS_writeUBE64(file, *data64))
 		{
 			m_error = true;
-			throw serialize_error(PHYSFS_getLastError());
+			throw serialize_error(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 			//return i;
 		}
 		

@@ -5,7 +5,7 @@
 #include "game/debug/shell.hpp"
 #include <engine/input/keyboard-events.hpp>
 #include <engine/debug/log.hpp>
-#include <engine/type/unicode/unicode.hpp>
+#include <engine/type/unicode.hpp>
 
 void setup_terminal_controls(::game& ctx)
 {
@@ -33,11 +33,11 @@ void setup_terminal_controls(::game& ctx)
 			{
 				if (!ctx.command_line.empty() && ctx.command_line_cursor)
 				{
-					auto substring_u8 = ctx.command_line.substr(0, ctx.command_line_cursor);
-					auto substring_u32 = type::unicode::u32(substring_u8);
-					if (!substring_u32.empty())
+					auto substring_utf8 = ctx.command_line.substr(0, ctx.command_line_cursor);
+					auto substring_utf32 = type::to_utf32(substring_utf8);
+					if (!substring_utf32.empty())
 					{
-						ctx.command_line_cursor -= type::unicode::u8(substring_u32.substr(substring_u32.length() - 1)).length();
+						ctx.command_line_cursor -= type::to_utf8(substring_utf32.substr(substring_utf32.length() - 1)).length();
 					}
 				}
 			}
@@ -53,11 +53,11 @@ void setup_terminal_controls(::game& ctx)
 			{
 				if (!ctx.command_line.empty() && ctx.command_line_cursor < ctx.command_line.length())
 				{
-					auto substring_u8 = ctx.command_line.substr(ctx.command_line_cursor);
-					auto substring_u32 = type::unicode::u32(substring_u8);
-					if (!substring_u32.empty())
+					auto substring_utf8 = ctx.command_line.substr(ctx.command_line_cursor);
+					auto substring_utf32 = type::to_utf32(substring_utf8);
+					if (!substring_utf32.empty())
 					{
-						ctx.command_line_cursor += type::unicode::u8(substring_u32.substr(0, 1)).length();
+						ctx.command_line_cursor += type::to_utf8(substring_utf32.substr(0, 1)).length();
 					}
 				}
 			}
@@ -77,7 +77,7 @@ void setup_terminal_controls(::game& ctx)
 					auto substring_u8 = ctx.command_line.substr(0, ctx.command_line_cursor);
 					
 					// Convert substring from UTF-8 to UTF-32
-					auto substring_u32 = type::unicode::u32(substring_u8);
+					auto substring_u32 = type::to_utf32(substring_u8);
 					if (!substring_u32.empty())
 					{
 						// Erase last character in the substring
@@ -85,7 +85,7 @@ void setup_terminal_controls(::game& ctx)
 					}
 					
 					// Convert substring back to UTF-8
-					substring_u8 = type::unicode::u8(substring_u32);
+					substring_u8 = type::to_utf8(substring_u32);
 					
 					// Rebuild line
 					ctx.command_line = substring_u8 + ctx.command_line.substr(ctx.command_line_cursor);

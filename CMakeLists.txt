@@ -6,10 +6,14 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 	message(FATAL_ERROR "In-source builds prohibited.")
 endif()
 
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.25)
 include(FetchContent)
+
+# Suppress CMP0077 policy warning
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Enable compile_commands.json generation
+#set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Restrict configuration types to Debug and Release
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release")
@@ -23,42 +27,23 @@ project(Antkeeper
 
 option(ANTKEEPER_ASAN "Enable address sanitizer" OFF)
 option(ANTKEEPER_TEST "Enable building tests" OFF)
-
-set(APPLICATION_NAME ${PROJECT_NAME})
-string(TOLOWER "${APPLICATION_NAME}" APPLICATION_SLUG)
-set(APPLICATION_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
-set(APPLICATION_VERSION_MINOR ${PROJECT_VERSION_MINOR})
-set(APPLICATION_VERSION_PATCH ${PROJECT_VERSION_PATCH})
-string(TOLOWER "${CMAKE_BUILD_TYPE}" APPLICATION_BUILD_TYPE)
-
-set(APPLICATION_VERSION "${APPLICATION_VERSION_MAJOR}.${APPLICATION_VERSION_MINOR}.${APPLICATION_VERSION_PATCH}")
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set(APPLICATION_VERSION "${APPLICATION_VERSION}+${APPLICATION_BUILD_TYPE}")
-endif()
-
-set(APPLICATION_AUTHOR "C. J. Howard")
+set(PROJECT_AUTHOR "C. J. Howard")
 
 if(MSVC)
 	# Use static multithreaded runtime on MSVC
 	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-endif()
 
-if (MSVC)
 	# Enable parallel building on MSVC
 	add_compile_options(/MP)
-	
+
 	# Optionally enable address sanitizer
-	if (ANTKEEPER_ASAN)
+	if(ANTKEEPER_ASAN)
 		add_compile_options(/fsanitize=address)
 	endif()
 endif()
 
 # Find Python3 interpreter
-find_package(Python3
-	COMPONENTS
-		Interpreter
-	REQUIRED
-)
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
 # Find packages
 find_package(OpenGL REQUIRED)
@@ -270,20 +255,15 @@ glad_add_library(glad STATIC
 # Make tinyexr.h available
 file(COPY ${tinyexr_SOURCE_DIR}/tinyexr.h DESTINATION ${tinyexr_BINARY_DIR}/include)
 
-# Generate configuration header file
-configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.hpp.in ${PROJECT_BINARY_DIR}/src/engine/config.hpp)
-
-# Collect platform-independent source files
+# Collect source files
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
 	${PROJECT_SOURCE_DIR}/src/*.cpp
-	${PROJECT_SOURCE_DIR}/src/*.hpp
-	EXCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/game/platform"
 )
 
-# Collect platform-independent header files
+# Collect header files
 file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS
 	${PROJECT_SOURCE_DIR}/src/*.hpp
-	EXCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/game/platform"
+	${PROJECT_SOURCE_DIR}/src/*.hpp.in
 )
 
 # Collect module files
@@ -291,6 +271,17 @@ file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS
 #	${PROJECT_SOURCE_DIR}/src/*.ixx
 #	${PROJECT_SOURCE_DIR}/src/*.cxx
 #)
+
+# Filter out platform-specific source and header files
+list(FILTER SOURCE_FILES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/src/game/platform/.*")
+list(FILTER HEADER_FILES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/src/game/platform/.*")
+
+# Generate configuration header files
+configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.hpp.in ${PROJECT_BINARY_DIR}/config.hpp.in @ONLY)
+file(GENERATE
+	OUTPUT ${PROJECT_BINARY_DIR}/$<CONFIG>/src/engine/config.hpp
+	INPUT ${PROJECT_BINARY_DIR}/config.hpp.in
+)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	
@@ -308,8 +299,13 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	endif()
 	
 	# Generate Windows version-information resource file
-	configure_file(${PROJECT_SOURCE_DIR}/res/windows/version.rc.in ${PROJECT_BINARY_DIR}/res/windows/version.rc)
-	list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/res/windows/version.rc")
+	configure_file(${PROJECT_SOURCE_DIR}/res/windows/version.rc.in ${PROJECT_BINARY_DIR}/version.rc.in @ONLY)
+	file(GENERATE
+		OUTPUT ${PROJECT_BINARY_DIR}/$<CONFIG>/res/windows/version.rc
+		INPUT ${PROJECT_BINARY_DIR}/version.rc.in
+	)
+
+	list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/$<CONFIG>/res/windows/version.rc")
 	
 	# Make executable DPI-aware on Windows
 	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/res/windows/dpi-aware.manifest")
@@ -322,7 +318,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES} ${HEADER_FIL
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 
-# Set executable module files
+# Set additional target sources
 target_sources(${PROJECT_NAME}
 	PUBLIC
 		FILE_SET HEADERS FILES ${HEADER_FILES}
@@ -333,7 +329,7 @@ target_sources(${PROJECT_NAME}
 set_target_properties(${PROJECT_NAME}
 	PROPERTIES
 		OUTPUT_NAME $<LOWER_CASE:${PROJECT_NAME}>
-		RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/$<LOWER_CASE:${PROJECT_NAME}-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_BUILD_ARCH}-$<CONFIG>>
+		RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/$<LOWER_CASE:${PROJECT_NAME}-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}-${ANTKEEPER_BUILD_ARCH}-$<CONFIG>>
 		COMPILE_WARNING_AS_ERROR ON
 		CXX_STANDARD 23
 		CXX_STANDARD_REQUIRED ON
@@ -358,7 +354,8 @@ target_compile_definitions(${PROJECT_NAME}
 # Set compile options
 target_compile_options(${PROJECT_NAME}
 	PRIVATE
-		$<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Wpedantic -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-c++11-compat -Wno-c++11-compat-pedantic -Wno-c++14-compat -Wno-c++14-compat-pedantic -Wno-c++17-compat -Wno-c++17-compat-pedantic -Wno-c++20-compat -Wno-c++20-compat-pedantic>
+		
+		# Set MSVC-specific compile options
 		$<$<CXX_COMPILER_ID:MSVC>:
 		
 			# Set warning level 4
@@ -397,6 +394,32 @@ target_compile_options(${PROJECT_NAME}
 				/GS-                   # Disable buffer security checks
 				/Zi                    # Generate PDB file
 			>
+		>
+
+		# Set GNU/Clang-specific compile options
+		$<$<CXX_COMPILER_ID:GNU,Clang>:
+
+			#-Wall      # Treat all warnings as errors
+			#-Wpedantic # Issue all the warnings demanded by strict ISO C and C++
+			#-Wextra    # Enable  extra warning flags that are not enabled by -Wall
+
+			-Wno-changes-meaning
+		>
+
+		# Set Clang-specific compile options
+		$<$<CXX_COMPILER_ID:Clang>:
+			
+			# Suppress warnings about compatibility with older C++ standards
+			-Wno-c++98-compat
+			-Wno-c++98-compat-pedantic
+			-Wno-c++11-compat
+			-Wno-c++11-compat-pedantic
+			-Wno-c++14-compat
+			-Wno-c++14-compat-pedantic
+			-Wno-c++17-compat
+			-Wno-c++17-compat-pedantic
+			-Wno-c++20-compat
+			-Wno-c++20-compat-pedantic
 		>
 )
 
@@ -445,7 +468,7 @@ target_link_options(${PROJECT_NAME} PRIVATE
 target_include_directories(${PROJECT_NAME}
 	PRIVATE
 		${PROJECT_SOURCE_DIR}/src
-		${PROJECT_BINARY_DIR}/src
+		${PROJECT_BINARY_DIR}/$<CONFIG>/src
 		${tinyexr_BINARY_DIR}/include
 )
 
@@ -467,6 +490,12 @@ target_link_libraries(${PROJECT_NAME}
 		${OPENGL_gl_LIBRARY}
 		vorbisfile
 		$<$<PLATFORM_ID:Windows>:Dbghelp>
+
+		# Set GNU-specific dependencies
+		$<$<CXX_COMPILER_ID:GNU>:
+			stdc++
+			stdc++exp # Link to libstdc++exp.a for <stacktrace>
+		>
 )
 
 # Determine data output directory
@@ -481,37 +510,34 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/docs)
 
 # Build antkeeper-data module (if exists)
 if(EXISTS ${PROJECT_SOURCE_DIR}/res/data/CMakeLists.txt)
-	ExternalProject_Add(antkeeper-data
-		SOURCE_DIR ${PROJECT_SOURCE_DIR}/res/data
-		# BINARY_DIR ${MODULE_BUILD_DIR}/antkeeper-data
-		# INSTALL_DIR ${PROJECT_SOURCE_DIR}/bin/$<LOWER_CASE:${PROJECT_NAME}-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_BUILD_ARCH}-$<CONFIG>>
-		CMAKE_ARGS
-			"-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
-			# "-DCMAKE_INSTALL_PREFIX=${RUNTIME_OUTPUT_DIRECTORY}"
-			# "-DCMAKE_PREFIX_PATH=${MODULE_INSTALL_DIR}"
-			"-DAPPLICATION_NAME=${APPLICATION_NAME}"
-			"-DAPPLICATION_VERSION=${PROJECT_VERSION}"
-			"-DAPPLICATION_AUTHOR=${APPLICATION_AUTHOR}"
-			"-DCMAKE_TOOLCHAIN_FILE='${CMAKE_TOOLCHAIN_FILE}'"
-			"-DBLENDER=${BLENDER}"
-			"-DRUNTIME_OUTPUT_DIRECTORY='${PROJECT_SOURCE_DIR}/bin/$<LOWER_CASE:${PROJECT_NAME}-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_BUILD_ARCH}-$<CONFIG>>'"
-		INSTALL_COMMAND ""
-		BUILD_ALWAYS 1)
+	
+	add_subdirectory(${PROJECT_SOURCE_DIR}/res/data)
+
+#	ExternalProject_Add(antkeeper-data
+#		SOURCE_DIR ${PROJECT_SOURCE_DIR}/res/data
+#		CMAKE_ARGS
+#			"-DCMAKE_BUILD_TYPE:STRING=$<CONFIG>"
+#			"-DRUNTIME_OUTPUT_DIRECTORY:STRING=${PROJECT_SOURCE_DIR}/bin/$<LOWER_CASE:${PROJECT_NAME}-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}-${ANTKEEPER_BUILD_ARCH}>"
+#			"-DAPPLICATION_NAME=${PROJECT_NAME}"
+#			"-DAPPLICATION_VERSION=${PROJECT_VERSION}"
+#			"-DAPPLICATION_AUTHOR=${PROJECT_AUTHOR}"
+#			"-DBLENDER=${BLENDER}"
+#		INSTALL_COMMAND ""
+#		BUILD_ALWAYS 1)
 endif()
 
-
 if(ANTKEEPER_TEST)
-	
+
 	# Enable testing
 	include(CTest)
 	enable_testing()
 
 	# Collect test files
-	file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS
-		${PROJECT_SOURCE_DIR}/test/test-*.cpp)
+	file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/test/test-*.cpp)
 
 	# Add test targets
 	foreach(TEST_FILE ${TEST_FILES})
+
 		get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
 		add_executable(${TEST_NAME} ${TEST_FILE} ${PROJECT_SOURCE_DIR}/test/test.cpp)
 		set_target_properties(${TEST_NAME}
@@ -522,10 +548,9 @@ if(ANTKEEPER_TEST)
 				CXX_EXTENSIONS OFF
 				MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 		)
-		target_include_directories(${TEST_NAME}
-			PRIVATE
-			${PROJECT_SOURCE_DIR}/src)
+		target_include_directories(${TEST_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/src)
 		add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+
 	endforeach()
 
 endif()

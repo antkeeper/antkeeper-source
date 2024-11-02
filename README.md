@@ -42,7 +42,7 @@ Configure and build a Windows 64-bit release:
 
 ```bash
 git clone https://github.com/antkeeper/antkeeper-source.git && cd antkeeper-source
-cmake --preset windows-x64-release
+cmake --preset windows-x64
 cmake --build --preset windows-x64-release
 ```
 
@@ -61,7 +61,7 @@ Source code documentation can be generated with [Doxygen](https://www.doxygen.nl
 The following commands configure and build the source code documentation:
 
 ```bash
-cmake --preset windows-x64-release -DANTKEEPER_BUILD_DOCS=ON
+cmake --preset windows-x64 -DANTKEEPER_BUILD_DOCS=ON
 cmake --build --preset windows-x64-release --target docs
 ```
 

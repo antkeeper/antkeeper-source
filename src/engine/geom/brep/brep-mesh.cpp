@@ -137,7 +137,7 @@ namespace
 
 		for (std::size_t i = 0; i < data_element.size(); ++i)
 		{
-			*attribute_data = data_element[i].get<T>();
+			*attribute_data = data_element[i].template get<T>();
 			++attribute_data;
 		}
 	}

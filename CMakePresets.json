@@ -3,7 +3,7 @@
 	"cmakeMinimumRequired":
 	{
 		"major": 3,
-		"minor": 27,
+		"minor": 25,
 		"patch": 0
 	},
 	"configurePresets":
@@ -13,12 +13,12 @@
 			"hidden": true,
 			"cacheVariables":
 			{
-				"CMAKE_BUILD_ARCH": "x64"
+				"ANTKEEPER_BUILD_ARCH": "x64"
 			}
 		},
 		{
 			"name": "windows-x64",
-			"hidden": true,
+			"displayName": "Windows 64-bit",
 			"inherits": "x64",
 			"generator": "Visual Studio 17 2022",
 			"architecture":
@@ -30,76 +30,17 @@
 		},
 		{
 			"name": "windows-clang-x64",
+			"displayName": "Windows 64-bit (CLang)",
 			"inherits": "windows-x64",
-			"hidden": true,
 			"toolset": "ClangCL",
 			"binaryDir": "${sourceDir}/build/windows-clang-x64"
 		},
 		{
 			"name": "linux-x64",
-			"hidden": true,
+			"displayName": "Linux 64-bit",
 			"inherits": "x64",
 			"generator": "Unix Makefiles",
-			"architecture":
-			{
-				"value": "x64",
-				"strategy": "set"
-			},
 			"binaryDir": "${sourceDir}/build/linux-x64"
-		},
-		{
-			"name": "windows-x64-debug",
-			"displayName": "Windows 64-bit Debug",
-			"inherits": "windows-x64",
-			"cacheVariables":
-			{
-				"CMAKE_BUILD_TYPE": "Debug"
-			}
-		},
-		{
-			"name": "windows-x64-release",
-			"displayName": "Windows 64-bit Release",
-			"inherits": "windows-x64",
-			"cacheVariables":
-			{
-				"CMAKE_BUILD_TYPE": "Release"
-			}
-		},
-		{
-			"name": "windows-clang-x64-debug",
-			"displayName": "Windows Clang 64-bit Debug",
-			"inherits": "windows-clang-x64",
-			"cacheVariables":
-			{
-				"CMAKE_BUILD_TYPE": "Debug"
-			}
-		},
-		{
-			"name": "windows-clang-x64-release",
-			"displayName": "Windows Clang 64-bit Release",
-			"inherits": "windows-clang-x64",
-			"cacheVariables":
-			{
-				"CMAKE_BUILD_TYPE": "Release"
-			}
-		},
-		{
-			"name": "linux-x64-debug",
-			"displayName": "Linux 64-bit Debug",
-			"inherits": "linux-x64",
-			"cacheVariables":
-			{
-				"CMAKE_BUILD_TYPE": "Debug"
-			}
-		},
-		{
-			"name": "linux-x64-release",
-			"displayName": "Linux 64-bit Release",
-			"inherits": "linux-x64",
-			"cacheVariables":
-			{
-				"CMAKE_BUILD_TYPE": "Release"
-			}
 		}
 	],
 	"buildPresets":
@@ -107,37 +48,37 @@
 		{
 			"name": "windows-x64-debug",
 			"displayName": "Windows 64-bit Debug",
-			"configurePreset": "windows-x64-debug",
+			"configurePreset": "windows-x64",
 			"configuration": "Debug"
 		},
 		{
 			"name": "windows-x64-release",
 			"displayName": "Windows 64-bit Release",
-			"configurePreset": "windows-x64-release",
+			"configurePreset": "windows-x64",
 			"configuration": "Release"
 		},
 		{
 			"name": "windows-clang-x64-debug",
 			"displayName": "Windows Clang 64-bit Debug",
-			"configurePreset": "windows-clang-x64-debug",
+			"configurePreset": "windows-clang-x64",
 			"configuration": "Debug"
 		},
 		{
 			"name": "windows-clang-x64-release",
 			"displayName": "Windows Clang 64-bit Release",
-			"configurePreset": "windows-clang-x64-release",
+			"configurePreset": "windows-clang-x64",
 			"configuration": "Release"
 		},
 		{
 			"name": "linux-x64-debug",
 			"displayName": "Linux 64-bit Debug",
-			"configurePreset": "linux-x64-debug",
+			"configurePreset": "linux-x64",
 			"configuration": "Debug"
 		},
 		{
 			"name": "linux-x64-release",
 			"displayName": "Linux 64-bit Release",
-			"configurePreset": "linux-x64-release",
+			"configurePreset": "linux-x64",
 			"configuration": "Release"
 		}
 	]

@@ -150,7 +150,7 @@ struct quaternion
 	
 	/// Exchanges the parts of this quaternion with the parts of another.
 	/// @param other Quaternion with which to exchange parts.
-	[[nodiscard]] inline constexpr void swap(quaternion& other) noexcept
+	inline constexpr void swap(quaternion& other) noexcept
 	{
 		std::swap(r, other.r);
 		std::swap(i, other.i);

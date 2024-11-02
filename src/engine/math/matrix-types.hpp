@@ -357,7 +357,7 @@ struct matrix
 	
 	/// Exchanges the elements of this matrix with the elements of another.
 	/// @param other Matrix with which to exchange elements.
-	[[nodiscard]] inline constexpr void swap(matrix& other) noexcept
+	inline constexpr void swap(matrix& other) noexcept
 	{
 		std::swap(columns, other.columns);
 	};

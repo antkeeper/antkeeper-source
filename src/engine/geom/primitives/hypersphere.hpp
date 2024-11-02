@@ -10,6 +10,28 @@
 namespace geom {
 namespace primitives {
 
+/// Calculates the volume of a hypersphere.
+/// @tparam T Real type.
+/// @tparam N Number of dimensions.
+/// @param r Hypersphere radius.
+/// @return Hypersphere volume.
+template <class T, std::size_t N>
+[[nodiscard]] constexpr T hypersphere_volume([[maybe_unused]] T r) noexcept
+{
+	if constexpr (N == 0)
+	{
+		return T{1};
+	}
+	else if constexpr (N == 1)
+	{
+		return r * T{2};
+	}
+	else
+	{
+		return (math::two_pi<T> / static_cast<T>(N)) * r * r * hypersphere_volume<T, N - 2>(r);
+	}
+}
+
 /// *n*-dimensional sphere.
 /// @tparam T Real type.
 /// @tparam N Number of dimensions.
@@ -65,35 +87,10 @@ struct hypersphere
 		return math::sqr_distance(center, other.center) <= intersection_radius * intersection_radius;
 	}
 	
-	/// Volume calculation helper function.
-	/// @tparam M Dimension.
-	/// @param r Radius.
-	/// @return Volume.
-	/// @private
-	/// @{
-	template <std::size_t M>
-	[[nodiscard]] constexpr T volume(T r) noexcept
-	{
-		return (math::two_pi<T> / static_cast<T>(M)) * r * r * volume<M - 2>(r);
-	}
-	
-	template <>
-	[[nodiscard]] constexpr T volume<1>(T r) noexcept
-	{
-		return r * T{2};
-	}
-	
-	template <>
-	[[nodiscard]] constexpr T volume<0>(T r) noexcept
-	{
-		return T{1};
-	}
-	/// @}
-	
 	/// Calculates the volume of the hypersphere.
 	[[nodiscard]] inline constexpr T volume() const noexcept
 	{
-		return volume<N>(radius);
+		return hypersphere_volume<T, N>(radius);
 	}
 };
 

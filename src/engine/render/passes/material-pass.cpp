@@ -539,8 +539,7 @@ std::unique_ptr<gl::shader_program> material_pass::generate_shader_program(const
 	}
 	
 	auto shader_program = shader_template.build(definitions);
-	
-	if (shader_program)
+	if (!shader_program)
 	{
 		debug::log_error("Failed to build material pass shader program:\n{}", shader_template.configure(gl::shader_stage::fragment, definitions));
 	}

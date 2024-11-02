@@ -5,6 +5,8 @@
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/deserialize-error.hpp>
 #include <engine/debug/log.hpp>
+#include <cmath>
+#include <cstring>
 #include <format>
 #include <stdexcept>
 #include <string>

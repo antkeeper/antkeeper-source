@@ -8,6 +8,7 @@
 #include <engine/resources/deserialize-error.hpp>
 #include <engine/resources/deserializer.hpp>
 #include <engine/debug/log.hpp>
+#include <cstring>
 #include <cmath>
 #include <stdexcept>
 #include <glad/gl.h>
