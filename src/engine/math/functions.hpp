@@ -443,7 +443,7 @@ template <std::floating_point T>
 /// @param x Value to evaluate.
 /// @return `true` if @p x is NaN, `false` otherwise.
 template <std::floating_point T>
-[[nodiscard]] inline constexpr T isnan(T x) noexcept
+[[nodiscard]] inline constexpr bool isnan(T x) noexcept
 {
 	return std::isnan(x);
 }
@@ -452,7 +452,7 @@ template <std::floating_point T>
 /// @param x Value to evaluate.
 /// @return `true` if @p x is infinite, `false` otherwise.
 template <std::floating_point T>
-[[nodiscard]] inline constexpr T isinf(T x) noexcept
+[[nodiscard]] inline constexpr bool isinf(T x) noexcept
 {
 	return std::isinf(x);
 }

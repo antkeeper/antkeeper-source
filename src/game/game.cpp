@@ -4,7 +4,6 @@
 #include "game/game.hpp"
 #include "game/debug/shell.hpp"
 #include "game/debug/shell-buffer.hpp"
-#include "game/debug/commands.hpp"
 #include "game/commands/commands.hpp"
 #include "game/control-profile.hpp"
 #include "game/controls.hpp"
@@ -79,6 +78,11 @@
 #include <vector>
 #include <chrono>
 
+#include <engine/script/script-math-module.hpp>
+#include <engine/script/script-io-module.hpp>
+#include <engine/script/script-event-module.hpp>
+#include <engine/script/script-global-module.hpp>
+
 // Prevent cxxopts from using RTTI
 #define CXXOPTS_NO_RTTI
 #include <cxxopts.hpp>
@@ -105,6 +109,7 @@ game::game(int argc, const char* const* argv)
 	setup_rng();
 	setup_systems();
 	setup_controls();
+	setup_scripting();
 	setup_debugging();
 	setup_timing();
 	
@@ -914,7 +919,7 @@ void game::setup_ui()
 		}
 	);
 	
-	ui_canvas->add_child(version_label);
+	//ui_canvas->add_child(version_label);
 	
 	
 	
@@ -1186,6 +1191,17 @@ void game::setup_controls()
 	debug::log_debug("Setting up controls... OK");
 }
 
+void game::setup_scripting()
+{
+	debug::log_debug("Setting up scripting...");
+
+	load_global_module(script);
+	load_math_module(script);
+	load_event_module(script, input_manager->get_event_dispatcher(), script_event_subscriptions);
+
+	debug::log_debug("Setting up scripting... OK");
+}
+
 void game::setup_debugging()
 {
 	debug::log_debug("Setting up debugging...");
@@ -1210,15 +1226,10 @@ void game::setup_debugging()
 	shell_buffer = std::make_unique<::shell_buffer>();
 	shell_buffer->set_text_object(shell_buffer_text);
 	
-	shell = std::make_unique<::shell>();
+	shell = std::make_unique<::shell>(this);
 	shell->get_output().rdbuf(shell_buffer.get());
-	
-	// Register shell commands
-	register_commands(*shell, *this);
-	
-	// Set shell variables
-	shell->set_variable("language", language_tag);
-	shell->set_variable("version", config::application_version);
+
+	load_io_module(script, shell->get_output());
 	
 	command_line_text->set_content(shell->prompt());
 	

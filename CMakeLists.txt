@@ -49,60 +49,80 @@ find_package(Python3 COMPONENTS Interpreter REQUIRED)
 find_package(OpenGL REQUIRED)
 
 # Fetch dependencies
+set(FETCHCONTENT_QUIET TRUE)
+
 FetchContent_Declare(cxxopts
 	GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
 	GIT_TAG eb787304d67ec22f7c3a184ee8b4c481d04357fd # v3.1.1
+	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(dr_libs
 	GIT_REPOSITORY https://github.com/mackron/dr_libs.git
 	GIT_TAG 9eed1be421749ba68a87e5b4c3b10858f8580689 # v0.13.13
+	GIT_PROGRESS TRUE
 	GIT_SUBMODULES ""
 )
 FetchContent_Declare(entt
 	GIT_REPOSITORY https://github.com/skypjack/entt.git
 	GIT_TAG e4ccb878f47245a319704912435d3c89f34ad6be # v3.10.3
+	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(freetype
 	GIT_REPOSITORY https://github.com/freetype/freetype.git
 	GIT_TAG 920c5502cc3ddda88f6c7d85ee834ac611bb11cc # v2.13.2
+	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(glad
 	GIT_REPOSITORY https://github.com/Dav1dde/glad.git
 	GIT_TAG d08b1aa01f8fe57498f04d47b5fa8c48725be877 # v2.0.4
+	GIT_PROGRESS TRUE
 	SOURCE_SUBDIR cmake
 )
 FetchContent_Declare(nlohmann-json
 	GIT_REPOSITORY https://github.com/nlohmann/json.git
 	GIT_TAG 9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03 # v3.11.3
+	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(openal-soft
 	GIT_REPOSITORY https://github.com/kcat/openal-soft.git
 	GIT_TAG d3875f333fb6abe2f39d82caca329414871ae53b # v1.23.1
+	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(physfs
 	GIT_REPOSITORY https://github.com/icculus/physfs.git
 	GIT_TAG eb3383b532c5f74bfeb42ec306ba2cf80eed988c # v3.2.0
+	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(SDL2
 	GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
 	GIT_TAG 15ead9a40d09a1eb9972215cceac2bf29c9b77f6 # v2.28.5
+	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(stb
 	GIT_REPOSITORY https://github.com/nothings/stb.git
 	GIT_TAG 03f50e343d796e492e6579a11143a085429d7f5d # stb_image v2.28, stb_image_write v1.16
+	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(tinyexr
 	GIT_REPOSITORY https://github.com/syoyo/tinyexr.git
 	GIT_TAG 6e8cac308cdf4d717078f3f37c4aa39bf3b356b4 # v1.0.7
+	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(ogg
 	GIT_REPOSITORY https://github.com/xiph/ogg.git
 	GIT_TAG e1774cd77f471443541596e09078e78fdc342e4f # v1.3.5
+	GIT_PROGRESS TRUE
 	OVERRIDE_FIND_PACKAGE
 )
 FetchContent_Declare(vorbis
 	GIT_REPOSITORY https://github.com/xiph/vorbis.git
 	GIT_TAG 0657aee69dec8508a0011f47f3b69d7538e9d262 # v1.3.7
+	GIT_PROGRESS TRUE
+)
+FetchContent_Declare(lua
+	GIT_REPOSITORY https://github.com/lua/lua.git
+	GIT_TAG 1ab3208a1fceb12fca8f24ba57d6e13c5bff15e3 # v5.4.7
+	GIT_PROGRESS TRUE
 )
 
 # Configure cxxopts
@@ -196,6 +216,7 @@ FetchContent_MakeAvailable(
 	tinyexr
 	ogg
 	vorbis
+	lua
 )
 
 # Build dr_wav static library
@@ -243,6 +264,22 @@ target_include_directories(stb
 	PUBLIC
 		$<BUILD_INTERFACE:${stb_BINARY_DIR}/include>
 		$<INSTALL_INTERFACE:include>
+)
+
+# Build lua static library
+add_library(lua STATIC ${lua_SOURCE_DIR}/onelua.c)
+target_compile_definitions(lua
+	PRIVATE
+		MAKE_LIB
+)
+file(COPY ${lua_SOURCE_DIR}/luaconf.h DESTINATION ${lua_BINARY_DIR}/include)
+file(COPY ${lua_SOURCE_DIR}/lua.h DESTINATION ${lua_BINARY_DIR}/include)
+file(COPY ${lua_SOURCE_DIR}/lualib.h DESTINATION ${lua_BINARY_DIR}/include)
+file(COPY ${lua_SOURCE_DIR}/lauxlib.h DESTINATION ${lua_BINARY_DIR}/include)
+target_include_directories(lua
+	PUBLIC
+		$<BUILD_INTERFACE:${lua_SOURCE_DIR}>
+		$<INSTALL_INTERFACE:${lua_BINARY_DIR}/include>
 )
 
 # Generate OpenGL loader with glad
@@ -489,6 +526,8 @@ target_link_libraries(${PROJECT_NAME}
 		freetype
 		${OPENGL_gl_LIBRARY}
 		vorbisfile
+		lua
+
 		$<$<PLATFORM_ID:Windows>:Dbghelp>
 
 		# Set GNU-specific dependencies

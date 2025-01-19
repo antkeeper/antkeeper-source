@@ -164,6 +164,11 @@ void text::update_uvs()
 	float* v = m_vertex_data.data() + 2;
 	for (auto code: m_content_u32)
 	{
+		if (!is_visible(code))
+		{
+			continue;
+		}
+
 		// Get glyph from glyph cache
 		const auto glyph = m_font->get_cached_glyph(code);
 		
@@ -205,6 +210,11 @@ void text::update_colors()
 	float* v = m_vertex_data.data() + 4;
 	for ([[maybe_unused]] auto code: m_content_u32)
 	{
+		if (!is_visible(code))
+		{
+			continue;
+		}
+
 		for (int i = 0; i < 6; ++i)
 		{
 			*(v++) = m_color[0];
@@ -232,13 +242,14 @@ void text::update_content()
 	// Cache glyphs
 	m_font->cache_glyphs(m_content_u32);
 	
-	// Determine minimum size of vertex buffer, in bytes
-	std::size_t min_vertex_buffer_size = m_content_u32.length() * 6 * text_vertex_stride;
+	// Determine maximum required size of vertex buffer, in bytes
+	const auto max_vertex_count = m_content_u32.length() * 6;
+	const auto max_vertex_buffer_size = max_vertex_count * text_vertex_stride;
 	
 	// Reserve vertex data
-	if (m_vertex_data.size() < min_vertex_buffer_size / sizeof(float))
+	if (m_vertex_data.size() < max_vertex_buffer_size / sizeof(float))
 	{
-		m_vertex_data.resize(min_vertex_buffer_size / sizeof(float));
+		m_vertex_data.resize(max_vertex_buffer_size / sizeof(float));
 	}
 	
 	// Get font metrics and texture
@@ -260,6 +271,7 @@ void text::update_content()
 	m_local_bounds.max = {-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), 0.0f};
 	
 	// Generate vertex data
+	m_render_op.vertex_count = 0;
 	char32_t previous_code = 0;
 	float* v = m_vertex_data.data();
 	for (char32_t code: m_content_u32)
@@ -300,57 +312,59 @@ void text::update_content()
 			// Normalize UVs
 			uvs[i] *= uv_scale;
 		}
-		
-		// Add vertex to vertex data buffer
-		for (int i = 0; i < 6; ++i)
-		{
-			*(v++) = positions[i].x();
-			*(v++) = positions[i].y();
-			*(v++) = uvs[i].x();
-			*(v++) = uvs[i].y();
-			*(v++) = m_color[0];
-			*(v++) = m_color[1];
-			*(v++) = m_color[2];
-			*(v++) = m_color[3];
-		}
-		
+
 		// Advance pen position
 		pen_position.x() += glyph.horizontal_advance;
-		
-		// Update local-space bounds
-		for (int i = 0; i < 4; ++i)
-		{
-			const math::fvec2& position = positions[i];
-			for (int j = 0; j < 2; ++j)
-			{
-				m_local_bounds.min[j] = std::min<float>(m_local_bounds.min[j], position[j]);
-				m_local_bounds.max[j] = std::max<float>(m_local_bounds.max[j], position[j]);
-			}
-		}
-		
+
 		// Handle newlines
 		if (code == U'\n')
 		{
 			pen_position.x() = 0.0f;
 			pen_position.y() -= font_metrics.linespace;
 		}
-		
+
 		// Update previous UTF-32 character code
 		previous_code = code;
+
+		if (is_visible(code))
+		{
+			// Add vertex to vertex data buffer
+			for (int i = 0; i < 6; ++i)
+			{
+				*(v++) = positions[i].x();
+				*(v++) = positions[i].y();
+				*(v++) = uvs[i].x();
+				*(v++) = uvs[i].y();
+				*(v++) = m_color[0];
+				*(v++) = m_color[1];
+				*(v++) = m_color[2];
+				*(v++) = m_color[3];
+			}
+
+			m_render_op.vertex_count += 6;
+
+			// Update local-space bounds
+			for (int i = 0; i < 4; ++i)
+			{
+				const math::fvec2& position = positions[i];
+				for (int j = 0; j < 2; ++j)
+				{
+					m_local_bounds.min[j] = std::min<float>(m_local_bounds.min[j], position[j]);
+					m_local_bounds.max[j] = std::max<float>(m_local_bounds.max[j], position[j]);
+				}
+			}
+		}
 	}
 	
 	// Upload vertex data to VBO, growing VBO size if necessary
-	if (m_vertex_buffer->size() < min_vertex_buffer_size)
+	if (m_vertex_buffer->size() < m_render_op.vertex_count * text_vertex_stride)
 	{
-		m_vertex_buffer->resize(min_vertex_buffer_size, {reinterpret_cast<const std::byte*>(m_vertex_data.data()), m_content_u32.size() * 6 * text_vertex_stride});
+		m_vertex_buffer->resize(m_render_op.vertex_count * text_vertex_stride, {reinterpret_cast<const std::byte*>(m_vertex_data.data()), m_render_op.vertex_count * text_vertex_stride});
 	}
 	else
 	{
 		update_vertex_buffer();
 	}
-	
-	// Update render op
-	m_render_op.vertex_count = static_cast<std::uint32_t>(m_content_u32.length() * 6);
 	
 	// Update world-space bounds
 	transformed();
@@ -358,7 +372,17 @@ void text::update_content()
 
 void text::update_vertex_buffer()
 {
-	m_vertex_buffer->write({reinterpret_cast<const std::byte*>(m_vertex_data.data()), m_content_u32.size() * 6 * text_vertex_stride});
+	m_vertex_buffer->write({reinterpret_cast<const std::byte*>(m_vertex_data.data()), m_render_op.vertex_count * text_vertex_stride});
+}
+
+bool text::is_visible(char32_t code) const
+{
+	if (code == ' ' || code == '\t' || code == '\n' || code == '\r')
+	{
+		return false;
+	}
+
+	return true;
 }
 
 } // namespace scene

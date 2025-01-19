@@ -58,8 +58,7 @@ language_menu_state::language_menu_state(::game& ctx):
 		
 		// Update language tag settings
 		(*ctx.settings)["language_tag"] = ctx.language_tag;
-		ctx.shell->set_variable("language", ctx.language_tag);
-		
+
 		// Log language tag
 		debug::log_info("Language tag: {}", ctx.language_tag);
 		

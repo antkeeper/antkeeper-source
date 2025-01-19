@@ -31,7 +31,6 @@
 #include <format>
 #include <limits>
 #include <print>
-#include <stacktrace>
 
 using namespace hash::literals;
 
@@ -58,7 +57,7 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	title_text->set_translation({std::round(viewport_center.x() - title_w * 0.5f), std::round(viewport_center.y() - title_h * 0.5f + (viewport_size.y() / 3.0f) / 2.0f), 0.0f});
 	
 	// Add text to UI
-	ctx.ui_canvas->get_scene().add_object(*title_text);
+	//ctx.ui_canvas->get_scene().add_object(*title_text);
 	
 	// Construct title fade in animation
 	{

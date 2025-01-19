@@ -33,7 +33,7 @@ Get notified when the game is released by joining the mailing list at <https://a
 Requirements:
 
 -   [Git](https://git-scm.com/downloads)
--   [CMake](https://cmake.org/download/)>=3.27
+-   [CMake](https://cmake.org/download/)>=3.25
 -   [Build Tools for Visual Studio](https://visualstudio.microsoft.com/downloads/)>=2022
 -   [Python](https://www.python.org/downloads/)>=3.11.0
 -   [Jinja2](https://pypi.org/project/Jinja2/)>=2.7,<4.0

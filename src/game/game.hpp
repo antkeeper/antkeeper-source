@@ -39,6 +39,7 @@
 #include <engine/audio/sound-system.hpp>
 #include <engine/audio/sound-que.hpp>
 #include <engine/ui/canvas.hpp>
+#include <engine/script/script-context.hpp>
 #include <entt/entt.hpp>
 #include <filesystem>
 #include <memory>
@@ -262,6 +263,10 @@ public:
 	bool gamepad_invert_tilt{false};
 	double gamepad_pan_factor{1.0};
 	double gamepad_tilt_factor{1.0};
+
+	// Scripting
+	script_context script;
+	std::unordered_map<std::string, std::pair<int, std::shared_ptr<event::subscription>>> script_event_subscriptions;
 	
 	// Debugging
 	bool debug_ui_visible{false};
@@ -425,6 +430,7 @@ private:
 	void setup_entities();
 	void setup_systems();
 	void setup_controls();
+	void setup_scripting();
 	void setup_debugging();
 	void setup_timing();
 	

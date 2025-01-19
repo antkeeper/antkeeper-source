@@ -23,6 +23,27 @@ void setup_terminal_controls(::game& ctx)
 			}
 		)
 	);
+
+	// Up
+	ctx.event_subscriptions.emplace_back
+	(
+		ctx.terminal_up_action.get_activated_channel().subscribe
+		(
+			[&ctx]([[maybe_unused]] const auto& event)
+			{
+				if (ctx.command_line.empty())
+				{
+					const auto& history = ctx.shell->get_history();
+					if (!history.empty())
+					{
+						ctx.command_line = history.back();
+						ctx.command_line_cursor = ctx.command_line.length();
+						ctx.command_line_text->set_content(ctx.shell->prompt() + ctx.command_line);
+					}
+				}
+			}
+		)
+	);
 	
 	// Left
 	ctx.event_subscriptions.emplace_back

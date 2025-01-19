@@ -101,6 +101,8 @@ private:
 	void update_vertex_buffer();
 
 	void transformed() override;
+
+	bool is_visible(char32_t code) const;
 	
 	mutable render::operation m_render_op;
 	aabb_type m_local_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
