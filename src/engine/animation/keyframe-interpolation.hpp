@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 C. J. Howard
+// SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef ANTKEEPER_ANIMATION_KEYFRAME_INTERPOLATION_HPP
