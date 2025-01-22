@@ -457,12 +457,19 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 	{
 		for (const auto& material_element: *materials_element)
 		{
-			const auto& material_path = material_element.get_ref<const std::string&>();
-
-			materials.emplace_back(resource_manager.load<render::material>(material_path));
-			if (!materials.back())
+			if (material_element.is_null())
 			{
-				debug::log_error("Failed to load model material \"{}\".", material_path);
+				materials.emplace_back(nullptr);
+			}
+			else
+			{
+				const auto& material_path = material_element.get_ref<const std::string&>();
+
+				materials.emplace_back(resource_manager.load<render::material>(material_path));
+				if (!materials.back())
+				{
+					debug::log_error("Failed to load model material \"{}\".", material_path);
+				}
 			}
 		}
 	}
