@@ -478,10 +478,6 @@ void game::setup_audio()
 	menu_up_sound = std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/menu-up.wav"));
 	menu_down_sound = std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/menu-down.wav"));
 	
-	// Load stridulation sounds
-	stridulation_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/stridulate-forward.wav")));
-	stridulation_sounds.emplace_back(std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/stridulate-reverse.wav")));
-	
 	debug::log_debug("Setting up audio... OK");
 }
 
@@ -973,7 +969,7 @@ void game::setup_ui()
 		[&](const auto& event)
 		{
 			// Flip mouse Y-coordinate
-			auto event_flipped_y = event;
+			input::mouse_moved_event event_flipped_y = event;
 			event_flipped_y.position.y() = window->get_size().y() - event.position.y() - 1;
 			event_flipped_y.difference.y() = -event.difference.y();
 			
@@ -987,7 +983,7 @@ void game::setup_ui()
 		[&](const auto& event)
 		{
 			// Flip mouse Y-coordinate
-			auto event_flipped_y = event;
+			input::mouse_button_pressed_event event_flipped_y = event;
 			event_flipped_y.position.y() = window->get_size().y() - event.position.y() - 1;
 			
 			ui_canvas->handle_mouse_button_pressed(event_flipped_y);
@@ -1000,7 +996,7 @@ void game::setup_ui()
 		[&](const auto& event)
 		{
 			// Flip mouse Y-coordinate
-			auto event_flipped_y = event;
+			input::mouse_button_released_event event_flipped_y = event;
 			event_flipped_y.position.y() = window->get_size().y() - event.position.y() - 1;
 			
 			ui_canvas->handle_mouse_button_released(event_flipped_y);

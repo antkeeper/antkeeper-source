@@ -31,9 +31,6 @@ struct ecoregion
 	/// Terrain albedo.
 	math::fvec3 terrain_albedo;
 	
-	/// Horizon material.
-	std::shared_ptr<render::material> horizon_material;
-	
 	/// Array of gene pools.
 	std::vector<ant_gene_pool> gene_pools;
 	

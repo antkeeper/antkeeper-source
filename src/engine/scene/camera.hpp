@@ -256,7 +256,7 @@ private:
 	math::fmat4 m_view_projection{math::identity<math::fmat4>};
 	math::fmat4 m_inv_view_projection{math::identity<math::fmat4>};
 	
-	view_frustum_type m_view_frustum;
+	view_frustum_type m_view_frustum{};
 	aabb_type m_bounds{{}, {}};
 };
 

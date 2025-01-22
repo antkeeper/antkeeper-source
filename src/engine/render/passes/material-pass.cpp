@@ -227,7 +227,7 @@ void material_pass::render(render::context& ctx)
 			
 			// Calculate shader cache key
 			std::size_t cache_key = hash::combine_hash(lighting_state_hash, material->get_shader_template()->hash());
-			if (active_cache_key != cache_key)
+			if (active_cache_key != cache_key || !active_cache_entry)
 			{
 				// Lookup shader cache entry
 				if (auto i = shader_cache.find(cache_key); i != shader_cache.end())

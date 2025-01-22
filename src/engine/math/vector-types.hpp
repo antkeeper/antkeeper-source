@@ -75,7 +75,7 @@ struct vector
 	template <std::size_t M, std::size_t... I>
 	[[nodiscard]] inline constexpr vector<T, M> size_cast(std::index_sequence<I...>) const noexcept
 	{
-		return {(I < N) ? elements[I] : T{} ...};
+		return {((I < N) ? elements[I] : T{}) ...};
 	}
 	
 	/// Size-casts this vector to a vector with a different number of elements. Casting to a greater number of elements causes new elements to be set to zero.

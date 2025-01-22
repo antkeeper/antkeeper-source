@@ -365,7 +365,6 @@ public:
 	bool mono_audio;
 	bool captions;
 	float captions_size;
-	std::vector<std::shared_ptr<audio::sound_que>> stridulation_sounds;
 	std::shared_ptr<audio::sound_que> menu_left_sound;
 	std::shared_ptr<audio::sound_que> menu_right_sound;
 	std::shared_ptr<audio::sound_que> menu_up_sound;

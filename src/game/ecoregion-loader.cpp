@@ -25,7 +25,6 @@ std::unique_ptr<ecoregion> resource_loader<ecoregion>::load(::resource_manager& 
 	ecoregion->latitude = 0.0f;
 	ecoregion->longitude = 0.0f;
 	ecoregion->terrain_material = nullptr;
-	ecoregion->horizon_material = nullptr;
 	
 	if (auto element = ecoregion_element->find("name"); element != ecoregion_element->end())
 		ecoregion->name = element->get<std::string>();
@@ -46,8 +45,6 @@ std::unique_ptr<ecoregion> resource_loader<ecoregion>::load(::resource_manager& 
 			ecoregion->terrain_material = resource_manager.load<render::material>(element->get<std::string>());
 		if (auto element = terrain_element->find("albedo"); element != terrain_element->end())
 			ecoregion->terrain_albedo = {(*element)[0].get<float>(), (*element)[1].get<float>(), (*element)[2].get<float>()};
-		if (auto element = terrain_element->find("horizon_material"); element != terrain_element->end())
-			ecoregion->horizon_material = resource_manager.load<render::material>(element->get<std::string>());
 	}
 	
 	// Load gene pools

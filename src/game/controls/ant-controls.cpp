@@ -296,14 +296,14 @@ void setup_ant_controls(::game& ctx)
 				auto mouse_position = (*ctx.input_manager->get_mice().begin())->get_position();
 				if (mouse_position == ctx.old_mouse_position)
 				{
-					if (ctx.stridulation_sounds[0]->is_playing())
-					{
-						ctx.stridulation_sounds[0]->pause();
-					}
-					else if (ctx.stridulation_sounds[1]->is_playing())
-					{
-						ctx.stridulation_sounds[1]->pause();
-					}
+					//if (ctx.stridulation_sounds[0]->is_playing())
+					//{
+					//	ctx.stridulation_sounds[0]->pause();
+					//}
+					//else if (ctx.stridulation_sounds[1]->is_playing())
+					//{
+					//	ctx.stridulation_sounds[1]->pause();
+					//}
 				}
 				else
 				{
@@ -324,30 +324,30 @@ void setup_ant_controls(::game& ctx)
 					gaster_transform.rotation = math::euler_xyz_to_quat(current_gaster_angles);
 					pose_component.current_pose.set_relative_transform(gaster_bone_index, gaster_transform);
 
-					if (mouse_difference.y() != 0)
-					{
-						// Determine index of sound to play (forward or reverse)
-						int sound_index = (mouse_difference.y() < 0.0f);
-
-						// Get sound wave duration
-						const auto duration_seconds = ctx.stridulation_sounds[sound_index]->get_sound_wave()->get_duration();
-						const auto duration_samples = ctx.stridulation_sounds[sound_index]->get_sound_wave()->get_size() / (ctx.stridulation_sounds[sound_index]->get_sound_wave()->get_bits_per_sample() / 8);
-
-						// Seek based on mouse position
-						float seek_factor = static_cast<float>(mouse_position.y()) / static_cast<float>(ctx.window->get_viewport_size().y());
-						ctx.stridulation_sounds[sound_index]->seek_samples(static_cast<std::size_t>(seek_factor * static_cast<double>(duration_samples - 1)));
-
-						// Modulate pitch based on mouse speed
-						float pitch = ((static_cast<float>(mouse_difference.y()) / static_cast<float>(ctx.window->get_viewport_size().y())) * duration_seconds) * ctx.fixed_update_rate;
-						ctx.stridulation_sounds[sound_index]->set_pitch(std::abs(pitch));
-
-						// Play sound if not playing
-						if (!ctx.stridulation_sounds[sound_index]->is_playing())
-						{
-							ctx.stridulation_sounds[(sound_index + 1) % 2]->stop();
-							ctx.stridulation_sounds[sound_index]->play();
-						}
-					}
+					//if (mouse_difference.y() != 0)
+					//{
+					//	// Determine index of sound to play (forward or reverse)
+					//	int sound_index = (mouse_difference.y() < 0.0f);
+					//
+					//	// Get sound wave duration
+					//	const auto duration_seconds = ctx.stridulation_sounds[sound_index]->get_sound_wave()->get_duration();
+					//	const auto duration_samples = ctx.stridulation_sounds[sound_index]->get_sound_wave()->get_size() / (ctx.stridulation_sounds[sound_index]->get_sound_wave()->get_bits_per_sample() / 8);
+					//
+					//	// Seek based on mouse position
+					//	float seek_factor = static_cast<float>(mouse_position.y()) / static_cast<float>(ctx.window->get_viewport_size().y());
+					//	ctx.stridulation_sounds[sound_index]->seek_samples(static_cast<std::size_t>(seek_factor * static_cast<double>(duration_samples - 1)));
+					//
+					//	// Modulate pitch based on mouse speed
+					//	float pitch = ((static_cast<float>(mouse_difference.y()) / static_cast<float>(ctx.window->get_viewport_size().y())) * duration_seconds) * ctx.fixed_update_rate;
+					//	ctx.stridulation_sounds[sound_index]->set_pitch(std::abs(pitch));
+					//
+					//	// Play sound if not playing
+					//	if (!ctx.stridulation_sounds[sound_index]->is_playing())
+					//	{
+					//		ctx.stridulation_sounds[(sound_index + 1) % 2]->stop();
+					//		ctx.stridulation_sounds[sound_index]->play();
+					//	}
+					//}
 				}
 
 				ctx.old_mouse_position = mouse_position;
@@ -365,14 +365,14 @@ void setup_ant_controls(::game& ctx)
 					return;
 				}
 
-				if (ctx.stridulation_sounds[0]->is_playing())
-				{
-					ctx.stridulation_sounds[0]->stop();
-				}
-				else if (ctx.stridulation_sounds[1]->is_playing())
-				{
-					ctx.stridulation_sounds[1]->stop();
-				}
+				//if (ctx.stridulation_sounds[0]->is_playing())
+				//{
+				//	ctx.stridulation_sounds[0]->stop();
+				//}
+				//else if (ctx.stridulation_sounds[1]->is_playing())
+				//{
+				//	ctx.stridulation_sounds[1]->stop();
+				//}
 			}
 		)
 	);
