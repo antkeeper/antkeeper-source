@@ -238,6 +238,7 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	{
 		// Fade in from black
 		fade_in_to(ctx, nullptr);
+		::menu::fade_in(ctx, nullptr);
 	}
 	else
 	{

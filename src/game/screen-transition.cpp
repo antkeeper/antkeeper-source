@@ -14,9 +14,9 @@ void fade_out_to(::game& ctx, const std::function<void()>& callback)
 		ctx.screen_transition_billboard->set_layer_mask(1);
 	});
 
-	ctx.screen_fade_out_sequence->cues().emplace(ctx.screen_fade_out_sequence->duration() + 0.1f, [&, callback](auto&)
+	ctx.screen_fade_out_sequence->cues().emplace(ctx.screen_fade_out_sequence->duration(), [&, callback](auto&)
 	{
-		ctx.screen_transition_billboard->set_layer_mask(0);
+		//ctx.screen_transition_billboard->set_layer_mask(0);
 		if (callback)
 		{
 			callback();
@@ -31,14 +31,16 @@ void fade_out_to(::game& ctx, const std::function<void()>& callback)
 
 void fade_in_to(::game& ctx, const std::function<void()>& callback)
 {
+	ctx.screen_transition_billboard->set_layer_mask(1);
+
 	ctx.screen_fade_in_sequence->cues().clear();
 
-	ctx.screen_fade_in_sequence->cues().emplace(0.0f, [&](auto&)
-	{
-		ctx.screen_transition_billboard->set_layer_mask(1);
-	});
+	//ctx.screen_fade_in_sequence->cues().emplace(0.0f, [&](auto&)
+	//{
+	//	ctx.screen_transition_billboard->set_layer_mask(1);
+	//});
 
-	ctx.screen_fade_in_sequence->cues().emplace(ctx.screen_fade_in_sequence->duration() + 0.1f, [&, callback](auto&)
+	ctx.screen_fade_in_sequence->cues().emplace(ctx.screen_fade_in_sequence->duration(), [&, callback](auto&)
 	{
 		ctx.screen_transition_billboard->set_layer_mask(0);
 		if (callback)
