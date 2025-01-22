@@ -419,17 +419,28 @@ target_compile_options(${PROJECT_NAME}
 
 			# Set Debug configuration options
 			$<$<CONFIG:Debug>:
-				/ZI # Enable Edit and Continue
+				/ZI        # Enable Edit and Continue
+				/Gy        # Enable function-level linking
+				/GS        # Enable security checks
+				/fp:except # Enable floating-point exceptions
 			>
 
 			# Set Release configuration options
 			$<$<CONFIG:Release>:
-				/GL                    # Enable whole program optimization
 				/O2                    # Optimize for speed
 				/Ob3                   # Inline any suitable function
+				/Oi                    # Enable intrinsic functions
+				/Ot                    # Favor speed
+				/Oy                    # Omits frame pointers
+				/GT                    # Enable fiber-safe optimizations
+				/GL                    # Enable whole program optimization
+
 				/Qfast_transcendentals # Use fast transcendentals
-				/GS-                   # Disable buffer security checks
+				/GS-                   # Disable security checks
 				/Zi                    # Generate PDB file
+
+				/GF                    # Enable string pooling
+				/Qpar                  # Enable parallel code generation
 			>
 		>
 
