@@ -17,7 +17,7 @@ jobs:
       matrix:
         os: [windows]
     
-    runs-on: ${{matrix.os}}-latest
+    runs-on: ${{matrix.os}}-2025
     
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
