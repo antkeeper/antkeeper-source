@@ -70,6 +70,15 @@ struct window_resized_event
 	math::ivec2 size{0, 0};
 };
 
+struct window_display_scale_changed_event
+{
+	/// Pointer to the window that has been resized.
+	window* window{nullptr};
+
+	/// Window display scale.
+	float scale{1.0f};
+};
+
 /// Event generated when data is about to be dropped onto a window.
 struct window_drop_begin_event
 {

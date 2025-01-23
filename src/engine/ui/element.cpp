@@ -80,6 +80,18 @@ void element::remove_children()
 std::shared_ptr<element> element::get_root()
 {
 	auto root = shared_from_this();
+
+	while (auto parent = root->m_parent.lock())
+	{
+		root = std::move(parent);
+	}
+
+	return root;
+}
+
+std::shared_ptr<const element> element::get_root() const
+{
+	auto root = shared_from_this();
 	
 	while (auto parent = root->m_parent.lock())
 	{
@@ -259,7 +271,7 @@ void element::press(input::mouse_button button)
 {
 	if (m_mouse_button_pressed_callback)
 	{
-		m_mouse_button_pressed_callback({this, nullptr, math::ivec2(m_bounds.center()), button});
+		m_mouse_button_pressed_callback({this, nullptr, m_bounds.center(), button});
 	}
 }
 
@@ -267,7 +279,7 @@ void element::release(input::mouse_button button)
 {
 	if (m_mouse_button_released_callback)
 	{
-		m_mouse_button_released_callback({this, nullptr, math::ivec2(m_bounds.center()), button});
+		m_mouse_button_released_callback({this, nullptr, m_bounds.center(), button});
 	}
 }
 

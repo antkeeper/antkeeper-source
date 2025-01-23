@@ -5,7 +5,7 @@
 #define ANTKEEPER_APP_SDL_WINDOW_HPP
 
 #include <engine/app/window.hpp>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <memory>
 
 namespace app {
@@ -41,6 +41,9 @@ public:
 	void set_maximized(bool maximized) override;
 	void set_fullscreen(bool fullscreen) override;
 	void set_v_sync(bool v_sync) override;
+	void set_relative_mouse_mode(bool enabled) override;
+	void start_text_input(const geom::rectangle<int>& rect) override;
+	void stop_text_input() override;
 	void make_current() override;
 	void swap_buffers() override;
 	

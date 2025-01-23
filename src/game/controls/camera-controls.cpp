@@ -70,11 +70,11 @@ namespace {
 			ctx.camera_mouse_drag_action.is_active() ||
 			ctx.camera_mouse_zoom_action.is_active())
 		{
-			ctx.input_manager->set_relative_mouse_mode(true);
+			ctx.window->set_relative_mouse_mode(true);
 		}
 		else
 		{
-			ctx.input_manager->set_relative_mouse_mode(false);
+			ctx.window->set_relative_mouse_mode(false);
 		}
 	}
 }

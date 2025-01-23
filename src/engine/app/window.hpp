@@ -7,6 +7,7 @@
 #include <engine/math/vector.hpp>
 #include <engine/event/publisher.hpp>
 #include <engine/app/window-events.hpp>
+#include <engine/geom/primitives/rectangle.hpp>
 #include <string>
 
 namespace gl
@@ -56,6 +57,17 @@ public:
 	/// Enables or disables v-sync.
 	/// @param v_sync `true` if the v-sync should be enabled, `false` otherwise.
 	virtual void set_v_sync(bool v_sync) = 0;
+
+	/// Enables or disables relative mouse mode.
+	/// @param enabled `true` if relative mouse mode should be enabled, `false` otherwise.
+	virtual void set_relative_mouse_mode(bool enabled) = 0;
+
+	/// Enables text input events.
+	/// @param rect Text input rectangle, with the origin at the upper left.
+	virtual void start_text_input(const geom::rectangle<int>& rect = {}) = 0;
+
+	/// Disables text input events.
+	virtual void stop_text_input() = 0;
 	
 	/// Makes the window's graphics context current.
 	virtual void make_current() = 0;
@@ -128,6 +140,12 @@ public:
 	{
 		return m_v_sync;
 	}
+
+	/// Returns the display scale of the window.
+	[[nodiscard]] inline bool get_display_scale() const noexcept
+	{
+		return m_display_scale;
+	}
 	
 	/// Returns the graphics pipeline associated with this window.
 	[[nodiscard]] virtual gl::pipeline& get_graphics_pipeline() noexcept = 0;
@@ -169,6 +187,12 @@ public:
 	[[nodiscard]] inline auto& get_resized_channel() noexcept
 	{
 		return m_resized_publisher.channel();
+	}
+
+	/// Returns the channel through which window display scale changed events are published.
+	[[nodiscard]] inline auto& get_display_scale_changed_channel() noexcept
+	{
+		return m_display_scale_changed_publisher.channel();
 	}
 	
 	/// Returns the channel through which window restored events are published.
@@ -215,6 +239,7 @@ protected:
 	bool m_maximized{false};
 	bool m_fullscreen{false};
 	bool m_v_sync{false};
+	float m_display_scale{1.0f};
 	
 	event::publisher<window_closed_event> m_closed_publisher;
 	event::publisher<window_focus_changed_event> m_focus_changed_publisher;
@@ -222,6 +247,7 @@ protected:
 	event::publisher<window_minimized_event> m_minimized_publisher;
 	event::publisher<window_moved_event> m_moved_publisher;
 	event::publisher<window_resized_event> m_resized_publisher;
+	event::publisher<window_display_scale_changed_event> m_display_scale_changed_publisher;
 	event::publisher<window_restored_event> m_restored_publisher;
 	event::publisher<window_drop_begin_event> m_drop_begin_publisher;
 	event::publisher<window_drop_end_event> m_drop_end_publisher;

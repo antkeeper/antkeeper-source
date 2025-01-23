@@ -15,7 +15,7 @@ void mouse::release(mouse_button button)
 	m_button_released_publisher.publish({this, m_position, button});
 }
 
-void mouse::move(const math::vec2<std::int32_t>& position, const math::vec2<std::int32_t>& difference)
+void mouse::move(const math::fvec2& position, const math::fvec2& difference)
 {
 	m_position = position;
 	m_moved_publisher.publish({this, m_position, difference});

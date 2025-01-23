@@ -7,7 +7,7 @@
 #include <engine/input/input-update-event.hpp>
 #include <engine/debug/log.hpp>
 #include <engine/math/functions.hpp>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <stdexcept>
 
 namespace app {
@@ -16,7 +16,7 @@ sdl_input_manager::sdl_input_manager()
 {
 	// Init SDL joystick and controller subsystems
 	debug::log_debug("Initializing SDL joystick and controller subsystems...");
-	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) != 0)
+	if (!SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD))
 	{
 		auto error_message = std::format("Failed to initialize SDL joystick and controller subsytems: {}", SDL_GetError());
 		debug::log_error("{}", error_message);
@@ -41,14 +41,14 @@ sdl_input_manager::~sdl_input_manager()
 {
 	// Quit SDL joystick and controller subsystems
 	debug::log_debug("Quitting SDL joystick and controller subsystems...");
-	SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+	SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD);
 	debug::log_debug("Quitting SDL joystick and controller subsystems... OK");
 }
 
 void sdl_input_manager::update()
 {
 	// Active modifier keys
-	std::uint16_t sdl_key_mod = KMOD_NONE;
+	std::uint16_t sdl_key_mod = SDL_KMOD_NONE;
 	std::uint16_t modifier_keys = input::modifier_key::none;
 	
 	// Gather SDL events from event queue
@@ -59,7 +59,7 @@ void sdl_input_manager::update()
 	{
 		// Get next display or window event
 		SDL_Event event;
-		const int status = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LOCALECHANGED);
+		const int status = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_EVENT_FIRST, SDL_EVENT_LOCALE_CHANGED);
 		
 		if (!status)
 		{
@@ -74,7 +74,7 @@ void sdl_input_manager::update()
 		
 		switch (event.type)
 		{
-			case SDL_QUIT:
+			case SDL_EVENT_QUIT:
 				debug::log_debug("Received application quit request");
 				m_event_dispatcher.dispatch<input::application_quit_event>({});
 				break;
@@ -89,7 +89,7 @@ void sdl_input_manager::update()
 	{
 		// Get next display or window event
 		SDL_Event event;
-		const int status = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_KEYDOWN, SDL_CLIPBOARDUPDATE);
+		const int status = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_EVENT_KEY_DOWN, SDL_EVENT_CLIPBOARD_UPDATE);
 		
 		if (!status)
 		{
@@ -104,53 +104,53 @@ void sdl_input_manager::update()
 		
 		switch (event.type)
 		{
-			[[likely]] case SDL_MOUSEMOTION:
+			[[likely]] case SDL_EVENT_MOUSE_MOTION:
 			{
 				m_mouse.move({event.motion.x, event.motion.y}, {event.motion.xrel, event.motion.yrel});
 				break;
 			}
 			
-			[[likely]] case SDL_KEYDOWN:
-			case SDL_KEYUP:
+			[[likely]] case SDL_EVENT_KEY_DOWN:
+			case SDL_EVENT_KEY_UP:
 			{
 				// Get scancode of key
-				const input::scancode scancode = static_cast<input::scancode>(event.key.keysym.scancode);
+				const input::scancode scancode = static_cast<input::scancode>(event.key.scancode);
 				
 				// Rebuild modifier keys bit mask
-				if (sdl_key_mod != event.key.keysym.mod)
+				if (sdl_key_mod != event.key.mod)
 				{
-					sdl_key_mod = event.key.keysym.mod;
+					sdl_key_mod = event.key.mod;
 					
 					modifier_keys = input::modifier_key::none;
-					if (sdl_key_mod & KMOD_LSHIFT)
+					if (sdl_key_mod & SDL_KMOD_LSHIFT)
 						modifier_keys |= input::modifier_key::left_shift;
-					if (sdl_key_mod & KMOD_RSHIFT)
+					if (sdl_key_mod & SDL_KMOD_RSHIFT)
 						modifier_keys |= input::modifier_key::right_shift;
-					if (sdl_key_mod & KMOD_LCTRL)
+					if (sdl_key_mod & SDL_KMOD_LCTRL)
 						modifier_keys |= input::modifier_key::left_ctrl;
-					if (sdl_key_mod & KMOD_RCTRL)
+					if (sdl_key_mod & SDL_KMOD_RCTRL)
 						modifier_keys |= input::modifier_key::right_ctrl;
-					if (sdl_key_mod & KMOD_LALT)
+					if (sdl_key_mod & SDL_KMOD_LALT)
 						modifier_keys |= input::modifier_key::left_alt;
-					if (sdl_key_mod & KMOD_RALT)
+					if (sdl_key_mod & SDL_KMOD_RALT)
 						modifier_keys |= input::modifier_key::right_alt;
-					if (sdl_key_mod & KMOD_LGUI)
+					if (sdl_key_mod & SDL_KMOD_LGUI)
 						modifier_keys |= input::modifier_key::left_gui;
-					if (sdl_key_mod & KMOD_RGUI)
+					if (sdl_key_mod & SDL_KMOD_RGUI)
 						modifier_keys |= input::modifier_key::right_gui;
-					if (sdl_key_mod & KMOD_NUM)
+					if (sdl_key_mod & SDL_KMOD_NUM)
 						modifier_keys |= input::modifier_key::num_lock;
-					if (sdl_key_mod & KMOD_CAPS)
+					if (sdl_key_mod & SDL_KMOD_CAPS)
 						modifier_keys |= input::modifier_key::caps_lock;
-					if (sdl_key_mod & KMOD_SCROLL)
+					if (sdl_key_mod & SDL_KMOD_SCROLL)
 						modifier_keys |= input::modifier_key::scroll_lock;
-					if (sdl_key_mod & KMOD_MODE)
+					if (sdl_key_mod & SDL_KMOD_MODE)
 						modifier_keys |= input::modifier_key::alt_gr;
 				}
 				
-				if (event.type == SDL_KEYDOWN)
+				if (event.type == SDL_EVENT_KEY_DOWN)
 				{
-					m_keyboard.press(scancode, modifier_keys, (event.key.repeat > 0));
+					m_keyboard.press(scancode, modifier_keys, event.key.repeat);
 				}
 				else
 				{
@@ -160,118 +160,118 @@ void sdl_input_manager::update()
 				break;
 			}
 			
-			case SDL_TEXTINPUT:
+			case SDL_EVENT_TEXT_INPUT:
 			{
 				m_keyboard.input_text(event.text.text);
 				break;
 			}
 			
-			case SDL_TEXTEDITING:
+			case SDL_EVENT_TEXT_EDITING:
 			{
 				m_keyboard.edit_text(event.edit.text, static_cast<std::size_t>(event.edit.start), static_cast<std::size_t>(event.edit.length));
 				break;
 			}
 			
-			case SDL_MOUSEWHEEL:
+			case SDL_EVENT_MOUSE_WHEEL:
 			{
 				const float flip = (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) ? -1.0f : 1.0f;
-				m_mouse.scroll({event.wheel.preciseX * flip, event.wheel.preciseY * flip});
+				m_mouse.scroll({event.wheel.x * flip, event.wheel.y * flip});
 				break;
 			}
 			
-			case SDL_MOUSEBUTTONDOWN:
+			case SDL_EVENT_MOUSE_BUTTON_DOWN:
 			{
 				m_mouse.press(static_cast<input::mouse_button>(event.button.button));
 				break;
 			}
 			
-			case SDL_MOUSEBUTTONUP:
+			case SDL_EVENT_MOUSE_BUTTON_UP:
 			{
 				m_mouse.release(static_cast<input::mouse_button>(event.button.button));
 				break;
 			}
 			
-			[[likely]] case SDL_CONTROLLERAXISMOTION:
+			[[likely]] case SDL_EVENT_GAMEPAD_AXIS_MOTION:
 			{
-				if (event.caxis.axis != SDL_CONTROLLER_AXIS_INVALID)
+				if (event.gaxis.axis != SDL_GAMEPAD_AXIS_INVALID)
 				{
-					if (auto it = m_gamepad_map.find(event.cdevice.which); it != m_gamepad_map.end())
+					if (auto it = m_gamepad_map.find(event.gdevice.which); it != m_gamepad_map.end())
 					{
 						// Map axis position onto `[-1, 1]`.
 						const float position = math::map_range
 						(
-							static_cast<float>(event.caxis.value),
-							static_cast<float>(std::numeric_limits<decltype(event.caxis.value)>::min()),
-							static_cast<float>(std::numeric_limits<decltype(event.caxis.value)>::max()),
+							static_cast<float>(event.gaxis.value),
+							static_cast<float>(std::numeric_limits<decltype(event.gaxis.value)>::min()),
+							static_cast<float>(std::numeric_limits<decltype(event.gaxis.value)>::max()),
 							-1.0f,
 							1.0f
 						);
 						
 						// Generate gamepad axis moved event
-						it->second->move(static_cast<input::gamepad_axis>(event.caxis.axis), position);
+						it->second->move(static_cast<input::gamepad_axis>(event.gaxis.axis), position);
 					}
 				}
 				break;
 			}
 			
-			case SDL_CONTROLLERBUTTONDOWN:
+			case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
 			{
-				if (event.cbutton.button != SDL_CONTROLLER_BUTTON_INVALID)
+				if (event.gbutton.button != SDL_GAMEPAD_BUTTON_INVALID)
 				{
-					if (auto it = m_gamepad_map.find(event.cdevice.which); it != m_gamepad_map.end())
+					if (auto it = m_gamepad_map.find(event.gdevice.which); it != m_gamepad_map.end())
 					{
-						it->second->press(static_cast<input::gamepad_button>(event.cbutton.button));
+						it->second->press(static_cast<input::gamepad_button>(event.gbutton.button));
 					}
 				}
 				break;
 			}
 			
-			case SDL_CONTROLLERBUTTONUP:
+			case SDL_EVENT_GAMEPAD_BUTTON_UP:
 			{
-				if (event.cbutton.button != SDL_CONTROLLER_BUTTON_INVALID)
+				if (event.gbutton.button != SDL_GAMEPAD_BUTTON_INVALID)
 				{
-					if (auto it = m_gamepad_map.find(event.cdevice.which); it != m_gamepad_map.end())
+					if (auto it = m_gamepad_map.find(event.gdevice.which); it != m_gamepad_map.end())
 					{
-						it->second->release(static_cast<input::gamepad_button>(event.cbutton.button));
+						it->second->release(static_cast<input::gamepad_button>(event.gbutton.button));
 					}
 				}
 				break;
 			}
 			
-			[[unlikely]] case SDL_CONTROLLERDEVICEADDED:
+			[[unlikely]] case SDL_EVENT_GAMEPAD_ADDED:
 			{
-				if (SDL_IsGameController(event.cdevice.which))
+				if (SDL_IsGamepad(event.gdevice.which))
 				{
-					SDL_GameController* sdl_controller = SDL_GameControllerOpen(event.cdevice.which);
+					SDL_Gamepad* sdl_controller = SDL_OpenGamepad(event.gdevice.which);
 					if (sdl_controller)
 					{
 						// Get gamepad name
-						const char* controller_name = SDL_GameControllerNameForIndex(event.cdevice.which);
+						const char* controller_name = SDL_GetGamepadNameForID(event.gdevice.which);
 						if (!controller_name)
 						{
 							controller_name = "";
 						}
 						
-						if (auto it = m_gamepad_map.find(event.cdevice.which); it != m_gamepad_map.end())
+						if (auto it = m_gamepad_map.find(event.gdevice.which); it != m_gamepad_map.end())
 						{
 							// Gamepad reconnected
-							debug::log_info("Reconnected gamepad {}", event.cdevice.which);
+							debug::log_info("Reconnected gamepad {}", event.gdevice.which);
 							it->second->connect();
 						}
 						else
 						{
 							// Get gamepad GUID
-							SDL_Joystick* sdl_joystick = SDL_GameControllerGetJoystick(sdl_controller);
-							SDL_JoystickGUID sdl_guid = SDL_JoystickGetGUID(sdl_joystick);
+							SDL_Joystick* sdl_joystick = SDL_GetGamepadJoystick(sdl_controller);
+							SDL_GUID sdl_guid = SDL_GetJoystickGUID(sdl_joystick);
 							
 							// Copy into UUID struct
 							::uuid gamepad_uuid;
 							std::memcpy(gamepad_uuid.data.data(), sdl_guid.data, gamepad_uuid.data.size());
 							
-							debug::log_info("Connected gamepad {}; name: \"{}\"; UUID: {}", event.cdevice.which, controller_name, gamepad_uuid.string());
+							debug::log_info("Connected gamepad {}; name: \"{}\"; UUID: {}", event.gdevice.which, controller_name, gamepad_uuid.string());
 							
 							// Allocate gamepad
-							auto& gamepad = m_gamepad_map[event.cdevice.which];
+							auto& gamepad = m_gamepad_map[event.gdevice.which];
 							gamepad = std::make_unique<input::gamepad>();						
 							gamepad->set_uuid(gamepad_uuid);
 							
@@ -284,7 +284,7 @@ void sdl_input_manager::update()
 					}
 					else
 					{
-						debug::log_error("Failed to connect gamepad {}: {}", event.cdevice.which, SDL_GetError());
+						debug::log_error("Failed to connect gamepad {}: {}", event.gdevice.which, SDL_GetError());
 						SDL_ClearError();
 					}
 				}
@@ -292,25 +292,25 @@ void sdl_input_manager::update()
 				break;
 			}
 			
-			[[unlikely]] case SDL_CONTROLLERDEVICEREMOVED:
+			[[unlikely]] case SDL_EVENT_GAMEPAD_REMOVED:
 			{
-				SDL_GameController* sdl_controller = SDL_GameControllerFromInstanceID(event.cdevice.which);
+				SDL_Gamepad* sdl_controller = SDL_GetGamepadFromID(event.gdevice.which);
 				
 				if (sdl_controller)
 				{
-					SDL_GameControllerClose(sdl_controller);
-					if (auto it = m_gamepad_map.find(event.cdevice.which); it != m_gamepad_map.end())
+					SDL_CloseGamepad(sdl_controller);
+					if (auto it = m_gamepad_map.find(event.gdevice.which); it != m_gamepad_map.end())
 					{
 						it->second->disconnect();
 					}
 					
-					debug::log_info("Disconnected gamepad {}", event.cdevice.which);
+					debug::log_info("Disconnected gamepad {}", event.gdevice.which);
 				}
 				
 				break;
 			}
 			
-			[[unlikely]] case SDL_CLIPBOARDUPDATE:
+			[[unlikely]] case SDL_EVENT_CLIPBOARD_UPDATE:
 			{
 				m_event_dispatcher.dispatch<input::clipboard_updated_event>({});
 				break;
@@ -327,25 +327,16 @@ void sdl_input_manager::update()
 
 void sdl_input_manager::set_cursor_visible(bool visible)
 {
-	if (SDL_ShowCursor((visible) ? SDL_ENABLE : SDL_DISABLE) < 0)
+	if (!(visible ? SDL_ShowCursor() : SDL_HideCursor()))
 	{
 		debug::log_error("Failed to set cursor visibility: \"{}\"", SDL_GetError());
 		SDL_ClearError();
 	}
 }
 
-void sdl_input_manager::set_relative_mouse_mode(bool enabled)
-{
-	if (SDL_SetRelativeMouseMode((enabled) ? SDL_TRUE : SDL_FALSE) < 0)
-	{
-		debug::log_error("Failed to set relative mouse mode: \"{}\"", SDL_GetError());
-		SDL_ClearError();
-	}
-}
-
 void sdl_input_manager::set_clipboard_text(const std::string& text)
 {
-	if (SDL_SetClipboardText(text.c_str()) != 0)
+	if (!SDL_SetClipboardText(text.c_str()))
 	{
 		debug::log_error("Failed to set clipboard text: \"{}\"", SDL_GetError());
 		SDL_ClearError();
@@ -364,26 +355,6 @@ std::string sdl_input_manager::get_clipboard_text() const
 	SDL_free(sdl_clipboard_text);
 	
 	return clipboard_text;
-}
-
-void sdl_input_manager::start_text_input(const geom::rectangle<int>& rect)
-{
-	const SDL_Rect sdl_rect
-	{
-		rect.min.x(),
-		rect.min.y(),
-		rect.max.x() - rect.min.x(),
-		rect.max.y() - rect.min.y()
-	};
-	SDL_SetTextInputRect(&sdl_rect);
-	SDL_StartTextInput();
-	debug::log_debug("Started text input");
-}
-
-void sdl_input_manager::stop_text_input()
-{
-	SDL_StopTextInput();
-	debug::log_debug("Stopped text input");
 }
 
 } // namespace app

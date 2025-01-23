@@ -54,14 +54,14 @@ void setup_window_controls(::game& ctx)
 					
 					ctx.ui_canvas->get_scene().add_object(*ctx.command_line_text);
 					ctx.ui_canvas->get_scene().add_object(*ctx.shell_buffer_text);
-					ctx.input_manager->start_text_input({0, 0, 0, 0});
+					ctx.window->start_text_input({0, 0, 0, 0});
 					enable_terminal_controls(ctx);
 				}
 				else
 				{
 					ctx.ui_canvas->get_scene().remove_object(*ctx.command_line_text);
 					ctx.ui_canvas->get_scene().remove_object(*ctx.shell_buffer_text);
-					ctx.input_manager->stop_text_input();
+					ctx.window->stop_text_input();
 					disable_terminal_controls(ctx);
 					
 					for (const auto& f: ctx.reenable_controls)

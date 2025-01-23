@@ -46,16 +46,9 @@ public:
 	
 	/// Sets the refresh rate of the display.
 	/// @param rate Refresh rate, in Hz.
-	inline void set_refresh_rate(int rate) noexcept
+	inline void set_refresh_rate(float rate) noexcept
 	{
 		m_refresh_rate = rate;
-	}
-	
-	/// Sets the DPI of the display.
-	/// @param dpi DPI.
-	inline void set_dpi(float dpi) noexcept
-	{
-		m_dpi = dpi;
 	}
 	
 	/// Sets the orientation of the display.
@@ -66,7 +59,7 @@ public:
 	}
 
 	/// Returns the index of the display.
-	[[nodiscard]] inline const int& get_index() const noexcept
+	[[nodiscard]] inline int get_index() const noexcept
 	{
 		return m_index;
 	}
@@ -90,15 +83,9 @@ public:
 	}
 	
 	/// Returns the refresh rate of the display, in Hz.
-	[[nodiscard]] inline const int& get_refresh_rate() const noexcept
+	[[nodiscard]] inline float get_refresh_rate() const noexcept
 	{
 		return m_refresh_rate;
-	}
-	
-	/// Returns the DPI of the display.
-	[[nodiscard]] inline const float& get_dpi() const noexcept
-	{
-		return m_dpi;
 	}
 	
 	/// Returns the current orientation of the display.
@@ -108,7 +95,7 @@ public:
 	}
 	
 	/// Returns `true` if the display is connected, `false` otherwise.
-	[[nodiscard]] inline const bool& is_connected() const noexcept
+	[[nodiscard]] inline bool is_connected() const noexcept
 	{
 		return m_connected;
 	}
@@ -139,8 +126,7 @@ private:
 	std::string m_name;
 	geom::rectangle<int> m_bounds{0};
 	geom::rectangle<int> m_usable_bounds{0};
-	int m_refresh_rate{0};
-	float m_dpi{0.0f};
+	float m_refresh_rate{0.0f};
 	display_orientation m_orientation{0};
 	bool m_connected{false};
 	

@@ -30,7 +30,7 @@ struct element_mouse_entered_event
 	input::mouse* mouse{nullptr};
 	
 	/// Position of the mouse when the mouse entered.
-	math::ivec2 position{};
+	math::fvec2 position{};
 };
 
 /// Event generated when a mouse exits the bounds of an element.
@@ -43,7 +43,7 @@ struct element_mouse_exited_event
 	input::mouse* mouse{nullptr};
 	
 	/// Position of the mouse when the mouse exited.
-	math::ivec2 position{};
+	math::fvec2 position{};
 };
 
 /// Event generated when a mouse button is pressed on an element.
@@ -56,7 +56,7 @@ struct element_mouse_button_pressed_event
 	input::mouse* mouse{nullptr};
 	
 	/// Position of the mouse when the button was pressed.
-	math::ivec2 position{};
+	math::fvec2 position{};
 	
 	/// Mouse button being pressed.
 	input::mouse_button button{};
@@ -72,7 +72,7 @@ struct element_mouse_button_released_event
 	input::mouse* mouse{nullptr};
 	
 	/// Position of the mouse when the button was released.
-	math::ivec2 position{};
+	math::fvec2 position{};
 	
 	/// Mouse button being released.
 	input::mouse_button button{};

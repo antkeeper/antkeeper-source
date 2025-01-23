@@ -70,7 +70,7 @@ void load_fonts(::game& ctx)
 	std::shared_ptr<gl::shader_template> font_shader_template = ctx.resource_manager->load<gl::shader_template>("bitmap-font.glsl");
 	
 	// Point size to pixel size conversion factor
-	const float dpi = ctx.window_manager->get_display(0).get_dpi();
+	const float dpi = ctx.window->get_display_scale() * 96.0f;
 	const float pt_to_px = (dpi / 72.0f) * ctx.font_scale;
 	
 	// Build debug font

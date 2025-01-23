@@ -20,10 +20,10 @@ struct mouse_moved_event
 	mouse* mouse{nullptr};
 	
 	/// Mouse position, in pixels, relative to the window.
-	math::ivec2 position{0, 0};
+	math::fvec2 position{0, 0};
 	
 	/// Relative movement of the mouse, in pixels.
-	math::ivec2 difference{0, 0};
+	math::fvec2 difference{0, 0};
 };
 
 /// Event generated when a mouse button has been pressed.
@@ -33,7 +33,7 @@ struct mouse_button_pressed_event
 	mouse* mouse{nullptr};
 	
 	/// Mouse position, in pixels, relative to the window, when the button was pressed.
-	math::ivec2 position{0, 0};
+	math::fvec2 position{0, 0};
 	
 	/// Mouse button being pressed.
 	mouse_button button{0};
@@ -46,7 +46,7 @@ struct mouse_button_released_event
 	mouse* mouse{nullptr};
 	
 	/// Mouse position, in pixels, relative to the window, when the button was released.
-	math::ivec2 position{0, 0};
+	math::fvec2 position{0, 0};
 	
 	/// Mouse button being released.
 	mouse_button button{0};
@@ -59,7 +59,7 @@ struct mouse_scrolled_event
 	mouse* mouse{nullptr};
 	
 	/// Mouse position, in pixels, relative to the window, when the mouse was scrolled.
-	math::ivec2 position{0, 0};
+	math::fvec2 position{0, 0};
 	
 	/// Scroll velocity.
 	math::fvec2 velocity{0.0f, 0.0f};

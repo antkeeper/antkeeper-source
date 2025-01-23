@@ -93,9 +93,9 @@ FetchContent_Declare(physfs
 	GIT_TAG eb3383b532c5f74bfeb42ec306ba2cf80eed988c # v3.2.0
 	GIT_PROGRESS TRUE
 )
-FetchContent_Declare(SDL2
+FetchContent_Declare(SDL3
 	GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-	GIT_TAG 15ead9a40d09a1eb9972215cceac2bf29c9b77f6 # v2.28.5
+	GIT_TAG 535d80badefc83c5c527ec5748f2a20d6a9310fe # v3.2.0
 	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(stb
@@ -160,6 +160,10 @@ set(PHYSFS_BUILD_TEST OFF)
 set(PHYSFS_BUILD_DOCS OFF)
 
 # Configure SDL
+set(SDL_SHARED OFF)
+set(SDL_STATIC ON)
+set(SDL_TEST_LIBRARY OFF)
+
 set(SDL_ASSERTIONS "disabled")
 set(SDL_ATOMIC OFF)
 set(SDL_AUDIO OFF)
@@ -168,7 +172,6 @@ set(SDL_DIRECTX OFF)
 set(SDL_EVENTS ON)
 set(SDL_FILE OFF)
 set(SDL_FILESYSTEM OFF)
-set(SDL_FORCE_STATIC_VCRT ON)
 set(SDL_HAPTIC OFF)
 set(SDL_HIDAPI ON)
 set(SDL_JOYSTICK ON)
@@ -181,9 +184,6 @@ set(SDL_OPENGLES OFF)
 set(SDL_POWER OFF)
 set(SDL_RENDER OFF)
 set(SDL_SENSOR OFF)
-set(SDL_SHARED OFF)
-set(SDL_STATIC ON)
-set(SDL_TEST OFF)
 set(SDL_THREADS ON)
 set(SDL_TIMERS OFF)
 set(SDL_VIDEO ON)
@@ -211,7 +211,7 @@ FetchContent_MakeAvailable(
 	nlohmann-json
 	openal-soft
 	physfs
-	SDL2
+	SDL3
 	stb
 	tinyexr
 	ogg
@@ -419,7 +419,9 @@ target_compile_options(${PROJECT_NAME}
 
 			# Set Debug configuration options
 			$<$<CONFIG:Debug>:
-				/ZI        # Enable Edit and Continue
+				$<$<NOT:$<BOOL:${ANTKEEPER_ASAN}>>:
+					/ZI    # Enable Edit and Continue
+				>
 				/Gy        # Enable function-level linking
 				/GS        # Enable security checks
 				/fp:except # Enable floating-point exceptions
@@ -530,8 +532,7 @@ target_link_libraries(${PROJECT_NAME}
 		EnTT
 		cxxopts
 		nlohmann_json
-		SDL2::SDL2-static
-		SDL2::SDL2main
+		SDL3::SDL3-static
 		OpenAL
 		physfs-static
 		freetype

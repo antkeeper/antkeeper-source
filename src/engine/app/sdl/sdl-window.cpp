@@ -5,6 +5,7 @@
 #include <engine/config.hpp>
 #include <engine/debug/log.hpp>
 #include <engine/gl/pipeline.hpp>
+#include <engine/debug/contract.hpp>
 #include <glad/gl.h>
 #include <stdexcept>
 
@@ -21,14 +22,14 @@ sdl_window::sdl_window
 )
 {
 	// Determine SDL window creation flags
-	Uint32 window_flags = SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+	Uint32 window_flags = SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 	if (maximized)
 	{
 		window_flags |= SDL_WINDOW_MAXIMIZED;
 	}
 	if (fullscreen)
 	{
-		window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+		window_flags |= SDL_WINDOW_FULLSCREEN;
 	}
 	
 	// Create SDL window
@@ -36,8 +37,6 @@ sdl_window::sdl_window
 	m_internal_window = SDL_CreateWindow
 	(
 		title.c_str(),
-    	windowed_position.x(),
-    	windowed_position.y(),
 	    windowed_size.x(),
 	    windowed_size.y(),
 		window_flags
@@ -169,7 +168,7 @@ sdl_window::sdl_window
 	SDL_GetWindowSize(m_internal_window, &this->m_size.x(), &this->m_size.y());
 	SDL_GetWindowMinimumSize(m_internal_window, &this->m_minimum_size.x(), &this->m_minimum_size.y());
 	SDL_GetWindowMaximumSize(m_internal_window, &this->m_maximum_size.x(), &this->m_maximum_size.y());
-	SDL_GL_GetDrawableSize(m_internal_window, &this->m_viewport_size.x(), &this->m_viewport_size.y());
+	SDL_GetWindowSizeInPixels(m_internal_window, &this->m_viewport_size.x(), &this->m_viewport_size.y());
 }
 
 sdl_window::~sdl_window()
@@ -178,7 +177,7 @@ sdl_window::~sdl_window()
 	m_graphics_pipeline.reset();
 	
 	// Destruct the OpenGL context
-	SDL_GL_DeleteContext(m_internal_context);
+	SDL_GL_DestroyContext(m_internal_context);
 	
 	// Destruct the SDL window
 	SDL_DestroyWindow(m_internal_window);
@@ -227,7 +226,7 @@ void sdl_window::set_maximized(bool maximized)
 void sdl_window::set_fullscreen(bool fullscreen)
 {
 	//SDL_HideWindow(m_internal_window);
-	SDL_SetWindowFullscreen(m_internal_window, (fullscreen) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+	SDL_SetWindowFullscreen(m_internal_window, fullscreen);
 	//SDL_ShowWindow(m_internal_window);
 	this->m_fullscreen = fullscreen;
 }
@@ -237,12 +236,12 @@ void sdl_window::set_v_sync(bool v_sync)
 	if (v_sync)
 	{
 		debug::log_debug("Enabling adaptive v-sync...");
-		if (SDL_GL_SetSwapInterval(-1) != 0)
+		if (!SDL_GL_SetSwapInterval(-1))
 		{
 			debug::log_error("Failed to enable adaptive v-sync: {}", SDL_GetError());
 			debug::log_debug("Enabling adaptive v-sync... FAILED");
 			debug::log_debug("Enabling synchronized v-sync...");
-			if (SDL_GL_SetSwapInterval(1) != 0)
+			if (!SDL_GL_SetSwapInterval(1))
 			{
 				debug::log_error("Failed to enable synchronized v-sync: {}", SDL_GetError());
 				debug::log_debug("Enabling synchronized v-sync... FAILED");
@@ -261,7 +260,7 @@ void sdl_window::set_v_sync(bool v_sync)
 	else
 	{
 		debug::log_debug("Disabling v-sync...");
-		if (SDL_GL_SetSwapInterval(0) != 0)
+		if (!SDL_GL_SetSwapInterval(0))
 		{
 			debug::log_error("Failed to disable v-sync: {}", SDL_GetError());
 			debug::log_debug("Disabling v-sync... FAILED");
@@ -276,14 +275,43 @@ void sdl_window::set_v_sync(bool v_sync)
 	this->m_v_sync = v_sync;
 }
 
+void sdl_window::set_relative_mouse_mode(bool enabled)
+{
+	if (!SDL_SetWindowRelativeMouseMode(m_internal_window, enabled ? true : false))
+	{
+		debug::log_error("Failed to set relative mouse mode: \"{}\"", SDL_GetError());
+		SDL_ClearError();
+	}
+}
+
+void sdl_window::start_text_input(const geom::rectangle<int>& rect)
+{
+	const SDL_Rect sdl_rect
+	{
+		rect.min.x(),
+		rect.min.y(),
+		rect.max.x() - rect.min.x(),
+		rect.max.y() - rect.min.y()
+	};
+	debug::invariant(SDL_SetTextInputArea(m_internal_window, &sdl_rect, 0));
+	debug::invariant(SDL_StartTextInput(m_internal_window));
+	debug::log_debug("Started text input");
+}
+
+void sdl_window::stop_text_input()
+{
+	debug::invariant(SDL_StopTextInput(m_internal_window));
+	debug::log_debug("Stopped text input");
+}
+
 void sdl_window::make_current()
 {
-	SDL_GL_MakeCurrent(m_internal_window, m_internal_context);
+	debug::invariant(SDL_GL_MakeCurrent(m_internal_window, m_internal_context));
 }
 
 void sdl_window::swap_buffers()
 {
-	SDL_GL_SwapWindow(m_internal_window);
+	debug::invariant(SDL_GL_SwapWindow(m_internal_window));
 }
 
 } // namespace app

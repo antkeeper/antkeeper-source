@@ -451,7 +451,7 @@ void treadmill_experiment_state::handle_mouse_motion(const input::mouse_moved_ev
 	}
 }
 
-geom::ray<float, 3> treadmill_experiment_state::get_mouse_ray(const math::vec2<std::int32_t>& mouse_position) const
+geom::ray<float, 3> treadmill_experiment_state::get_mouse_ray(const math::fvec2& mouse_position) const
 {
 	// Get window viewport size
 	const auto& viewport_size = ctx.window->get_viewport_size();
@@ -459,8 +459,8 @@ geom::ray<float, 3> treadmill_experiment_state::get_mouse_ray(const math::vec2<s
 	// Transform mouse coordinates from window space to NDC space
 	const math::fvec2 mouse_ndc =
 	{
-		static_cast<float>(mouse_position.x()) / static_cast<float>(viewport_size.x() - 1) * 2.0f - 1.0f,
-		(1.0f - static_cast<float>(mouse_position.y()) / static_cast<float>(viewport_size.y() - 1)) * 2.0f - 1.0f
+		mouse_position.x() / static_cast<float>(viewport_size.x() - 1) * 2.0f - 1.0f,
+		(1.0f - mouse_position.y() / static_cast<float>(viewport_size.y() - 1)) * 2.0f - 1.0f
 	};
 	
 	const auto& scene_component = ctx.entity_registry->get<::scene_component>(third_person_camera_rig_eid);

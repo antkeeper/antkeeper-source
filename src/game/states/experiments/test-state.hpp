@@ -32,7 +32,7 @@ private:
 	
 	void handle_mouse_motion(const input::mouse_moved_event& event);
 	
-	[[nodiscard]] geom::ray<float, 3> get_mouse_ray(const math::vec2<std::int32_t>& mouse_position) const;
+	[[nodiscard]] geom::ray<float, 3> get_mouse_ray(const math::fvec2& mouse_position) const;
 	
 	void setup_controls();
 	

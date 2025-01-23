@@ -9,7 +9,6 @@
 #include <engine/input/keyboard.hpp>
 #include <engine/input/mouse.hpp>
 #include <engine/event/dispatcher.hpp>
-#include <engine/geom/primitives/rectangle.hpp>
 #include <map>
 #include <memory>
 #include <string>
@@ -34,23 +33,12 @@ public:
 	/// @param visible `true` to show the cursor, `false` to hide it.
 	virtual void set_cursor_visible(bool visible) = 0;
 	
-	/// Enables or disables relative mouse mode.
-	/// @param enabled `true` to enable relative mouse mode, `false` to disable it.
-	virtual void set_relative_mouse_mode(bool enabled) = 0;
-	
 	/// Sets the clipboard text.
 	/// @param text UTF-8 text.
 	virtual void set_clipboard_text(const std::string& text) = 0;
 	
 	/// Returns UTF-8 text from the clipboard.
 	[[nodiscard]] virtual std::string get_clipboard_text() const = 0;
-	
-	/// Enables text input events.
-	/// @param rect Text input rectangle, with the origin at the upper left.
-	virtual void start_text_input(const geom::rectangle<int>& rect = {}) = 0;
-	
-	/// Disables text input events.
-	virtual void stop_text_input() = 0;
 
 	/// Returns the event dispatcher associated with registered input devices.
 	[[nodiscard]] inline ::event::dispatcher& get_event_dispatcher() noexcept

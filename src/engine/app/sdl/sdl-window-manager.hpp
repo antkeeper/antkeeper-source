@@ -8,7 +8,7 @@
 #include <engine/app/display.hpp>
 #include <unordered_map>
 #include <vector>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 namespace app {
 
@@ -42,9 +42,9 @@ public:
 	
 private:
 	sdl_window* get_window(SDL_Window* internal_window);
-	void update_display(int sdl_display_index);
+	void update_display(unsigned int sdl_display_index);
 	
-	std::vector<display> m_displays;
+	std::unordered_map<unsigned int, display> m_displays;
 	std::unordered_map<SDL_Window*, app::sdl_window*> m_window_map;
 };
 

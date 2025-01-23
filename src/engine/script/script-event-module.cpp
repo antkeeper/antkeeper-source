@@ -20,9 +20,9 @@ namespace
 {
 	auto lua_event_to_table(lua_State* lua, const input::mouse_moved_event& e) -> void
 	{
-		lua_pushinteger(lua, e.position.x());
+		lua_pushnumber(lua, e.position.x());
 		lua_setfield(lua, -2, "x");
-		lua_pushinteger(lua, e.position.y());
+		lua_pushnumber(lua, e.position.y());
 		lua_setfield(lua, -2, "y");
 	}
 

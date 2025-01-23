@@ -219,7 +219,7 @@ public:
 	input::action ant_interact_action;
 	input::action ant_oviposit_action;
 	input::action ant_stridulate_action;
-	math::ivec2 old_mouse_position{};
+	math::fvec2 old_mouse_position{};
 	
 	input::action_map debug_action_map;
 	input::action toggle_debug_ui_action;

@@ -65,9 +65,12 @@ public:
 	{
 		return !m_children.empty();
 	}
-	
+
 	/// Returns the root element.
 	std::shared_ptr<element> get_root();
+
+	/// Returns the root element.
+	std::shared_ptr<const element> get_root() const;
 	
 	/// Visits each ancestor of this element.
 	/// @param visitor Visitor function.
