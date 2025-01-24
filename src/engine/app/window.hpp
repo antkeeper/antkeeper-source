@@ -206,6 +206,12 @@ public:
 	{
 		return m_drop_begin_publisher.channel();
 	}
+
+	/// Returns the channel through which window drop position events are published.
+	[[nodiscard]] inline auto& get_drop_position_channel() noexcept
+	{
+		return m_drop_position_publisher.channel();
+	}
 	
 	/// Returns the channel through which window drop end events are published.
 	[[nodiscard]] inline auto& get_drop_end_channel() noexcept
@@ -250,6 +256,7 @@ protected:
 	event::publisher<window_display_scale_changed_event> m_display_scale_changed_publisher;
 	event::publisher<window_restored_event> m_restored_publisher;
 	event::publisher<window_drop_begin_event> m_drop_begin_publisher;
+	event::publisher<window_drop_position_event> m_drop_position_publisher;
 	event::publisher<window_drop_end_event> m_drop_end_publisher;
 	event::publisher<window_drop_file_event> m_drop_file_publisher;
 	event::publisher<window_drop_text_event> m_drop_text_publisher;

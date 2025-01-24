@@ -9,6 +9,7 @@
 #include <engine/math/vector.hpp>
 #include <memory>
 #include <string>
+#include <span>
 
 namespace app {
 
@@ -43,13 +44,8 @@ public:
 		bool v_sync
 	) = 0;
 	
-	/// Returns the number of available displays.
-	[[nodiscard]] virtual std::size_t get_display_count() const = 0;
-	
-	/// Returns the display with the given index.
-	/// @param index Index of a display.
-	/// @return Display with the given index.
-	[[nodiscard]] virtual const display& get_display(std::size_t index) const = 0;
+	/// Returns all known displays, both connected and disconnected.
+	[[nodiscard]] virtual std::span<const std::shared_ptr<display>> get_displays() const = 0;
 };
 
 } // namespace app

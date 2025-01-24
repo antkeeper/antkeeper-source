@@ -36,15 +36,14 @@ public:
 		bool v_sync
 	) override;
 	
-	[[nodiscard]] std::size_t get_display_count() const override;
-
-	[[nodiscard]] const display& get_display(std::size_t index) const override;
+	[[nodiscard]] std::span<const std::shared_ptr<display>> get_displays() const override;
 	
 private:
 	sdl_window* get_window(SDL_Window* internal_window);
-	void update_display(unsigned int sdl_display_index);
+	void update_display(display& display, unsigned int sdl_display_index);
 	
-	std::unordered_map<unsigned int, display> m_displays;
+	std::unordered_map<unsigned int, unsigned int> m_display_map;
+	std::vector<std::shared_ptr<display>> m_displays;
 	std::unordered_map<SDL_Window*, app::sdl_window*> m_window_map;
 };
 

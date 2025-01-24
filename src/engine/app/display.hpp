@@ -16,13 +16,6 @@ namespace app {
 class display
 {
 public:
-	/// Sets the index of the display.
-	/// @param index Index of the display.
-	inline void set_index(int index) noexcept
-	{
-		m_index = index;
-	}
-	
 	/// Sets the name of the display.
 	/// @param name Name of the display.
 	inline void set_name(const std::string& name) noexcept
@@ -56,12 +49,6 @@ public:
 	inline void set_orientation(display_orientation orientation) noexcept
 	{
 		m_orientation = orientation;
-	}
-
-	/// Returns the index of the display.
-	[[nodiscard]] inline int get_index() const noexcept
-	{
-		return m_index;
 	}
 	
 	/// Returns the name of the display.
@@ -122,12 +109,11 @@ private:
 	friend class window_manager;
 	friend class sdl_window_manager;
 	
-	int m_index{0};
 	std::string m_name;
 	geom::rectangle<int> m_bounds{0};
 	geom::rectangle<int> m_usable_bounds{0};
 	float m_refresh_rate{0.0f};
-	display_orientation m_orientation{0};
+	display_orientation m_orientation{display_orientation::unknown};
 	bool m_connected{false};
 	
 	event::publisher<display_connected_event> m_connected_publisher;

@@ -4,12 +4,10 @@
 #ifndef ANTKEEPER_APP_DISPLAY_ORIENTATION_HPP
 #define ANTKEEPER_APP_DISPLAY_ORIENTATION_HPP
 
-#include <cstdint>
-
 namespace app {
 
 /// Display orientations.
-enum class display_orientation: std::uint8_t
+enum class display_orientation
 {
 	/// Unknown display orientation.
 	unknown,

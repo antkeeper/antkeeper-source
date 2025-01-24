@@ -391,7 +391,7 @@ void game::setup_window()
 	// If window size not set, resize and reposition relative to default display
 	if (resize)
 	{
-		const app::display& display = window_manager->get_display(0);
+		const app::display& display = *window_manager->get_displays()[0];
 		const auto& usable_bounds = display.get_usable_bounds();
 		const auto usable_bounds_center = usable_bounds.center();
 		
@@ -1245,7 +1245,7 @@ void game::setup_timing()
 	debug::log_debug("Setting up timing...");
 
 	// Init default settings
-	max_frame_rate = static_cast<float>(window_manager->get_display(0).get_refresh_rate() * 2);
+	max_frame_rate = static_cast<float>(window_manager->get_displays()[0]->get_refresh_rate() * 2);
 	
 	// Read settings
 	read_or_write_setting(*this, "fixed_update_rate", fixed_update_rate);

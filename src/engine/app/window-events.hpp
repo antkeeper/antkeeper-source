@@ -91,6 +91,19 @@ struct window_drop_end_event
 {
 	/// Pointer to the window onto which data has been dropped.
 	window* window{nullptr};
+
+	/// Position of the drop, relative to the window.
+	math::fvec2 position{};
+};
+
+/// Event generated when data is being dropped onto a window.
+struct window_drop_position_event
+{
+	/// Pointer to the window onto which data has been dropped.
+	window* window{nullptr};
+
+	/// Position of the drop, relative to the window.
+	math::fvec2 position{};
 };
 
 /// Event generated when a file is dropped onto a window.

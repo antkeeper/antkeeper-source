@@ -52,13 +52,18 @@ sdl_window_manager::sdl_window_manager()
 			debug::log_info("Display count: {}", sdl_display_count);
 
 			// Add displays
+			m_displays.resize(sdl_display_count);
 			for (int i = 0; i < sdl_display_count; ++i)
 			{
+				m_displays[i] = std::make_shared<app::display>();
+				m_display_map[sdl_display_ids[i]] = static_cast<unsigned int>(i);
+
+				auto& display = *m_displays.back();
+
 				// Update display state
-				update_display(sdl_display_ids[i]);
+				update_display(display, sdl_display_ids[i]);
 
 				// Log display information
-				display& display = m_displays[i];
 				const auto display_resolution = display.get_bounds().size();
 				debug::log_info("Display {} name: \"{}\"; resolution: {}x{}; refresh rate: {}Hz", i, display.get_name(), display_resolution.x(), display_resolution.y(), display.get_refresh_rate());
 			}
@@ -328,28 +333,33 @@ void sdl_window_manager::update()
 			}
 
 			case SDL_EVENT_DISPLAY_ADDED:
-				if (auto it = m_displays.find(event.display.displayID); it != m_displays.end())
+				if (auto it = m_display_map.find(event.display.displayID); it != m_display_map.end())
 				{
+					auto& display = *m_displays[it->second];
+
 					// Update display state
-					it->second.m_connected = true;
+					display.m_connected = true;
 
 					// Log display (re)connected event
-					debug::log_info("Reconnected display {}", it->first);
+					debug::log_info("Reconnected display {}", it->second);
 
 					// Publish display (re)connected event
-					it->second.m_connected_publisher.publish({ &it->second });
+					display.m_connected_publisher.publish({ &display });
 				}
 				else
 				{
-					// Allocate new display
-					display& display = m_displays[event.display.displayID];
+					// Add new display
+					m_displays.emplace_back(std::make_shared<app::display>());
+					m_display_map[event.display.displayID] = static_cast<unsigned int>(m_displays.size() - 1);
+					
+					auto& display = *m_displays.back();
 
-					// Update display state
-					update_display(event.display.displayID);
+					// Update display
+					update_display(display, event.display.displayID);
 
 					// Log display info
 					const auto display_resolution = display.get_bounds().size();
-					debug::log_info("Connected display {}; name: \"{}\"; resolution: {}x{}; refresh rate: {}Hz", event.display.displayID, display.get_name(), display_resolution.x(), display_resolution.y(), display.get_refresh_rate());
+					debug::log_info("Connected display {}; name: {}; resolution: {}x{}; refresh rate: {}Hz", it->second, display.get_name(), display_resolution.x(), display_resolution.y(), display.get_refresh_rate());
 
 					// Publish display connected event
 					display.m_connected_publisher.publish({ &display });
@@ -357,55 +367,59 @@ void sdl_window_manager::update()
 				break;
 
 			case SDL_EVENT_DISPLAY_REMOVED:
-				if (auto it = m_displays.find(event.display.displayID); it != m_displays.end())
+				if (auto it = m_display_map.find(event.display.displayID); it != m_display_map.end())
 				{
+					auto& display = *m_displays[it->second];
+
 					// Update display state
-					it->second.m_connected = false;
+					display.m_connected = false;
 
 					// Log display disconnected event
-					debug::log_info("Disconnected display {}", it->first);
+					debug::log_info("Disconnected display {}.", it->second);
 
 					// Publish display disconnected event
-					it->second.m_disconnected_publisher.publish({ &it->second });
+					display.m_disconnected_publisher.publish({ &display });
 				}
 				else
 				{
-					debug::log_error("Index of disconnected display ({}) out of range.", event.display.displayID);
+					debug::log_error("SDL index of disconnected display ({}) out of range.", event.display.displayID);
 				}
 				break;
 
 			case SDL_EVENT_DISPLAY_ORIENTATION:
-				if (auto it = m_displays.find(event.display.displayID); it != m_displays.end())
+				if (auto it = m_display_map.find(event.display.displayID); it != m_display_map.end())
 				{
+					auto& display = *m_displays[it->second];
+
 					// Update display state
 					switch (event.display.data1)
 					{
-					case SDL_ORIENTATION_LANDSCAPE:
-						it->second.set_orientation(display_orientation::landscape);
-						break;
-					case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
-						it->second.set_orientation(display_orientation::landscape_flipped);
-						break;
-					case SDL_ORIENTATION_PORTRAIT:
-						it->second.set_orientation(display_orientation::portrait);
-						break;
-					case SDL_ORIENTATION_PORTRAIT_FLIPPED:
-						it->second.set_orientation(display_orientation::portrait_flipped);
-						break;
-					default:
-						it->second.set_orientation(display_orientation::unknown);
-						break;
+						case SDL_ORIENTATION_LANDSCAPE:
+							display.set_orientation(display_orientation::landscape);
+							break;
+						case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
+							display.set_orientation(display_orientation::landscape_flipped);
+							break;
+						case SDL_ORIENTATION_PORTRAIT:
+							display.set_orientation(display_orientation::portrait);
+							break;
+						case SDL_ORIENTATION_PORTRAIT_FLIPPED:
+							display.set_orientation(display_orientation::portrait_flipped);
+							break;
+						default:
+							display.set_orientation(display_orientation::unknown);
+							break;
 					}
 
 					// Log display orientation changed event
-					debug::log_info("Display {} orientation changed.", it->first);
+					debug::log_info("Display {} orientation changed.", it->second);
 
 					// Publish display orientation changed event
-					it->second.m_orientation_changed_publisher.publish({ &it->second, it->second.get_orientation() });
+					display.m_orientation_changed_publisher.publish({ &display, display.get_orientation() });
 				}
 				else
 				{
-					debug::log_error("Index of orientation-changed display ({}) out of range.", event.display.displayID);
+					debug::log_error("SDL index of orientation-changed display ({}) out of range.", event.display.displayID);
 				}
 				break;
 
@@ -418,7 +432,7 @@ void sdl_window_manager::update()
 	{
 		// Get next drop event
 		SDL_Event event;
-		int status = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_EVENT_DROP_FILE, SDL_EVENT_DROP_COMPLETE);
+		int status = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_EVENT_DROP_FILE, SDL_EVENT_DROP_POSITION);
 		
 		if (!status)
 		{
@@ -433,6 +447,17 @@ void sdl_window_manager::update()
 		
 		switch (event.type)
 		{
+			[[likely]] case SDL_EVENT_DROP_POSITION:
+			{
+				// Get window
+				auto window = get_window(SDL_GetWindowFromID(event.drop.windowID));
+
+				// Publish drop end event
+				window->m_drop_position_publisher.publish({ window, math::fvec2{event.drop.x, event.drop.y} });
+
+				break;
+			}
+
 			case SDL_EVENT_DROP_FILE:
 			{
 				// Get window
@@ -472,7 +497,7 @@ void sdl_window_manager::update()
 				auto window = get_window(SDL_GetWindowFromID(event.drop.windowID));
 				
 				// Publish drop end event
-				window->m_drop_end_publisher.publish({window});
+				window->m_drop_end_publisher.publish({window, math::fvec2{event.drop.x, event.drop.y}});
 				
 				break;
 			}
@@ -494,23 +519,12 @@ sdl_window* sdl_window_manager::get_window(SDL_Window* internal_window)
 	return it->second;
 }
 
-std::size_t sdl_window_manager::get_display_count() const
+std::span<const std::shared_ptr<display>> sdl_window_manager::get_displays() const
 {
-	return m_displays.size();
+	return m_displays;
 }
 
-const display& sdl_window_manager::get_display(std::size_t index) const
-{
-	auto it = m_displays.find(static_cast<unsigned int>(index));
-	if (it == m_displays.end())
-	{
-		throw std::out_of_range("Index of display out of range.");
-	}
-
-	return it->second;
-}
-
-void sdl_window_manager::update_display(unsigned int sdl_display_index)
+void sdl_window_manager::update_display(display& display, unsigned int sdl_display_index)
 {
 	// Query display mode
 	SDL_DisplayMode sdl_display_mode;
@@ -556,8 +570,6 @@ void sdl_window_manager::update_display(unsigned int sdl_display_index)
 	SDL_DisplayOrientation sdl_display_orientation = SDL_GetCurrentDisplayOrientation(sdl_display_index);
 	
 	// Update display properties
-	display& display = m_displays[sdl_display_index];
-	display.set_index(static_cast<std::size_t>(sdl_display_index));
 	display.set_name(sdl_display_name ? sdl_display_name : std::string());
 	display.set_bounds({{sdl_display_bounds.x, sdl_display_bounds.y}, {sdl_display_bounds.x + sdl_display_bounds.w, sdl_display_bounds.y + sdl_display_bounds.h}});
 	display.set_usable_bounds({{sdl_display_usable_bounds.x, sdl_display_usable_bounds.y}, {sdl_display_usable_bounds.x + sdl_display_usable_bounds.w, sdl_display_usable_bounds.y + sdl_display_usable_bounds.h}});
