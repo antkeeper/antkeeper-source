@@ -87,7 +87,7 @@ FetchContent_Declare(nlohmann-json
 )
 FetchContent_Declare(openal-soft
 	GIT_REPOSITORY https://github.com/kcat/openal-soft.git
-	GIT_TAG d3875f333fb6abe2f39d82caca329414871ae53b # v1.23.1
+	GIT_TAG b621b5fce739525418f36e0474a46f9e1cab5e64 # v1.24.2
 	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(physfs
