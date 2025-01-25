@@ -291,12 +291,10 @@ void select_anti_aliasing_method(::game& ctx, render::anti_aliasing_method metho
 			debug::log_info("Anti-aliasing disabled");
 			reroute_framebuffers(ctx);
 			break;
-		
-		// FXAA
-		case render::anti_aliasing_method::fxaa:
-			debug::log_info("Anti-aliasing enabled (FXAA)");
-			reroute_framebuffers(ctx);
-			break;
+
+		default:
+			debug::log_error("Anti-aliasing method not implemented");
+			return;
 	}
 	
 	// Update AA method setting

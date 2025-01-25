@@ -23,8 +23,8 @@ private:
 	std::unique_ptr<scene::text> resolution_value_text;
 	std::unique_ptr<scene::text> v_sync_name_text;
 	std::unique_ptr<scene::text> v_sync_value_text;
-	std::unique_ptr<scene::text> aa_method_name_text;
-	std::unique_ptr<scene::text> aa_method_value_text;
+	//std::unique_ptr<scene::text> aa_method_name_text;
+	//std::unique_ptr<scene::text> aa_method_value_text;
 	std::unique_ptr<scene::text> font_scale_name_text;
 	std::unique_ptr<scene::text> font_scale_value_text;
 	std::unique_ptr<scene::text> dyslexia_font_name_text;

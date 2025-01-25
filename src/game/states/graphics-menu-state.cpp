@@ -27,8 +27,8 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 	resolution_value_text = std::make_unique<scene::text>();
 	v_sync_name_text = std::make_unique<scene::text>();
 	v_sync_value_text = std::make_unique<scene::text>();
-	aa_method_name_text = std::make_unique<scene::text>();
-	aa_method_value_text = std::make_unique<scene::text>();
+	//aa_method_name_text = std::make_unique<scene::text>();
+	//aa_method_value_text = std::make_unique<scene::text>();
 	font_scale_name_text = std::make_unique<scene::text>();
 	font_scale_value_text = std::make_unique<scene::text>();
 	dyslexia_font_name_text = std::make_unique<scene::text>();
@@ -39,7 +39,7 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 	ctx.menu_item_texts.push_back({fullscreen_name_text.get(), fullscreen_value_text.get()});
 	ctx.menu_item_texts.push_back({resolution_name_text.get(), resolution_value_text.get()});
 	ctx.menu_item_texts.push_back({v_sync_name_text.get(), v_sync_value_text.get()});
-	ctx.menu_item_texts.push_back({aa_method_name_text.get(), aa_method_value_text.get()});
+	//ctx.menu_item_texts.push_back({aa_method_name_text.get(), aa_method_value_text.get()});
 	ctx.menu_item_texts.push_back({font_scale_name_text.get(), font_scale_value_text.get()});
 	ctx.menu_item_texts.push_back({dyslexia_font_name_text.get(), dyslexia_font_value_text.get()});
 	ctx.menu_item_texts.push_back({back_text.get(), nullptr});
@@ -48,7 +48,7 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 	fullscreen_name_text->set_content(get_string(ctx, "graphics_menu_fullscreen"));
 	resolution_name_text->set_content(get_string(ctx, "graphics_menu_resolution"));
 	v_sync_name_text->set_content(get_string(ctx, "graphics_menu_v_sync"));
-	aa_method_name_text->set_content(get_string(ctx, "graphics_menu_aa_method"));
+	//aa_method_name_text->set_content(get_string(ctx, "graphics_menu_aa_method"));
 	font_scale_name_text->set_content(get_string(ctx, "graphics_menu_font_scale"));
 	dyslexia_font_name_text->set_content(get_string(ctx, "graphics_menu_dyslexia_font"));
 	back_text->set_content(get_string(ctx, "back"));
@@ -135,19 +135,11 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		::menu::align_text(ctx);
 	};
 	
+	/*
 	auto next_aa_method_callback = [this, &ctx]()
 	{
-		switch (ctx.anti_aliasing_method)
-		{
-			case render::anti_aliasing_method::none:
-				ctx.anti_aliasing_method = render::anti_aliasing_method::fxaa;
-				break;
-			
-			case render::anti_aliasing_method::fxaa:
-				ctx.anti_aliasing_method = render::anti_aliasing_method::none;
-				break;
-		}
-		
+		ctx.anti_aliasing_method = render::anti_aliasing_method::none;
+
 		// Update anti-aliasing method setting
 		(*ctx.settings)["anti_aliasing_method"] = std::to_underlying(ctx.anti_aliasing_method);
 		
@@ -163,16 +155,7 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 	
 	auto previous_aa_method_callback = [this, &ctx]()
 	{
-		switch (ctx.anti_aliasing_method)
-		{
-			case render::anti_aliasing_method::none:
-				ctx.anti_aliasing_method = render::anti_aliasing_method::fxaa;
-				break;
-			
-			case render::anti_aliasing_method::fxaa:
-				ctx.anti_aliasing_method = render::anti_aliasing_method::none;
-				break;
-		}
+		ctx.anti_aliasing_method = render::anti_aliasing_method::none;
 		
 		// Update anti-aliasing method setting
 		(*ctx.settings)["anti_aliasing_method"] = std::to_underlying(ctx.anti_aliasing_method);
@@ -186,6 +169,7 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		::menu::refresh_text(ctx);
 		::menu::align_text(ctx);
 	};
+	*/
 	
 	auto increase_font_scale_callback = [this, &ctx]()
 	{
@@ -292,7 +276,7 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 	ctx.menu_select_callbacks.push_back(toggle_fullscreen_callback);
 	ctx.menu_select_callbacks.push_back(increase_resolution_callback);
 	ctx.menu_select_callbacks.push_back(toggle_v_sync_callback);
-	ctx.menu_select_callbacks.push_back(next_aa_method_callback);
+	//ctx.menu_select_callbacks.push_back(next_aa_method_callback);
 	ctx.menu_select_callbacks.push_back(increase_font_scale_callback);
 	ctx.menu_select_callbacks.push_back(toggle_dyslexia_font_callback);
 	ctx.menu_select_callbacks.push_back(select_back_callback);
@@ -301,7 +285,7 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 	ctx.menu_left_callbacks.push_back(toggle_fullscreen_callback);
 	ctx.menu_left_callbacks.push_back(decrease_resolution_callback);
 	ctx.menu_left_callbacks.push_back(toggle_v_sync_callback);
-	ctx.menu_left_callbacks.push_back(previous_aa_method_callback);
+	//ctx.menu_left_callbacks.push_back(previous_aa_method_callback);
 	ctx.menu_left_callbacks.push_back(decrease_font_scale_callback);
 	ctx.menu_left_callbacks.push_back(toggle_dyslexia_font_callback);
 	ctx.menu_left_callbacks.push_back(nullptr);
@@ -310,7 +294,7 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 	ctx.menu_right_callbacks.push_back(toggle_fullscreen_callback);
 	ctx.menu_right_callbacks.push_back(increase_resolution_callback);
 	ctx.menu_right_callbacks.push_back(toggle_v_sync_callback);
-	ctx.menu_right_callbacks.push_back(next_aa_method_callback);
+	//ctx.menu_right_callbacks.push_back(next_aa_method_callback);
 	ctx.menu_right_callbacks.push_back(increase_font_scale_callback);
 	ctx.menu_right_callbacks.push_back(toggle_dyslexia_font_callback);
 	ctx.menu_right_callbacks.push_back(nullptr);
@@ -345,33 +329,22 @@ void graphics_menu_state::update_value_text_content()
 	const bool fullscreen = ctx.window->is_fullscreen();
 	const float render_scale = ctx.render_scale;
 	const bool v_sync = ctx.window->get_v_sync();
-	const int aa_method_index = static_cast<int>(ctx.anti_aliasing_method);
+	//const int aa_method_index = static_cast<int>(ctx.anti_aliasing_method);
 	const float font_scale = ctx.font_scale;
 	const bool dyslexia_font = ctx.dyslexia_font;
 	
 	const std::string string_on = get_string(ctx, "on");
 	const std::string string_off = get_string(ctx, "off");
 	
-	/*
-	const std::string string_quality[4] = 
-	{
-		(*ctx.strings)["off"],
-		(*ctx.strings)["quality_low"],
-		(*ctx.strings)["quality_medium"],
-		(*ctx.strings)["quality_high"]
-	};
-	*/
-	
-	const std::string string_aa_methods[2] = 
-	{
-		get_string(ctx, "graphics_menu_aa_method_none"),
-		get_string(ctx, "graphics_menu_aa_method_fxaa")
-	};
+	//const std::string string_aa_methods[1] = 
+	//{
+	//	get_string(ctx, "graphics_menu_aa_method_none")
+	//};
 	
 	std::get<1>(ctx.menu_item_texts[0])->set_content((fullscreen) ? string_on : string_off);
 	std::get<1>(ctx.menu_item_texts[1])->set_content(std::to_string(static_cast<int>(std::round(render_scale * 100.0f))) + "%");
 	std::get<1>(ctx.menu_item_texts[2])->set_content((v_sync) ? string_on : string_off);
-	std::get<1>(ctx.menu_item_texts[3])->set_content(string_aa_methods[aa_method_index]);
-	std::get<1>(ctx.menu_item_texts[4])->set_content(std::to_string(static_cast<int>(std::round(font_scale * 100.0f))) + "%");
-	std::get<1>(ctx.menu_item_texts[5])->set_content((dyslexia_font) ? string_on : string_off);
+	//std::get<1>(ctx.menu_item_texts[3])->set_content(string_aa_methods[aa_method_index]);
+	std::get<1>(ctx.menu_item_texts[3])->set_content(std::to_string(static_cast<int>(std::round(font_scale * 100.0f))) + "%");
+	std::get<1>(ctx.menu_item_texts[4])->set_content((dyslexia_font) ? string_on : string_off);
 }
