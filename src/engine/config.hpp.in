@@ -34,6 +34,18 @@ inline constexpr const char* application_build_type = "$<LOWER_CASE:$<CONFIG>>";
 /// Application version string.
 inline constexpr const char* application_version = "@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@$<$<CONFIG:Debug>:+$<LOWER_CASE:$<CONFIG>>>";
 
+/// Application author string.
+inline constexpr const char* application_author = "@PROJECT_AUTHOR@";
+
+/// Application identifier string.
+inline constexpr const char* application_identifier = "@PROJECT_IDENTIFIER@";
+
+/// Application copyright string.
+inline constexpr const char* application_copyright = "@PROJECT_COPYRIGHT@";
+
+/// Application copyright string.
+inline constexpr const char* application_url = "@PROJECT_HOMEPAGE_URL@";
+
 /// @}
 
 /// @name Debug config

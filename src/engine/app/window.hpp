@@ -17,6 +17,7 @@ namespace gl
 
 namespace app {
 
+class display;
 class window_manager;
 
 /// Window interface.
@@ -25,6 +26,11 @@ class window
 public:
 	/// Destructs a window.
 	virtual ~window() = default;
+
+	window(const window&) = delete;
+	window(window&&) = delete;
+	window& operator=(const window&) = delete;
+	window& operator=(window&&) = delete;
 	
 	/// Changes the title of the window.
 	/// @param title Window title.
@@ -74,6 +80,15 @@ public:
 	
 	/// Swaps the front and back buffers of the window's graphics context.
 	virtual void swap_buffers() = 0;
+
+	/// Returns the display associated with this window.
+	[[nodiscard]] virtual std::shared_ptr<display> get_display() const = 0;
+
+	/// Returns the window manager that created this window.
+	[[nodiscard]] inline window_manager& get_window_manager() const noexcept
+	{
+		return *m_window_manager;
+	}
 	
 	/// Returns the title of the window.
 	[[nodiscard]] inline const std::string& get_title() const noexcept
@@ -233,7 +248,12 @@ public:
 	
 protected:
 	friend class window_manager;
+
+	/// Constructs a window.
+	/// @param window_manager Window manager that created this window.
+	window(window_manager& window_manager);
 	
+	window_manager* m_window_manager{nullptr};
 	std::string m_title;
 	math::ivec2 m_windowed_position{0, 0};
 	math::ivec2 m_position{0, 0};

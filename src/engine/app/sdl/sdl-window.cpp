@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/app/sdl/sdl-window.hpp>
+#include <engine/app/sdl/sdl-window-manager.hpp>
 #include <engine/config.hpp>
 #include <engine/debug/log.hpp>
 #include <engine/gl/pipeline.hpp>
@@ -13,41 +14,65 @@ namespace app {
 
 sdl_window::sdl_window
 (
+	window_manager& window_manager,
 	const std::string& title,
 	const math::ivec2& windowed_position,
 	const math::ivec2& windowed_size,
 	bool maximized,
 	bool fullscreen,
-	bool v_sync
-)
+	bool v_sync,
+	const math::fvec3& clear_color
+):
+	window(window_manager)
 {
-	// Determine SDL window creation flags
-	Uint32 window_flags = SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
-	if (maximized)
+	// Create SDL window properties
+	SDL_PropertiesID sdl_window_properties = SDL_CreateProperties();
+	if (sdl_window_properties == 0)
 	{
-		window_flags |= SDL_WINDOW_MAXIMIZED;
+		auto error_message = std::format("Failed to create SDL window properties: {}", SDL_GetError());
+		SDL_ClearError();
+
+		debug::log_error("{}", error_message);
+		throw std::runtime_error(std::move(error_message));
 	}
-	if (fullscreen)
+
+	// Set SDL window properties
+	try
 	{
-		window_flags |= SDL_WINDOW_FULLSCREEN;
+		debug::invariant(SDL_SetStringProperty(sdl_window_properties, SDL_PROP_WINDOW_CREATE_TITLE_STRING, title.c_str()));
+		debug::invariant(SDL_SetNumberProperty(sdl_window_properties, SDL_PROP_WINDOW_CREATE_X_NUMBER, windowed_position.x()));
+		debug::invariant(SDL_SetNumberProperty(sdl_window_properties, SDL_PROP_WINDOW_CREATE_Y_NUMBER, windowed_position.y()));
+		debug::invariant(SDL_SetNumberProperty(sdl_window_properties, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, windowed_size.x()));
+		debug::invariant(SDL_SetNumberProperty(sdl_window_properties, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, windowed_size.y()));
+		debug::invariant(SDL_SetBooleanProperty(sdl_window_properties, SDL_PROP_WINDOW_CREATE_MAXIMIZED_BOOLEAN, maximized));
+		debug::invariant(SDL_SetBooleanProperty(sdl_window_properties, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, false));
+		debug::invariant(SDL_SetBooleanProperty(sdl_window_properties, SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN, true));
+		debug::invariant(SDL_SetBooleanProperty(sdl_window_properties, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true));
+		debug::invariant(SDL_SetBooleanProperty(sdl_window_properties, SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN, true));
 	}
-	
+	catch (...)
+	{
+		SDL_DestroyProperties(sdl_window_properties);
+		throw;
+	}
+
 	// Create SDL window
 	debug::log_debug("Creating SDL window...");
-	m_internal_window = SDL_CreateWindow
-	(
-		title.c_str(),
-	    windowed_size.x(),
-	    windowed_size.y(),
-		window_flags
-	);
+	m_internal_window = SDL_CreateWindowWithProperties(sdl_window_properties);
+
+	// Destroy SDL window properties
+	SDL_DestroyProperties(sdl_window_properties);
+	
 	if (!m_internal_window)
 	{
 		auto error_message = std::format("Failed to create SDL window: {}", SDL_GetError());
+		SDL_ClearError();
+
 		debug::log_fatal("{}", error_message);
 		debug::log_debug("Creating SDL window... FAILED");
 		throw std::runtime_error(std::move(error_message));
 	}
+
 	debug::log_debug("Creating SDL window... OK");
 	
 	// Create OpenGL context
@@ -56,6 +81,8 @@ sdl_window::sdl_window
 	if (!m_internal_context)
 	{
 		auto error_message = std::format("Failed to create OpenGL context: {}", SDL_GetError());
+		SDL_ClearError();
+
 		debug::log_fatal("{}", error_message);
 		debug::log_debug("Creating OpenGL context... FAILED");
 		throw std::runtime_error(std::move(error_message));
@@ -147,23 +174,28 @@ sdl_window::sdl_window
 		reinterpret_cast<const char*>(glGetString(GL_VERSION)),
 		reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION))
 	);
-	
+
+	//
+	if (fullscreen)
+	{
+		set_fullscreen(true);
+	}
+
+	// Enable or disable v-sync
+	set_v_sync(v_sync);
+
 	// Allocate graphics pipeline
 	m_graphics_pipeline = std::make_unique<gl::pipeline>();
 	
-	// Clear default framebuffer to black
-	m_graphics_pipeline->clear_attachments(gl::color_clear_bit, {{0.0f, 0.0f, 0.0f, 0.0f}});
+	// Fill window with clear color
+	m_graphics_pipeline->clear_attachments(gl::color_clear_bit, {{clear_color[0], clear_color[1], clear_color[2], 1.0f}});
 	swap_buffers();
-	
-	// Enable or disable v-sync
-	set_v_sync(v_sync);
-	
+
 	// Update window state
 	this->m_title = title;
 	this->m_windowed_position = windowed_position;
 	this->m_windowed_size = windowed_size;
 	this->m_maximized = maximized;
-	this->m_fullscreen = fullscreen;
 	SDL_GetWindowPosition(m_internal_window, &this->m_position.x(), &this->m_position.y());
 	SDL_GetWindowSize(m_internal_window, &this->m_size.x(), &this->m_size.y());
 	SDL_GetWindowMinimumSize(m_internal_window, &this->m_minimum_size.x(), &this->m_minimum_size.y());
@@ -225,10 +257,23 @@ void sdl_window::set_maximized(bool maximized)
 
 void sdl_window::set_fullscreen(bool fullscreen)
 {
-	//SDL_HideWindow(m_internal_window);
-	SDL_SetWindowFullscreen(m_internal_window, fullscreen);
-	//SDL_ShowWindow(m_internal_window);
-	this->m_fullscreen = fullscreen;
+	if (fullscreen != m_fullscreen)
+	{
+		if (fullscreen)
+		{
+			const SDL_DisplayMode* sdl_display_mode = nullptr;
+
+			if (const auto sdl_window_display_id = SDL_GetDisplayForWindow(m_internal_window); sdl_window_display_id)
+			{
+				sdl_display_mode = SDL_GetDesktopDisplayMode(sdl_window_display_id);
+			}
+
+			SDL_SetWindowFullscreenMode(m_internal_window, sdl_display_mode);
+		}
+
+		SDL_SetWindowFullscreen(m_internal_window, fullscreen);
+		m_fullscreen = fullscreen;
+	}
 }
 
 void sdl_window::set_v_sync(bool v_sync)
@@ -312,6 +357,30 @@ void sdl_window::make_current()
 void sdl_window::swap_buffers()
 {
 	debug::invariant(SDL_GL_SwapWindow(m_internal_window));
+}
+
+std::shared_ptr<display> sdl_window::get_display() const
+{
+	debug::precondition(m_window_manager);
+
+	SDL_DisplayID sdl_display_id = SDL_GetDisplayForWindow(m_internal_window);
+	if (!sdl_display_id)
+	{
+		debug::log_error("Failed to get SDL display for window: {}", SDL_GetError());
+		SDL_ClearError();
+		return nullptr;
+	}
+
+	auto& sdl_window_manager = static_cast<app::sdl_window_manager&>(*m_window_manager);
+
+	auto it = sdl_window_manager.m_display_map.find(sdl_display_id);
+	if (it == sdl_window_manager.m_display_map.end())
+	{
+		debug::log_error("SDL display unrecognized by SDL window manager.");
+		return nullptr;
+	}
+
+	return sdl_window_manager.m_displays[it->second];
 }
 
 } // namespace app

@@ -5,6 +5,8 @@
 
 namespace app {
 
-
+window::window(window_manager& window_manager):
+	m_window_manager(&window_manager)
+{}
 
 } // namespace app

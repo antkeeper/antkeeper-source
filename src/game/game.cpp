@@ -391,8 +391,15 @@ void game::setup_window()
 	// If window size not set, resize and reposition relative to default display
 	if (resize)
 	{
-		const app::display& display = *window_manager->get_displays()[0];
-		const auto& usable_bounds = display.get_usable_bounds();
+		const auto primary_display = window_manager->get_primary_display();
+		if (!primary_display)
+		{
+			std::string error_message = "Failed to get primary display.";
+			debug::log_fatal("{}", error_message);
+			throw std::runtime_error(std::move(error_message));
+		}
+
+		const auto& usable_bounds = primary_display->get_usable_bounds();
 		const auto usable_bounds_center = usable_bounds.center();
 		
 		const float default_windowed_scale = 1.0f / 1.2f;
@@ -428,7 +435,8 @@ void game::setup_window()
 		{window_w, window_h},
 		maximized,
 		fullscreen,
-		v_sync
+		v_sync,
+		{0.0f, 0.0f, 0.0f}
 	);
 	
 	// Restrict window size
@@ -1245,7 +1253,7 @@ void game::setup_timing()
 	debug::log_debug("Setting up timing...");
 
 	// Init default settings
-	max_frame_rate = static_cast<float>(window_manager->get_displays()[0]->get_refresh_rate() * 2);
+	max_frame_rate = window->get_display()->get_refresh_rate() * 2.0f;
 	
 	// Read settings
 	read_or_write_setting(*this, "fixed_update_rate", fixed_update_rate);

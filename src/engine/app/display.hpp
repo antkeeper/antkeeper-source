@@ -8,6 +8,7 @@
 #include <engine/app/display-events.hpp>
 #include <engine/geom/primitives/rectangle.hpp>
 #include <engine/event/publisher.hpp>
+#include <optional>
 #include <string>
 
 namespace app {
@@ -50,6 +51,13 @@ public:
 	{
 		m_orientation = orientation;
 	}
+
+	/// Sets the HDR enabled state of the display.
+	/// @param enabled HDR enabled state.
+	inline void set_hdr_enabled(const std::optional<bool>& enabled) noexcept
+	{
+		m_hdr_enabled = enabled;
+	}
 	
 	/// Returns the name of the display.
 	[[nodiscard]] inline const std::string& get_name() const noexcept
@@ -79,6 +87,12 @@ public:
 	[[nodiscard]] inline const display_orientation& get_orientation() const noexcept
 	{
 		return m_orientation;
+	}
+
+	/// Returns the HDR enabled state of the display.
+	[[nodiscard]] inline const std::optional<bool>& get_hdr_enabled() const noexcept
+	{
+		return m_hdr_enabled;
 	}
 	
 	/// Returns `true` if the display is connected, `false` otherwise.
@@ -114,6 +128,7 @@ private:
 	geom::rectangle<int> m_usable_bounds{0};
 	float m_refresh_rate{0.0f};
 	display_orientation m_orientation{display_orientation::unknown};
+	std::optional<bool> m_hdr_enabled;
 	bool m_connected{false};
 	
 	event::publisher<display_connected_event> m_connected_publisher;

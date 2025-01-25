@@ -6,12 +6,22 @@
 #include <engine/debug/log.hpp>
 #include <engine/config.hpp>
 #include <engine/gl/pipeline.hpp>
+#include <engine/config.hpp>
+#include <engine/debug/contract.hpp>
 #include <stdexcept>
+#include <optional>
 
 namespace app {
 
 sdl_window_manager::sdl_window_manager()
 {
+	// Set application metadata
+	debug::invariant(SDL_SetAppMetadata(config::application_name, config::application_version, config::application_identifier));
+	debug::invariant(SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_CREATOR_STRING, config::application_author));
+	debug::invariant(SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_COPYRIGHT_STRING, config::application_copyright));
+	debug::invariant(SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_URL_STRING, config::application_url));
+	debug::invariant(SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, "game"));
+
 	// Init SDL events and video subsystems
 	debug::log_debug("Initializing SDL events and video subsystems...");
 	if (!SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO))
@@ -23,8 +33,8 @@ sdl_window_manager::sdl_window_manager()
 	}
 	debug::log_debug("Initializing SDL events and video subsystems... OK");
 	
-	// Render native IME
-	//SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
+	// Application handles SDL_EVENT_TEXT_EDITING events and can render the composition text
+	SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, "composition");
 	
 	// Disable unused events
 	SDL_SetEventEnabled(SDL_EVENT_AUDIO_DEVICE_ADDED, false);
@@ -126,18 +136,21 @@ std::shared_ptr<window> sdl_window_manager::create_window
 	const math::ivec2& windowed_size,
 	bool maximized,
 	bool fullscreen,
-	bool v_sync
+	bool v_sync,
+	const math::fvec3& clear_color
 )
 {
 	// Create new window
 	std::shared_ptr<app::sdl_window> window = std::make_shared<app::sdl_window>
 	(
+		*this,
 		title,
 		windowed_position,
 		windowed_size,
 		maximized,
 		fullscreen,
-		v_sync
+		v_sync,
+		clear_color
 	);
 
 	// Update display scale of window
@@ -188,6 +201,11 @@ void sdl_window_manager::update()
 					window->m_windowed_size = window->m_size;
 				}
 				SDL_GetWindowSizeInPixels(internal_window, &window->m_viewport_size.x(), &window->m_viewport_size.y());
+
+				if (!(window_flags & SDL_WINDOW_FULLSCREEN))
+				{
+					window->m_maximized = window_flags & SDL_WINDOW_MAXIMIZED;
+				}
 				
 				// Change reported dimensions of graphics pipeline default framebuffer
 				window->m_graphics_pipeline->defaut_framebuffer_resized
@@ -261,8 +279,8 @@ void sdl_window_manager::update()
 				app::sdl_window* window = get_window(internal_window);
 					
 				// Update window state
-				window->m_maximized = true;
-					
+				//window->m_maximized = true;
+				
 				// Log window focus gained event
 				debug::log_debug("Window {} maximized.", event.window.windowID);
 					
@@ -276,10 +294,7 @@ void sdl_window_manager::update()
 				// Get window
 				SDL_Window* internal_window = SDL_GetWindowFromID(event.window.windowID);
 				app::sdl_window* window = get_window(internal_window);
-					
-				// Update window state
-				window->m_maximized = false;
-					
+				
 				// Log window restored event
 				debug::log_debug("Window {} restored.", event.window.windowID);
 					
@@ -524,6 +539,26 @@ std::span<const std::shared_ptr<display>> sdl_window_manager::get_displays() con
 	return m_displays;
 }
 
+std::shared_ptr<display> sdl_window_manager::get_primary_display() const
+{
+	SDL_DisplayID sdl_primary_display_id = SDL_GetPrimaryDisplay();
+	if (!sdl_primary_display_id)
+	{
+		debug::log_error("Failed to get primary display: {}", SDL_GetError());
+		SDL_ClearError();
+		return nullptr;
+	}
+
+	auto it = m_display_map.find(sdl_primary_display_id);
+	if (it == m_display_map.end())
+	{
+		debug::log_error("SDL primary display unrecognized by SDL window manager.");
+		return nullptr;
+	}
+
+	return m_displays[it->second];
+}
+
 void sdl_window_manager::update_display(display& display, unsigned int sdl_display_index)
 {
 	// Query display mode
@@ -568,6 +603,18 @@ void sdl_window_manager::update_display(display& display, unsigned int sdl_displ
 	
 	// Query display orientation
 	SDL_DisplayOrientation sdl_display_orientation = SDL_GetCurrentDisplayOrientation(sdl_display_index);
+
+
+	// Query display HDR enabled
+	std::optional<bool> sdl_display_hdr_enabled;
+	SDL_PropertiesID sdl_display_properties_id = SDL_GetDisplayProperties(sdl_display_index);
+	if (sdl_display_properties_id)
+	{
+		if (SDL_GetPropertyType(sdl_display_properties_id, SDL_PROP_DISPLAY_HDR_ENABLED_BOOLEAN) == SDL_PROPERTY_TYPE_BOOLEAN)
+		{
+			sdl_display_hdr_enabled = SDL_GetBooleanProperty(sdl_display_properties_id, SDL_PROP_DISPLAY_HDR_ENABLED_BOOLEAN, false);
+		}
+	}
 	
 	// Update display properties
 	display.set_name(sdl_display_name ? sdl_display_name : std::string());
@@ -594,6 +641,7 @@ void sdl_window_manager::update_display(display& display, unsigned int sdl_displ
 			display.set_orientation(display_orientation::unknown);
 			break;
 	}
+	display.set_hdr_enabled(sdl_display_hdr_enabled);
 	display.m_connected = true;
 }
 

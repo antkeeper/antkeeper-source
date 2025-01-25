@@ -54,7 +54,17 @@ void setup_window_controls(::game& ctx)
 					
 					ctx.ui_canvas->get_scene().add_object(*ctx.command_line_text);
 					ctx.ui_canvas->get_scene().add_object(*ctx.shell_buffer_text);
-					ctx.window->start_text_input({0, 0, 0, 0});
+
+					[[maybe_unused]] const auto& text_box_bounds = ctx.command_line_text->get_bounds();
+
+					const auto& viewport_size = ctx.window->get_viewport_size();
+					geom::rectangle<int> text_box_rect;
+					text_box_rect.min.x() = static_cast<int>(text_box_bounds.max.x());
+					text_box_rect.max.x() = static_cast<int>(viewport_size.x());
+					text_box_rect.min.y() = static_cast<int>(viewport_size.y() - text_box_bounds.max.y());
+					text_box_rect.max.y() = static_cast<int>(viewport_size.y() - text_box_bounds.min.y());
+
+					ctx.window->start_text_input(text_box_rect);
 					enable_terminal_controls(ctx);
 				}
 				else

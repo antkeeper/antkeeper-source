@@ -33,12 +33,16 @@ public:
 		const math::ivec2& windowed_size,
 		bool maximized,
 		bool fullscreen,
-		bool v_sync
+		bool v_sync,
+		const math::fvec3& clear_color
 	) override;
 	
 	[[nodiscard]] std::span<const std::shared_ptr<display>> get_displays() const override;
+	[[nodiscard]] std::shared_ptr<display> get_primary_display() const override;
 	
 private:
+	friend class sdl_window;
+
 	sdl_window* get_window(SDL_Window* internal_window);
 	void update_display(display& display, unsigned int sdl_display_index);
 	

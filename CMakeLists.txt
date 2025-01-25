@@ -24,10 +24,12 @@ project(Antkeeper
 	HOMEPAGE_URL "https://antkeeper.com/"
 	LANGUAGES CXX C
 )
+set(PROJECT_AUTHOR "C. J. Howard")
+set(PROJECT_IDENTIFIER "com.cjhoward.antkeeper")
+set(PROJECT_COPYRIGHT "Copyright (c) 2025 ${PROJECT_AUTHOR}")
 
 option(ANTKEEPER_ASAN "Enable address sanitizer" OFF)
 option(ANTKEEPER_TEST "Enable building tests" OFF)
-set(PROJECT_AUTHOR "C. J. Howard")
 
 if(MSVC)
 	# Use static multithreaded runtime on MSVC

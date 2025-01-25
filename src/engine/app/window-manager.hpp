@@ -41,11 +41,15 @@ public:
 		const math::ivec2& windowed_size,
 		bool maximized,
 		bool fullscreen,
-		bool v_sync
+		bool v_sync,
+		const math::fvec3& clear_color
 	) = 0;
 	
 	/// Returns all known displays, both connected and disconnected.
 	[[nodiscard]] virtual std::span<const std::shared_ptr<display>> get_displays() const = 0;
+
+	/// Returns the primary display.
+	[[nodiscard]] virtual std::shared_ptr<display> get_primary_display() const = 0;
 };
 
 } // namespace app

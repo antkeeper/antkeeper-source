@@ -17,12 +17,14 @@ public:
 	/// Constructs an SDL window.
 	sdl_window
 	(
+		window_manager& window_manager,
 		const std::string& title,
 		const math::ivec2& windowed_position,
 		const math::ivec2& windowed_size,
 		bool maximized,
 		bool fullscreen,
-		bool v_sync
+		bool v_sync,
+		const math::fvec3& clear_color
 	);
 	
 	/// Destructs an SDL window.
@@ -46,6 +48,7 @@ public:
 	void stop_text_input() override;
 	void make_current() override;
 	void swap_buffers() override;
+	[[nodiscard]] std::shared_ptr<display> get_display() const override;
 	
 	[[nodiscard]] inline const gl::pipeline& get_graphics_pipeline() const noexcept override
 	{
