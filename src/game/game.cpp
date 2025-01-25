@@ -462,7 +462,6 @@ void game::setup_audio()
 	master_volume = 1.0f;
 	ambience_volume = 1.0f;
 	effects_volume = 1.0f;
-	mono_audio = false;
 	captions = false;
 	captions_size = 1.0f;
 	
@@ -470,9 +469,13 @@ void game::setup_audio()
 	read_or_write_setting(*this, "master_volume", master_volume);
 	read_or_write_setting(*this, "ambience_volume", ambience_volume);
 	read_or_write_setting(*this, "effects_volume", effects_volume);
-	read_or_write_setting(*this, "mono_audio", mono_audio);
 	read_or_write_setting(*this, "captions", captions);
 	read_or_write_setting(*this, "captions_size", captions_size);
+
+	// Limit audio settings
+	master_volume = math::clamp(master_volume, 0.0f, 1.0f);
+	ambience_volume = math::clamp(ambience_volume, 0.0f, 1.0f);
+	effects_volume = math::clamp(effects_volume, 0.0f, 1.0f);
 	
 	// Init sound system
 	debug::log_debug("Constructing sound system...");
@@ -481,6 +484,9 @@ void game::setup_audio()
 	
 	// Print sound system info
 	debug::log_info("Audio playback device: {}", sound_system->get_playback_device_name());
+
+	// Update sound system settings
+	sound_system->get_listener().set_gain(master_volume);
 
 	// Load UI sounds
 	menu_up_sound = std::make_shared<audio::sound_que>(resource_manager->load<audio::sound_wave>("sounds/menu-up.wav"));

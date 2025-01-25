@@ -362,7 +362,6 @@ public:
 	float master_volume;
 	float ambience_volume;
 	float effects_volume;
-	bool mono_audio;
 	bool captions;
 	float captions_size;
 	std::shared_ptr<audio::sound_que> menu_left_sound;

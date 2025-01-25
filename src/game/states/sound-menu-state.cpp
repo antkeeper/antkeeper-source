@@ -25,30 +25,26 @@ sound_menu_state::sound_menu_state(::game& ctx):
 	ambience_volume_value_text = std::make_unique<scene::text>();
 	effects_volume_name_text = std::make_unique<scene::text>();
 	effects_volume_value_text = std::make_unique<scene::text>();
-	mono_audio_name_text = std::make_unique<scene::text>();
-	mono_audio_value_text = std::make_unique<scene::text>();
-	captions_name_text = std::make_unique<scene::text>();
-	captions_value_text = std::make_unique<scene::text>();
-	captions_size_name_text = std::make_unique<scene::text>();
-	captions_size_value_text = std::make_unique<scene::text>();
+	//captions_name_text = std::make_unique<scene::text>();
+	//captions_value_text = std::make_unique<scene::text>();
+	//captions_size_name_text = std::make_unique<scene::text>();
+	//captions_size_value_text = std::make_unique<scene::text>();
 	back_text = std::make_unique<scene::text>();
 	
 	// Build list of menu item texts
 	ctx.menu_item_texts.push_back({master_volume_name_text.get(), master_volume_value_text.get()});
 	ctx.menu_item_texts.push_back({ambience_volume_name_text.get(), ambience_volume_value_text.get()});
 	ctx.menu_item_texts.push_back({effects_volume_name_text.get(), effects_volume_value_text.get()});
-	ctx.menu_item_texts.push_back({mono_audio_name_text.get(), mono_audio_value_text.get()});
-	ctx.menu_item_texts.push_back({captions_name_text.get(), captions_value_text.get()});
-	ctx.menu_item_texts.push_back({captions_size_name_text.get(), captions_size_value_text.get()});
+	//ctx.menu_item_texts.push_back({captions_name_text.get(), captions_value_text.get()});
+	//ctx.menu_item_texts.push_back({captions_size_name_text.get(), captions_size_value_text.get()});
 	ctx.menu_item_texts.push_back({back_text.get(), nullptr});
 	
 	// Set content of menu item texts
 	master_volume_name_text->set_content(get_string(ctx, "sound_menu_master_volume"));
 	ambience_volume_name_text->set_content(get_string(ctx, "sound_menu_ambience_volume"));
 	effects_volume_name_text->set_content(get_string(ctx, "sound_menu_effects_volume"));
-	mono_audio_name_text->set_content(get_string(ctx, "sound_menu_mono_audio"));
-	captions_name_text->set_content(get_string(ctx, "sound_menu_captions"));
-	captions_size_name_text->set_content(get_string(ctx, "sound_menu_captions_size"));
+	//captions_name_text->set_content(get_string(ctx, "sound_menu_captions"));
+	//captions_size_name_text->set_content(get_string(ctx, "sound_menu_captions_size"));
 	back_text->set_content(get_string(ctx, "back"));
 	update_value_text_content();
 	
@@ -61,45 +57,119 @@ sound_menu_state::sound_menu_state(::game& ctx):
 	::menu::add_text_to_ui(ctx);
 	
 	// Construct menu item callbacks
-	auto increase_volume_callback = [this, &ctx](float* volume)
+
+	auto increase_master_volume_callback = [this, &ctx]()
 	{
 		// Increase volume
 		if (ctx.menu_modifier_action.is_active())
-			*volume += 0.01f;
+			ctx.master_volume += 0.01f;
 		else
-			*volume += 0.1f;
-		
+			ctx.master_volume += 0.1f;
+
 		// Limit volume
-		if (*volume > 1.0f)
-			*volume = 1.0f;
-		
+		ctx.master_volume = math::clamp(ctx.master_volume, 0.0f, 1.0f);
+
+		// Update listener gain
+		ctx.sound_system->get_listener().set_gain(ctx.master_volume);
+
+		// Update master volume setting
+		(*ctx.settings)["master_volume"] = ctx.master_volume;
+
 		this->update_value_text_content();
 		::menu::align_text(ctx);
 	};
-	auto decrease_volume_callback = [this, &ctx](float* volume)
+	auto decrease_master_volume_callback = [this, &ctx]()
 	{
 		// Decrease volume
 		if (ctx.menu_modifier_action.is_active())
-			*volume -= 0.01f;
+			ctx.master_volume -= 0.01f;
 		else
-			*volume -= 0.1f;
-		
+			ctx.master_volume -= 0.1f;
+
 		// Limit volume
-		if (*volume < 0.0f)
-			*volume = 0.0f;
-		
+		ctx.master_volume = math::clamp(ctx.master_volume, 0.0f, 1.0f);
+
+		// Update listener gain
+		ctx.sound_system->get_listener().set_gain(ctx.master_volume);
+
+		// Update master volume setting
+		(*ctx.settings)["master_volume"] = ctx.master_volume;
+
 		this->update_value_text_content();
 		::menu::align_text(ctx);
 	};
-	
-	auto toggle_mono_audio_callback = [this, &ctx]()
+
+	auto increase_ambience_volume_callback = [this, &ctx]()
 	{
-		ctx.mono_audio = !ctx.mono_audio;
-		
+		// Increase volume
+		if (ctx.menu_modifier_action.is_active())
+			ctx.ambience_volume += 0.01f;
+		else
+			ctx.ambience_volume += 0.1f;
+
+		// Limit volume
+		ctx.ambience_volume = math::clamp(ctx.ambience_volume, 0.0f, 1.0f);
+
+		// Update volume setting
+		(*ctx.settings)["ambience_volume"] = ctx.ambience_volume;
+
+		this->update_value_text_content();
+		::menu::align_text(ctx);
+	};
+	auto decrease_ambience_volume_callback = [this, &ctx]()
+	{
+		// Decrease volume
+		if (ctx.menu_modifier_action.is_active())
+			ctx.ambience_volume -= 0.01f;
+		else
+			ctx.ambience_volume -= 0.1f;
+
+		// Limit volume
+		ctx.ambience_volume = math::clamp(ctx.ambience_volume, 0.0f, 1.0f);
+
+		// Update volume setting
+		(*ctx.settings)["ambience_volume"] = ctx.ambience_volume;
+
+		this->update_value_text_content();
+		::menu::align_text(ctx);
+	};
+
+	auto increase_effects_volume_callback = [this, &ctx]()
+	{
+		// Increase volume
+		if (ctx.menu_modifier_action.is_active())
+			ctx.effects_volume += 0.01f;
+		else
+			ctx.effects_volume += 0.1f;
+
+		// Limit volume
+		ctx.effects_volume = math::clamp(ctx.effects_volume, 0.0f, 1.0f);
+
+		// Update volume setting
+		(*ctx.settings)["effects_volume"] = ctx.effects_volume;
+
+		this->update_value_text_content();
+		::menu::align_text(ctx);
+	};
+	auto decrease_effects_volume_callback = [this, &ctx]()
+	{
+		// Decrease volume
+		if (ctx.menu_modifier_action.is_active())
+			ctx.effects_volume -= 0.01f;
+		else
+			ctx.effects_volume -= 0.1f;
+
+		// Limit volume
+		ctx.effects_volume = math::clamp(ctx.effects_volume, 0.0f, 1.0f);
+
+		// Update volume setting
+		(*ctx.settings)["effects_volume"] = ctx.effects_volume;
+
 		this->update_value_text_content();
 		::menu::align_text(ctx);
 	};
 	
+	/*
 	auto toggle_captions_callback = [this, &ctx]()
 	{
 		ctx.captions = !ctx.captions;
@@ -139,6 +209,8 @@ sound_menu_state::sound_menu_state(::game& ctx):
 		this->update_value_text_content();
 		::menu::align_text(ctx);
 	};
+	*/
+
 	auto select_back_callback = [&ctx]()
 	{
 		// Disable menu controls
@@ -163,30 +235,27 @@ sound_menu_state::sound_menu_state(::game& ctx):
 	};
 	
 	// Build list of menu select callbacks
-	ctx.menu_select_callbacks.push_back(std::bind(increase_volume_callback, &ctx.master_volume));
-	ctx.menu_select_callbacks.push_back(std::bind(increase_volume_callback, &ctx.ambience_volume));
-	ctx.menu_select_callbacks.push_back(std::bind(increase_volume_callback, &ctx.effects_volume));
-	ctx.menu_select_callbacks.push_back(toggle_mono_audio_callback);
-	ctx.menu_select_callbacks.push_back(toggle_captions_callback);
-	ctx.menu_select_callbacks.push_back(increase_captions_size_callback);
+	ctx.menu_select_callbacks.push_back(std::bind(increase_master_volume_callback));
+	ctx.menu_select_callbacks.push_back(std::bind(increase_ambience_volume_callback));
+	ctx.menu_select_callbacks.push_back(std::bind(increase_effects_volume_callback));
+	//ctx.menu_select_callbacks.push_back(toggle_captions_callback);
+	//ctx.menu_select_callbacks.push_back(increase_captions_size_callback);
 	ctx.menu_select_callbacks.push_back(select_back_callback);
 	
 	// Build list of menu left callbacks
-	ctx.menu_left_callbacks.push_back(std::bind(decrease_volume_callback, &ctx.master_volume));
-	ctx.menu_left_callbacks.push_back(std::bind(decrease_volume_callback, &ctx.ambience_volume));
-	ctx.menu_left_callbacks.push_back(std::bind(decrease_volume_callback, &ctx.effects_volume));
-	ctx.menu_left_callbacks.push_back(toggle_mono_audio_callback);
-	ctx.menu_left_callbacks.push_back(toggle_captions_callback);
-	ctx.menu_left_callbacks.push_back(decrease_captions_size_callback);
+	ctx.menu_left_callbacks.push_back(std::bind(decrease_master_volume_callback));
+	ctx.menu_left_callbacks.push_back(std::bind(decrease_ambience_volume_callback));
+	ctx.menu_left_callbacks.push_back(std::bind(decrease_effects_volume_callback));
+	//ctx.menu_left_callbacks.push_back(toggle_captions_callback);
+	//ctx.menu_left_callbacks.push_back(decrease_captions_size_callback);
 	ctx.menu_left_callbacks.push_back(nullptr);
 	
 	// Build list of menu right callbacks
-	ctx.menu_right_callbacks.push_back(std::bind(increase_volume_callback, &ctx.master_volume));
-	ctx.menu_right_callbacks.push_back(std::bind(increase_volume_callback, &ctx.ambience_volume));
-	ctx.menu_right_callbacks.push_back(std::bind(increase_volume_callback, &ctx.effects_volume));
-	ctx.menu_right_callbacks.push_back(toggle_mono_audio_callback);
-	ctx.menu_right_callbacks.push_back(toggle_captions_callback);
-	ctx.menu_right_callbacks.push_back(increase_captions_size_callback);
+	ctx.menu_right_callbacks.push_back(std::bind(increase_master_volume_callback));
+	ctx.menu_right_callbacks.push_back(std::bind(increase_ambience_volume_callback));
+	ctx.menu_right_callbacks.push_back(std::bind(increase_effects_volume_callback));
+	//ctx.menu_right_callbacks.push_back(toggle_captions_callback);
+	//ctx.menu_right_callbacks.push_back(increase_captions_size_callback);
 	ctx.menu_right_callbacks.push_back(nullptr);
 	
 	// Set menu back callback
@@ -222,7 +291,6 @@ void sound_menu_state::update_value_text_content()
 	std::get<1>(ctx.menu_item_texts[0])->set_content(std::to_string(static_cast<int>(std::round(ctx.master_volume * 100.0f))) + "%");
 	std::get<1>(ctx.menu_item_texts[1])->set_content(std::to_string(static_cast<int>(std::round(ctx.ambience_volume * 100.0f))) + "%");
 	std::get<1>(ctx.menu_item_texts[2])->set_content(std::to_string(static_cast<int>(std::round(ctx.effects_volume * 100.0f))) + "%");
-	std::get<1>(ctx.menu_item_texts[3])->set_content((ctx.mono_audio) ? string_on : string_off);
-	std::get<1>(ctx.menu_item_texts[4])->set_content((ctx.captions) ? string_on : string_off);
-	std::get<1>(ctx.menu_item_texts[5])->set_content(std::to_string(static_cast<int>(std::round(ctx.captions_size * 100.0f))) + "%");
+	//std::get<1>(ctx.menu_item_texts[4])->set_content((ctx.captions) ? string_on : string_off);
+	//std::get<1>(ctx.menu_item_texts[5])->set_content(std::to_string(static_cast<int>(std::round(ctx.captions_size * 100.0f))) + "%");
 }
