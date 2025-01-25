@@ -102,7 +102,7 @@ FetchContent_Declare(SDL3
 )
 FetchContent_Declare(stb
 	GIT_REPOSITORY https://github.com/nothings/stb.git
-	GIT_TAG 03f50e343d796e492e6579a11143a085429d7f5d # stb_image v2.28, stb_image_write v1.16
+	GIT_TAG 5c205738c191bcb0abc65c4febfa9bd25ff35234 # stb_image v2.30, stb_image_write v1.16
 	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(tinyexr
