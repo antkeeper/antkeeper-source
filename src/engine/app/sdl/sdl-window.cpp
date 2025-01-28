@@ -271,7 +271,29 @@ void sdl_window::set_fullscreen(bool fullscreen)
 			SDL_SetWindowFullscreenMode(m_internal_window, sdl_display_mode);
 		}
 
+		// Hide cursor if visible
+		const bool is_cursor_visible = SDL_CursorVisible();
+		if (is_cursor_visible)
+		{
+			SDL_HideCursor();
+		}
+
+		// Save global mouse position
+		math::fvec2 mouse_position = {};
+		SDL_GetGlobalMouseState(&mouse_position.x(), &mouse_position.y());
+
+		// Change fullscreen state
 		SDL_SetWindowFullscreen(m_internal_window, fullscreen);
+
+		// Restore global mouse position
+		SDL_WarpMouseGlobal(mouse_position.x(), mouse_position.y());
+
+		// Restore cursor visibility
+		if (is_cursor_visible)
+		{
+			SDL_ShowCursor();
+		}
+		
 		m_fullscreen = fullscreen;
 	}
 }
