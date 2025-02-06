@@ -9,6 +9,7 @@
 #include "game/components/animation-component.hpp"
 #include "game/strings.hpp"
 #include "game/controls.hpp"
+#include "game/control-profile.hpp"
 #include "game/fonts.hpp"
 #include "game/graphics.hpp"
 
@@ -696,7 +697,7 @@ namespace
 		return menu_container;
 	}
 
-	[[nodiscard]] std::shared_ptr<ui::element> build_two_column_menu(::game& ctx, std::vector<std::tuple<std::string, std::shared_ptr<ui::label>, std::shared_ptr<ui::range>>>& items)
+	[[nodiscard]] std::shared_ptr<ui::element> build_two_column_menu(::game& ctx, std::vector<std::tuple<std::string, std::shared_ptr<ui::label>, std::shared_ptr<ui::range>>>& items, bool has_reset)
 	{
 		// Construct menu container
 		auto menu_container = std::make_shared<ui::margin_container>();
@@ -711,10 +712,16 @@ namespace
 		menu_bottom_container->set_anchors(back_label_anchor[0], back_label_anchor[1], back_label_anchor[2], back_label_anchor[3]);
 		menu_container->add_child(menu_bottom_container);
 
+		// Construct menu grid container
+		auto menu_grid_container = std::make_shared<ui::column_container>();
+		menu_grid_container->set_alignment(ui::alignment::end);
+		menu_grid_container->set_spacing(menu_spacing);
+		menu_center_container->add_child(menu_grid_container);
+
 		// Construct container for menu left and right columns
 		auto menu_row_container = std::make_shared<ui::row_container>();
 		menu_row_container->set_spacing(menu_spacing);
-		menu_center_container->add_child(menu_row_container);
+		menu_grid_container->add_child(menu_row_container);
 
 		// Construct menu left column container
 		auto menu_left_column_container = std::make_shared<ui::column_container>();
@@ -741,7 +748,7 @@ namespace
 			label->set_material(ctx.menu_font_material);
 			label->set_text_refresher(std::bind_front(&static_label_text_refresher, std::ref(ctx), text));
 
-			if (i < items.size() - 1)
+			if (i < items.size() - 2 || (!has_reset && i < items.size() - 1))
 			{
 				// Construct range
 				range = std::make_shared<ui::range>();
@@ -774,7 +781,14 @@ namespace
 				label->set_mouse_entered_callback(std::bind_front(&label_mouse_entered, &ctx));
 				label->set_focus_changed_callback(std::bind_front(&label_focus_changed, &ctx));
 
-				menu_bottom_container->add_child(label);
+				if (i < items.size() - 1)
+				{
+					menu_grid_container->add_child(label);
+				}
+				else
+				{
+					menu_bottom_container->add_child(label);
+				}
 
 				menu_labels.push_back(label);
 			}
@@ -1186,10 +1200,11 @@ namespace
 			{"control_move_up", {}, {}},
 			{"control_move_down", {}, {}},
 			{"control_pause", {}, {}},
+			{"reset_to_defaults", {}, {}},
 			{"back", {}, {}}
 		};
 
-		ctx.m_keyboard_config_menu_container = build_two_column_menu(ctx, items);
+		ctx.m_keyboard_config_menu_container = build_two_column_menu(ctx, items, true);
 
 		auto setup_keyboard_control_mapper = [&ctx](auto& element, auto& action_map, auto& action, const auto& control_name)
 		{
@@ -1208,6 +1223,23 @@ namespace
 		setup_keyboard_control_mapper(*std::get<2>(items[4]), ctx.movement_action_map, ctx.move_up_action, "control_move_up");
 		setup_keyboard_control_mapper(*std::get<2>(items[5]), ctx.movement_action_map, ctx.move_down_action, "control_move_down");
 		setup_keyboard_control_mapper(*std::get<2>(items[6]), ctx.movement_action_map, ctx.pause_action, "control_pause");
+
+		auto& reset_to_defaults_label = *std::get<1>(items[7]);
+		reset_to_defaults_label.set_mouse_button_pressed_callback
+		(
+			[&ctx](const auto&)
+			{
+				control_profile profile;
+				reset_control_profile(profile);
+				apply_control_profile(ctx, profile, true, true, false);
+
+				// Save control profile
+				ctx.resource_manager->set_write_path(ctx.controls_path);
+				ctx.resource_manager->save(profile, ctx.control_profile_filename);
+
+				refresh_submenu_text(*ctx.m_keyboard_config_menu_container);
+			}
+		);
 
 		auto& back_label = *std::get<1>(items.back());
 		back_label.set_mouse_button_pressed_callback
@@ -1244,10 +1276,11 @@ namespace
 			{"control_move_up", {}, {}},
 			{"control_move_down", {}, {}},
 			{"control_pause", {}, {}},
+			{"reset_to_defaults", {}, {}},
 			{"back", {}, {}}
 		};
 
-		ctx.m_gamepad_config_menu_container = build_two_column_menu(ctx, items);
+		ctx.m_gamepad_config_menu_container = build_two_column_menu(ctx, items, true);
 
 		auto setup_gamepad_control_mapper = [&ctx](auto& element, auto& action_map, auto& action, const auto& control_name)
 		{
@@ -1266,6 +1299,23 @@ namespace
 		setup_gamepad_control_mapper(*std::get<2>(items[4]), ctx.movement_action_map, ctx.move_up_action, "control_move_up");
 		setup_gamepad_control_mapper(*std::get<2>(items[5]), ctx.movement_action_map, ctx.move_down_action, "control_move_down");
 		setup_gamepad_control_mapper(*std::get<2>(items[6]), ctx.movement_action_map, ctx.pause_action, "control_pause");
+
+		auto& reset_to_defaults_label = *std::get<1>(items[7]);
+		reset_to_defaults_label.set_mouse_button_pressed_callback
+		(
+			[&ctx](const auto&)
+			{
+				control_profile profile;
+				reset_control_profile(profile);
+				apply_control_profile(ctx, profile, false, false, true);
+
+				// Save control profile
+				ctx.resource_manager->set_write_path(ctx.controls_path);
+				ctx.resource_manager->save(profile, ctx.control_profile_filename);
+
+				refresh_submenu_text(*ctx.m_gamepad_config_menu_container);
+			}
+		);
 
 		auto& back_label = *std::get<1>(items.back());
 		back_label.set_mouse_button_pressed_callback
@@ -1300,10 +1350,11 @@ namespace
 			{"graphics_menu_v_sync", {}, {}},
 			{"graphics_menu_font_scale", {}, {}},
 			{"graphics_menu_dyslexia_font", {}, {}},
+			{"reset_to_defaults", {}, {}},
 			{"back", {}, {}}
 		};
 
-		ctx.m_graphics_menu_container = build_two_column_menu(ctx, items);
+		ctx.m_graphics_menu_container = build_two_column_menu(ctx, items, true);
 
 		auto& fullscreen_range = *std::get<2>(items[0]);
 		fullscreen_range.set_min_value(0.0f);
@@ -1404,6 +1455,48 @@ namespace
 			}
 		);
 
+		auto& reset_to_defaults_label = *std::get<1>(items[5]);
+		auto fullscreen_range_weak_ptr = fullscreen_range.weak_from_this();
+		auto resolution_range_weak_ptr = resolution_range.weak_from_this();
+		auto v_sync_range_weak_ptr = v_sync_range.weak_from_this();
+		auto font_size_range_weak_ptr = font_size_range.weak_from_this();
+		auto dyslexia_font_range_weak_ptr = dyslexia_font_range.weak_from_this();
+		reset_to_defaults_label.set_mouse_button_pressed_callback
+		(
+			[=](const auto&)
+			{
+				// Reset fullscreen
+				if (auto label = fullscreen_range_weak_ptr.lock())
+				{
+					static_cast<ui::range&>(*label).set_value(1.0f);
+				}
+
+				// Reset resolution
+				if (auto label = resolution_range_weak_ptr.lock())
+				{
+					static_cast<ui::range&>(*label).set_value(1.0f);
+				}
+
+				// Reset v-sync
+				if (auto label = v_sync_range_weak_ptr.lock())
+				{
+					static_cast<ui::range&>(*label).set_value(1.0f);
+				}
+
+				// Reset font size
+				if (auto label = font_size_range_weak_ptr.lock())
+				{
+					static_cast<ui::range&>(*label).set_value(1.0f);
+				}
+
+				// Reset dyslexia font
+				if (auto label = dyslexia_font_range_weak_ptr.lock())
+				{
+					static_cast<ui::range&>(*label).set_value(0.0f);
+				}
+			}
+		);
+
 		auto& back_label = *std::get<1>(items.back());
 		back_label.set_mouse_button_pressed_callback
 		(
@@ -1435,10 +1528,11 @@ namespace
 			{"sound_menu_master_volume", {}, {}},
 			{"sound_menu_ambience_volume", {}, {}},
 			{"sound_menu_effects_volume", {}, {}},
+			{"reset_to_defaults", {}, {}},
 			{"back", {}, {}}
 		};
 
-		ctx.m_sound_menu_container = build_two_column_menu(ctx, items);
+		ctx.m_sound_menu_container = build_two_column_menu(ctx, items, true);
 
 		auto& master_volume_range = *std::get<2>(items[0]);
 		master_volume_range.set_value(ctx.master_volume);
@@ -1481,6 +1575,34 @@ namespace
 			}
 		);
 
+		auto& reset_to_defaults_label = *std::get<1>(items[3]);
+		auto master_volume_range_weak_ptr = master_volume_range.weak_from_this();
+		auto ambience_volume_range_weak_ptr = ambience_volume_range.weak_from_this();
+		auto effects_volume_range_weak_ptr = effects_volume_range.weak_from_this();
+		reset_to_defaults_label.set_mouse_button_pressed_callback
+		(
+			[=](const auto&)
+			{
+				// Reset master volume
+				if (auto label = master_volume_range_weak_ptr.lock())
+				{
+					static_cast<ui::range&>(*label).set_value(1.0f);
+				}
+
+				// Reset ambience volume
+				if (auto label = ambience_volume_range_weak_ptr.lock())
+				{
+					static_cast<ui::range&>(*label).set_value(1.0f);
+				}
+
+				// Reset effects volume
+				if (auto label = effects_volume_range_weak_ptr.lock())
+				{
+					static_cast<ui::range&>(*label).set_value(1.0f);
+				}
+			}
+		);
+
 		auto& back_label = *std::get<1>(items.back());
 		back_label.set_mouse_button_pressed_callback
 		(
@@ -1513,7 +1635,7 @@ namespace
 			{"back", {}, {}}
 		};
 
-		ctx.m_language_menu_container = build_two_column_menu(ctx, items);
+		ctx.m_language_menu_container = build_two_column_menu(ctx, items, false);
 
 		auto& language_range = *std::get<2>(items[0]);
 		language_range.set_min_value(0.0f);

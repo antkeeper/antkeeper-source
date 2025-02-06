@@ -16,7 +16,10 @@ void reset_control_profile(::control_profile& profile);
 /// Applies a control profile to the game context.
 /// @param ctx Game context.
 /// @param profile Control profile to apply.
-void apply_control_profile(::game& ctx, const ::control_profile& profile);
+/// @param key `true` to apply key mappings, `false` otherwise.
+/// @param mouse `true` to apply mouse mappings, `false` otherwise.
+/// @param gamepad `true` to apply gamepad mappings, `false` otherwise.
+void apply_control_profile(::game& ctx, const ::control_profile& profile, bool key, bool mouse, bool gamepad);
 
 /// Updates a control profile after actions have been remapped.
 /// @param ctx Game context.

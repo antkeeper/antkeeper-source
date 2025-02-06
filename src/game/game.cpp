@@ -1111,7 +1111,7 @@ void game::setup_controls()
 	}
 	
 	// Apply control profile
-	::apply_control_profile(*this, *control_profile);
+	::apply_control_profile(*this, *control_profile, true, true, true);
 	
 	// Setup mouse sensitivity
 	mouse_pan_factor = mouse_radians_per_pixel * mouse_pan_sensitivity * (mouse_invert_pan ? -1.0 : 1.0);

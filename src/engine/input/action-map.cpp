@@ -239,6 +239,40 @@ void action_map::remove_mappings(action& action)
 	m_actions.erase(&action);
 }
 
+void action_map::remove_mappings(mapping_type type)
+{
+	switch (type)
+	{
+		case mapping_type::gamepad_axis:
+			m_gamepad_axis_mappings.clear();
+			break;
+
+		case mapping_type::gamepad_button:
+			m_gamepad_button_mappings.clear();
+			break;
+
+		case mapping_type::key:
+			m_key_mappings.clear();
+			break;
+
+		case mapping_type::mouse_button:
+			m_mouse_button_mappings.clear();
+			break;
+
+		case mapping_type::mouse_motion:
+			m_mouse_motion_mappings.clear();
+			break;
+
+		case mapping_type::mouse_scroll:
+			m_mouse_scroll_mappings.clear();
+			break;
+
+		default:
+			//std::unreachable();
+			break;
+	}
+}
+
 void action_map::remove_mappings()
 {
 	m_gamepad_axis_mappings.clear();

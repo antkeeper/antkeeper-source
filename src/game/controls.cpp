@@ -178,25 +178,77 @@ void reset_control_profile(::control_profile& profile)
 	mappings.emplace("terminal_clear_line"_fnv1a32, std::make_unique<input::key_mapping>(nullptr, input::scancode::escape, input::modifier_key::none, true));
 }
 
-void apply_control_profile(::game& ctx, const ::control_profile& profile)
+void apply_control_profile(::game& ctx, const ::control_profile& profile, bool key, bool mouse, bool gamepad)
 {
-	auto add_mappings = [&profile](input::action_map& map, input::action& action, hash::fnv32_t key)
+	auto add_mappings = [&](input::action_map& map, input::action& action, hash::fnv32_t key_hash)
 	{
-		auto range = profile.mappings.equal_range(key);
+		auto range = profile.mappings.equal_range(key_hash);
 		for (auto i = range.first; i != range.second; ++i)
 		{
+			switch (i->second->get_mapping_type())
+			{
+				case input::mapping_type::key:
+					if (!key)
+					{
+						continue;
+					}
+					break;
+
+				case input::mapping_type::mouse_button:
+					[[fallthrough]];
+				case input::mapping_type::mouse_motion:
+					[[fallthrough]];
+				case input::mapping_type::mouse_scroll:
+					if (!mouse)
+					{
+						continue;
+					}
+					break;
+
+				case input::mapping_type::gamepad_axis:
+					[[fallthrough]];
+				case input::mapping_type::gamepad_button:
+					if (!gamepad)
+					{
+						continue;
+					}
+					break;
+
+				default:
+					continue;
+			}
+
 			map.add_mapping(action, *i->second);
+		}
+	};
+
+	auto clear_mappings = [&](input::action_map& action_map)
+	{
+		if (key)
+		{
+			action_map.remove_mappings(input::mapping_type::key);
+		}
+		if (mouse)
+		{
+			action_map.remove_mappings(input::mapping_type::mouse_button);
+			action_map.remove_mappings(input::mapping_type::mouse_scroll);
+			action_map.remove_mappings(input::mapping_type::mouse_motion);
+		}
+		if (gamepad)
+		{
+			action_map.remove_mappings(input::mapping_type::gamepad_axis);
+			action_map.remove_mappings(input::mapping_type::gamepad_button);
 		}
 	};
 	
 	// Window controls
-	ctx.window_action_map.remove_mappings();
+	clear_mappings(ctx.window_action_map);
 	add_mappings(ctx.window_action_map, ctx.fullscreen_action, "fullscreen"_fnv1a32);
 	add_mappings(ctx.window_action_map, ctx.screenshot_action, "screenshot"_fnv1a32);
 	add_mappings(ctx.window_action_map, ctx.toggle_terminal_action, "toggle_terminal"_fnv1a32);
 	
 	// Menu controls
-	ctx.menu_action_map.remove_mappings();
+	clear_mappings(ctx.menu_action_map);
 	add_mappings(ctx.menu_action_map, ctx.menu_up_action, "menu_up"_fnv1a32);
 	add_mappings(ctx.menu_action_map, ctx.menu_down_action, "menu_down"_fnv1a32);
 	add_mappings(ctx.menu_action_map, ctx.menu_left_action, "menu_left"_fnv1a32);
@@ -206,7 +258,7 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	add_mappings(ctx.menu_action_map, ctx.menu_modifier_action, "menu_modifier"_fnv1a32);
 	
 	// Movement controls
-	ctx.movement_action_map.remove_mappings();
+	clear_mappings(ctx.movement_action_map);
 	add_mappings(ctx.movement_action_map, ctx.move_forward_action, "move_forward"_fnv1a32);
 	add_mappings(ctx.movement_action_map, ctx.move_back_action, "move_back"_fnv1a32);
 	add_mappings(ctx.movement_action_map, ctx.move_left_action, "move_left"_fnv1a32);
@@ -218,7 +270,7 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	add_mappings(ctx.movement_action_map, ctx.pause_action, "pause"_fnv1a32);
 	
 	// Camera controls
-	ctx.camera_action_map.remove_mappings();
+	clear_mappings(ctx.camera_action_map);
 	add_mappings(ctx.camera_action_map, ctx.camera_mouse_pick_action, "camera_mouse_pick"_fnv1a32);
 	add_mappings(ctx.camera_action_map, ctx.camera_mouse_look_action, "camera_mouse_look"_fnv1a32);
 	add_mappings(ctx.camera_action_map, ctx.camera_mouse_drag_action, "camera_mouse_drag"_fnv1a32);
@@ -232,7 +284,7 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	add_mappings(ctx.camera_action_map, ctx.camera_look_ahead_action, "camera_look_ahead"_fnv1a32);
 	
 	// Ant controls
-	ctx.ant_action_map.remove_mappings();
+	clear_mappings(ctx.ant_action_map);
 	add_mappings(ctx.ant_action_map, ctx.ant_move_forward_action, "move_forward"_fnv1a32);
 	add_mappings(ctx.ant_action_map, ctx.ant_move_back_action, "move_back"_fnv1a32);
 	add_mappings(ctx.ant_action_map, ctx.ant_move_left_action, "move_left"_fnv1a32);
@@ -244,11 +296,13 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	add_mappings(ctx.ant_action_map, ctx.ant_stridulate_action, "stridulate"_fnv1a32);
 	
 	// Debug controls
+	clear_mappings(ctx.debug_action_map);
 	add_mappings(ctx.debug_action_map, ctx.toggle_debug_ui_action, "toggle_debug"_fnv1a32);
 	add_mappings(ctx.debug_action_map, ctx.adjust_exposure_action, "adjust_exposure"_fnv1a32);
 	add_mappings(ctx.debug_action_map, ctx.adjust_time_action, "adjust_time"_fnv1a32);
 	
 	// Terminal controls
+	clear_mappings(ctx.terminal_action_map);
 	add_mappings(ctx.terminal_action_map, ctx.terminal_up_action, "terminal_up"_fnv1a32);
 	add_mappings(ctx.terminal_action_map, ctx.terminal_down_action, "terminal_down"_fnv1a32);
 	add_mappings(ctx.terminal_action_map, ctx.terminal_left_action, "terminal_left"_fnv1a32);

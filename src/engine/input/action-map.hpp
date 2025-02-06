@@ -80,6 +80,10 @@ public:
 	/// Unmaps all input from an action.
 	/// @param action Action from which input will be unmapped.
 	void remove_mappings(action& action);
+
+	/// Unmaps all input from all actions in the action map.
+	/// @param type Type of input mapping to remove.
+	void remove_mappings(mapping_type type);
 	
 	/// Unmaps all input from all actions in the action map.
 	void remove_mappings();
@@ -112,6 +116,12 @@ public:
 	[[nodiscard]] inline constexpr bool is_enabled() const noexcept
 	{
 		return m_enabled;
+	}
+
+	/// Returns the actions in the action map.
+	[[nodiscard]] inline constexpr const auto& get_actions() const noexcept
+	{
+		return m_actions;
 	}
 	
 private:
