@@ -101,12 +101,6 @@ inline constexpr float menu_mouseover_padding = 0.1f;
 /// Opacity of the menu background.
 inline constexpr float menu_bg_opacity = 3.0f / 4.0f;
 
-/// RGBA color of active menu items.
-inline constexpr math::vector<float, 4> menu_active_color{1.0f, 1.0f, 1.0f, 1.0f};
-
-/// RGBA color of inactive menu items.
-inline constexpr math::vector<float, 4> menu_inactive_color{1.0f, 1.0f, 1.0f, 0.5f};
-
 /// Duration of the title screen fade in, in seconds.
 inline constexpr float title_fade_in_duration = 1.0f;
 

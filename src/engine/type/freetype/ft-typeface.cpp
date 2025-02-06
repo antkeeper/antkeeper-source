@@ -47,10 +47,8 @@ ft_typeface::~ft_typeface()
 
 font_metrics ft_typeface::get_font_metrics(float size) const
 {
-	// Set font size
 	set_face_pixel_size(size);
 	
-	// Get font metrics
 	font_metrics metrics;
 	metrics.size = size;
 	metrics.ascent = m_ft_face->size->metrics.ascender / 64.0f;
@@ -61,7 +59,8 @@ font_metrics ft_typeface::get_font_metrics(float size) const
 	metrics.underline_thickness = FT_MulFix(m_ft_face->underline_thickness, m_ft_face->size->metrics.y_scale) / 64.0f;
 	metrics.max_horizontal_advance = m_ft_face->size->metrics.max_advance / 64.0f;
 	metrics.max_vertical_advance = FT_MulFix(m_ft_face->max_advance_height, m_ft_face->size->metrics.y_scale) / 64.0f;
-	
+	metrics.em_size = FT_MulFix(m_ft_face->units_per_EM, m_ft_face->size->metrics.y_scale) / 64.0f;
+
 	return metrics;
 }
 

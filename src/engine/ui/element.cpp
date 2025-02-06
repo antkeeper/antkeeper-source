@@ -118,6 +118,54 @@ void element::visit_descendants(const std::function<void(element&)>& visitor)
 	}
 }
 
+std::shared_ptr<element> element::find_ancestor(const std::function<bool(element&)>& visitor)
+{
+	for (auto parent = m_parent.lock(); parent; parent = parent->m_parent.lock())
+	{
+		if (visitor(*parent))
+		{
+			return parent;
+		}
+	}
+
+	return nullptr;
+}
+
+std::shared_ptr<element> element::find_descendant(const std::function<bool(element&)>& visitor)
+{
+	for (const auto& child: m_children)
+	{
+		if (visitor(*child))
+		{
+			return child;
+		}
+
+		if (auto descendant = child->find_descendant(visitor))
+		{
+			return descendant;
+		}
+	}
+
+	return nullptr;
+}
+
+std::shared_ptr<element> element::find_focus()
+{
+	auto root = get_root();
+	if (root->has_focus())
+	{
+		return root;
+	}
+
+	return root->find_descendant
+	(
+		[](element& e)
+		{
+			return e.has_focus();
+		}
+	);
+}
+
 void element::set_anchors(float left, float bottom, float right, float top)
 {
 	m_anchor_min.x() = left;
@@ -184,23 +232,39 @@ void element::set_margin_top(float top)
 	recalculate_bounds();
 }
 
+void element::set_min_size(const vector_type& size)
+{
+	if (m_min_size != size)
+	{
+		m_min_size = size;
+		if (auto parent = m_parent.lock())
+		{
+			parent->child_min_size_changed(*this);
+		}
+	}
+}
+
+void element::set_z_offset(int offset)
+{
+	if (m_z_offset != offset)
+	{
+		m_z_offset = offset;
+		depth_changed();
+	}
+}
+
 void element::set_focus(bool focus)
 {
 	if (m_focus != focus)
 	{
 		if (focus)
 		{
-			// Set focus state of all other elements to `false`
-			get_root()->visit_descendants
-			(
-				[&](auto& e)
-				{
-					if (&e != this)
-					{
-						e.set_focus(false);
-					}
-				}
-			);
+			// Remove focus from current focus
+			auto current_focus = find_focus();
+			if (current_focus)
+			{
+				current_focus->set_focus(false);
+			}
 		}
 		
 		m_focus = focus;
@@ -242,9 +306,28 @@ void element::set_focus_down(std::weak_ptr<element> down)
 	m_focus_down = std::move(down);
 }
 
+void element::set_opacity(float opacity)
+{
+	if (m_opacity != opacity)
+	{
+		m_opacity = opacity;
+		recalculate_effective_opacity();
+	}
+}
+
+void element::set_input_handling_enabled(bool enabled)
+{
+	m_handle_input = enabled;
+}
+
 void element::set_focus_changed_callback(std::function<void(const element_focus_changed_event&)> callback)
 {
 	m_focus_changed_callback = std::move(callback);
+}
+
+void element::set_mouse_moved_callback(std::function<void(const element_mouse_moved_event&)> callback)
+{
+	m_mouse_moved_callback = std::move(callback);
 }
 
 void element::set_mouse_entered_callback(std::function<void(const element_mouse_entered_event&)> callback)
@@ -297,6 +380,11 @@ void element::remove_from_scene([[maybe_unused]] ::scene::collection& scene)
 
 bool element::handle_mouse_moved(const input::mouse_moved_event& event)
 {
+	if (!m_handle_input)
+	{
+		return false;
+	}
+
 	for (const auto& child: m_children)
 	{
 		if (child->handle_mouse_moved(event))
@@ -307,6 +395,11 @@ bool element::handle_mouse_moved(const input::mouse_moved_event& event)
 	
 	if (m_bounds.contains(math::fvec2(event.position)))
 	{
+		if (m_mouse_moved_callback)
+		{
+			m_mouse_moved_callback({this, event.mouse, event.position, event.difference});
+		}
+
 		if (!m_hover)
 		{
 			m_hover = true;
@@ -335,6 +428,11 @@ bool element::handle_mouse_moved(const input::mouse_moved_event& event)
 
 bool element::handle_mouse_button_pressed(const input::mouse_button_pressed_event& event)
 {
+	if (!m_handle_input)
+	{
+		return false;
+	}
+
 	for (const auto& child: m_children)
 	{
 		if (child->handle_mouse_button_pressed(event))
@@ -356,6 +454,11 @@ bool element::handle_mouse_button_pressed(const input::mouse_button_pressed_even
 
 bool element::handle_mouse_button_released(const input::mouse_button_released_event& event)
 {
+	if (!m_handle_input)
+	{
+		return false;
+	}
+
 	for (const auto& child: m_children)
 	{
 		if (child->handle_mouse_button_released(event))
@@ -382,6 +485,7 @@ void element::set_parent(std::weak_ptr<element> parent)
 {
 	m_parent = std::move(parent);
 	recalculate_bounds();
+	recalculate_effective_opacity();
 }
 
 void element::recalculate_bounds()
@@ -408,10 +512,39 @@ void element::recalculate_bounds()
 	}
 }
 
+void element::recalculate_effective_opacity()
+{
+	float new_effective_opacity = m_opacity;
+	if (auto parent = m_parent.lock())
+	{
+		new_effective_opacity *= parent->get_effective_opacity();
+	}
+
+	if (m_effective_opacity != new_effective_opacity)
+	{
+		m_effective_opacity = new_effective_opacity;
+		effective_opacity_changed();
+
+		for (auto& child: m_children)
+		{
+			child->recalculate_effective_opacity();
+		}
+	}
+}
+
 void element::descendant_added([[maybe_unused]] element& descendant)
 {}
 
 void element::descendant_removed([[maybe_unused]] element& descendant)
+{}
+
+void element::child_min_size_changed([[maybe_unused]] element& descendant)
+{}
+
+void element::effective_opacity_changed()
+{}
+
+void element::depth_changed()
 {}
 
 } // namespace ui

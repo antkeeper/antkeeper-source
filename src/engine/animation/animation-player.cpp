@@ -24,23 +24,30 @@ void animation_player::advance(float seconds)
 
 	// Loop
 	std::size_t loop_count = 0;
-	if (m_looping && m_position >= m_sequence_duration)
+	if (m_position >= m_sequence_duration)
 	{
-		if (m_sequence_duration > 0.0f)
+		if (m_looping)
 		{
-			// Calculate looped position
-			const auto looped_position = std::fmod(m_position, m_sequence_duration);
+			if (m_sequence_duration > 0.0f)
+			{
+				// Calculate looped position
+				const auto looped_position = std::fmod(m_position, m_sequence_duration);
 
-			// Calculate number of times looped
-			loop_count = static_cast<std::size_t>(m_position / m_sequence_duration);
+				// Calculate number of times looped
+				loop_count = static_cast<std::size_t>(m_position / m_sequence_duration);
 
-			// Set current position to looped position
-			m_position = looped_position;
+				// Set current position to looped position
+				m_position = looped_position;
+			}
+			else
+			{
+				// Zero-duration looping sequence
+				m_position = 0.0f;
+			}
 		}
-		else
+		else if (m_autostop && m_position > m_sequence_duration)
 		{
-			// Zero-duration looping sequence
-			m_position = 0.0f;
+			m_state = animation_player_state::stopped;
 		}
 	}
 

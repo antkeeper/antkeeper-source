@@ -42,7 +42,6 @@
 #include "game/controls.hpp"
 #include "game/spawn.hpp"
 #include "game/screen-transition.hpp"
-#include "game/states/pause-menu-state.hpp"
 #include "game/systems/astronomy-system.hpp"
 #include "game/systems/atmosphere-system.hpp"
 #include "game/systems/camera-system.hpp"
@@ -77,16 +76,29 @@
 #include <engine/geom/coordinates.hpp>
 #include <engine/ai/navmesh.hpp>
 #include <engine/animation/ik/constraints/euler-ik-constraint.hpp>
+#include <engine/hash/fnv.hpp>
+
+using namespace hash::literals;
 
 test_state::test_state(::game& ctx):
 	game_state(ctx)
 {
 	debug::log_trace("Entering test state...");
 
+	ctx.m_ingame = true;
+
+	if (ctx.entities.find("earth"_fnv1a32) == ctx.entities.end())
+	{
+		::world::cosmogenesis(ctx);
+		::world::create_observer(ctx);
+	}
+
 	ctx.active_scene = ctx.exterior_scene.get();
 	
 	ctx.active_ecoregion = ctx.resource_manager->load<::ecoregion>("debug.eco");
 	::world::enter_ecoregion(ctx, *ctx.active_ecoregion);
+	::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
+	::world::set_time_scale(ctx, 0.0);
 	
 	debug::log_trace("Generating genome...");
 	std::shared_ptr<ant_genome> genome = ant_cladogenesis(ctx.active_ecoregion->gene_pools[0], ctx.rng);
@@ -303,7 +315,7 @@ test_state::test_state(::game& ctx):
 	setup_controls();
 	
 	// Queue enable game controls
-	ctx.function_queue.push
+	ctx.function_queue.emplace
 	(
 		[&ctx]()
 		{
@@ -334,6 +346,8 @@ test_state::~test_state()
 	ctx.controlled_ant_eid = entt::null;
 	
 	destroy_third_person_camera_rig();
+
+	ctx.m_ingame = false;
 	
 	debug::log_trace("Exited test state");
 }

@@ -3,7 +3,7 @@
 
 #include "game/states/splash-state.hpp"
 #include "game/game.hpp"
-#include "game/states/main-menu-state.hpp"
+#include "game/menu.hpp"
 #include "game/components/animation-component.hpp"
 #include <engine/animation/ease.hpp>
 #include <engine/debug/log.hpp>
@@ -68,12 +68,13 @@ splash_state::splash_state(::game& ctx):
 		m_splash_sequence->cues().emplace(opacity_track.duration(), [&](auto&)
 		{
 			// Queue change to main menu state
-			ctx.function_queue.push
+			ctx.function_queue.emplace
 			(
 				[&ctx]()
 				{
 					ctx.state_machine.pop();
-					ctx.state_machine.emplace(std::make_unique<main_menu_state>(ctx, true));
+					ctx.state_machine.emplace(nullptr);
+					open_main_menu(ctx, false);
 				}
 			);
 		});
@@ -111,7 +112,8 @@ splash_state::splash_state(::game& ctx):
 				
 				// Change to main menu state
 				ctx.state_machine.pop();
-				ctx.state_machine.emplace(std::make_unique<main_menu_state>(ctx, true));
+				ctx.state_machine.emplace(nullptr);
+				open_main_menu(ctx, false);
 			}
 		);
 	};
@@ -140,7 +142,7 @@ splash_state::splash_state(::game& ctx):
 	);
 	
 	// Enable splash skippers next frame
-	ctx.function_queue.push
+	ctx.function_queue.emplace
 	(
 		[&]()
 		{

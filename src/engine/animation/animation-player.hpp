@@ -102,6 +102,7 @@ private:
 	bool m_looping{};
 	std::vector<float> m_sample_buffer;
 	animation_context m_context{};
+	bool m_autostop{true};
 };
 
 #endif // ANTKEEPER_ANIMATION_PLAYER_HPP

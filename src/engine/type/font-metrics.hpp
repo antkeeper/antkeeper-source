@@ -35,6 +35,9 @@ struct font_metrics
 	
 	/// Maximum advance height for all glyphs, for vertical layouts.
 	float max_vertical_advance;
+
+	/// EM square size.
+	float em_size;
 };
 
 } // namespace type

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/states/nuptial-flight-state.hpp"
-#include "game/states/pause-menu-state.hpp"
 #include "game/ant/ant-swarm.hpp"
 #include <engine/entity/archetype.hpp>
 #include "game/systems/camera-system.hpp"
@@ -142,7 +141,7 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	select_entity(random_alate_eid);
 	
 	// Queue enable controls
-	ctx.function_queue.push
+	ctx.function_queue.emplace
 	(
 		[&ctx]()
 		{

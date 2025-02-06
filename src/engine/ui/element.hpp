@@ -15,6 +15,39 @@
 
 namespace ui {
 
+enum class element_type
+{
+	/// Unknown element type.
+	unknown,
+
+	/// Canvas element.
+	canvas,
+
+	/// Column container element.
+	column_container,
+
+	/// Row container element.
+	row_container,
+
+	/// Center container element.
+	center_container,
+
+	/// Margin container element.
+	margin_container,
+
+	/// Label element.
+	label,
+
+	/// Range element.
+	range,
+
+	/// Image element.
+	image,
+
+	/// Separator element.
+	separator
+};
+
 /// Abstract base class for UI elements.
 class element: public std::enable_shared_from_this<element>
 {
@@ -27,6 +60,9 @@ public:
 	
 	/// Destructs an element.
 	virtual ~element() = 0;
+
+	/// Returns the type of the element.
+	[[nodiscard]] virtual element_type get_type() const noexcept = 0;
 	
 	/// @name Hierarchy
 	/// @{
@@ -67,10 +103,10 @@ public:
 	}
 
 	/// Returns the root element.
-	std::shared_ptr<element> get_root();
+	[[nodiscard]] std::shared_ptr<element> get_root();
 
 	/// Returns the root element.
-	std::shared_ptr<const element> get_root() const;
+	[[nodiscard]] std::shared_ptr<const element> get_root() const;
 	
 	/// Visits each ancestor of this element.
 	/// @param visitor Visitor function.
@@ -79,6 +115,19 @@ public:
 	/// Visits each descendant of this element.
 	/// @param visitor Visitor function.
 	void visit_descendants(const std::function<void(element&)>& visitor);
+
+	/// Finds the first ancestor of this element which returns `true` for the visitor function.
+	/// @param visitor Visitor function.
+	/// @return Shared pointer to the found ancestor element, or `nullptr` if no matching ancestor was found.
+	[[nodiscard]] std::shared_ptr<element> find_ancestor(const std::function<bool(element&)>& visitor);
+
+	/// Finds the first descendant of this element which returns `true` for the visitor function.
+	/// @param visitor Visitor function.
+	/// @return Shared pointer to the found descendant element, or `nullptr` if no matching descendant was found.
+	[[nodiscard]] std::shared_ptr<element> find_descendant(const std::function<bool(element&)>& visitor);
+
+	/// Returns the element which has focus.
+	[[nodiscard]] std::shared_ptr<element> find_focus();
 	
 	/// @}
 	
@@ -189,6 +238,15 @@ public:
 	/// @name Bounds
 	/// @{
 	
+	/// Sets the minimum size of the element.
+	void set_min_size(const vector_type& size);
+	
+	/// Returns the minimum size of the element.
+	[[nodiscard]] inline constexpr const auto& get_min_size() const noexcept
+	{
+		return m_min_size;
+	}
+	
 	/// Returns the bounds of the element.
 	[[nodiscard]] inline constexpr const auto& get_bounds() const noexcept
 	{
@@ -196,6 +254,27 @@ public:
 	}
 	
 	/// @}
+
+	/// @name Depth
+	/// @{
+	
+	/// Sets the depth offset of the element.
+	/// @param offset Depth offset.
+	void set_z_offset(int offset);
+
+	/// Returns the depth offset of the element.
+	[[nodiscard]] inline constexpr auto get_z_offset() const noexcept
+	{
+		return m_z_offset;
+	}
+
+	/// Returns the depth of the element.
+	[[nodiscard]] inline constexpr auto get_depth() const noexcept
+	{
+		return m_z_offset;
+	}
+
+	/// @} 
 	
 	/// @name Focus
 	/// @{
@@ -235,49 +314,75 @@ public:
 	}
 	
 	/// Returns the element to focus when focus is shifted back.
-	[[nodiscard]] inline constexpr const auto& get_focus_back() const
+	[[nodiscard]] inline constexpr const auto& get_focus_back() const noexcept
 	{
 		return m_focus_back;
 	}
 	
 	/// Returns the element to focus when focus is shifted forward.
-	[[nodiscard]] inline constexpr const auto& get_focus_forward() const
+	[[nodiscard]] inline constexpr const auto& get_focus_forward() const noexcept
 	{
 		return m_focus_forward;
 	}
 	
 	/// Returns the element to focus when focus is shifted left.
-	[[nodiscard]] inline constexpr const auto& get_focus_left() const
+	[[nodiscard]] inline constexpr const auto& get_focus_left() const noexcept
 	{
 		return m_focus_left;
 	}
 	
 	/// Returns the element to focus when focus is shifted right.
-	[[nodiscard]] inline constexpr const auto& get_focus_right() const
+	[[nodiscard]] inline constexpr const auto& get_focus_right() const noexcept
 	{
 		return m_focus_right;
 	}
 	
 	/// Returns the element to focus when focus is shifted up.
-	[[nodiscard]] inline constexpr const auto& get_focus_up() const
+	[[nodiscard]] inline constexpr const auto& get_focus_up() const noexcept
 	{
 		return m_focus_up;
 	}
 	
 	/// Returns the element to focus when focus is shifted down.
-	[[nodiscard]] inline constexpr const auto& get_focus_down() const
+	[[nodiscard]] inline constexpr const auto& get_focus_down() const noexcept
 	{
 		return m_focus_down;
 	}
 	
 	/// @}
+
+	/// @name Color
+	/// @{
+	
+	void set_opacity(float opacity);
+
+	/// Returns the opacity factor of the individual element.
+	[[nodiscard]] inline constexpr float get_opacity() const noexcept
+	{
+		return m_opacity;
+	}
+
+	/// Returns the combined opacity factor of the element and its ancestors.
+	[[nodiscard]] inline float get_effective_opacity() const noexcept
+	{
+		return m_effective_opacity;
+	}
+
+	/// @}
 	
 	/// @name Callbacks
 	/// @{
 	
+	/// Enables or disables input handling for the element.
+	void set_input_handling_enabled(bool enabled);
+	
 	/// Sets the callback called each time the element's focus state changes.
 	/// @param callback Focus changed callback.
 	void set_focus_changed_callback(std::function<void(const element_focus_changed_event&)> callback);
+
+	/// Sets the callback called each time a mouse moves within the bounds of the element.
+	/// @param callback Mouse moved callback.
+	void set_mouse_moved_callback(std::function<void(const element_mouse_moved_event&)> callback);
 	
 	/// Sets the callback called each time a mouse enters the bounds of the element.
 	/// @param callback Mouse entered callback.
@@ -297,15 +402,21 @@ public:
 	
 	/// Simulates a mouse button press.
 	/// @param button Mouse button to simulate.
-	void press(input::mouse_button button = input::mouse_button::left);
+	void press(input::mouse_button button);
 	
 	/// Simulates a mouse button release.
 	/// @param button Mouse button to simulate.
-	void release(input::mouse_button button = input::mouse_button::left);
+	void release(input::mouse_button button);
 	
 	/// Simulates a mouse button press, followed by a mouse button release.
 	/// @param button Mouse button to simulate.
-	void click(input::mouse_button button = input::mouse_button::left);
+	void click(input::mouse_button button);
+
+	/// Returns `true` if input handling is enabled, `false` otherwise.
+	[[nodiscard]] inline constexpr bool is_input_handling_enabled() const noexcept
+	{
+		return m_handle_input;
+	}
 	
 	/// @}
 	
@@ -322,8 +433,12 @@ protected:
 private:
 	void set_parent(std::weak_ptr<element> parent);
 	void recalculate_bounds();
+	void recalculate_effective_opacity();
 	virtual void descendant_added(element& descendant);
 	virtual void descendant_removed(element& descendant);
+	virtual void child_min_size_changed(element& descendant);
+	virtual void effective_opacity_changed();
+	virtual void depth_changed();
 	
 	std::weak_ptr<element> m_parent;
 	std::vector<std::shared_ptr<element>> m_children;
@@ -332,7 +447,10 @@ private:
 	vector_type m_anchor_max{0.5f, 0.5f};
 	vector_type m_margin_min{};
 	vector_type m_margin_max{};
+	vector_type m_min_size{};
 	rectangle_type m_bounds{};
+
+	int m_z_offset{0};
 	
 	bool m_focus{false};
 	std::weak_ptr<element> m_focus_back;
@@ -343,8 +461,13 @@ private:
 	std::weak_ptr<element> m_focus_down;
 	
 	bool m_hover{false};
+
+	float m_opacity{1.0f};
+	float m_effective_opacity{1.0f};
+	bool m_handle_input{true};
 	
 	std::function<void(const element_focus_changed_event&)> m_focus_changed_callback;
+	std::function<void(const element_mouse_moved_event&)> m_mouse_moved_callback;
 	std::function<void(const element_mouse_entered_event&)> m_mouse_entered_callback;
 	std::function<void(const element_mouse_exited_event&)> m_mouse_exited_callback;
 	std::function<void(const element_mouse_button_pressed_event&)> m_mouse_button_pressed_callback;

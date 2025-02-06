@@ -39,6 +39,7 @@
 #include <engine/audio/sound-system.hpp>
 #include <engine/audio/sound-que.hpp>
 #include <engine/ui/canvas.hpp>
+#include <engine/ui/label.hpp>
 #include <engine/script/script-context.hpp>
 #include <entt/entt.hpp>
 #include <filesystem>
@@ -147,9 +148,14 @@ public:
 	std::shared_ptr<::event::subscription> mouse_moved_subscription;
 	std::shared_ptr<::event::subscription> mouse_button_pressed_subscription;
 	std::shared_ptr<::event::subscription> mouse_button_released_subscription;
-
 	std::shared_ptr<::event::subscription> mouse_scrolled_subscription;
 	bool gamepad_active;
+
+	std::shared_ptr<event::subscription> m_key_mapped_subscription;
+	std::shared_ptr<event::subscription> m_mouse_button_mapped_subscription;
+	std::shared_ptr<event::subscription> m_mouse_scroll_mapped_subscription;
+	std::shared_ptr<event::subscription> m_gamepad_axis_mapped_subscription;
+	std::shared_ptr<event::subscription> m_gamepad_button_mapped_subscription;
 	
 	// Localization and internationalization
 	std::shared_ptr<json> languages;
@@ -241,6 +247,8 @@ public:
 	std::vector<std::shared_ptr<::event::subscription>> menu_action_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> menu_mouse_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> movement_action_subscriptions;
+
+	bool m_ingame{false};
 	
 	// Mouse settings
 	double mouse_radians_per_pixel{math::radians(0.1)};
@@ -282,7 +290,6 @@ public:
 	
 	// Hierarchichal state machine
 	hsm::state_machine<game_state> state_machine;
-	std::function<void()> resume_callback;
 	
 	// Queue for scheduling "next frame" function calls
 	std::queue<std::function<void()>> function_queue;
@@ -316,25 +323,39 @@ public:
 	// UI
 	std::shared_ptr<ui::canvas> ui_canvas;
 	std::unique_ptr<scene::camera> ui_camera;
-	std::unique_ptr<scene::billboard> menu_bg_billboard;
-	std::shared_ptr<render::material> menu_bg_material;
 
 	std::unique_ptr<scene::billboard> screen_transition_billboard;
 	std::shared_ptr<render::material> screen_transition_material;
+
+	std::shared_ptr<ui::element> m_root_menu_container;
+	std::shared_ptr<ui::element> m_main_menu_container;
+	std::shared_ptr<ui::element> m_pause_menu_container;
+	std::shared_ptr<ui::element> m_options_menu_container;
+	std::shared_ptr<ui::element> m_controls_menu_container;
+	std::shared_ptr<ui::element> m_keyboard_config_menu_container;
+	std::shared_ptr<ui::element> m_gamepad_config_menu_container;
+	std::shared_ptr<ui::element> m_graphics_menu_container;
+	std::shared_ptr<ui::element> m_sound_menu_container;
+	std::shared_ptr<ui::element> m_language_menu_container;
+	std::shared_ptr<ui::element> m_extras_menu_container;
+	std::shared_ptr<ui::element> m_credits_menu_container;
+	std::weak_ptr<ui::element> m_menu_focused_element;
+	std::shared_ptr<render::material> m_pause_menu_bg_material;
+	std::shared_ptr<render::matvar_fvec4> m_pause_menu_bg_color;
+	std::shared_ptr<ui::element> m_pause_menu_bg;
+
+	entity::id m_menu_animation_entity{entt::null};
+	std::shared_ptr<animation_sequence> m_menu_fade_in_sequence;
+	std::shared_ptr<animation_sequence> m_menu_fade_out_sequence;
+	entity::id m_pause_menu_bg_animation_entity{entt::null};
+	std::shared_ptr<animation_sequence> m_pause_menu_bg_fade_in_sequence;
+	std::shared_ptr<animation_sequence> m_pause_menu_bg_fade_out_sequence;
 	
 	float font_scale;
 	bool dyslexia_font;
 	float debug_font_size_pt;
 	float menu_font_size_pt;
 	float title_font_size_pt;
-	
-	std::vector<std::function<void()>> menu_select_callbacks;
-	std::vector<std::function<void()>> menu_left_callbacks;
-	std::vector<std::function<void()>> menu_right_callbacks;
-	std::function<void()> menu_back_callback;
-	std::vector<std::tuple<scene::text*, scene::text*>> menu_item_texts;
-	std::unordered_map<hash::fnv32_t, int> menu_item_indices;
-	int* menu_item_index;
 	
 	// Scene
 	std::unique_ptr<scene::collection> exterior_scene;
@@ -347,10 +368,6 @@ public:
 	scene::collection* active_scene;
 	
 	// Animation
-	entity::id menu_bg_entity{entt::null};
-	entity::id menu_entity{entt::null};
-	std::shared_ptr<animation_sequence> menu_bg_fade_in_sequence;
-	std::shared_ptr<animation_sequence> menu_bg_fade_out_sequence;
 	std::shared_ptr<animation_sequence> menu_fade_in_sequence;
 	std::shared_ptr<animation_sequence> menu_fade_out_sequence;
 	entity::id screen_transition_entity{entt::null};

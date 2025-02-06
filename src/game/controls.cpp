@@ -5,7 +5,6 @@
 #include "game/graphics.hpp"
 #include "game/menu.hpp"
 #include "game/control-profile.hpp"
-#include "game/states/pause-menu-state.hpp"
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/json.hpp>
 #include <engine/input/modifier-key.hpp>
@@ -373,28 +372,14 @@ void setup_game_controls(::game& ctx)
 		(
 			[&ctx]([[maybe_unused]] const auto& event)
 			{
-				if (!ctx.resume_callback)
-				{
-					// Queue disable game controls and push pause state
-					ctx.function_queue.push
-					(
-						[&ctx]()
-						{
-							// Disable game controls
-							::disable_game_controls(ctx);
-							
-							// Push pause menu state
-							ctx.state_machine.emplace(std::make_unique<pause_menu_state>(ctx));
-						}
-					);
-					
-					// Set resume callback
-					ctx.resume_callback = [&ctx]()
+				ctx.function_queue.emplace
+				(
+					[&ctx]()
 					{
-						enable_game_controls(ctx);
-						ctx.resume_callback = nullptr;
-					};
-				}
+						::disable_game_controls(ctx);
+						open_pause_menu(ctx);
+					}
+				);
 			}
 		)
 	);
@@ -403,11 +388,13 @@ void setup_game_controls(::game& ctx)
 void enable_game_controls(::game& ctx)
 {
 	ctx.movement_action_map.enable();
+	ctx.ant_action_map.enable();
 }
 
 void disable_game_controls(::game& ctx)
 {
 	ctx.movement_action_map.disable();
+	ctx.ant_action_map.disable();
 	
 	ctx.move_forward_action.reset();
 	ctx.move_back_action.reset();

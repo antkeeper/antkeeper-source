@@ -6,27 +6,12 @@
 
 #include "game/game.hpp"
 
-namespace menu {
+void build_menus(::game& ctx);
 
-void init_menu_item_index(::game& ctx, hash::fnv32_t menu_name);
-void setup_animations(::game& ctx);
+void open_main_menu(::game& ctx, bool fade_in);
+void close_main_menu(::game& ctx);
 
-void clear_callbacks(::game& ctx);
-void remove_text_from_ui(::game& ctx);
-void delete_text(::game& ctx);
-
-void fade_in(::game& ctx, const std::function<void()>& end_callback);
-void fade_out(::game& ctx, const std::function<void()>& end_callback);
-
-void fade_in_bg(::game& ctx);
-void fade_out_bg(::game& ctx);
-
-void update_text_color(::game& ctx);
-void update_text_font(::game& ctx);
-void align_text(::game& ctx, bool center = false, bool has_back = true, float anchor_y = 0.0f);
-void refresh_text(::game& ctx);
-void add_text_to_ui(::game& ctx);
-
-} // namespace menu
+void open_pause_menu(::game& ctx);
+void close_pause_menu(::game& ctx);
 
 #endif // ANTKEEPER_GAME_MENU_HPP

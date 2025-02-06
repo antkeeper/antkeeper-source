@@ -11,7 +11,6 @@
 #include "game/graphics.hpp"
 #include "game/menu.hpp"
 #include "game/settings.hpp"
-#include "game/states/main-menu-state.hpp"
 #include "game/states/splash-state.hpp"
 #include "game/strings.hpp"
 #include "game/world.hpp"
@@ -772,6 +771,7 @@ void game::setup_ui()
 	
 	// Setup UI canvas
 	ui_canvas = std::make_shared<ui::canvas>();
+	ui_canvas->set_anchors(0.0f, 0.0f, 0.0f, 0.0f);
 	ui_canvas->set_margins(0.0f, 0.0f, static_cast<float>(viewport_size.x()), static_cast<float>(viewport_size.y()));
 	
 	// Setup UI camera
@@ -787,19 +787,13 @@ void game::setup_ui()
 	ui_camera->look_at({0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
 	
 	// Menu BG material
-	menu_bg_material = std::make_shared<render::material>();
-	menu_bg_material->set_shader_template(resource_manager->load<gl::shader_template>("ui-element-untextured.glsl"));
-	std::shared_ptr<render::matvar_fvec4> menu_bg_tint = std::make_shared<render::matvar_fvec4>(1, math::fvec4{0.0f, 0.0f, 0.0f, 0.5f});
-	menu_bg_material->set_variable("tint"_fnv1a32, menu_bg_tint);
-	menu_bg_material->set_blend_mode(render::material_blend_mode::translucent);
-	
-	// Menu BG billboard
-	menu_bg_billboard = std::make_unique<scene::billboard>();
-	menu_bg_billboard->set_material(menu_bg_material);
-	menu_bg_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
-	menu_bg_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), -100.0f});
+	m_pause_menu_bg_material = std::make_shared<render::material>();
+	m_pause_menu_bg_material->set_shader_template(resource_manager->load<gl::shader_template>("ui-element-untextured.glsl"));
+	m_pause_menu_bg_color = std::make_shared<render::matvar_fvec4>(1, math::fvec4{0.0f, 0.0f, 0.0f, 0.0f});
+	m_pause_menu_bg_material->set_variable("tint"_fnv1a32, m_pause_menu_bg_color);
+	m_pause_menu_bg_material->set_blend_mode(render::material_blend_mode::translucent);
 
-	// Menu BG material
+	// Screen transition
 	screen_transition_material = std::make_shared<render::material>();
 	screen_transition_material->set_shader_template(resource_manager->load<gl::shader_template>("ui-element-untextured.glsl"));
 	std::shared_ptr<render::matvar_fvec4> screen_transition_tint = std::make_shared<render::matvar_fvec4>(1, math::fvec4{0.0f, 0.0f, 0.0f, 1.0f});
@@ -812,48 +806,6 @@ void game::setup_ui()
 	screen_transition_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
 	screen_transition_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), 98.0f});
 	screen_transition_billboard->set_layer_mask(0);
-
-	// Construct menu bg entity
-	menu_bg_entity = entity_registry->create();
-	entity_registry->emplace<animation_component>(menu_bg_entity);
-
-	// Construct menu bg fade in sequence
-	{
-		menu_bg_fade_in_sequence = std::make_shared<animation_sequence>();
-		auto& opacity_track = menu_bg_fade_in_sequence->tracks()["opacity"];
-		auto& opacity_channel = opacity_track.channels().emplace_back();
-		opacity_channel.keyframes().emplace(0.0f, 0.0f);
-		opacity_channel.keyframes().emplace(config::menu_fade_in_duration, config::menu_bg_opacity);
-
-		opacity_track.output() = [menu_bg_tint](auto samples, auto&)
-		{
-			menu_bg_tint->set(math::fvec4{0.0f, 0.0f, 0.0f, samples[0]});
-		};
-
-		menu_bg_fade_in_sequence->cues().emplace(0.0f, [&](auto&)
-		{
-			ui_canvas->get_scene().add_object(*menu_bg_billboard);
-		});
-	}
-
-	// Construct menu bg fade out sequence
-	{
-		menu_bg_fade_out_sequence = std::make_shared<animation_sequence>();
-		auto& opacity_track = menu_bg_fade_out_sequence->tracks()["opacity"];
-		auto& opacity_channel = opacity_track.channels().emplace_back();
-		opacity_channel.keyframes().emplace(0.0f, config::menu_bg_opacity);
-		opacity_channel.keyframes().emplace(config::menu_fade_out_duration, 0.0f);
-
-		opacity_track.output() = [menu_bg_tint](auto samples, auto&)
-		{
-			menu_bg_tint->set(math::fvec4{0.0f, 0.0f, 0.0f, samples[0]});
-		};
-
-		menu_bg_fade_out_sequence->cues().emplace(1.0f, [&](auto&)
-		{
-			ui_canvas->get_scene().remove_object(*menu_bg_billboard);
-		});
-	}
 
 	// Construct screen fade in sequence
 	{
@@ -886,13 +838,6 @@ void game::setup_ui()
 	// Construct screen transition entity
 	screen_transition_entity = entity_registry->create();
 	entity_registry->emplace<animation_component>(screen_transition_entity);
-
-	// Construct menu entity
-	menu_entity = entity_registry->create();
-	entity_registry->emplace<animation_component>(menu_entity);
-
-	// Setup menu animations
-	menu::setup_animations(*this);
 	
 	// Add UI scene objects to UI scene
 	ui_canvas->get_scene().add_object(*ui_camera);
@@ -963,17 +908,10 @@ void game::setup_ui()
 
 			// Resize screen transition billboard
 			screen_transition_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
-			screen_transition_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), -100.0f});
-			
-			// Resize menu BG billboard
-			menu_bg_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
-			menu_bg_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), -100.0f});
+			screen_transition_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), 98.0f});
 			
 			// Re-align debug text
 			frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - debug_font->get_metrics().size), 99.0f});
-			
-			// Re-align menu text
-			::menu::align_text(*this);
 		}
 	);
 	
@@ -1016,6 +954,8 @@ void game::setup_ui()
 			ui_canvas->handle_mouse_button_released(event_flipped_y);
 		}
 	);
+
+	build_menus(*this);
 	
 	debug::log_debug("Setting up UI... OK");
 }
@@ -1353,9 +1293,9 @@ void game::variable_update([[maybe_unused]] ::frame_scheduler::duration_type fix
 
 void game::execute()
 {
-	// Change to initial state
-	state_machine.emplace(std::make_unique<main_menu_state>(*this, true));
-	
+	// Enter main menu
+	open_main_menu(*this, true);
+
 	debug::log_debug("Entered main loop");
 	
 	frame_scheduler.refresh();

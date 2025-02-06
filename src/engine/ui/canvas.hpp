@@ -16,6 +16,11 @@ public:
 	/// Destructs a canvas.
 	~canvas() override = default;
 
+	[[nodiscard]] inline constexpr element_type get_type() const noexcept override
+	{
+		return element_type::canvas;
+	}
+
 	/// Returns the canvas's scene.
 	[[nodiscard]] inline auto& get_scene() noexcept
 	{

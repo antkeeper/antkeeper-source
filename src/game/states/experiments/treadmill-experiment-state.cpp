@@ -41,7 +41,6 @@
 #include "game/controls.hpp"
 #include "game/spawn.hpp"
 #include "game/screen-transition.hpp"
-#include "game/states/pause-menu-state.hpp"
 #include "game/systems/astronomy-system.hpp"
 #include "game/systems/atmosphere-system.hpp"
 #include "game/systems/camera-system.hpp"
@@ -352,7 +351,7 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	setup_controls();
 	
 	// Queue enable game controls
-	ctx.function_queue.push
+	ctx.function_queue.emplace
 	(
 		[&ctx]()
 		{

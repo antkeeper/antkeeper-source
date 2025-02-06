@@ -23,7 +23,6 @@ void fade_out_to(::game& ctx, const std::function<void()>& callback)
 		}
 	});
 
-	// Start credits roll
 	auto& player = ctx.entity_registry->get<animation_component>(ctx.screen_transition_entity).player;
 	player.rewind();
 	player.play(ctx.screen_fade_out_sequence);
@@ -49,7 +48,6 @@ void fade_in_to(::game& ctx, const std::function<void()>& callback)
 		}
 	});
 
-	// Start credits roll
 	auto& player = ctx.entity_registry->get<animation_component>(ctx.screen_transition_entity).player;
 	player.rewind();
 	player.play(ctx.screen_fade_in_sequence);

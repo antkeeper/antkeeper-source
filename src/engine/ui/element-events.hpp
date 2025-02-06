@@ -20,6 +20,22 @@ struct element_focus_changed_event
 	bool has_focus{false};
 };
 
+/// Event generated when a mouse moves within the bounds of an element.
+struct element_mouse_moved_event
+{
+	/// Pointer to the element in which the mouse has moved.
+	element* element{nullptr};
+
+	/// Pointer to the mouse.
+	input::mouse* mouse{nullptr};
+
+	/// Mouse position, in pixels, relative to the window.
+	math::fvec2 position{};
+
+	/// Relative movement of the mouse, in pixels.
+	math::fvec2 difference{};
+};
+
 /// Event generated when a mouse enters the bounds of an element.
 struct element_mouse_entered_event
 {

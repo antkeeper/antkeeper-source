@@ -88,6 +88,12 @@ public:
 		return m_world_bounds;
 	}
 
+	/// Returns the local bounds of the text.
+	[[nodiscard]] inline const auto& get_local_bounds() const noexcept
+	{
+		return m_local_bounds;
+	}
+
 private:
 	/// Updates UV coordinates of each characters.
 	void update_uvs();
