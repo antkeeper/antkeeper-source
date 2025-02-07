@@ -97,7 +97,7 @@ FetchContent_Declare(physfs
 )
 FetchContent_Declare(SDL3
 	GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-	GIT_TAG 2fa1e7258a1fd9e3a7a546218b5ed1564953ad39 # v3.2.2
+	GIT_TAG b5c3eab6b447111d3c7879bb547b80fb4abd9063 # v3.2.4
 	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(stb
