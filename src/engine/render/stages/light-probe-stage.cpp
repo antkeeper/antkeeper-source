@@ -6,6 +6,7 @@
 #include <engine/scene/light-probe.hpp>
 #include <engine/scene/collection.hpp>
 #include <engine/hash/fnv.hpp>
+#include <engine/debug/contract.hpp>
 #include <stdexcept>
 
 using namespace hash::literals;
@@ -105,6 +106,27 @@ light_probe_stage::light_probe_stage(gl::pipeline& pipeline, ::resource_manager&
 	// Load cubemap filter shader template and build shader program
 	m_cubemap_filter_shader_template = resource_manager.load<gl::shader_template>("cubemap-filter.glsl");
 	rebuild_cubemap_filter_shader_program();
+
+	debug::postcondition(m_vertex_array != nullptr);
+
+	debug::postcondition(m_cubemap_to_sh_shader_program != nullptr);
+	debug::postcondition(m_cubemap_to_sh_cubemap_var != nullptr);
+
+	debug::postcondition(m_cubemap_downsample_shader_program != nullptr);
+	debug::postcondition(m_cubemap_downsample_cubemap_var != nullptr);
+
+	debug::postcondition(m_cubemap_filter_lut_texture != nullptr);
+	debug::postcondition(m_cubemap_filter_lut_framebuffer != nullptr);
+	debug::postcondition(m_cubemap_filter_lut_shader_program != nullptr);
+	debug::postcondition(m_cubemap_filter_lut_resolution_var != nullptr);
+	debug::postcondition(m_cubemap_filter_lut_face_size_var != nullptr);
+	debug::postcondition(m_cubemap_filter_lut_mip_bias_var != nullptr);
+
+	debug::postcondition(m_cubemap_filter_shader_program != nullptr);
+	debug::postcondition(m_cubemap_filter_cubemap_var != nullptr);
+	debug::postcondition(m_cubemap_filter_filter_lut_var != nullptr);
+	debug::postcondition(m_cubemap_filter_mip_level_var != nullptr);
+
 }
 
 void light_probe_stage::execute(render::context& ctx)
@@ -131,6 +153,8 @@ void light_probe_stage::update_light_probes_luminance(const std::vector<scene::o
 		{
 			continue;
 		}
+
+		debug::invariant(light_probe.get_luminance_texture() != nullptr);
 		
 		// Store light probe luminance sampler
 		auto light_probe_luminance_sampler = light_probe.get_luminance_texture()->get_sampler();
@@ -233,6 +257,9 @@ void light_probe_stage::update_light_probes_illuminance(const std::vector<scene:
 		{
 			continue;
 		}
+
+		debug::invariant(light_probe.get_luminance_texture() != nullptr);
+		debug::invariant(light_probe.get_illuminance_framebuffer() != nullptr);
 		
 		// Setup viewport and bind cubemap to spherical harmonics shader program
 		if (!state_bound)

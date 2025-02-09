@@ -14,11 +14,17 @@
 
 namespace scene {
 
-/// Light probe for capturing scene lighting.
+/// Captures the luminance and illuminance of a scene.
 class light_probe: public object<light_probe>
 {
 public:
+	/// Constructs a light probe and its luminance texture.
+	/// @param format Luminance cubemap image format.
+	/// @param face_size Luminance cubemap face size.
+	light_probe(gl::format format, std::uint32_t face_size);
+
 	/// Constructs a light probe.
+	/// @note The light probe's luminance texture must be set before use.
 	light_probe();
 	
 	/// Destructs a light probe.
@@ -101,7 +107,7 @@ private:
 	std::vector<std::shared_ptr<gl::framebuffer>> m_luminance_framebuffers;
 	std::shared_ptr<gl::texture_1d> m_illuminance_texture;
 	std::shared_ptr<gl::framebuffer> m_illuminance_framebuffer;
-	math::fmat4 m_illuminance_matrices[3];
+	math::fmat4 m_illuminance_matrices[3]{};
 	bool m_luminance_outdated{};
 	bool m_illuminance_outdated{};
 };

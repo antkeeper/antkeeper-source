@@ -4,12 +4,10 @@
 #ifndef ANTKEEPER_SCENE_LIGHT_TYPE_HPP
 #define ANTKEEPER_SCENE_LIGHT_TYPE_HPP
 
-#include <cstdint>
-
 namespace scene {
 
 /// Light types.
-enum class light_type: std::uint8_t
+enum class light_type
 {
 	/// Directional light.
 	directional,

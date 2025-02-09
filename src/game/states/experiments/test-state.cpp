@@ -160,7 +160,7 @@ test_state::test_state(::game& ctx):
 		transform.scale.x() = 100.0f;
 		transform.scale.y() = 100.0f;
 		transform.scale.z() = transform.scale.x();
-		transform.translation.y() = -transform.scale.y() * 0.5f;
+		//transform.translation.y() = -transform.scale.y() * 0.5f;
 		auto material = ctx.resource_manager->load<render::material>("grid-terrain-cm-middle-gray.mtl");
 		ctx.terrain_system->generate(heightmap, subdivisions, transform, material);
 	}
@@ -251,14 +251,6 @@ test_state::test_state(::game& ctx):
 	// Set ant as controlled ant
 	ctx.controlled_ant_eid = worker_eid;
 	
-	// Create color checker
-	auto color_checker_eid = ctx.entity_registry->create();
-	scene_component color_checker_scene_component;
-	color_checker_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("color-checker.mdl"));
-	color_checker_scene_component.object->set_translation({0, 0, 4});
-	color_checker_scene_component.layer_mask = 1;
-	ctx.entity_registry->emplace<scene_component>(color_checker_eid, std::move(color_checker_scene_component));
-	
 	// Set world time
 	::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
 	
@@ -271,35 +263,7 @@ test_state::test_state(::game& ctx):
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
 	
-	sky_probe = std::make_shared<scene::light_probe>();
-	const std::uint32_t sky_probe_face_size = 128;
-	const auto sky_probe_mip_levels = static_cast<std::uint32_t>(std::bit_width(sky_probe_face_size));
-	sky_probe->set_luminance_texture
-	(
-		std::make_shared<gl::texture_cube>
-		(
-			std::make_shared<gl::image_view_cube>
-			(
-				std::make_shared<gl::image_cube>
-				(
-					gl::format::r16g16b16_sfloat,
-					sky_probe_face_size,
-					sky_probe_mip_levels
-				),
-				gl::format::undefined,
-				0,
-				sky_probe_mip_levels
-			),
-			std::make_shared<gl::sampler>
-			(
-				gl::sampler_filter::linear,
-				gl::sampler_filter::linear,
-				gl::sampler_mipmap_mode::linear,
-				gl::sampler_address_mode::clamp_to_edge,
-				gl::sampler_address_mode::clamp_to_edge
-			)
-		)
-	);
+	sky_probe = std::make_shared<scene::light_probe>(gl::format::r16g16b16_sfloat, 128);
 	
 	ctx.sky_pass->set_sky_probe(sky_probe);
 	ctx.exterior_scene->add_object(*sky_probe);
