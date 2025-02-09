@@ -310,6 +310,7 @@ public:
 	math::ivec2 render_resolution;
 	float render_scale;
 	int shadow_map_resolution;
+	render::anti_aliasing_method anti_aliasing_method;
 	std::unique_ptr<render::material_pass> ui_material_pass;
 	std::unique_ptr<render::compositor> ui_compositor;
 	std::unique_ptr<render::bloom_pass> bloom_pass;
@@ -427,7 +428,6 @@ public:
 	math::moving_average<float> average_frame_duration;
 	
 	std::shared_ptr<ecoregion> active_ecoregion;
-	render::anti_aliasing_method anti_aliasing_method;
 	
 private:
 	void parse_options(int argc, const char* const* argv);

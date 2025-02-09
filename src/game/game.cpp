@@ -11,7 +11,6 @@
 #include "game/graphics.hpp"
 #include "game/menu.hpp"
 #include "game/settings.hpp"
-#include "game/states/splash-state.hpp"
 #include "game/strings.hpp"
 #include "game/world.hpp"
 #include "game/systems/astronomy-system.hpp"
@@ -1240,11 +1239,9 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 	
 	// Update entity systems
 	animation_system->update(t, dt);
-	
 	physics_system->update(t, dt);
-	
-	//terrain_system->update(t, dt);
-	//subterrain_system->update(t, dt);
+	terrain_system->update(t, dt);
+	subterrain_system->update(t, dt);
 	collision_system->update(t, dt);
 	behavior_system->update(t, dt);
 	steering_system->update(t, dt);
@@ -1253,7 +1250,6 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 	reproductive_system->update(t, dt);
 	metabolic_system->update(t, dt);
 	metamorphosis_system->update(t, dt);
-	// physics_system->update(t, dt);
 	orbit_system->update(t, dt);
 	blackbody_system->update(t, dt);
 	atmosphere_system->update(t, dt);

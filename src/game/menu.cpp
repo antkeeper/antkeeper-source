@@ -811,7 +811,6 @@ namespace
 			// Create change state function
 			auto change_state = [&ctx]()
 			{
-				// Queue change to nuptial state
 				ctx.function_queue.emplace
 				(
 					[&ctx]()

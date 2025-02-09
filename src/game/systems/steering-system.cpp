@@ -10,7 +10,6 @@
 #include <engine/ai/steering/behavior/wander.hpp>
 #include <engine/ai/steering/behavior/seek.hpp>
 #include <engine/math/quaternion.hpp>
-#include <engine/config.hpp>
 
 steering_system::steering_system(entity::registry& registry):
 	updatable_system(registry)
@@ -63,8 +62,8 @@ void steering_system::update([[maybe_unused]] float t, float dt)
 			if (speed_squared)
 			{
 				agent.orientation = math::look_rotation(agent.velocity / std::sqrt(speed_squared), agent.up);
-				agent.forward = agent.orientation * config::global_forward;
-				agent.up = agent.orientation * config::global_up;
+				agent.forward = agent.orientation * global_forward;
+				agent.up = agent.orientation * global_up;
 			}
 			
 			// Update orientation

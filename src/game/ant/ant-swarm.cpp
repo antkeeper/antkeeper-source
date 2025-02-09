@@ -9,11 +9,11 @@
 #include "game/components/winged-locomotion-component.hpp"
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/ant-caste-component.hpp"
+#include "game/systems/steering-system.hpp"
 #include <engine/resources/resource-manager.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/math/functions.hpp>
 #include <engine/scene/static-mesh.hpp>
-#include <engine/config.hpp>
 #include <cmath>
 #include <random>
 
@@ -75,8 +75,8 @@ entity::id create_ant_swarm(::game& ctx)
 	steering.agent.max_speed = 5.0f;
 	steering.agent.max_speed_squared = steering.agent.max_speed * steering.agent.max_speed;
 	steering.agent.orientation = math::identity<math::fquat>;
-	steering.agent.forward = steering.agent.orientation * config::global_forward;
-	steering.agent.up = steering.agent.orientation * config::global_up;
+	steering.agent.forward = steering.agent.orientation * steering_system::global_forward;
+	steering.agent.up = steering.agent.orientation * steering_system::global_up;
 	steering.wander_weight = 1.0f;
 	steering.wander_noise = math::radians(2000.0f);
 	steering.wander_distance = 10.0f;
