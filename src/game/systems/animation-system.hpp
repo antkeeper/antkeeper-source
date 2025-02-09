@@ -4,7 +4,8 @@
 #ifndef ANTKEEPER_GAME_ANIMATION_SYSTEM_HPP
 #define ANTKEEPER_GAME_ANIMATION_SYSTEM_HPP
 
-#include "game/systems/updatable-system.hpp"
+#include "game/systems/fixed-update-system.hpp"
+#include "game/systems/variable-update-system.hpp"
 #include <engine/entity/id.hpp>
 #include <memory>
 #include <vector>
@@ -12,21 +13,19 @@
 class animation_player;
 
 class animation_system:
-	public updatable_system
+	public fixed_update_system,
+	public variable_update_system
 {
 public:
 	explicit animation_system(entity::registry& registry);
 	~animation_system() override;
-	void update(float t, float dt) override;
-	void interpolate(float alpha);
+	void fixed_update(entity::registry& registry, float t, float dt) override;
+	void variable_update(entity::registry& registry, float t, float dt, float alpha) override;
 
 private:
 	void on_animation_construct(entity::registry& registry, entity::id entity);
 
-	float m_previous_update_time{};
-	float m_update_time{};
-	float m_fixed_timestep{};
-
+	entity::registry& m_registry;
 	float m_previous_render_time{};
 	float m_render_time{};
 };

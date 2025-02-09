@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <engine/math/vector.hpp>
 #include "game/components/animation-component.hpp"
+#include "game/components/tag-component.hpp"
 #include "game/strings.hpp"
 #include "game/controls.hpp"
 #include "game/control-profile.hpp"
@@ -28,6 +29,8 @@
 #include <engine/debug/contract.hpp>
 #include <engine/debug/log.hpp>
 #include <engine/resources/resource-manager.hpp>
+
+using namespace hash::literals;
 
 namespace
 {
@@ -964,6 +967,7 @@ namespace
 				{
 					ctx.ui_canvas->remove_child(ctx.m_pause_menu_bg);
 					ctx.m_ingame = false;
+					ctx.state_machine.pop();
 					open_main_menu(ctx, true);
 				}
 			);
@@ -1819,6 +1823,7 @@ namespace
 		// Construct menu animation entity
 		ctx.m_menu_animation_entity = ctx.entity_registry->create();
 		ctx.entity_registry->emplace<animation_component>(ctx.m_menu_animation_entity);
+		ctx.entity_registry->emplace<tag_component<"persistent"_fnv1a32>>(ctx.m_menu_animation_entity);
 
 		auto set_pause_menu_bg_opacity = [&](auto samples, auto&)
 		{
@@ -1859,6 +1864,7 @@ namespace
 		// Construct pause menu bg animation entity
 		ctx.m_pause_menu_bg_animation_entity = ctx.entity_registry->create();
 		ctx.entity_registry->emplace<animation_component>(ctx.m_pause_menu_bg_animation_entity);
+		ctx.entity_registry->emplace<tag_component<"persistent"_fnv1a32>>(ctx.m_pause_menu_bg_animation_entity);
 	}
 }
 

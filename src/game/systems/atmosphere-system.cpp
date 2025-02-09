@@ -7,7 +7,7 @@
 #include <engine/physics/number-density.hpp>
 
 atmosphere_system::atmosphere_system(entity::registry& registry):
-	updatable_system(registry)
+	m_registry(registry)
 {
 	m_registry.on_construct<::atmosphere_component>().connect<&atmosphere_system::on_atmosphere_construct>(this);
 	m_registry.on_update<::atmosphere_component>().connect<&atmosphere_system::on_atmosphere_update>(this);
@@ -26,7 +26,7 @@ atmosphere_system::~atmosphere_system()
 	m_registry.on_destroy<::atmosphere_component>().disconnect<&atmosphere_system::on_atmosphere_destroy>(this);
 }
 
-void atmosphere_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
+void atmosphere_system::fixed_update(entity::registry&, float, float)
 {}
 
 void atmosphere_system::set_rgb_wavelengths(const math::dvec3& wavelengths)

@@ -6,12 +6,14 @@
 #include "game/components/blackbody-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/diffuse-reflector-component.hpp"
+#include "game/utility/time.hpp"
 #include <engine/geom/intersection.hpp>
 #include <engine/geom/primitives/sphere.hpp>
 #include <engine/color/color.hpp>
 #include <engine/physics/orbit/orbit.hpp>
 #include <engine/physics/time/ut1.hpp>
 #include <engine/physics/time/jd.hpp>
+#include <engine/physics/time/constants.hpp>
 #include <engine/physics/light/photometry.hpp>
 #include <engine/physics/light/luminosity.hpp>
 #include <engine/physics/light/refraction.hpp>
@@ -23,7 +25,7 @@
 #include <engine/debug/log.hpp>
 
 astronomy_system::astronomy_system(entity::registry& registry):
-	updatable_system(registry)
+	m_registry{registry}
 {
 	// Construct ENU to EUS transformation
 	m_enu_to_eus = math::se3<double>
@@ -62,17 +64,20 @@ astronomy_system::~astronomy_system()
 	m_registry.on_destroy<::atmosphere_component>().disconnect<&astronomy_system::on_atmosphere_destroyed>(this);
 }
 
-void astronomy_system::update([[maybe_unused]] float t, float dt)
+void astronomy_system::fixed_update(entity::registry& registry, float, float dt)
 {
+	const auto time_scale = get_time_scale(registry);
+	const auto astronomical_time_scale = time_scale / physics::time::seconds_per_day<double>;
+
 	// Add scaled timestep to current time
-	set_time(m_time_days + dt * m_time_scale);
+	set_time(m_time_days + dt * astronomical_time_scale);
 	
 	// Abort if no valid observer entity or reference body entity
 	if (m_observer_eid == entt::null || m_reference_body_eid == entt::null)
 		return;
 	
 	// Get pointer to observer component
-	const auto observer = m_registry.try_get<observer_component>(m_observer_eid);
+	const auto observer = registry.try_get<observer_component>(m_observer_eid);
 	
 	// Abort if no observer component
 	if (!observer)
@@ -84,7 +89,7 @@ void astronomy_system::update([[maybe_unused]] float t, float dt)
 		reference_body,
 		reference_orbit,
 		reference_atmosphere
-	] = m_registry.try_get<celestial_body_component, orbit_component, atmosphere_component>(m_reference_body_eid);
+	] = registry.try_get<celestial_body_component, orbit_component, atmosphere_component>(m_reference_body_eid);
 	
 	// Abort if no reference body or reference orbit
 	if (!reference_body || !reference_orbit)
@@ -99,7 +104,7 @@ void astronomy_system::update([[maybe_unused]] float t, float dt)
 	update_icrf_to_eus(*reference_body, *reference_orbit);
 	
 	// Set the transform component translations of orbiting bodies to their topocentric positions
-	m_registry.view<celestial_body_component, orbit_component, transform_component>().each
+	registry.view<celestial_body_component, orbit_component, transform_component>().each
 	(
 		[&](entity::id entity_id, const auto& body, const auto& orbit, auto& transform)
 		{
@@ -134,7 +139,7 @@ void astronomy_system::update([[maybe_unused]] float t, float dt)
 	);
 	
 	// Update blackbody lighting
-	m_registry.view<celestial_body_component, orbit_component, blackbody_component>().each(
+	registry.view<celestial_body_component, orbit_component, blackbody_component>().each(
 	[&]([[maybe_unused]] entity::id entity_id, const auto& blackbody_body, const auto& blackbody_orbit, const auto& blackbody)
 	{
 		// Transform blackbody position from ICRF frame to EUS frame
@@ -201,7 +206,7 @@ void astronomy_system::update([[maybe_unused]] float t, float dt)
 		}
 		
 		// Update diffuse reflectors
-		m_registry.view<celestial_body_component, orbit_component, diffuse_reflector_component, transform_component>().each(
+		registry.view<celestial_body_component, orbit_component, diffuse_reflector_component, transform_component>().each(
 		[&]([[maybe_unused]] entity::id entity_id, const auto& reflector_body, const auto& reflector_orbit, const auto& reflector, const auto& transform)
 		{
 			// Transform reflector position from ICRF frame to EUS frame
@@ -302,11 +307,6 @@ void astronomy_system::set_time(double t)
 {
 	m_time_days = t;
 	m_time_centuries = m_time_days * physics::time::jd::centuries_per_day<double>;
-}
-
-void astronomy_system::set_time_scale(double scale)
-{
-	m_time_scale = scale;
 }
 
 void astronomy_system::set_observer(entity::id eid)

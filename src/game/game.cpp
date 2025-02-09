@@ -28,12 +28,15 @@
 #include "game/systems/spatial-system.hpp"
 #include "game/systems/steering-system.hpp"
 #include "game/systems/physics-system.hpp"
-#include "game/systems/subterrain-system.hpp"
 #include "game/systems/terrain-system.hpp"
 #include "game/systems/reproductive-system.hpp"
 #include "game/systems/metabolic-system.hpp"
 #include "game/systems/metamorphosis-system.hpp"
+#include "game/systems/frame-interpolation-system.hpp"
 #include "game/components/animation-component.hpp"
+#include "game/components/gravity-component.hpp"
+#include "game/components/time-component.hpp"
+#include "game/components/tag-component.hpp"
 #include <algorithm>
 #include <cctype>
 #include <engine/animation/ease.hpp>
@@ -837,6 +840,7 @@ void game::setup_ui()
 	// Construct screen transition entity
 	screen_transition_entity = entity_registry->create();
 	entity_registry->emplace<animation_component>(screen_transition_entity);
+	entity_registry->emplace<tag_component<"persistent"_fnv1a32>>(screen_transition_entity);
 	
 	// Add UI scene objects to UI scene
 	ui_canvas->get_scene().add_object(*ui_camera);
@@ -980,80 +984,115 @@ void game::setup_entities()
 void game::setup_systems()
 {
 	debug::log_debug("Setting up systems...");
-
-	const auto& viewport_size = window->get_viewport_size();
-	math::fvec4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_size[0]), static_cast<float>(viewport_size[1])};
 	
 	// Setup terrain system
-	terrain_system = std::make_unique<::terrain_system>(*entity_registry);
+	auto terrain_system = std::make_shared<::terrain_system>();
 	
 	// Setup camera system
-	camera_system = std::make_unique<::camera_system>(*entity_registry);
-	camera_system->set_viewport(viewport);
-	
-	// Setup subterrain system
-	subterrain_system = std::make_unique<::subterrain_system>(*entity_registry, resource_manager.get());
+	auto camera_system = std::make_shared<::camera_system>();
 	
 	// Setup collision system
-	collision_system = std::make_unique<::collision_system>(*entity_registry);
+	auto collision_system = std::make_shared<::collision_system>();
 	
 	// Setup behavior system
-	behavior_system = std::make_unique<::behavior_system>(*entity_registry);
+	auto behavior_system = std::make_shared<::behavior_system>();
 	
 	// Setup steering system
-	steering_system = std::make_unique<::steering_system>(*entity_registry);
+	auto steering_system = std::make_shared<::steering_system>();
 	
 	// Setup locomotion system
-	locomotion_system = std::make_unique<::locomotion_system>(*entity_registry);
+	auto locomotion_system = std::make_shared<::locomotion_system>();
 	
 	// Setup IK system
-	ik_system = std::make_unique<::ik_system>(*entity_registry);
+	auto ik_system = std::make_shared<::ik_system>();
 	
 	// Setup metabolic system
-	metabolic_system = std::make_unique<::metabolic_system>(*entity_registry);
+	auto metabolic_system = std::make_shared<::metabolic_system>();
 	
 	// Setup metamorphosis system
-	metamorphosis_system = std::make_unique<::metamorphosis_system>(*entity_registry);
+	auto metamorphosis_system = std::make_shared<::metamorphosis_system>();
 	
 	// Setup animation system
-	animation_system = std::make_unique<::animation_system>(*entity_registry);
+	auto animation_system = std::make_shared<::animation_system>(*entity_registry);
 	
 	// Setup physics system
-	physics_system = std::make_unique<::physics_system>(*entity_registry);
-	physics_system->set_gravity({0.0f, -9.80665f * 100.0f, 0.0f});
+	m_physics_system = std::make_shared<::physics_system>();
 	
 	// Setup reproductive system
-	reproductive_system = std::make_unique<::reproductive_system>(*entity_registry);
-	reproductive_system->set_physics_system(physics_system.get());
+	auto reproductive_system = std::make_shared<::reproductive_system>();
 	
 	// Setup spatial system
-	spatial_system = std::make_unique<::spatial_system>(*entity_registry);
+	auto spatial_system = std::make_shared<::spatial_system>();
 	
 	// Setup constraint system
-	constraint_system = std::make_unique<::constraint_system>(*entity_registry);
+	m_constraint_system = std::make_shared<::constraint_system>(*entity_registry);
 	
 	// Setup orbit system
-	orbit_system = std::make_unique<::orbit_system>(*entity_registry);
+	m_orbit_system = std::make_shared<::orbit_system>(*entity_registry);
 	
 	// Setup blackbody system
-	blackbody_system = std::make_unique<::blackbody_system>(*entity_registry);
+	m_blackbody_system = std::make_shared<::blackbody_system>(*entity_registry);
 	
 	// Setup atmosphere system
-	atmosphere_system = std::make_unique<::atmosphere_system>(*entity_registry);
-	atmosphere_system->set_sky_pass(sky_pass.get());
+	m_atmosphere_system = std::make_shared<::atmosphere_system>(*entity_registry);
+	m_atmosphere_system->set_sky_pass(sky_pass.get());
 	
 	// Setup astronomy system
-	astronomy_system = std::make_unique<::astronomy_system>(*entity_registry);
-	astronomy_system->set_transmittance_samples(16);
-	astronomy_system->set_sky_pass(sky_pass.get());
+	m_astronomy_system = std::make_shared<::astronomy_system>(*entity_registry);
+	m_astronomy_system->set_transmittance_samples(16);
+	m_astronomy_system->set_sky_pass(sky_pass.get());
 	
 	// Setup render system
-	render_system = std::make_unique<::render_system>(*entity_registry);
-	render_system->set_renderer(renderer.get());
-	render_system->add_layer(exterior_scene.get());
-	render_system->add_layer(interior_scene.get());
-	render_system->add_layer(&ui_canvas->get_scene());
+	m_render_system = std::make_shared<::render_system>(*entity_registry);
+	m_render_system->set_renderer(renderer.get());
+	m_render_system->add_layer(exterior_scene.get());
+	m_render_system->add_layer(interior_scene.get());
+	m_render_system->add_layer(&ui_canvas->get_scene());
 
+	// Setup frame interpolation system
+	auto frame_interpolation_system = std::make_shared<::frame_interpolation_system>();
+
+	// Order fixed-rate updates
+	m_fixed_update_systems =
+	{
+		animation_system,
+		m_physics_system,
+		terrain_system,
+		collision_system,
+		behavior_system,
+		steering_system,
+		locomotion_system,
+		ik_system,
+		reproductive_system,
+		metabolic_system,
+		metamorphosis_system,
+		m_orbit_system,
+		m_blackbody_system,
+		m_atmosphere_system,
+		m_astronomy_system,
+		spatial_system,
+		m_constraint_system,
+		camera_system,
+		m_render_system
+	};
+
+	// Order variable-rate updates
+	m_variable_update_systems =
+	{
+		frame_interpolation_system,
+		animation_system,
+		camera_system,
+		m_render_system,
+	};
+
+	// Set up singleton components
+	auto gravity_entity_id = entity_registry->create();
+	entity_registry->emplace<gravity_component>(gravity_entity_id, math::fvec3{0.0f, -9.80665f * 100.0f, 0.0f});
+	entity_registry->emplace<tag_component<"persistent"_fnv1a32>>(gravity_entity_id);
+
+	auto time_entity_id = entity_registry->create();
+	entity_registry->emplace<time_component>(time_entity_id, 100.0f);
+	entity_registry->emplace<tag_component<"persistent"_fnv1a32>>(time_entity_id);
 
 	debug::log_debug("Setting up systems... OK");
 }
@@ -1237,32 +1276,17 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 		function_queue.pop();
 	}
 	
-	// Update entity systems
-	animation_system->update(t, dt);
-	physics_system->update(t, dt);
-	terrain_system->update(t, dt);
-	subterrain_system->update(t, dt);
-	collision_system->update(t, dt);
-	behavior_system->update(t, dt);
-	steering_system->update(t, dt);
-	locomotion_system->update(t, dt);
-	ik_system->update(t, dt);
-	reproductive_system->update(t, dt);
-	metabolic_system->update(t, dt);
-	metamorphosis_system->update(t, dt);
-	orbit_system->update(t, dt);
-	blackbody_system->update(t, dt);
-	atmosphere_system->update(t, dt);
-	astronomy_system->update(t, dt);
-	spatial_system->update(t, dt);
-	constraint_system->update(t, dt);
-	camera_system->update(t, dt);
-	render_system->update(t, dt);
+	// Update systems
+	for (const auto& system: m_fixed_update_systems)
+	{
+		system->fixed_update(*entity_registry, t, dt);
+	}
 }
 
 void game::variable_update([[maybe_unused]] ::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval, ::frame_scheduler::duration_type accumulated_time)
 {
-	// Calculate subframe interpolation factor (`alpha`)
+	const float t = std::chrono::duration<float>(fixed_update_time).count();
+	const float dt = std::chrono::duration<float>(fixed_update_interval).count();
 	const float alpha = static_cast<float>(std::chrono::duration<double, ::frame_scheduler::duration_type::period>{accumulated_time} / fixed_update_interval);
 	
 	// Sample average frame duration
@@ -1274,16 +1298,14 @@ void game::variable_update([[maybe_unused]] ::frame_scheduler::duration_type fix
 	
 	// Process input events
 	input_manager->update();
-	
-	// Interpolate physics
-	physics_system->interpolate(alpha);
-	
-	// Interpolate animation
-	animation_system->interpolate(alpha);
-	
-	// Render
-	camera_system->interpolate(alpha);
-	render_system->draw(alpha);
+
+	// Update systems
+	for (const auto& system: m_variable_update_systems)
+	{
+		system->variable_update(*entity_registry, t, dt, alpha);
+	}
+
+	// Redraw window
 	window->swap_buffers();
 }
 

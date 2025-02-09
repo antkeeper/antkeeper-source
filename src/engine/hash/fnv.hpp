@@ -18,10 +18,10 @@
 namespace hash {
 
 /// 32-bit FNV hash value.
-enum class fnv32_t : std::uint32_t {};
+enum class fnv32_t: std::uint32_t{};
 
 /// 64-bit FNV hash value.
-enum class fnv64_t : std::uint64_t {};
+enum class fnv64_t: std::uint64_t{};
 
 namespace types
 {

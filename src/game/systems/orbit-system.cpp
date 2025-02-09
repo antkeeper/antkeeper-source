@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/systems/orbit-system.hpp"
+#include "game/utility/time.hpp"
 #include <engine/physics/orbit/orbit.hpp>
+#include <engine/physics/time/constants.hpp>
 
 orbit_system::orbit_system(entity::registry& registry):
-	updatable_system(registry),
-	m_ephemeris(nullptr),
-	m_time(0.0),
-	m_time_scale(1.0)
+	m_registry(registry)
 {
 	m_registry.on_construct<::orbit_component>().connect<&orbit_system::on_orbit_construct>(this);
 	m_registry.on_update<::orbit_component>().connect<&orbit_system::on_orbit_update>(this);
@@ -20,10 +19,14 @@ orbit_system::~orbit_system()
 	m_registry.on_update<::orbit_component>().disconnect<&orbit_system::on_orbit_update>(this);
 }
 
-void orbit_system::update([[maybe_unused]] float t, float dt)
+void orbit_system::fixed_update(entity::registry& registry, float, float dt)
 {
+	// Scale timestep
+	const auto time_scale = get_time_scale(registry);
+	const auto astronomical_time_scale = time_scale / physics::time::seconds_per_day<double>;
+
 	// Add scaled timestep to current time
-	set_time(m_time + dt * m_time_scale);
+	set_time(m_time + dt * astronomical_time_scale);
 	
 	if (!m_ephemeris)
 	{
@@ -37,7 +40,7 @@ void orbit_system::update([[maybe_unused]] float t, float dt)
 	}
 	
 	// Propagate orbits
-	m_registry.view<orbit_component>().each
+	registry.view<orbit_component>().each
 	(
 		[&]([[maybe_unused]] entity::id entity_eid, auto& orbit)
 		{
@@ -46,7 +49,7 @@ void orbit_system::update([[maybe_unused]] float t, float dt)
 			entity::id parent_id = orbit.parent;
 			while (parent_id != entt::null)
 			{
-				const orbit_component& parent_orbit = m_registry.get<orbit_component>(parent_id);
+				const orbit_component& parent_orbit = registry.get<orbit_component>(parent_id);
 				orbit.position += m_positions[parent_orbit.ephemeris_index] * parent_orbit.scale;
 				parent_id = parent_orbit.parent;
 			}
@@ -63,11 +66,6 @@ void orbit_system::set_ephemeris(std::shared_ptr<physics::orbit::ephemeris<doubl
 void orbit_system::set_time(double time)
 {
 	m_time = time;
-}
-
-void orbit_system::set_time_scale(double scale)
-{
-	m_time_scale = scale;
 }
 
 void orbit_system::on_orbit_construct(entity::registry& registry, entity::id entity_id)

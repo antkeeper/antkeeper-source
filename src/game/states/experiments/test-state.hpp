@@ -13,7 +13,6 @@
 #include <engine/geom/primitives/ray.hpp>
 #include <engine/geom/primitives/plane.hpp>
 #include <engine/math/functions.hpp>
-#include <engine/scene/light-probe.hpp>
 #include <engine/scene/rectangle-light.hpp>
 #include <engine/geom/bvh/bvh.hpp>
 #include <engine/geom/brep/brep-mesh.hpp>
@@ -71,17 +70,11 @@ private:
 	math::dquat third_person_camera_yaw_rotation{math::identity<math::dquat>};
 	math::dquat third_person_camera_pitch_rotation{math::identity<math::dquat>};
 	math::dquat third_person_camera_orientation{math::identity<math::dquat>};
-	
 	std::shared_ptr<render::matvar_fvec3> light_rectangle_emissive;
-	std::shared_ptr<scene::light_probe> light_probe;
-	
 	entity::id larva_eid;
 	entity::id worker_eid;
-	
 	std::shared_ptr<ant_phenome> worker_phenome;
 	std::shared_ptr<ik_rig> worker_ik_rig;
-	
-	std::shared_ptr<scene::light_probe> sky_probe;
 	std::shared_ptr<scene::rectangle_light> area_light;
 };
 

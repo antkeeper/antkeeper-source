@@ -4,26 +4,23 @@
 #ifndef ANTKEEPER_GAME_RENDER_SYSTEM_HPP
 #define ANTKEEPER_GAME_RENDER_SYSTEM_HPP
 
-#include "game/systems/updatable-system.hpp"
+#include "game/systems/fixed-update-system.hpp"
+#include "game/systems/variable-update-system.hpp"
 #include <engine/scene/collection.hpp>
-#include <engine/scene/static-mesh.hpp>
-#include <engine/scene/light.hpp>
-#include "game/components/scene-component.hpp"
 #include <engine/entity/id.hpp>
 #include <engine/render/renderer.hpp>
-#include <unordered_map>
 #include <vector>
-#include <memory>
 
-class render_system: public updatable_system
+class render_system:
+	public fixed_update_system,
+	public variable_update_system
 {
 public:
 	explicit render_system(entity::registry& registry);
 	~render_system() override;
 	
-	virtual void update(float t, float dt);
-	
-	void draw(float alpha);
+	void fixed_update(entity::registry& registry, float t, float dt) override;
+	void variable_update(entity::registry& registry, float t, float dt, float alpha) override;
 	
 	void add_layer(scene::collection* layer);
 	void remove_layers();
@@ -31,20 +28,25 @@ public:
 	void set_renderer(::render::renderer* renderer);
 
 private:
-	void on_scene_construct(entity::registry& registry, entity::id entity_id);
-	void on_scene_update(entity::registry& registry, entity::id entity_id);
-	void on_scene_destroy(entity::registry& registry, entity::id entity_id);
+	/// Called when a component is constructed.
+	/// @tparam T Component type.
+	template <class T>
+	void on_construct(entity::registry& registry, entity::id entity_id);
+
+	/// Called when a component is updated.
+	/// @tparam T Component type.
+	template <class T>
+	void on_update(entity::registry& registry, entity::id entity_id);
+
+	/// Called when a component is destroyed.
+	/// @tparam T Component type.
+	template <class T>
+	void on_destroy(entity::registry& registry, entity::id entity_id);
 	
-	void on_transform_construct(entity::registry& registry, entity::id entity_id);
-	
-	entt::observer m_updated_scene_transforms;
-	
-	float m_t;
-	float m_dt;
+	entity::registry& m_registry;
+	entt::observer m_transformed_scene_object_components;
 	::render::renderer* m_renderer;
 	std::vector<scene::collection*> m_layers;
 };
 
-
 #endif // ANTKEEPER_GAME_RENDER_SYSTEM_HPP
-

@@ -4,15 +4,14 @@
 #ifndef ANTKEEPER_GAME_IK_SYSTEM_HPP
 #define ANTKEEPER_GAME_IK_SYSTEM_HPP
 
-#include "game/systems/updatable-system.hpp"
+#include "game/systems/fixed-update-system.hpp"
 
 class ik_system:
-	public updatable_system
+	public fixed_update_system
 {
 public:
-	explicit ik_system(entity::registry& registry);
 	~ik_system() override = default;
-	void update(float t, float dt) override;
+	void fixed_update(entity::registry& registry, float t, float dt) override;
 };
 
 #endif // ANTKEEPER_GAME_IK_SYSTEM_HPP

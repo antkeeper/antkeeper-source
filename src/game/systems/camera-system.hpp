@@ -4,24 +4,19 @@
 #ifndef ANTKEEPER_GAME_CAMERA_SYSTEM_HPP
 #define ANTKEEPER_GAME_CAMERA_SYSTEM_HPP
 
-#include "game/systems/updatable-system.hpp"
-#include <engine/math/vector.hpp>
+#include "game/systems/fixed-update-system.hpp"
+#include "game/systems/variable-update-system.hpp"
 
-class camera_system: public updatable_system
+class camera_system:
+	public fixed_update_system,
+	public variable_update_system
 {
 public:
-	explicit camera_system(entity::registry& registry);
 	~camera_system() override = default;
-	void update(float t, float dt) override;
-	void interpolate(float alpha);
-	
-	void set_viewport(const math::fvec4& viewport);
+	void fixed_update(entity::registry& registry, float t, float dt) override;
+	void variable_update(entity::registry& registry, float t, float dt, float alpha) override;
 
 private:
-	math::dvec4 m_viewport{};
-	double m_aspect_ratio{};
-	double m_fixed_update_time{};
-	double m_fixed_timestep{};
 	double m_variable_update_time{};
 };
 

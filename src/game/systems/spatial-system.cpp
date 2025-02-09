@@ -5,18 +5,13 @@
 #include "game/components/transform-component.hpp"
 #include "game/components/constraint-stack-component.hpp"
 
-spatial_system::spatial_system(entity::registry& registry):
-	updatable_system(registry),
-	m_updated_unconstrained_transforms(registry, entt::collector.update<transform_component>().where(entt::exclude<constraint_stack_component>))
-{}
-
-void spatial_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
+void spatial_system::fixed_update(entity::registry& registry, float, float)
 {
-	// Update world-space transforms of all updated, unconstrained transform components
-	for (auto entity_id: m_updated_unconstrained_transforms)
+	// TODO: Only update world transforms if the local transform has changed
+	const auto view = registry.view<transform_component>(entt::exclude<constraint_stack_component>);
+	for (auto entity_id: view)
 	{
-		auto& transform = m_registry.get<transform_component>(entity_id);
+		auto& transform = view.get<transform_component>(entity_id);
 		transform.world = transform.local;
 	}
-	m_updated_unconstrained_transforms.clear();
 }

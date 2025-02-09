@@ -8,7 +8,7 @@
 #include "game/components/legged-locomotion-component.hpp"
 #include "game/components/ovary-component.hpp"
 #include "game/components/spring-arm-component.hpp"
-#include "game/components/scene-component.hpp"
+#include "game/components/scene-object-component.hpp"
 #include "game/components/pose-component.hpp"
 #include <engine/math/functions.hpp>
 #include <engine/math/euler-angles.hpp>
@@ -236,7 +236,7 @@ void setup_ant_controls(::game& ctx)
 					// return;
 				// }
 				
-				// auto& camera_object = *ctx.entity_registry->get<scene_component>(ctx.active_camera_eid).object;
+				// auto& camera_object = *ctx.entity_registry->get<scene_object_component>(ctx.active_camera_eid).object;
 				
 				// camera_object.set_layer_mask(camera_object.get_layer_mask() == 1 ? 2 : 1);
 			}

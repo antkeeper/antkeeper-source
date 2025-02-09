@@ -4,17 +4,15 @@
 #ifndef ANTKEEPER_GAME_STEERING_SYSTEM_HPP
 #define ANTKEEPER_GAME_STEERING_SYSTEM_HPP
 
-#include "game/systems/updatable-system.hpp"
+#include "game/systems/fixed-update-system.hpp"
 #include <engine/math/vector.hpp>
 
 class steering_system:
-	public updatable_system
+	public fixed_update_system
 {
 public:
-	explicit steering_system(entity::registry& registry);
 	~steering_system() override = default;
-	
-	void update(float t, float dt) override;
+	void fixed_update(entity::registry& registry, float t, float dt) override;
 
 	static inline constexpr math::fvec3 global_forward{0.0f, 0.0f, -1.0f};
 	static inline constexpr math::fvec3 global_up{0.0f, 1.0f, 0.0f};

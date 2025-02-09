@@ -38,11 +38,6 @@ void set_time(::game& ctx, double t);
 /// @param second Fractional second on `[0.0, 60.0)`.
 void set_time(::game& ctx, int year, int month, int day, int hour, int minute, double second);
 
-/// Sets rate at which time passes.
-/// @param ctx Game context.
-/// @param scale Time scale.
-void set_time_scale(::game& ctx, double scale);
-
 /// Enters a ecoregion.
 /// @param ctx Game context.
 /// @param ecoregion Ecoregion to enter.

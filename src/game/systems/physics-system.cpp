@@ -5,7 +5,7 @@
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/rigid-body-constraint-component.hpp"
 #include "game/components/transform-component.hpp"
-#include "game/components/scene-component.hpp"
+#include "game/components/gravity-component.hpp"
 #include <algorithm>
 #include <engine/debug/log.hpp>
 #include <engine/entity/id.hpp>
@@ -16,9 +16,9 @@
 #include <engine/physics/kinematics/colliders/mesh-collider.hpp>
 #include <engine/geom/closest-point.hpp>
 #include <execution>
+#include <optional>
 
-physics_system::physics_system(entity::registry& registry):
-	updatable_system(registry)
+physics_system::physics_system()
 {
 	constexpr auto plane_i = std::to_underlying(physics::collider_type::plane);
 	constexpr auto sphere_i = std::to_underlying(physics::collider_type::sphere);
@@ -46,23 +46,23 @@ physics_system::physics_system(entity::registry& registry):
 	m_narrow_phase_table[capsule_i][capsule_i] = std::bind_front(&physics_system::narrow_phase_capsule_capsule, this);
 }
 
-void physics_system::update([[maybe_unused]] float t, float dt)
+void physics_system::fixed_update(entity::registry& registry, float, float dt)
 {
-	detect_collisions_broad();
+	detect_collisions_broad(registry);
 	detect_collisions_narrow();
-	solve_constraints(dt);
+	solve_constraints(registry, dt);
 	resolve_collisions();
-	integrate(dt);
+	integrate(registry, dt);
 	correct_positions();
 	
 	// Update transform component transforms
-	auto transform_view = m_registry.view<rigid_body_component, transform_component>();
+	auto transform_view = registry.view<rigid_body_component, transform_component>();
 	for (const auto entity_id: transform_view)
 	{
 		const auto& body = *(transform_view.get<rigid_body_component>(entity_id).body);
 		
 		// Update transform
-		m_registry.patch<::transform_component>
+		registry.patch<::transform_component>
 		(
 			entity_id,
 			[&, dt](auto& transform)
@@ -74,26 +74,7 @@ void physics_system::update([[maybe_unused]] float t, float dt)
 	}
 }
 
-void physics_system::interpolate(float alpha)
-{
-	// Interpolate rigid body states
-	auto view = m_registry.view<rigid_body_component, scene_component>();
-	std::for_each
-	(
-		std::execution::par_unseq,
-		view.begin(),
-		view.end(),
-		[&, alpha](auto entity_id)
-		{
-			const auto& rigid_body = *(view.get<rigid_body_component>(entity_id).body);
-			auto& scene_object = *(view.get<scene_component>(entity_id).object);
-			
-			scene_object.set_transform(rigid_body.interpolate(alpha));
-		}
-	);
-}
-
-std::optional<std::tuple<entity::id, float, std::uint32_t, math::fvec3>> physics_system::trace(const geom::ray<float, 3>& ray, entity::id ignore_eid, std::uint32_t layer_mask) const
+std::optional<std::tuple<entity::id, float, std::uint32_t, math::fvec3>> physics_system::trace(entity::registry& registry, const geom::ray<float, 3>& ray, entity::id ignore_eid, std::uint32_t layer_mask)
 {
 	entity::id nearest_entity_id = entt::null;
 	float nearest_hit_sqr_distance = std::numeric_limits<float>::infinity();
@@ -101,7 +82,7 @@ std::optional<std::tuple<entity::id, float, std::uint32_t, math::fvec3>> physics
 	math::fvec3 nearest_hit_normal;
 	
 	// For each entity with a rigid body
-	auto rigid_body_view = m_registry.view<rigid_body_component>();
+	auto rigid_body_view = registry.view<rigid_body_component>();
 	for (const auto entity_id: rigid_body_view)
 	{
 		if (entity_id == ignore_eid)
@@ -159,9 +140,15 @@ std::optional<std::tuple<entity::id, float, std::uint32_t, math::fvec3>> physics
 	return std::make_tuple(nearest_entity_id, std::sqrt(nearest_hit_sqr_distance), nearest_face_index, nearest_hit_normal);
 }
 
-void physics_system::integrate(float dt)
+void physics_system::integrate(entity::registry& registry, float dt)
 {
-	auto view = m_registry.view<rigid_body_component>();
+	std::optional<math::fvec3> gravity;
+	if (auto view = registry.view<gravity_component>(); !view.empty())
+	{
+		gravity = view.get<gravity_component>(view.front()).force;
+	}
+
+	auto view = registry.view<rigid_body_component>();
 	std::for_each
 	(
 		std::execution::par_unseq,
@@ -172,16 +159,19 @@ void physics_system::integrate(float dt)
 			auto& body = *(view.get<rigid_body_component>(entity_id).body);
 			
 			// Apply gravity
-			//body.apply_central_force(gravity / 10.0f * body.get_mass());
+			if (gravity)
+			{
+				body.apply_central_force(*gravity * body.get_mass());
+			}
 			
 			body.integrate(dt);
 		}
 	);
 }
 
-void physics_system::solve_constraints(float dt)
+void physics_system::solve_constraints(entity::registry& registry, float dt)
 {
-	m_registry.view<rigid_body_constraint_component>().each
+	registry.view<rigid_body_constraint_component>().each
 	(
 		[dt](auto& component)
 		{
@@ -190,11 +180,11 @@ void physics_system::solve_constraints(float dt)
 	);
 }
 
-void physics_system::detect_collisions_broad()
+void physics_system::detect_collisions_broad(entity::registry& registry)
 {
 	m_broad_phase_pairs.clear();
 	
-	auto view = m_registry.view<rigid_body_component>();
+	auto view = registry.view<rigid_body_component>();
 	for (auto i = view.begin(); i != view.end(); ++i)
 	{
 		auto& body_a = *view.get<rigid_body_component>(*i).body;

@@ -11,13 +11,9 @@
 #include <engine/ai/steering/behavior/seek.hpp>
 #include <engine/math/quaternion.hpp>
 
-steering_system::steering_system(entity::registry& registry):
-	updatable_system(registry)
-{}
-
-void steering_system::update([[maybe_unused]] float t, float dt)
+void steering_system::fixed_update(entity::registry& registry, float, float dt)
 {
-	m_registry.group<steering_component>(entt::get<transform_component, winged_locomotion_component, rigid_body_component>).each
+	registry.group<steering_component>(entt::get<transform_component, winged_locomotion_component, rigid_body_component>).each
 	(
 		[&](entity::id entity_id, auto& steering, auto& transform, [[maybe_unused]] auto& locomotion, const auto& body_component)
 		{
@@ -48,7 +44,7 @@ void steering_system::update([[maybe_unused]] float t, float dt)
 			}
 			
 			// Pass force to winged locomotion component
-			m_registry.patch<::winged_locomotion_component>
+			registry.patch<::winged_locomotion_component>
 			(
 				entity_id,
 				[&](auto& component)
@@ -67,7 +63,7 @@ void steering_system::update([[maybe_unused]] float t, float dt)
 			}
 			
 			// Update orientation
-			m_registry.patch<::transform_component>
+			registry.patch<::transform_component>
 			(
 				entity_id,
 				[&agent](auto& component)

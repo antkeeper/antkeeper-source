@@ -4,7 +4,7 @@
 #include "game/ant/ant-swarm.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/steering-component.hpp"
-#include "game/components/scene-component.hpp"
+#include "game/components/scene-object-component.hpp"
 #include "game/components/picking-component.hpp"
 #include "game/components/winged-locomotion-component.hpp"
 #include "game/components/rigid-body-component.hpp"
@@ -119,7 +119,7 @@ entity::id create_ant_swarm(::game& ctx)
 		{
 			// Create male
 			ctx.entity_registry->emplace<ant_caste_component>(alate_eid, male_caste);
-			ctx.entity_registry->emplace<::scene_component>(alate_eid, std::make_unique<scene::static_mesh>(male_model), std::uint8_t{1});
+			ctx.entity_registry->emplace<::scene_object_component>(alate_eid, std::make_unique<scene::static_mesh>(male_model), std::uint8_t{1});
 
 			
 			transform.local.scale = male_scale;
@@ -133,7 +133,7 @@ entity::id create_ant_swarm(::game& ctx)
 		{
 			// Create queen
 			ctx.entity_registry->emplace<ant_caste_component>(alate_eid, queen_caste);
-			ctx.entity_registry->emplace<::scene_component>(alate_eid, std::make_unique<scene::static_mesh>(queen_model), std::uint8_t{1});
+			ctx.entity_registry->emplace<::scene_object_component>(alate_eid, std::make_unique<scene::static_mesh>(queen_model), std::uint8_t{1});
 			
 			transform.local.scale = queen_scale;
 			transform.world = transform.local;

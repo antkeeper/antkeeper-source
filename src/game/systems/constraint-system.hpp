@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_CONSTRAINT_SYSTEM_HPP
 #define ANTKEEPER_GAME_CONSTRAINT_SYSTEM_HPP
 
-#include "game/systems/updatable-system.hpp"
+#include "game/systems/fixed-update-system.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/constraints/child-of-constraint.hpp"
 #include "game/constraints/copy-rotation-constraint.hpp"
@@ -23,19 +23,21 @@
 
 /// Applies constraint stacks to transform components.
 class constraint_system:
-	public updatable_system
+	public fixed_update_system
 {
 public:
 	explicit constraint_system(entity::registry& registry);
 	~constraint_system() override;
 	
-	virtual void update(float t, float dt);
+	void fixed_update(entity::registry& registry, float t, float dt) override;
 	
 	/// Manually evaluates an entity's constraints.
 	/// @param entity_id ID of a constrained entity.
 	void evaluate(entity::id entity_id);
 	
 private:
+	entity::registry& m_registry;
+
 	void on_constraint_stack_update(entity::registry& registry, entity::id constraint_stack_eid);
 	
 	void handle_constraint(transform_component& transform, entity::id constraint_eid, float dt);

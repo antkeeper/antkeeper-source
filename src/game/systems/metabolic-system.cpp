@@ -4,18 +4,16 @@
 #include "game/systems/metabolic-system.hpp"
 #include "game/components/isometric-growth-component.hpp"
 #include "game/components/rigid-body-component.hpp"
+#include "game/utility/time.hpp"
 
-metabolic_system::metabolic_system(entity::registry& registry):
-	updatable_system(registry)
-{}
-
-void metabolic_system::update([[maybe_unused]] float t, float dt)
+void metabolic_system::fixed_update(entity::registry& registry, float, float dt)
 {
 	// Scale timestep
-	const auto scaled_timestep = dt * m_time_scale;
+	const auto time_scale = get_time_scale(registry);
+	const auto scaled_timestep = dt * time_scale;
 	
 	// Handle isometric growth
-	auto isometric_growth_group = m_registry.group<isometric_growth_component>(entt::get<rigid_body_component>);
+	auto isometric_growth_group = registry.group<isometric_growth_component>(entt::get<rigid_body_component>);
 	for (auto entity_id: isometric_growth_group)
 	{
 		auto& growth = isometric_growth_group.get<isometric_growth_component>(entity_id);

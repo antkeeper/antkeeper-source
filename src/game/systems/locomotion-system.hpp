@@ -4,19 +4,18 @@
 #ifndef ANTKEEPER_GAME_LOCOMOTION_SYSTEM_HPP
 #define ANTKEEPER_GAME_LOCOMOTION_SYSTEM_HPP
 
-#include "game/systems/updatable-system.hpp"
+#include "game/systems/fixed-update-system.hpp"
 
 class locomotion_system:
-	public updatable_system
+	public fixed_update_system
 {
 public:
-	explicit locomotion_system(entity::registry& registry);
 	~locomotion_system() override = default;
-	void update(float t, float dt) override;
+	void fixed_update(entity::registry& registry, float t, float dt) override;
 	
 private:
-	void update_legged(float t, float dt);
-	void update_winged(float t, float dt);
+	void update_legged(entity::registry& registry, float t, float dt);
+	void update_winged(entity::registry& registry, float t, float dt);
 };
 
 #endif // ANTKEEPER_GAME_LOCOMOTION_SYSTEM_HPP

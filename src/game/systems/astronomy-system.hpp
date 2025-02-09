@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_ASTRONOMY_SYSTEM_HPP
 #define ANTKEEPER_GAME_ASTRONOMY_SYSTEM_HPP
 
-#include "game/systems/updatable-system.hpp"
+#include "game/systems/fixed-update-system.hpp"
 #include <engine/entity/id.hpp>
 #include <engine/scene/directional-light.hpp>
 #include <engine/math/vector.hpp>
@@ -18,24 +18,16 @@
 
 /// Calculates apparent properties of celestial bodies as seen by an observer.
 class astronomy_system:
-	public updatable_system
+	public fixed_update_system
 {
 public:
 	explicit astronomy_system(entity::registry& registry);
 	~astronomy_system() override;
-	
-	/// Adds the timestep `dt`, scaled by set time scale, to the current time, then calculates apparent properties of celestial bodies as seen by an observer.
-	/// @param t Time, in seconds.
-	/// @param dt Delta time, in seconds.
-	virtual void update(float t, float dt);
+	void fixed_update(entity::registry& registry, float t, float dt) override;
 	
 	/// Sets the current time.
 	/// @param t Time since epoch, in days.
 	void set_time(double t);
-	
-	/// Sets the factor by which the timestep `dt` will be scaled before being added to the current time.
-	/// @param scale Factor by which to scale the timestep.
-	void set_time_scale(double scale);
 	
 	/// Sets the observer entity.
 	/// @param eid Entity ID of the observer.
@@ -53,11 +45,6 @@ public:
 	[[nodiscard]] inline double get_time() const noexcept
 	{
 		return m_time_days;
-	}
-	
-	[[nodiscard]] inline double get_time_scale() const noexcept
-	{
-		return m_time_scale;
 	}
 	
 private:
@@ -94,14 +81,13 @@ private:
 	/// @return Spectral transmittance factor.
 	[[nodiscard]] math::dvec3 integrate_transmittance(const ::observer_component& observer, const ::celestial_body_component& body, const ::atmosphere_component& atmosphere, geom::ray<double, 3> ray) const;
 	
+	entity::registry& m_registry;
+
 	/// Time since epoch, in days.
 	double m_time_days{};
 	
 	/// Time since epoch, in centuries.
 	double m_time_centuries{};
-	
-	/// Time scale.
-	double m_time_scale{1.0};
 	
 	/// Number of transmittance integration samples.
 	std::size_t m_transmittance_samples{};

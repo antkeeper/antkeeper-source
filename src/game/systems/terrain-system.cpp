@@ -4,7 +4,7 @@
 #include "game/systems/terrain-system.hpp"
 #include "game/components/terrain-component.hpp"
 #include "game/components/rigid-body-component.hpp"
-#include "game/components/scene-component.hpp"
+#include "game/components/scene-object-component.hpp"
 #include <engine/debug/log.hpp>
 #include <engine/geom/primitives/box.hpp>
 #include <engine/geom/brep/brep-mesh.hpp>
@@ -15,18 +15,11 @@
 #include <engine/scene/static-mesh.hpp>
 #include <engine/render/vertex-attribute-location.hpp>
 
-terrain_system::terrain_system(entity::registry& registry):
-	updatable_system(registry)
-{}
-
-terrain_system::~terrain_system()
-{}
-
-void terrain_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
+void terrain_system::fixed_update(entity::registry&, float, float)
 {
 }
 
-entity::id terrain_system::generate(std::shared_ptr<gl::image_2d> heightmap, const math::uvec2& subdivisions, const math::transform<float>& transform, std::shared_ptr<render::material> material)
+entity::id terrain_system::generate(entity::registry& registry, std::shared_ptr<gl::image_2d> heightmap, const math::uvec2& subdivisions, const math::transform<float>& transform, std::shared_ptr<render::material> material)
 {
 	if (!heightmap)
 	{
@@ -56,13 +49,13 @@ entity::id terrain_system::generate(std::shared_ptr<gl::image_2d> heightmap, con
 	terrain_grid_component grid;
 	grid.dimensions = subdivisions + 1u;
 	grid.cells.resize(grid.dimensions.x() * grid.dimensions.y());
-	auto grid_eid = m_registry.create();
+	auto grid_eid = registry.create();
 	for (auto y = 0u; y < grid.dimensions.y(); ++y)
 	{
 		for (auto x = 0u; x < grid.dimensions.x(); ++x)
 		{
-			auto cell_eid = m_registry.create();
-			m_registry.emplace<terrain_cell_component>(cell_eid, grid_eid, math::uvec2{x, y});
+			auto cell_eid = registry.create();
+			registry.emplace<terrain_cell_component>(cell_eid, grid_eid, math::uvec2{x, y});
 			grid.cells[y * grid.dimensions.x() + x] = cell_eid;
 		}
 	}
@@ -100,7 +93,7 @@ entity::id terrain_system::generate(std::shared_ptr<gl::image_2d> heightmap, con
 	// Generate terrain cell meshes
 	for (auto cell_eid: grid.cells)
 	{
-		const auto& cell = m_registry.get<terrain_cell_component>(cell_eid);
+		const auto& cell = registry.get<terrain_cell_component>(cell_eid);
 		
 		// Allocate cell mesh and attributes
 		auto mesh = std::make_shared<geom::brep_mesh>();
@@ -179,20 +172,20 @@ entity::id terrain_system::generate(std::shared_ptr<gl::image_2d> heightmap, con
 		rigid_body->set_mass(0.0f);
 		rigid_body->set_collider(std::make_shared<physics::mesh_collider>(mesh));
 		rigid_body->set_transform({transform.translation, transform.rotation, math::fvec3{max_scale, max_scale, max_scale} * 0.5f});
-		m_registry.emplace<rigid_body_component>(cell_eid, std::move(rigid_body));
+		registry.emplace<rigid_body_component>(cell_eid, std::move(rigid_body));
 		
 		auto model = generate_terrain_model(*mesh, material, cell_quad_dimensions);
-		scene_component scene;
+		scene_object_component scene;
 		scene.object = std::make_shared<scene::static_mesh>(std::move(model));
 		scene.layer_mask = 1;
-		m_registry.emplace<scene_component>(cell_eid, std::move(scene));
+		registry.emplace<scene_object_component>(cell_eid, std::move(scene));
 	}
 	
-	m_registry.emplace<terrain_grid_component>(grid_eid, std::move(grid));
+	registry.emplace<terrain_grid_component>(grid_eid, std::move(grid));
 	return grid_eid;
 }
 
-std::unique_ptr<render::model> terrain_system::generate_terrain_model(const geom::brep_mesh& mesh, std::shared_ptr<render::material> material, const math::uvec2& quad_dimensions) const
+std::unique_ptr<render::model> terrain_system::generate_terrain_model(const geom::brep_mesh& mesh, std::shared_ptr<render::material> material, const math::uvec2& quad_dimensions)
 {
 	const auto& vertex_positions = mesh.vertices().attributes().at<math::fvec3>("position");
 	const auto& vertex_normals = mesh.vertices().attributes().at<math::fvec3>("normal");

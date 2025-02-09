@@ -44,7 +44,7 @@ public:
 	}
 	
 	/// Returns the model of the model instance.
-	[[nodiscard]] inline const std::shared_ptr<render::model>& get_model() const noexcept
+	[[nodiscard]] inline std::shared_ptr<render::model> get_model() const noexcept
 	{
 		return m_model;
 	}
