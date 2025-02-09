@@ -11,7 +11,7 @@ void clone(entity::registry& registry, entity::id source, entity::id destination
 	{
 		if (auto& storage = it.second; storage.contains(source))
 		{
-			storage.emplace(destination, storage.get(source));
+			storage.push(destination, storage.value(source));
 		}
 	}
 }

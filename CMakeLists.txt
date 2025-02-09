@@ -66,7 +66,7 @@ FetchContent_Declare(dr_libs
 )
 FetchContent_Declare(entt
 	GIT_REPOSITORY https://github.com/skypjack/entt.git
-	GIT_TAG e4ccb878f47245a319704912435d3c89f34ad6be # v3.10.3
+	GIT_TAG 4a2d1a8541228a90e02a873dba6a980506c42c03 # v3.14.0
 	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(freetype
