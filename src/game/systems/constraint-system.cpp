@@ -3,9 +3,10 @@
 
 #include "game/systems/constraint-system.hpp"
 #include "game/components/constraint-stack-component.hpp"
-#include <engine/math/quaternion.hpp>
+#include <engine/math/quaternion.hpp>
+
 constraint_system::constraint_system(entity::registry& registry):
-	updatable_system(registry)
+	m_registry(registry)
 {
 	m_registry.on_construct<constraint_stack_component>().connect<&constraint_system::on_constraint_stack_update>(this);
 	m_registry.on_update<constraint_stack_component>().connect<&constraint_system::on_constraint_stack_update>(this);
@@ -19,10 +20,10 @@ constraint_system::~constraint_system()
 	m_registry.on_destroy<constraint_stack_component>().disconnect<&constraint_system::on_constraint_stack_update>(this);
 }
 
-void constraint_system::update([[maybe_unused]] float t, float dt)
+void constraint_system::fixed_update(entity::registry& registry, float, float dt)
 {
 	// For each entity with transform and constraint stack components
-	m_registry.view<transform_component, constraint_stack_component>().each
+	registry.view<transform_component, constraint_stack_component>().each
 	(
 		[&]([[maybe_unused]] entity::id transform_eid, auto& transform, auto& stack)
 		{
@@ -33,10 +34,10 @@ void constraint_system::update([[maybe_unused]] float t, float dt)
 			entity::id constraint_eid = stack.head;
 			
 			// Consecutively apply constraints
-			while (m_registry.valid(constraint_eid))
+			while (registry.valid(constraint_eid))
 			{
 				// Get constraint stack node of the constraint
-				const constraint_stack_node_component* node = m_registry.try_get<constraint_stack_node_component>(constraint_eid);
+				const constraint_stack_node_component* node = registry.try_get<constraint_stack_node_component>(constraint_eid);
 				
 				// Abort if constraint is missing a constraint stack node
 				if (!node)
@@ -330,4 +331,4 @@ void constraint_system::handle_track_to_constraint(transform_component& transfor
 			transform.world.rotation = math::look_rotation(math::normalize(target_transform->world.translation - transform.world.translation), constraint.up);
 		}
 	}
-}
+}

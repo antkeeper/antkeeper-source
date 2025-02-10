@@ -95,10 +95,8 @@ private:
 	
 	std::shared_ptr<gl::shader_template> m_cubemap_downsample_shader_template;
 	std::unique_ptr<gl::shader_program> m_cubemap_downsample_shader_program;
-
 	const gl::shader_variable* m_cubemap_downsample_cubemap_var{};
 	std::vector<std::unique_ptr<gl::framebuffer>> m_cubemap_downsample_framebuffers;
-	std::unique_ptr<gl::texture_cube> m_cubemap_downsample_texture;
 	
 	std::shared_ptr<gl::texture_2d> m_cubemap_filter_lut_texture;
 	std::unique_ptr<gl::framebuffer> m_cubemap_filter_lut_framebuffer;

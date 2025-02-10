@@ -8,17 +8,16 @@
 #include <engine/math/vector.hpp>
 #include <engine/render/passes/sky-pass.hpp>
 #include "game/components/atmosphere-component.hpp"
-#include "game/systems/updatable-system.hpp"
+#include "game/systems/fixed-update-system.hpp"
 
 /// Updates variables related to atmospheric scattering.
 class atmosphere_system:
-	public updatable_system
+	public fixed_update_system
 {
 public:
 	explicit atmosphere_system(entity::registry& registry);
 	~atmosphere_system() override;
-	
-	virtual void update(float t, float dt);
+	void fixed_update(entity::registry& registry, float t, float dt) override;
 	
 	/// Sets the wavelengths of red, green, and blue light.
 	/// @param wavelengths Vector containing the wavelengths of red (x), green (y), and blue (z) light, in nanometers.
@@ -38,6 +37,7 @@ private:
 	void on_atmosphere_update(entity::registry& registry, entity::id entity_id);
 	void on_atmosphere_destroy(entity::registry& registry, entity::id entity_id);
 	
+	entity::registry& m_registry;
 	entity::id m_active_atmosphere_eid{entt::null};
 	math::dvec3 m_rgb_wavelengths_nm{};
 	math::dvec3 m_rgb_wavelengths_m{};

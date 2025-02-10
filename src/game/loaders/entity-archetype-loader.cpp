@@ -10,7 +10,7 @@
 #include "game/components/diffuse-reflector-component.hpp"
 #include "game/components/terrain-component.hpp"
 #include "game/components/transform-component.hpp"
-#include "game/components/scene-component.hpp"
+#include "game/components/scene-object-component.hpp"
 #include "game/components/orbit-component.hpp"
 #include "game/components/blackbody-component.hpp"
 #include "game/components/celestial-body-component.hpp"
@@ -164,7 +164,7 @@ static bool load_component_model(entity::archetype& archetype, resource_manager&
 	(
 		[model](entt::handle& handle)
 		{
-			handle.emplace_or_replace<scene_component>
+			handle.emplace_or_replace<scene_object_component>
 			(
 				std::make_shared<scene::static_mesh>(model),
 				std::uint8_t{0b00000001}

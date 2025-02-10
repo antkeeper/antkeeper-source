@@ -11,7 +11,7 @@
 #include "game/commands/commands.hpp"
 #include "game/components/pose-component.hpp"
 #include "game/components/constraint-stack-component.hpp"
-#include "game/components/scene-component.hpp"
+#include "game/components/scene-object-component.hpp"
 #include "game/components/picking-component.hpp"
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/rigid-body-constraint-component.hpp"
@@ -27,6 +27,7 @@
 #include "game/components/spring-arm-component.hpp"
 #include "game/components/ant-genome-component.hpp"
 #include "game/components/animation-component.hpp"
+#include "game/components/tag-component.hpp"
 #include "game/constraints/child-of-constraint.hpp"
 #include "game/constraints/copy-rotation-constraint.hpp"
 #include "game/constraints/copy-scale-constraint.hpp"
@@ -46,8 +47,9 @@
 #include "game/systems/atmosphere-system.hpp"
 #include "game/systems/camera-system.hpp"
 #include "game/systems/collision-system.hpp"
-#include "game/systems/physics-system.hpp"
 #include "game/systems/terrain-system.hpp"
+#include "game/utility/physics.hpp"
+#include "game/utility/terrain.hpp"
 #include "game/world.hpp"
 #include <engine/animation/ease.hpp>
 #include <engine/config.hpp>
@@ -77,6 +79,7 @@
 #include <engine/ai/navmesh.hpp>
 #include <engine/animation/ik/constraints/euler-ik-constraint.hpp>
 #include <engine/hash/fnv.hpp>
+#include <engine/scene/light-probe.hpp>
 
 using namespace hash::literals;
 
@@ -98,7 +101,6 @@ test_state::test_state(::game& ctx):
 	ctx.active_ecoregion = ctx.resource_manager->load<::ecoregion>("debug.eco");
 	::world::enter_ecoregion(ctx, *ctx.active_ecoregion);
 	::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
-	::world::set_time_scale(ctx, 0.0);
 	
 	debug::log_trace("Generating genome...");
 	std::shared_ptr<ant_genome> genome = ant_cladogenesis(ctx.active_ecoregion->gene_pools[0], ctx.rng);
@@ -114,9 +116,9 @@ test_state::test_state(::game& ctx):
 	
 	// Create nest exterior
 	{
-		scene_component nest_exterior_scene_component;
-		nest_exterior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere-nest-200mm-exterior.mdl"));
-		nest_exterior_scene_component.layer_mask = 1;
+		scene_object_component nest_exterior_scene_object_component;
+		nest_exterior_scene_object_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere-nest-200mm-exterior.mdl"));
+		nest_exterior_scene_object_component.layer_mask = 1;
 		
 		auto nest_exterior_mesh = ctx.resource_manager->load<geom::brep_mesh>("sphere-nest-200mm-exterior.msh");
 		
@@ -128,16 +130,16 @@ test_state::test_state(::game& ctx):
 		nest_exterior_rigid_body->set_scale({0.5f, 1.0f, 0.75f});
 		
 		auto nest_exterior_eid = ctx.entity_registry->create();
-		ctx.entity_registry->emplace<scene_component>(nest_exterior_eid, std::move(nest_exterior_scene_component));
+		ctx.entity_registry->emplace<scene_object_component>(nest_exterior_eid, std::move(nest_exterior_scene_object_component));
 		ctx.entity_registry->emplace<rigid_body_component>(nest_exterior_eid, std::move(nest_exterior_rigid_body));
 	}
 	
 	// Create nest interior
 	{
-		scene_component nest_interior_scene_component;
-		nest_interior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("soil-nest.mdl"));
-		nest_interior_scene_component.object->set_layer_mask(0b10);
-		nest_interior_scene_component.layer_mask = 1;
+		scene_object_component nest_interior_scene_object_component;
+		nest_interior_scene_object_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("soil-nest.mdl"));
+		nest_interior_scene_object_component.object->set_layer_mask(0b10);
+		nest_interior_scene_object_component.layer_mask = 1;
 
 		auto nest_interior_mesh = ctx.resource_manager->load<geom::brep_mesh>("soil-nest.msh");
 
@@ -147,7 +149,7 @@ test_state::test_state(::game& ctx):
 		nest_interior_rigid_body->get_collider()->set_layer_mask(0b10);
 		
 		auto nest_interior_eid = ctx.entity_registry->create();
-		ctx.entity_registry->emplace<scene_component>(nest_interior_eid, std::move(nest_interior_scene_component));
+		ctx.entity_registry->emplace<scene_object_component>(nest_interior_eid, std::move(nest_interior_scene_object_component));
 		ctx.entity_registry->emplace<rigid_body_component>(nest_interior_eid, std::move(nest_interior_rigid_body));
 	}
 	
@@ -160,9 +162,9 @@ test_state::test_state(::game& ctx):
 		transform.scale.x() = 100.0f;
 		transform.scale.y() = 100.0f;
 		transform.scale.z() = transform.scale.x();
-		transform.translation.y() = -transform.scale.y() * 0.5f;
+		//transform.translation.y() = -transform.scale.y() * 0.5f;
 		auto material = ctx.resource_manager->load<render::material>("grid-terrain-cm-middle-gray.mtl");
-		ctx.terrain_system->generate(heightmap, subdivisions, transform, material);
+		generate_terrain(*ctx.entity_registry, heightmap, subdivisions, transform, material);
 	}
 	
 	// Create worker
@@ -239,7 +241,7 @@ test_state::test_state(::game& ctx):
 	worker_ovary_component.ovipositor_bone = worker_skeleton->bones().at("gaster").index();
 	worker_ovary_component.oviposition_path = {{0.0f, -0.141708f, -0.799793f}, {0.0f, -0.187388f, -1.02008f}};
 	
-	ctx.entity_registry->emplace<scene_component>(worker_eid, std::move(worker_skeletal_mesh), std::uint8_t{1});
+	ctx.entity_registry->emplace<scene_object_component>(worker_eid, std::move(worker_skeletal_mesh), std::uint8_t{1});
 	ctx.entity_registry->emplace<navmesh_agent_component>(worker_eid, std::move(worker_navmesh_agent_component));
 	ctx.entity_registry->emplace<pose_component>(worker_eid, std::move(worker_pose_component));
 	ctx.entity_registry->emplace<legged_locomotion_component>(worker_eid, std::move(worker_locomotion_component));
@@ -251,58 +253,17 @@ test_state::test_state(::game& ctx):
 	// Set ant as controlled ant
 	ctx.controlled_ant_eid = worker_eid;
 	
-	// Create color checker
-	auto color_checker_eid = ctx.entity_registry->create();
-	scene_component color_checker_scene_component;
-	color_checker_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("color-checker.mdl"));
-	color_checker_scene_component.object->set_translation({0, 0, 4});
-	color_checker_scene_component.layer_mask = 1;
-	ctx.entity_registry->emplace<scene_component>(color_checker_eid, std::move(color_checker_scene_component));
-	
 	// Set world time
 	::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
-	
-	// Init time scale
-	double time_scale = 0.0;
-	
-	// Set time scale
-	::world::set_time_scale(ctx, time_scale);
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
 	
-	sky_probe = std::make_shared<scene::light_probe>();
-	const std::uint32_t sky_probe_face_size = 128;
-	const auto sky_probe_mip_levels = static_cast<std::uint32_t>(std::bit_width(sky_probe_face_size));
-	sky_probe->set_luminance_texture
-	(
-		std::make_shared<gl::texture_cube>
-		(
-			std::make_shared<gl::image_view_cube>
-			(
-				std::make_shared<gl::image_cube>
-				(
-					gl::format::r16g16b16_sfloat,
-					sky_probe_face_size,
-					sky_probe_mip_levels
-				),
-				gl::format::undefined,
-				0,
-				sky_probe_mip_levels
-			),
-			std::make_shared<gl::sampler>
-			(
-				gl::sampler_filter::linear,
-				gl::sampler_filter::linear,
-				gl::sampler_mipmap_mode::linear,
-				gl::sampler_address_mode::clamp_to_edge,
-				gl::sampler_address_mode::clamp_to_edge
-			)
-		)
-	);
+	auto sky_light_probe = std::make_shared<scene::light_probe>(gl::format::r16g16b16_sfloat, 128);
+	auto sky_light_probe_entity_id = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<scene_object_component>(sky_light_probe_entity_id, sky_light_probe, std::uint8_t{1});
 	
-	ctx.sky_pass->set_sky_probe(sky_probe);
-	ctx.exterior_scene->add_object(*sky_probe);
+	ctx.sky_pass->set_sky_probe(sky_light_probe);
 	
 	// Set camera exposure
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
@@ -348,6 +309,12 @@ test_state::~test_state()
 	destroy_third_person_camera_rig();
 
 	ctx.m_ingame = false;
+
+	ctx.sky_pass->set_sky_probe(nullptr);
+
+	// Destroy all non-persistent entities
+	auto view = ctx.entity_registry->view<entity::id>(entt::exclude<tag_component<"persistent"_fnv1a32>>);
+	ctx.entity_registry->destroy(view.begin(), view.end());
 	
 	debug::log_trace("Exited test state");
 }
@@ -377,7 +344,7 @@ void test_state::create_third_person_camera_rig()
 	spring_arm.max_angles.x() = 0.0;
 	
 	third_person_camera_rig_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace_or_replace<scene_component>(third_person_camera_rig_eid, ctx.exterior_camera, std::uint8_t{1});
+	ctx.entity_registry->emplace_or_replace<scene_object_component>(third_person_camera_rig_eid, ctx.exterior_camera, std::uint8_t{1});
 	ctx.entity_registry->emplace<spring_arm_component>(third_person_camera_rig_eid, std::move(spring_arm));
 	ctx.active_camera_eid = third_person_camera_rig_eid;
 }
@@ -428,8 +395,8 @@ geom::ray<float, 3> test_state::get_mouse_ray(const math::fvec2& mouse_position)
 		(1.0f - mouse_position.y() / static_cast<float>(viewport_size.y() - 1)) * 2.0f - 1.0f
 	};
 	
-	const auto& scene_component = ctx.entity_registry->get<::scene_component>(third_person_camera_rig_eid);
-	const auto& camera = static_cast<const scene::camera&>(*scene_component.object);
+	const auto& scene_object_component = ctx.entity_registry->get<::scene_object_component>(third_person_camera_rig_eid);
+	const auto& camera = static_cast<const scene::camera&>(*scene_object_component.object);
 	
 	return camera.pick(mouse_ndc);
 }
@@ -462,23 +429,23 @@ void test_state::setup_controls()
 				const auto& mouse_position = (*ctx.input_manager->get_mice().begin())->get_position();
 				const auto mouse_ray = get_mouse_ray(mouse_position);
 				
-				const auto& camera_object = *ctx.entity_registry->get<::scene_component>(ctx.active_camera_eid).object;
+				const auto& camera_object = *ctx.entity_registry->get<::scene_object_component>(ctx.active_camera_eid).object;
 				
-				if (auto trace = ctx.physics_system->trace(mouse_ray, entt::null, camera_object.get_layer_mask()))
+				if (auto trace = trace_rigid_bodies(*ctx.entity_registry, mouse_ray, entt::null, camera_object.get_layer_mask()))
 				{
 					// debug::log_debug("HIT! EID: {}; distance: {}; face: {}", static_cast<int>(std::get<0>(*trace)), std::get<1>(*trace), std::get<2>(*trace));
 					
-					const auto& hit_rigid_body = *ctx.entity_registry->get<rigid_body_component>(std::get<0>(*trace)).body;
+					const auto& hit_rigid_body = *ctx.entity_registry->get<rigid_body_component>(trace->entity_id).body;
 					const auto& hit_collider = *hit_rigid_body.get_collider();
-					const auto hit_distance = std::get<1>(*trace);
-					const auto& hit_normal = std::get<3>(*trace);
+					const auto hit_distance = trace->distance;
+					const auto& hit_normal = trace->normal;
 					
 					geom::brep_mesh* hit_mesh = nullptr;
 					geom::brep_face* hit_face = nullptr;
 					if (hit_collider.type() == physics::collider_type::mesh)
 					{
 						hit_mesh = static_cast<const physics::mesh_collider&>(hit_collider).get_mesh().get();
-						hit_face = hit_mesh->faces()[std::get<2>(*trace)];
+						hit_face = hit_mesh->faces()[trace->face_index];
 					}
 					
 					// Update agent transform
@@ -495,7 +462,7 @@ void test_state::setup_controls()
 						worker_eid,
 						[&](auto& component)
 						{
-							component.navmesh_eid = std::get<0>(*trace);
+							component.navmesh_eid = trace->entity_id;
 							component.mesh = hit_mesh;
 							component.feature = hit_face;
 							component.surface_normal = hit_normal;

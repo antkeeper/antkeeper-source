@@ -6,6 +6,7 @@
 
 #include "game/ecoregion.hpp"
 #include "game/states/game-state.hpp"
+#include "game/systems/component-system.hpp"
 #include <engine/app/input-manager.hpp>
 #include <engine/app/window-manager.hpp>
 #include <engine/entity/id.hpp>
@@ -72,26 +73,15 @@ namespace render
 // Forward declarations of system types.
 class astronomy_system;
 class atmosphere_system;
-class behavior_system;
 class blackbody_system;
-class camera_system;
-class collision_system;
 class constraint_system;
-class locomotion_system;
-class animation_system;
 class nest_system;
 class orbit_system;
 class render_system;
-class spatial_system;
-class steering_system;
-class reproductive_system;
-class metabolic_system;
-class metamorphosis_system;
 class physics_system;
-class subterrain_system;
-class terrain_system;
-class ik_system;
 class animation_sequence;
+class fixed_update_system;
+class variable_update_system;
 
 struct control_profile;
 
@@ -310,6 +300,7 @@ public:
 	math::ivec2 render_resolution;
 	float render_scale;
 	int shadow_map_resolution;
+	render::anti_aliasing_method anti_aliasing_method;
 	std::unique_ptr<render::material_pass> ui_material_pass;
 	std::unique_ptr<render::compositor> ui_compositor;
 	std::unique_ptr<render::bloom_pass> bloom_pass;
@@ -398,26 +389,15 @@ public:
 	entity::id active_camera_eid{entt::null};
 	
 	// Systems
-	std::unique_ptr<::behavior_system> behavior_system;
-	std::unique_ptr<::camera_system> camera_system;
-	std::unique_ptr<::collision_system> collision_system;
-	std::unique_ptr<::constraint_system> constraint_system;
-	std::unique_ptr<::steering_system> steering_system;
-	std::unique_ptr<::reproductive_system> reproductive_system;
-	std::unique_ptr<::metabolic_system> metabolic_system;
-	std::unique_ptr<::metamorphosis_system> metamorphosis_system;
-	std::unique_ptr<::locomotion_system> locomotion_system;
-	std::unique_ptr<::ik_system> ik_system;
-	std::unique_ptr<::animation_system> animation_system;
-	std::unique_ptr<::physics_system> physics_system;
-	std::unique_ptr<::render_system> render_system;
-	std::unique_ptr<::subterrain_system> subterrain_system;
-	std::unique_ptr<::terrain_system> terrain_system;
-	std::unique_ptr<::spatial_system> spatial_system;
-	std::unique_ptr<::blackbody_system> blackbody_system;
-	std::unique_ptr<::atmosphere_system> atmosphere_system;
-	std::unique_ptr<::astronomy_system> astronomy_system;
-	std::unique_ptr<::orbit_system> orbit_system;
+	std::shared_ptr<constraint_system> m_constraint_system;
+	std::shared_ptr<physics_system> m_physics_system;
+	std::shared_ptr<render_system> m_render_system;
+	std::shared_ptr<blackbody_system> m_blackbody_system;
+	std::shared_ptr<atmosphere_system> m_atmosphere_system;
+	std::shared_ptr<astronomy_system> m_astronomy_system;
+	std::shared_ptr<orbit_system> m_orbit_system;
+	std::vector<std::shared_ptr<fixed_update_system>> m_fixed_update_systems;
+	std::vector<std::shared_ptr<variable_update_system>> m_variable_update_systems;
 	
 	// Frame timing
 	float fixed_update_rate{60.0};
@@ -427,7 +407,6 @@ public:
 	math::moving_average<float> average_frame_duration;
 	
 	std::shared_ptr<ecoregion> active_ecoregion;
-	render::anti_aliasing_method anti_aliasing_method;
 	
 private:
 	void parse_options(int argc, const char* const* argv);

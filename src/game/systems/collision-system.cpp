@@ -4,33 +4,20 @@
 #include "game/systems/collision-system.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/picking-component.hpp"
-#include "game/components/rigid-body-component.hpp"
 #include <engine/geom/intersection.hpp>
 #include <engine/geom/primitives/plane.hpp>
 #include <limits>
 
+void collision_system::fixed_update(entity::registry&, float, float)
+{}
 
-collision_system::collision_system(entity::registry& registry):
-	updatable_system(registry)
-{
-}
-
-collision_system::~collision_system()
-{
-}
-
-void collision_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
-{
-
-}
-
-entity::id collision_system::pick_nearest(const geom::ray<float, 3>& ray, std::uint32_t flags) const
+entity::id collision_system::pick_nearest(const entity::registry& registry, const geom::ray<float, 3>& ray, std::uint32_t flags)
 {
 	entity::id nearest_eid = entt::null;
 	float nearest_distance = std::numeric_limits<float>::infinity();
 	
 	// For each entity with picking and transform components
-	m_registry.view<picking_component, transform_component>().each
+	registry.view<const picking_component, const transform_component>().each
 	(
 		[&](entity::id entity_id, const auto& picking, const auto& transform)
 		{
@@ -64,7 +51,7 @@ entity::id collision_system::pick_nearest(const geom::ray<float, 3>& ray, std::u
 	return nearest_eid;
 }
 
-entity::id collision_system::pick_nearest(const math::fvec3& origin, const math::fvec3& normal, std::uint32_t flags) const
+entity::id collision_system::pick_nearest(const entity::registry& registry, const math::fvec3& origin, const math::fvec3& normal, std::uint32_t flags)
 {
 	entity::id nearest_eid = entt::null;
 	float nearest_sqr_distance = std::numeric_limits<float>::infinity();
@@ -73,7 +60,7 @@ entity::id collision_system::pick_nearest(const math::fvec3& origin, const math:
 	const geom::plane<float> picking_plane = geom::plane<float>(origin, normal);
 	
 	// For each entity with picking and transform components
-	m_registry.view<picking_component, transform_component>().each
+	registry.view<const picking_component, const transform_component>().each
 	(
 		[&](entity::id entity_id, const auto& picking, const auto& transform)
 		{

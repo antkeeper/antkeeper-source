@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/commands/commands.hpp"
-#include "game/components/scene-component.hpp"
+#include "game/components/scene-object-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/celestial-body-component.hpp"
 #include "game/components/terrain-component.hpp"
@@ -109,10 +109,10 @@ void set_transform(entity::registry& registry, entity::id eid, const math::trans
 
 void assign_render_layers(entity::registry& registry, entity::id eid, std::uint8_t layer_mask)
 {
-	const ::scene_component* component = registry.try_get<::scene_component>(eid);
+	const ::scene_object_component* component = registry.try_get<::scene_object_component>(eid);
 	if (component)
 	{
-		registry.patch<::scene_component>
+		registry.patch<::scene_object_component>
 		(
 			eid,
 			[layer_mask](auto& component)

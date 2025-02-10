@@ -4,9 +4,6 @@
 #ifndef ANTKEEPER_CONFIG_HPP
 #define ANTKEEPER_CONFIG_HPP
 
-#include <cstddef>
-#include <engine/math/vector.hpp>
-
 /// Global configuration constants.
 namespace config {
 
@@ -52,7 +49,7 @@ inline constexpr const char* application_url = "@PROJECT_HOMEPAGE_URL@";
 /// @{
 
 /// Maximum number of debug logs to archive.
-inline constexpr std::size_t debug_log_archive_capacity = 5;
+inline constexpr unsigned int debug_log_archive_capacity = 5;
 
 /// @}
 
@@ -84,34 +81,6 @@ inline constexpr int opengl_min_depth_size = 0;
 inline constexpr int opengl_min_stencil_size = 0;
 
 /// @}
-
-inline constexpr math::vector<float, 3> global_forward = {0.0f, 0.0f, -1.0f};
-inline constexpr math::vector<float, 3> global_up = {0.0f, 1.0f, 0.0f};
-inline constexpr math::vector<float, 3> global_right = {1.0f, 0.0f, 0.0f};
-
-/// Duration of the menu fade in animation, in seconds.
-inline constexpr float menu_fade_in_duration = 0.25f;
-
-/// Duration of the menu fade out animation, in seconds.
-inline constexpr float menu_fade_out_duration = 0.125f;
-
-/// Padding of the a menu item mouseover bounds, as a percentage of the font size.
-inline constexpr float menu_mouseover_padding = 0.1f;
-
-/// Opacity of the menu background.
-inline constexpr float menu_bg_opacity = 3.0f / 4.0f;
-
-/// Duration of the title screen fade in, in seconds.
-inline constexpr float title_fade_in_duration = 1.0f;
-
-/// Duration of the fade out when quitting the game or returning to the main menu, in seconds.
-inline constexpr float quit_fade_out_duration = 0.5f;
-
-/// Duration of the fade out when a new colony is started, in seconds.
-inline constexpr float new_colony_fade_out_duration = 1.0f;
-
-/// Duration of the nuptial flight fade in, in seconds.
-inline constexpr float nuptial_flight_fade_in_duration = 5.0f;
 
 } // namespace config
 

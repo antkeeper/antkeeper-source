@@ -3,7 +3,7 @@
 
 #include "game/systems/animation-system.hpp"
 #include "game/components/pose-component.hpp"
-#include "game/components/scene-component.hpp"
+#include "game/components/scene-object-component.hpp"
 #include "game/components/animation-component.hpp"
 #include <engine/animation/bone.hpp>
 #include <engine/scene/skeletal-mesh.hpp>
@@ -12,7 +12,7 @@
 #include <execution>
 
 animation_system::animation_system(entity::registry& registry):
-	updatable_system(registry)
+	m_registry(registry)
 {
 	m_registry.on_construct<animation_component>().connect<&animation_system::on_animation_construct>(this);
 }
@@ -22,16 +22,12 @@ animation_system::~animation_system()
 	m_registry.on_construct<animation_component>().disconnect<&animation_system::on_animation_construct>(this);
 }
 
-void animation_system::update(float t, float dt)
-{
-	m_previous_update_time = m_update_time;
-	m_update_time = t;
-	m_fixed_timestep = dt;
-}
+void animation_system::fixed_update(entity::registry&, float, float)
+{}
 
-void animation_system::interpolate(float alpha)
+void animation_system::variable_update(entity::registry& registry, float t, float dt, float alpha)
 {
-	auto pose_group = m_registry.group<pose_component>(entt::get<scene_component>);
+	auto pose_group = registry.group<pose_component>(entt::get<scene_object_component>);
 	std::for_each
 	(
 		std::execution::par_unseq,
@@ -40,7 +36,7 @@ void animation_system::interpolate(float alpha)
 		[&](auto entity_id)
 		{
 			auto& pose = pose_group.get<pose_component>(entity_id);
-			auto& scene = pose_group.get<scene_component>(entity_id);
+			auto& scene = pose_group.get<scene_object_component>(entity_id);
 			
 			auto& skeletal_mesh = static_cast<scene::skeletal_mesh&>(*scene.object);
 			for (std::size_t i = 0; i < skeletal_mesh.get_skeleton()->bones().size(); ++i)
@@ -61,17 +57,17 @@ void animation_system::interpolate(float alpha)
 	);
 
 	m_previous_render_time = m_render_time;
-	m_render_time = m_previous_update_time + m_fixed_timestep * alpha;
+	m_render_time = t + dt * alpha;
 
-	const auto dt = std::max(0.0f, m_render_time - m_previous_render_time);
+	const auto variable_dt = std::max(0.0f, m_render_time - m_previous_render_time);
 
-	auto animation_view = m_registry.view<animation_component>();
+	auto animation_view = registry.view<animation_component>();
 	for (auto entity: animation_view)
 	{
 		auto& player = animation_view.get<animation_component>(entity).player;
 		if (player.is_playing())
 		{
-			player.advance(dt);
+			player.advance(variable_dt);
 		}
 	}
 }

@@ -7,13 +7,9 @@
 #include <algorithm>
 #include <execution>
 
-ik_system::ik_system(entity::registry& registry):
-	updatable_system(registry)
-{}
-
-void ik_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
+void ik_system::fixed_update(entity::registry& registry, float, float)
 {
-	auto view = m_registry.view<ik_component>();
+	auto view = registry.view<ik_component>();
 	std::for_each
 	(
 		std::execution::par_unseq,

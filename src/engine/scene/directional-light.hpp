@@ -210,9 +210,9 @@ private:
 	float m_shadow_max_distance{100.0f};
 	float m_shadow_fade_range{0.0f};
 	float m_shadow_cascade_distribution{0.8f};
-	math::fvec4 m_shadow_cascade_distances;
-	math::fmat4 m_shadow_cascade_matrices[4];
-	math::fmat4 m_shadow_scale_bias_matrices[4];
+	math::fvec4 m_shadow_cascade_distances{};
+	math::fmat4 m_shadow_cascade_matrices[4]{};
+	math::fmat4 m_shadow_scale_bias_matrices[4]{};
 };
 
 } // namespace scene

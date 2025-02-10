@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/systems/blackbody-system.hpp"
+#include "game/components/blackbody-component.hpp"
 #include <engine/physics/light/blackbody.hpp>
 #include <engine/physics/light/photometry.hpp>
 #include <engine/math/quadrature.hpp>
@@ -11,7 +12,7 @@
 #include <numeric>
 
 blackbody_system::blackbody_system(entity::registry& registry):
-	updatable_system(registry)
+	m_registry(registry)
 {
 	// Construct a range of sample wavelengths in the visible spectrum
 	m_visible_wavelengths_nm.resize(780 - 280);
@@ -27,7 +28,7 @@ blackbody_system::~blackbody_system()
 	m_registry.on_update<::blackbody_component>().disconnect<&blackbody_system::on_blackbody_update>(this);
 }
 
-void blackbody_system::update([[maybe_unused]] float t, [[maybe_unused]] float dt)
+void blackbody_system::fixed_update(entity::registry&, float, float)
 {}
 
 void blackbody_system::update_blackbody(entity::id entity_id)

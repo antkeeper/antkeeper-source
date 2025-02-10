@@ -2,8 +2,54 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <engine/scene/light-probe.hpp>
+#include <engine/debug/contract.hpp>
 
 namespace scene {
+
+namespace
+{
+	// 4 floats per pixel to encode the 3 4x4 spherical harmonics illuminance matrices in a 12 pixel 1D image.
+	inline constexpr gl::format light_probe_illuminance_image_format = gl::format::r32g32b32a32_sfloat;
+
+	// 12 pixels, corresponding to the column vectors of three spherical harmonics illuminance matrices (R0, R1, R2, R3, G0, G1, G2, G3, B0, B1, B2, B3).
+	inline constexpr std::uint32_t light_probe_illuminance_image_width = 12;
+}
+
+light_probe::light_probe(gl::format format, std::uint32_t face_size):
+	light_probe()
+{
+	const auto mip_levels = static_cast<std::uint32_t>(std::bit_width(face_size));
+
+	set_luminance_texture
+	(
+		std::make_shared<gl::texture_cube>
+		(
+			// Luminance texture image view
+			std::make_shared<gl::image_view_cube>
+			(
+				std::make_shared<gl::image_cube>
+				(
+					format,
+					face_size,
+					mip_levels
+				),
+				gl::format::undefined,
+				0,
+				mip_levels
+			),
+
+			// Lumiance texture sampler
+			std::make_shared<gl::sampler>
+			(
+				gl::sampler_filter::linear,
+				gl::sampler_filter::linear,
+				gl::sampler_mipmap_mode::linear,
+				gl::sampler_address_mode::clamp_to_edge,
+				gl::sampler_address_mode::clamp_to_edge
+			)
+		)
+	);
+}
 
 light_probe::light_probe()
 {
@@ -14,8 +60,8 @@ light_probe::light_probe()
 		(
 			std::make_shared<gl::image_1d>
 			(
-				gl::format::r32g32b32a32_sfloat,
-				12
+				light_probe_illuminance_image_format,
+				light_probe_illuminance_image_width
 			)
 		),
 		std::make_shared<gl::sampler>
@@ -36,7 +82,7 @@ light_probe::light_probe()
 			0
 		}
 	};
-	m_illuminance_framebuffer = std::make_shared<gl::framebuffer>(attachments, 12, 1);
+	m_illuminance_framebuffer = std::make_shared<gl::framebuffer>(attachments, light_probe_illuminance_image_width, 1);
 	
 	// Init illuminance matrices
 	m_illuminance_matrices[0] = {};
@@ -46,55 +92,62 @@ light_probe::light_probe()
 
 void light_probe::update_illuminance_matrices()
 {
+	debug::precondition(m_illuminance_texture != nullptr);
+
 	m_illuminance_texture->get_image_view()->get_image()->read
 	(
 		0,
 		0,
 		0,
 		0,
-		12,
+		light_probe_illuminance_image_width,
 		1,
 		1,
-		gl::format::r32g32b32a32_sfloat,
+		light_probe_illuminance_image_format,
 		std::as_writable_bytes(std::span{m_illuminance_matrices})
 	);
 }
 
 void light_probe::set_luminance_texture(std::shared_ptr<gl::texture_cube> texture)
 {
-	if (m_luminance_texture != texture)
+	if (m_luminance_texture == texture)
 	{
-		m_luminance_texture = texture;
-		
-		// Update luminance framebuffers
-		if (m_luminance_texture)
-		{
-			const auto face_size = texture->get_image_view()->get_image()->get_dimensions()[0];
-			const auto mip_count = static_cast<std::uint32_t>(std::bit_width(face_size));
-			
-			m_luminance_framebuffers.resize(mip_count);
-			
-			for (std::uint32_t i = 0; i < mip_count; ++i)
-			{
-				const gl::framebuffer_attachment attachments[1] =
-				{
-					{
-						gl::color_attachment_bit,
-						m_luminance_texture->get_image_view(),
-						i
-					}
-				};
-				m_luminance_framebuffers[i] = std::make_shared<gl::framebuffer>(attachments, face_size >> i, face_size >> i);
-			}
-		}
-		else
-		{
-			m_luminance_framebuffers.clear();
-		}
-		
-		set_luminance_outdated(true);
-		set_illuminance_outdated(true);
+		return;
 	}
+
+	m_luminance_texture = texture;
+		
+	// Update luminance framebuffers
+	if (m_luminance_texture)
+	{
+		debug::invariant(m_luminance_texture->get_image_view() != nullptr);
+		debug::invariant(m_luminance_texture->get_image_view()->get_image() != nullptr);
+
+		const auto face_size = m_luminance_texture->get_image_view()->get_image()->get_dimensions()[0];
+		const auto mip_count = static_cast<std::uint32_t>(std::bit_width(face_size));
+			
+		m_luminance_framebuffers.resize(mip_count);
+			
+		for (std::uint32_t i = 0; i < mip_count; ++i)
+		{
+			const gl::framebuffer_attachment attachments[1] =
+			{
+				{
+					gl::color_attachment_bit,
+					m_luminance_texture->get_image_view(),
+					i
+				}
+			};
+			m_luminance_framebuffers[i] = std::make_shared<gl::framebuffer>(attachments, face_size >> i, face_size >> i);
+		}
+	}
+	else
+	{
+		m_luminance_framebuffers.clear();
+	}
+		
+	set_luminance_outdated(true);
+	set_illuminance_outdated(true);
 }
 
 void light_probe::set_luminance_outdated(bool outdated)

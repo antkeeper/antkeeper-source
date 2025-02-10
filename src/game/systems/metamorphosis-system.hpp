@@ -4,26 +4,14 @@
 #ifndef ANTKEEPER_GAME_METAMORPHOSIS_SYSTEM_HPP
 #define ANTKEEPER_GAME_METAMORPHOSIS_SYSTEM_HPP
 
-#include "game/systems/updatable-system.hpp"
+#include "game/systems/fixed-update-system.hpp"
 
 class metamorphosis_system:
-	public updatable_system
+	public fixed_update_system
 {
 public:
-	explicit metamorphosis_system(entity::registry& registry);
 	~metamorphosis_system() override = default;
-	
-	virtual void update(float t, float dt);
-	
-	/// Sets the factor by which the timestep `dt` will be scaled.
-	/// @param scale Factor by which to scale the timestep.
-	inline constexpr void set_time_scale(float scale) noexcept
-	{
-		m_time_scale = scale;
-	}
-	
-private:
-	float m_time_scale{1.0f};
+	void fixed_update(entity::registry& registry, float t, float dt) override;
 };
 
 #endif // ANTKEEPER_GAME_METAMORPHOSIS_SYSTEM_HPP

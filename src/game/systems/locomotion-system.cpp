@@ -14,19 +14,15 @@
 #include <engine/math/functions.hpp>
 #include <engine/ai/navmesh.hpp>
 
-locomotion_system::locomotion_system(entity::registry& registry):
-	updatable_system(registry)
-{}
-
-void locomotion_system::update(float t, float dt)
+void locomotion_system::fixed_update(entity::registry& registry, float t, float dt)
 {
-	update_legged(t, dt);
-	update_winged(t, dt);
+	update_legged(registry, t, dt);
+	update_winged(registry, t, dt);
 }
 
-void locomotion_system::update_legged(float, float dt)
+void locomotion_system::update_legged(entity::registry& registry, float, float dt)
 {
-	auto legged_group = m_registry.group<legged_locomotion_component>(entt::get<navmesh_agent_component, rigid_body_component, pose_component>);
+	auto legged_group = registry.group<legged_locomotion_component>(entt::get<navmesh_agent_component, rigid_body_component, pose_component>);
 	for (auto entity_id: legged_group)
 	{
 		auto& locomotion = legged_group.get<legged_locomotion_component>(entity_id);
@@ -66,7 +62,7 @@ void locomotion_system::update_legged(float, float dt)
 			const auto& agent_transform = agent_rigid_body.get_transform();
 			
 			// Get navmesh rigid body
-			auto& navmesh_rigid_body = *m_registry.get<rigid_body_component>(navmesh_agent.navmesh_eid).body;
+			auto& navmesh_rigid_body = *registry.get<rigid_body_component>(navmesh_agent.navmesh_eid).body;
 			const auto& navmesh_transform = navmesh_rigid_body.get_transform();
 			
 			// Determine start and end points of traversal
@@ -191,9 +187,9 @@ void locomotion_system::update_legged(float, float dt)
 	}
 }
 
-void locomotion_system::update_winged([[maybe_unused]] float t, [[maybe_unused]] float dt)
+void locomotion_system::update_winged(entity::registry& registry, float, float)
 {
-	auto winged_group = m_registry.group<winged_locomotion_component>(entt::get<rigid_body_component>);
+	auto winged_group = registry.group<winged_locomotion_component>(entt::get<rigid_body_component>);
 	for (auto entity_id: winged_group)
 	{
 		const auto& locomotion = winged_group.get<winged_locomotion_component>(entity_id);

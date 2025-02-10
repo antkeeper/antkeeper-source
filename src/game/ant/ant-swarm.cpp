@@ -4,16 +4,16 @@
 #include "game/ant/ant-swarm.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/steering-component.hpp"
-#include "game/components/scene-component.hpp"
+#include "game/components/scene-object-component.hpp"
 #include "game/components/picking-component.hpp"
 #include "game/components/winged-locomotion-component.hpp"
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/ant-caste-component.hpp"
+#include "game/systems/steering-system.hpp"
 #include <engine/resources/resource-manager.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/math/functions.hpp>
 #include <engine/scene/static-mesh.hpp>
-#include <engine/config.hpp>
 #include <cmath>
 #include <random>
 
@@ -75,8 +75,8 @@ entity::id create_ant_swarm(::game& ctx)
 	steering.agent.max_speed = 5.0f;
 	steering.agent.max_speed_squared = steering.agent.max_speed * steering.agent.max_speed;
 	steering.agent.orientation = math::identity<math::fquat>;
-	steering.agent.forward = steering.agent.orientation * config::global_forward;
-	steering.agent.up = steering.agent.orientation * config::global_up;
+	steering.agent.forward = steering.agent.orientation * steering_system::global_forward;
+	steering.agent.up = steering.agent.orientation * steering_system::global_up;
 	steering.wander_weight = 1.0f;
 	steering.wander_noise = math::radians(2000.0f);
 	steering.wander_distance = 10.0f;
@@ -119,7 +119,7 @@ entity::id create_ant_swarm(::game& ctx)
 		{
 			// Create male
 			ctx.entity_registry->emplace<ant_caste_component>(alate_eid, male_caste);
-			ctx.entity_registry->emplace<::scene_component>(alate_eid, std::make_unique<scene::static_mesh>(male_model), std::uint8_t{1});
+			ctx.entity_registry->emplace<::scene_object_component>(alate_eid, std::make_unique<scene::static_mesh>(male_model), std::uint8_t{1});
 
 			
 			transform.local.scale = male_scale;
@@ -133,7 +133,7 @@ entity::id create_ant_swarm(::game& ctx)
 		{
 			// Create queen
 			ctx.entity_registry->emplace<ant_caste_component>(alate_eid, queen_caste);
-			ctx.entity_registry->emplace<::scene_component>(alate_eid, std::make_unique<scene::static_mesh>(queen_model), std::uint8_t{1});
+			ctx.entity_registry->emplace<::scene_object_component>(alate_eid, std::make_unique<scene::static_mesh>(queen_model), std::uint8_t{1});
 			
 			transform.local.scale = queen_scale;
 			transform.world = transform.local;

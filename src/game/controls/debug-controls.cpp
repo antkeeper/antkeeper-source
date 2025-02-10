@@ -36,7 +36,7 @@ void setup_debug_controls(::game& ctx)
 				if (ctx.adjust_time_action.is_active())
 				{
 					const double sensitivity = 1.0 / static_cast<double>(ctx.window->get_viewport_size().x());
-					const double t = ctx.astronomy_system->get_time();
+					const double t = ctx.m_astronomy_system->get_time();
 					::world::set_time(ctx, t + static_cast<double>(event.difference.x()) * sensitivity);
 				}
 				

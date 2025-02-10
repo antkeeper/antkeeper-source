@@ -105,10 +105,10 @@ void create_observer(::game& ctx)
 		ctx.entity_registry->emplace<::observer_component>(observer_eid, observer);
 		
 		// Set atmosphere system active atmosphere
-		ctx.atmosphere_system->set_active_atmosphere(observer.reference_body_eid);
+		ctx.m_atmosphere_system->set_active_atmosphere(observer.reference_body_eid);
 		
 		// Set astronomy system observer
-		ctx.astronomy_system->set_observer(observer_eid);
+		ctx.m_astronomy_system->set_observer(observer_eid);
 	}
 	
 	debug::log_trace("Creating observer... OK");
@@ -141,8 +141,8 @@ void set_time(::game& ctx, double t)
 {
 	try
 	{
-		ctx.astronomy_system->set_time(t);
-		ctx.orbit_system->set_time(t);
+		ctx.m_astronomy_system->set_time(t);
+		ctx.m_orbit_system->set_time(t);
 		
 		// debug::log_info("Set time to UT1 {}", t);
 	}
@@ -177,18 +177,9 @@ void set_time(::game& ctx, int year, int month, int day, int hour, int minute, d
 	set_time(ctx, t);
 }
 
-void set_time_scale(::game& ctx, double scale)
-{
-	// Convert time scale from seconds to days
-	const double astronomical_scale = scale / physics::time::seconds_per_day<double>;
-	
-	ctx.orbit_system->set_time_scale(astronomical_scale);
-	ctx.astronomy_system->set_time_scale(astronomical_scale);
-}
-
 void load_ephemeris(::game& ctx)
 {
-	ctx.orbit_system->set_ephemeris(ctx.resource_manager->load<physics::orbit::ephemeris<double>>("de421.eph"));
+	ctx.m_orbit_system->set_ephemeris(ctx.resource_manager->load<physics::orbit::ephemeris<double>>("de421.eph"));
 }
 
 void create_stars(::game& ctx)
@@ -311,7 +302,7 @@ void create_stars(::game& ctx)
 	ctx.sky_pass->set_stars_model(stars_model);
 	
 	// Pass starlight illuminance to astronomy system
-	ctx.astronomy_system->set_starlight_illuminance(starlight_illuminance);
+	ctx.m_astronomy_system->set_starlight_illuminance(starlight_illuminance);
 	
 	debug::log_trace("Generating fixed stars... OK");
 }
@@ -340,7 +331,7 @@ void create_sun(::game& ctx)
 		ctx.exterior_scene->add_object(*ctx.sun_light);
 		
 		// Pass direct sun light scene object to shadow map pass and astronomy system
-		ctx.astronomy_system->set_sun_light(ctx.sun_light.get());
+		ctx.m_astronomy_system->set_sun_light(ctx.sun_light.get());
 	}
 	
 	debug::log_trace("Generating Sun... OK");
@@ -406,7 +397,7 @@ void create_moon(::game& ctx)
 		ctx.exterior_scene->add_object(*ctx.moon_light);
 		
 		// Pass moon light scene object to astronomy system
-		ctx.astronomy_system->set_moon_light(ctx.moon_light.get());
+		ctx.m_astronomy_system->set_moon_light(ctx.moon_light.get());
 	}
 	
 	debug::log_trace("Generating Moon... OK");

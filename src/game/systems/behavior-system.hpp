@@ -4,16 +4,14 @@
 #ifndef ANTKEEPER_GAME_BEHAVIOR_SYSTEM_HPP
 #define ANTKEEPER_GAME_BEHAVIOR_SYSTEM_HPP
 
-#include "game/systems/updatable-system.hpp"
+#include "game/systems/fixed-update-system.hpp"
 
 class behavior_system:
-	public updatable_system
+	public fixed_update_system
 {
 public:
-	explicit behavior_system(entity::registry& registry);
 	~behavior_system() override = default;
-	virtual void update(float t, float dt);
+	void fixed_update(entity::registry& registry, float t, float dt) override;
 };
-
 
 #endif // ANTKEEPER_GAME_BEHAVIOR_SYSTEM_HPP

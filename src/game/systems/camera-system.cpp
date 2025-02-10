@@ -4,30 +4,23 @@
 #include "game/systems/camera-system.hpp"
 #include "game/components/autofocus-component.hpp"
 #include "game/components/spring-arm-component.hpp"
-#include "game/components/scene-component.hpp"
+#include "game/components/scene-object-component.hpp"
 #include <engine/animation/ease.hpp>
 #include <engine/math/projection.hpp>
 #include <engine/scene/camera.hpp>
 #include <engine/math/euler-angles.hpp>
 
-camera_system::camera_system(entity::registry& registry):
-	updatable_system(registry)
+void camera_system::fixed_update(entity::registry&, float, float)
 {}
 
-void camera_system::update(float t, float dt)
+void camera_system::variable_update(entity::registry& registry, float t, float dt, float alpha)
 {
-	m_fixed_update_time = static_cast<double>(t);
-	m_fixed_timestep = static_cast<double>(dt);
-}
-
-void camera_system::interpolate(float alpha)
-{
-	const double variable_update_time = m_fixed_update_time + m_fixed_timestep * static_cast<double>(alpha);
+	const double variable_update_time = t + dt * alpha;
 	const double variable_timestep = std::max(0.0, variable_update_time - m_variable_update_time);
 	m_variable_update_time = variable_update_time;
 	
 	/*
-	auto autofocus_group = m_registry.group<autofocus_component>(entt::get<scene_component>);
+	auto autofocus_group = m_registry.group<autofocus_component>(entt::get<scene_object_component>);
 	std::for_each
 	(
 		std::execution::seq,
@@ -36,7 +29,7 @@ void camera_system::interpolate(float alpha)
 		[&](auto entity_id)
 		{
 			auto& autofocus = autofocus_group.get<autofocus_component>(entity_id);
-			auto& camera = static_cast<scene::camera&>(*autofocus_group.get<scene_component>(entity_id).object);
+			auto& camera = static_cast<scene::camera&>(*autofocus_group.get<scene_object_component>(entity_id).object);
 			
 			// Clamp zoom factor
 			autofocus.zoom = std::min<double>(std::max<double>(autofocus.zoom, 0.0), 1.0);
@@ -58,16 +51,16 @@ void camera_system::interpolate(float alpha)
 	);
 	*/
 	
-	auto spring_arm_group = m_registry.group<spring_arm_component>(entt::get<scene_component>);
+	auto spring_arm_group = registry.group<spring_arm_component>(entt::get<scene_object_component>);
 	for (auto entity_id: spring_arm_group)
 	{
 		auto& spring_arm = spring_arm_group.get<spring_arm_component>(entity_id);
-		auto& camera = static_cast<scene::camera&>(*spring_arm_group.get<scene_component>(entity_id).object);
+		auto& camera = static_cast<scene::camera&>(*spring_arm_group.get<scene_object_component>(entity_id).object);
 		
 		math::transform<double> parent_transform = math::identity<math::transform<double>>;
 		if (spring_arm.parent_eid != entt::null)
 		{
-			const auto parent_scene = m_registry.try_get<scene_component>(spring_arm.parent_eid);
+			const auto parent_scene = registry.try_get<scene_object_component>(spring_arm.parent_eid);
 			if (parent_scene)
 			{
 				parent_transform.translation = math::dvec3(parent_scene->object->get_translation());
@@ -131,10 +124,3 @@ void camera_system::interpolate(float alpha)
 		camera.set_vertical_fov(static_cast<float>(spring_arm.vfov));
 	}
 }
-
-void camera_system::set_viewport(const math::fvec4& viewport)
-{
-	m_viewport = math::dvec4(viewport);
-	m_aspect_ratio = m_viewport[2] /  m_viewport[3];
-}
-

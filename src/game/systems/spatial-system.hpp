@@ -4,21 +4,14 @@
 #ifndef ANTKEEPER_GAME_SPATIAL_SYSTEM_HPP
 #define ANTKEEPER_GAME_SPATIAL_SYSTEM_HPP
 
-#include "game/systems/updatable-system.hpp"
-#include <entt/entt.hpp>
+#include "game/systems/fixed-update-system.hpp"
 
 class spatial_system:
-	public updatable_system
+	public fixed_update_system
 {
 public:
-	explicit spatial_system(entity::registry& registry);
 	~spatial_system() override = default;
-	
-	virtual void update(float t, float dt);
-	
-private:
-	/// Observes entities with updated, unconstrained transforms.
-	entt::observer m_updated_unconstrained_transforms;
+	void fixed_update(entity::registry& registry, float t, float dt) override;
 };
 
 #endif // ANTKEEPER_GAME_SPATIAL_SYSTEM_HPP
