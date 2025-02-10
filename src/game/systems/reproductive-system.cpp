@@ -9,7 +9,7 @@
 #include "game/components/egg-component.hpp"
 #include "game/components/ant-genome-component.hpp"
 #include "game/components/time-component.hpp"
-#include "game/systems/physics-system.hpp"
+#include "game/utility/physics.hpp"
 #include "game/utility/time.hpp"
 #include <engine/math/functions.hpp>
 #include <engine/math/functions.hpp>
@@ -98,10 +98,10 @@ void reproductive_system::fixed_update(entity::registry& registry, float, float 
 				// Place egg
 				auto& egg_rigid_body = *registry.get<rigid_body_component>(ovary.ovipositor_egg_eid).body;
 				const auto oviposition_ray = geom::ray<float, 3>{egg_transform.translation, egg_transform.rotation * math::fvec3{0, 0, -1}};
-				if (auto trace = physics_system::trace(registry, oviposition_ray, ovary.ovipositor_egg_eid, ~std::uint32_t{0}))
+				if (auto trace = trace_rigid_bodies(registry, oviposition_ray, ovary.ovipositor_egg_eid, ~std::uint32_t{0}))
 				{
-					egg_transform.translation = oviposition_ray.extrapolate(std::get<1>(*trace));
-					egg_transform.rotation = math::normalize(math::rotation(egg_transform.rotation * math::fvec3{0, 1, 0}, std::get<3>(*trace)) * egg_transform.rotation);
+					egg_transform.translation = oviposition_ray.extrapolate(trace->distance);
+					egg_transform.rotation = math::normalize(math::rotation(egg_transform.rotation * math::fvec3{0, 1, 0}, trace->normal) * egg_transform.rotation);
 					egg_rigid_body.set_transform(egg_transform);
 					
 					// Get genome of egg

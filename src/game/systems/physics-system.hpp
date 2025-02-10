@@ -9,11 +9,8 @@
 #include <engine/entity/id.hpp>
 #include <engine/physics/kinematics/rigid-body.hpp>
 #include <engine/physics/kinematics/collision-manifold.hpp>
-#include <engine/geom/primitives/ray.hpp>
 #include <array>
 #include <functional>
-#include <optional>
-#include <tuple>
 
 class physics_system:
 	public fixed_update_system
@@ -22,13 +19,6 @@ public:
 	physics_system();
 	~physics_system() override = default;
 	void fixed_update(entity::registry& registry, float t, float dt) override;
-	
-	/// Traces a ray to the nearest point of intersection.
-	/// @param ray World-spce ray.
-	/// @param ignore_eid Entity ID with which to ignore intersection.
-	/// @param layer_mask Mask of collision layers with which the ray can intersect.
-	/// @return Tuple containing the ID of the nearest intersecting entity, distance along the ray to the point of intersection, index of the hit face, and surface normal at the point of intersection; or std::nullopt if no intersection occurred.
-	[[nodiscard]] static std::optional<std::tuple<entity::id, float, std::uint32_t, math::fvec3>> trace(entity::registry& registry, const geom::ray<float, 3>& ray, entity::id ignore_eid = entt::null, std::uint32_t layer_mask = ~std::uint32_t{0});
 	
 private:
 	using collision_manifold_type = physics::collision_manifold<4>;

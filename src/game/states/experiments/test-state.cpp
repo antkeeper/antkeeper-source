@@ -47,8 +47,9 @@
 #include "game/systems/atmosphere-system.hpp"
 #include "game/systems/camera-system.hpp"
 #include "game/systems/collision-system.hpp"
-#include "game/systems/physics-system.hpp"
 #include "game/systems/terrain-system.hpp"
+#include "game/utility/physics.hpp"
+#include "game/utility/terrain.hpp"
 #include "game/world.hpp"
 #include <engine/animation/ease.hpp>
 #include <engine/config.hpp>
@@ -163,7 +164,7 @@ test_state::test_state(::game& ctx):
 		transform.scale.z() = transform.scale.x();
 		//transform.translation.y() = -transform.scale.y() * 0.5f;
 		auto material = ctx.resource_manager->load<render::material>("grid-terrain-cm-middle-gray.mtl");
-		terrain_system::generate(*ctx.entity_registry, heightmap, subdivisions, transform, material);
+		generate_terrain(*ctx.entity_registry, heightmap, subdivisions, transform, material);
 	}
 	
 	// Create worker
@@ -430,21 +431,21 @@ void test_state::setup_controls()
 				
 				const auto& camera_object = *ctx.entity_registry->get<::scene_object_component>(ctx.active_camera_eid).object;
 				
-				if (auto trace = physics_system::trace(*ctx.entity_registry, mouse_ray, entt::null, camera_object.get_layer_mask()))
+				if (auto trace = trace_rigid_bodies(*ctx.entity_registry, mouse_ray, entt::null, camera_object.get_layer_mask()))
 				{
 					// debug::log_debug("HIT! EID: {}; distance: {}; face: {}", static_cast<int>(std::get<0>(*trace)), std::get<1>(*trace), std::get<2>(*trace));
 					
-					const auto& hit_rigid_body = *ctx.entity_registry->get<rigid_body_component>(std::get<0>(*trace)).body;
+					const auto& hit_rigid_body = *ctx.entity_registry->get<rigid_body_component>(trace->entity_id).body;
 					const auto& hit_collider = *hit_rigid_body.get_collider();
-					const auto hit_distance = std::get<1>(*trace);
-					const auto& hit_normal = std::get<3>(*trace);
+					const auto hit_distance = trace->distance;
+					const auto& hit_normal = trace->normal;
 					
 					geom::brep_mesh* hit_mesh = nullptr;
 					geom::brep_face* hit_face = nullptr;
 					if (hit_collider.type() == physics::collider_type::mesh)
 					{
 						hit_mesh = static_cast<const physics::mesh_collider&>(hit_collider).get_mesh().get();
-						hit_face = hit_mesh->faces()[std::get<2>(*trace)];
+						hit_face = hit_mesh->faces()[trace->face_index];
 					}
 					
 					// Update agent transform
@@ -461,7 +462,7 @@ void test_state::setup_controls()
 						worker_eid,
 						[&](auto& component)
 						{
-							component.navmesh_eid = std::get<0>(*trace);
+							component.navmesh_eid = trace->entity_id;
 							component.mesh = hit_mesh;
 							component.feature = hit_face;
 							component.surface_normal = hit_normal;
