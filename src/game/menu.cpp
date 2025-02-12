@@ -1369,6 +1369,11 @@ namespace
 		(
 			[&ctx](const auto& event)
 			{
+				if (ctx.window->is_fullscreen() == static_cast<bool>(event.value))
+				{
+					return true;
+				}
+
 				ctx.window->set_fullscreen(static_cast<bool>(event.value));
 				return ctx.window->is_fullscreen() == static_cast<bool>(event.value);
 			}

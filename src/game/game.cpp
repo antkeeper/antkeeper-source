@@ -72,6 +72,7 @@
 #include <engine/hash/fnv.hpp>
 #include <engine/utility/paths.hpp>
 #include <engine/ui/label.hpp>
+#include <engine/ui/range.hpp>
 #include <entt/entt.hpp>
 #include <filesystem>
 #include <functional>
@@ -915,6 +916,33 @@ void game::setup_ui()
 			
 			// Re-align debug text
 			frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - debug_font->get_metrics().size), 99.0f});
+
+			if (m_graphics_menu_container)
+			{
+				// HACK: Find the fullscreen button based on the string of its label and click it
+				const auto fullscreen_string = get_string(*this, "graphics_menu_fullscreen");
+
+				std::shared_ptr<ui::element> fullscreen_button;
+				m_graphics_menu_container->visit_descendants
+				(
+					[&](auto& descendant)
+					{
+						if (descendant.get_type() == ui::element_type::label)
+						{
+							auto& label = static_cast<ui::label&>(descendant);
+							if (label.get_text() == fullscreen_string)
+							{
+								fullscreen_button = label.get_focus_right().lock();
+							}
+						}
+					}
+				);
+
+				if (fullscreen_button && fullscreen_button->get_type() == ui::element_type::range)
+				{
+					static_cast<ui::range&>(*fullscreen_button).set_value(window->is_fullscreen());
+				}
+			}
 		}
 	);
 	
