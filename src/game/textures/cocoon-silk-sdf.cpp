@@ -9,7 +9,7 @@
 #include <stb/stb_image_write.h>
 #include <engine/noise/noise.hpp>
 
-void generate_cocoon_silk_sdf(std::filesystem::path path)
+void generate_cocoon_silk_sdf(std::filesystem::path /*path*/)
 {
 	/*
 	debug::log_info("Generating cocoon silk SDF image...");
