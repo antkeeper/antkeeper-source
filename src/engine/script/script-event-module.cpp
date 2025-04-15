@@ -1,20 +1,23 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/script/script-event-module.hpp>
-#include <engine/script/script-context.hpp>
-#include <engine/script/script-error.hpp>
-#include <engine/input/mouse-events.hpp>
-#include <engine/debug/log.hpp>
-#include <engine/debug/contract.hpp>
-#include <unordered_map>
-
 extern "C"
 {
 	#include <lua.h>
 	#include <lualib.h>
 	#include <lauxlib.h>
 }
+
+import engine.script.event_module;
+import engine.script.context;
+import engine.script.error;
+import engine.input.mouse;
+import engine.event.subscription;
+import engine.event.dispatcher;
+import engine.debug.contract;
+import engine.debug.log;
+
+using namespace engine;
 
 namespace
 {
@@ -119,7 +122,7 @@ namespace
 	{
 		std::string event_name = luaL_checkstring(lua, 2);
 
-		auto& subscriptions = *static_cast<std::unordered_map<std::string, std::pair<int, std::shared_ptr<event::subscription>>>*>(lua_touserdata(lua, lua_upvalueindex(1)));
+		auto& subscriptions = *static_cast<std::unordered_map<std::string, std::pair<int, std::shared_ptr<engine::event::subscription>>>*>(lua_touserdata(lua, lua_upvalueindex(1)));
 
 		if (auto subscription_it = subscriptions.find(event_name); subscription_it != subscriptions.end())
 		{
@@ -135,16 +138,19 @@ namespace
 	}
 }
 
-auto load_event_module(script_context& ctx, event::dispatcher& dispatcher, std::unordered_map<std::string, std::pair<int, std::shared_ptr<event::subscription>>>& subscriptions) -> void
+namespace engine
 {
-	lua_State* lua = ctx.state();
+	auto load_event_module(script_context& ctx, event::dispatcher& dispatcher, std::unordered_map<std::string, std::pair<int, std::shared_ptr<event::subscription>>>& subscriptions) -> void
+	{
+		lua_State* lua = ctx.state();
 
-	lua_newtable(lua);
+		lua_newtable(lua);
 
-	lua_pushlightuserdata(lua, &dispatcher);
-	lua_pushlightuserdata(lua, &subscriptions);
-	lua_pushcclosure(lua, lua_event_subscribe, 2);
-	lua_setfield(lua, -2, "subscribe");
+		lua_pushlightuserdata(lua, &dispatcher);
+		lua_pushlightuserdata(lua, &subscriptions);
+		lua_pushcclosure(lua, lua_event_subscribe, 2);
+		lua_setfield(lua, -2, "subscribe");
 
-	lua_setglobal(lua, "event");
+		lua_setglobal(lua, "event");
+	}
 }

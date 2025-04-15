@@ -6,8 +6,9 @@
 
 #include "game/game.hpp"
 #include "game/ant/ant-genome.hpp"
-#include <engine/math/vector.hpp>
+import engine.math.vector;
 
+using namespace engine;
 
 /// Spawns an ant egg.
 /// @param ctx Game context.

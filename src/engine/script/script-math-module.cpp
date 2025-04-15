@@ -1,19 +1,21 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/script/script-math-module.hpp>
-#include <engine/script/script-context.hpp>
-#include <engine/math/constants.hpp>
-#include <engine/math/functions.hpp>
-#include <engine/debug/log.hpp>
-#include <engine/debug/contract.hpp>
-
 extern "C"
 {
 	#include <lua.h>
 	#include <lualib.h>
 	#include <lauxlib.h>
 }
+
+import engine.script.context;
+import engine.script.math_module;
+import engine.debug.contract;
+import engine.debug.log;
+import engine.math.constants;
+import engine.math.functions;
+
+using namespace engine;
 
 namespace
 {
@@ -358,111 +360,114 @@ namespace
 	}
 }
 
-auto load_math_module(script_context& ctx) -> void
+namespace engine
 {
-	lua_State* lua = ctx.state();
+	auto load_math_module(script_context& ctx) -> void
+	{
+		lua_State* lua = ctx.state();
 
-	lua_newtable(lua);
+		lua_newtable(lua);
 
-	// Constants
-	lua_pushnumber(lua, math::inf<double>);
-	lua_setfield(lua, -2, "inf");
-	lua_pushnumber(lua, math::e<double>);
-	lua_setfield(lua, -2, "e");
-	lua_pushnumber(lua, math::pi<double>);
-	lua_setfield(lua, -2, "pi");
-	lua_pushnumber(lua, math::phi<double>);
-	lua_setfield(lua, -2, "phi");
+		// Constants
+		lua_pushnumber(lua, math::inf<double>);
+		lua_setfield(lua, -2, "inf");
+		lua_pushnumber(lua, math::e<double>);
+		lua_setfield(lua, -2, "e");
+		lua_pushnumber(lua, math::pi<double>);
+		lua_setfield(lua, -2, "pi");
+		lua_pushnumber(lua, math::phi<double>);
+		lua_setfield(lua, -2, "phi");
 
-	// Basic operations
-	lua_pushcfunction(lua, lua_math_min);
-	lua_setfield(lua, -2, "min");
-	lua_pushcfunction(lua, lua_math_max);
-	lua_setfield(lua, -2, "max");
-	lua_pushcfunction(lua, lua_math_clamp);
-	lua_setfield(lua, -2, "clamp");
-	lua_pushcfunction(lua, lua_math_abs);
-	lua_setfield(lua, -2, "abs");
-	lua_pushcfunction(lua, lua_math_ceil);
-	lua_setfield(lua, -2, "ceil");
-	lua_pushcfunction(lua, lua_math_floor);
-	lua_setfield(lua, -2, "floor");
+		// Basic operations
+		lua_pushcfunction(lua, lua_math_min);
+		lua_setfield(lua, -2, "min");
+		lua_pushcfunction(lua, lua_math_max);
+		lua_setfield(lua, -2, "max");
+		lua_pushcfunction(lua, lua_math_clamp);
+		lua_setfield(lua, -2, "clamp");
+		lua_pushcfunction(lua, lua_math_abs);
+		lua_setfield(lua, -2, "abs");
+		lua_pushcfunction(lua, lua_math_ceil);
+		lua_setfield(lua, -2, "ceil");
+		lua_pushcfunction(lua, lua_math_floor);
+		lua_setfield(lua, -2, "floor");
 
-	// Angular conversion
-	lua_pushcfunction(lua, lua_math_degrees);
-	lua_setfield(lua, -2, "degrees");
-	lua_pushcfunction(lua, lua_math_radians);
-	lua_setfield(lua, -2, "radians");
-	lua_pushcfunction(lua, lua_math_wrap_degrees);
-	lua_setfield(lua, -2, "wrap_degrees");
-	lua_pushcfunction(lua, lua_math_wrap_radians);
-	lua_setfield(lua, -2, "wrap_radians");
+		// Angular conversion
+		lua_pushcfunction(lua, lua_math_degrees);
+		lua_setfield(lua, -2, "degrees");
+		lua_pushcfunction(lua, lua_math_radians);
+		lua_setfield(lua, -2, "radians");
+		lua_pushcfunction(lua, lua_math_wrap_degrees);
+		lua_setfield(lua, -2, "wrap_degrees");
+		lua_pushcfunction(lua, lua_math_wrap_radians);
+		lua_setfield(lua, -2, "wrap_radians");
 
-	// Exponential functions
-	lua_pushcfunction(lua, lua_math_exp);
-	lua_setfield(lua, -2, "exp");
-	lua_pushcfunction(lua, lua_math_exp2);
-	lua_setfield(lua, -2, "exp2");
-	lua_pushcfunction(lua, lua_math_log);
-	lua_setfield(lua, -2, "log");
-	lua_pushcfunction(lua, lua_math_log2);
-	lua_setfield(lua, -2, "log2");
+		// Exponential functions
+		lua_pushcfunction(lua, lua_math_exp);
+		lua_setfield(lua, -2, "exp");
+		lua_pushcfunction(lua, lua_math_exp2);
+		lua_setfield(lua, -2, "exp2");
+		lua_pushcfunction(lua, lua_math_log);
+		lua_setfield(lua, -2, "log");
+		lua_pushcfunction(lua, lua_math_log2);
+		lua_setfield(lua, -2, "log2");
 
-	// Power functions
-	lua_pushcfunction(lua, lua_math_pow);
-	lua_setfield(lua, -2, "pow");
-	lua_pushcfunction(lua, lua_math_sqr);
-	lua_setfield(lua, -2, "sqr");
-	lua_pushcfunction(lua, lua_math_cube);
-	lua_setfield(lua, -2, "cube");
-	lua_pushcfunction(lua, lua_math_sqrt);
-	lua_setfield(lua, -2, "sqrt");
-	lua_pushcfunction(lua, lua_math_inversesqrt);
-	lua_setfield(lua, -2, "inversesqrt");
+		// Power functions
+		lua_pushcfunction(lua, lua_math_pow);
+		lua_setfield(lua, -2, "pow");
+		lua_pushcfunction(lua, lua_math_sqr);
+		lua_setfield(lua, -2, "sqr");
+		lua_pushcfunction(lua, lua_math_cube);
+		lua_setfield(lua, -2, "cube");
+		lua_pushcfunction(lua, lua_math_sqrt);
+		lua_setfield(lua, -2, "sqrt");
+		lua_pushcfunction(lua, lua_math_inversesqrt);
+		lua_setfield(lua, -2, "inversesqrt");
 
-	// Trigonometric functions
-	lua_pushcfunction(lua, lua_math_sin);
-	lua_setfield(lua, -2, "sin");
-	lua_pushcfunction(lua, lua_math_cos);
-	lua_setfield(lua, -2, "cos");
-	lua_pushcfunction(lua, lua_math_tan);
-	lua_setfield(lua, -2, "tan");
-	lua_pushcfunction(lua, lua_math_asin);
-	lua_setfield(lua, -2, "asin");
-	lua_pushcfunction(lua, lua_math_acos);
-	lua_setfield(lua, -2, "acos");
-	lua_pushcfunction(lua, lua_math_atan);
-	lua_setfield(lua, -2, "atan");
-	
-	// Floating-point manipulation functions
-	lua_pushcfunction(lua, lua_math_fract);
-	lua_setfield(lua, -2, "fract");
-	lua_pushcfunction(lua, lua_math_trunc);
-	lua_setfield(lua, -2, "trunc");
-	lua_pushcfunction(lua, lua_math_sign);
-	lua_setfield(lua, -2, "sign");
-	lua_pushcfunction(lua, lua_math_mod);
-	lua_setfield(lua, -2, "mod");
-	lua_pushcfunction(lua, lua_math_modf);
-	lua_setfield(lua, -2, "modf");
+		// Trigonometric functions
+		lua_pushcfunction(lua, lua_math_sin);
+		lua_setfield(lua, -2, "sin");
+		lua_pushcfunction(lua, lua_math_cos);
+		lua_setfield(lua, -2, "cos");
+		lua_pushcfunction(lua, lua_math_tan);
+		lua_setfield(lua, -2, "tan");
+		lua_pushcfunction(lua, lua_math_asin);
+		lua_setfield(lua, -2, "asin");
+		lua_pushcfunction(lua, lua_math_acos);
+		lua_setfield(lua, -2, "acos");
+		lua_pushcfunction(lua, lua_math_atan);
+		lua_setfield(lua, -2, "atan");
 
-	// Interpolation functions
-	lua_pushcfunction(lua, lua_math_lerp);
-	lua_setfield(lua, -2, "lerp");
-	lua_pushcfunction(lua, lua_math_lerp_angle);
-	lua_setfield(lua, -2, "lerp_angle");
-	lua_pushcfunction(lua, lua_math_log_lerp);
-	lua_setfield(lua, -2, "log_lerp");
+		// Floating-point manipulation functions
+		lua_pushcfunction(lua, lua_math_fract);
+		lua_setfield(lua, -2, "fract");
+		lua_pushcfunction(lua, lua_math_trunc);
+		lua_setfield(lua, -2, "trunc");
+		lua_pushcfunction(lua, lua_math_sign);
+		lua_setfield(lua, -2, "sign");
+		lua_pushcfunction(lua, lua_math_mod);
+		lua_setfield(lua, -2, "mod");
+		lua_pushcfunction(lua, lua_math_modf);
+		lua_setfield(lua, -2, "modf");
 
-	// Classification and comparison 
-	lua_pushcfunction(lua, lua_math_isnan);
-	lua_setfield(lua, -2, "isnan");
-	lua_pushcfunction(lua, lua_math_isinf);
-	lua_setfield(lua, -2, "isinf");
+		// Interpolation functions
+		lua_pushcfunction(lua, lua_math_lerp);
+		lua_setfield(lua, -2, "lerp");
+		lua_pushcfunction(lua, lua_math_lerp_angle);
+		lua_setfield(lua, -2, "lerp_angle");
+		lua_pushcfunction(lua, lua_math_log_lerp);
+		lua_setfield(lua, -2, "log_lerp");
 
-	// Utility functions
-	lua_pushcfunction(lua, lua_math_map);
-	lua_setfield(lua, -2, "map");
+		// Classification and comparison 
+		lua_pushcfunction(lua, lua_math_isnan);
+		lua_setfield(lua, -2, "isnan");
+		lua_pushcfunction(lua, lua_math_isinf);
+		lua_setfield(lua, -2, "isinf");
 
-	lua_setglobal(lua, "math");
+		// Utility functions
+		lua_pushcfunction(lua, lua_math_map);
+		lua_setfield(lua, -2, "map");
+
+		lua_setglobal(lua, "math");
+	}
 }

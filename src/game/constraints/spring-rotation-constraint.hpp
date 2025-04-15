@@ -4,8 +4,10 @@
 #ifndef ANTKEEPER_GAME_SPRING_ROTATION_CONSTRAINT_HPP
 #define ANTKEEPER_GAME_SPRING_ROTATION_CONSTRAINT_HPP
 
-#include <engine/physics/spring.hpp>
-#include <engine/math/vector.hpp>
+import engine.physics.spring;
+import engine.math.vector;
+
+using namespace engine;
 
 struct spring_rotation_constraint
 {

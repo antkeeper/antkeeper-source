@@ -1,101 +1,103 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/animation/skeletal-animation.hpp>
-#include <engine/animation/animation-sequence.hpp>
-#include <engine/animation/skeleton.hpp>
-#include <engine/math/euler-angles.hpp>
-#include <engine/debug/log.hpp>
-#include <engine/scene/skeletal-mesh.hpp>
 #include "game/components/scene-object-component.hpp"
-#include <filesystem>
-#include <format>
-#include <stdexcept>
+import engine.animation.skeletal_animation;
+import engine.animation.skeleton;
+import engine.animation.animation_sequence;
+import engine.scene.skeletal_mesh;
+import engine.debug.log;
+import engine.math.euler_angles;
+import <filesystem>;
+import <format>;
+import <stdexcept>;
 
-void bind_skeletal_animation([[maybe_unused]] animation_sequence& sequence, [[maybe_unused]] const ::skeleton& skeleton)
+namespace engine::animation
 {
-	for (auto& [key, track]: sequence.tracks())
+	void bind_skeletal_animation(animation_sequence& sequence, const animation::skeleton& skeleton)
 	{
-		// Build path from track key
-		const auto path = std::filesystem::path(key);
-
-		// Extract bone name from path
-		const auto bone_name = path.parent_path().string();
-		if (bone_name.empty())
+		for (auto& [key, track] : sequence.tracks())
 		{
-			throw std::runtime_error("Failed to bind animation track to bone: invalid data path.");
-		}
+			// Build path from track key
+			const auto path = std::filesystem::path(key);
 
-		// Find bone in skeleton by name
-		const auto bone_it = skeleton.bones().find(bone_name);
-		if (bone_it == skeleton.bones().end())
-		{
-			throw std::runtime_error(std::format("Failed to bind animation track to bone: bone \"{}\" not found.", bone_name));
-		}
-		
-		// Get bone index
-		const auto bone_index = bone_it->index();
-
-		// Extract property name from path
-		const auto property_name = path.filename().string();
-		if (property_name.empty())
-		{
-			throw std::runtime_error("Failed to bind animation track to bone: invalid data path.");
-		}
-
-		// Set track output function according to bone and property
-		if (property_name == "translation")
-		{
-			track.output() = [bone_index](auto samples, auto& context)
+			// Extract bone name from path
+			const auto bone_name = path.parent_path().string();
+			if (bone_name.empty())
 			{
-				auto& scene_object = *(context.handle.template get<scene_object_component>().object);
-				auto& skeletal_mesh = static_cast<scene::skeletal_mesh&>(scene_object);
+				throw std::runtime_error("Failed to bind animation track to bone: invalid data path.");
+			}
 
-				const auto translation = math::fvec3{samples[0], samples[1], samples[2]};
-
-				skeletal_mesh.get_pose().set_relative_translation(bone_index, translation);
-			};
-		}
-		else if (property_name == "rotation_quaternion")
-		{
-			track.output() = [bone_index](auto samples, auto& context)
+			// Find bone in skeleton by name
+			const auto bone_it = skeleton.bones().find(bone_name);
+			if (bone_it == skeleton.bones().end())
 			{
-				auto& scene_object = *(context.handle.template get<scene_object_component>().object);
-				auto& skeletal_mesh = static_cast<scene::skeletal_mesh&>(scene_object);
+				throw std::runtime_error(std::format("Failed to bind animation track to bone: bone \"{}\" not found.", bone_name));
+			}
 
-				const auto rotation = math::normalize(math::fquat{samples[0], samples[1], samples[2], samples[3]});
+			// Get bone index
+			const auto bone_index = bone_it->index();
 
-				skeletal_mesh.get_pose().set_relative_rotation(bone_index, rotation);
-			};
-		}
-		else if (property_name == "rotation_euler")
-		{
-			track.output() = [bone_index](auto samples, auto& context)
+			// Extract property name from path
+			const auto property_name = path.filename().string();
+			if (property_name.empty())
 			{
-				auto& scene_object = *(context.handle.template get<scene_object_component>().object);
-				auto& skeletal_mesh = static_cast<scene::skeletal_mesh&>(scene_object);
+				throw std::runtime_error("Failed to bind animation track to bone: invalid data path.");
+			}
 
-				const auto rotation = math::euler_xyz_to_quat(math::fvec3{samples[0], samples[1], samples[2]});
-
-				skeletal_mesh.get_pose().set_relative_rotation(bone_index, rotation);
-			};
-		}
-		else if (property_name == "scale")
-		{
-			track.output() = [bone_index](auto samples, auto& context)
+			// Set track output function according to bone and property
+			if (property_name == "translation")
 			{
-				auto& scene_object = *(context.handle.template get<scene_object_component>().object);
-				auto& skeletal_mesh = static_cast<scene::skeletal_mesh&>(scene_object);
+				track.output() = [bone_index](auto samples, auto& context)
+					{
+						auto& scene_object = *(context.handle.template get<scene_object_component>().object);
+						auto& skeletal_mesh = static_cast<scene::skeletal_mesh&>(scene_object);
 
-				const auto scale = math::fvec3{samples[0], samples[1], samples[2]};
+						const auto translation = math::fvec3{samples[0], samples[1], samples[2]};
 
-				skeletal_mesh.get_pose().set_relative_scale(bone_index, scale);
-			};
-		}
-		else
-		{
-			throw std::runtime_error(std::format("Failed to bind animation track to bone: unsupported property \"{}\".", property_name));
+						skeletal_mesh.get_pose().set_relative_translation(bone_index, translation);
+					};
+			}
+			else if (property_name == "rotation_quaternion")
+			{
+				track.output() = [bone_index](auto samples, auto& context)
+					{
+						auto& scene_object = *(context.handle.template get<scene_object_component>().object);
+						auto& skeletal_mesh = static_cast<scene::skeletal_mesh&>(scene_object);
+
+						const auto rotation = math::normalize(math::fquat{samples[0], samples[1], samples[2], samples[3]});
+
+						skeletal_mesh.get_pose().set_relative_rotation(bone_index, rotation);
+					};
+			}
+			else if (property_name == "rotation_euler")
+			{
+				track.output() = [bone_index](auto samples, auto& context)
+					{
+						auto& scene_object = *(context.handle.template get<scene_object_component>().object);
+						auto& skeletal_mesh = static_cast<scene::skeletal_mesh&>(scene_object);
+
+						const auto rotation = math::euler_xyz_to_quat(math::fvec3{samples[0], samples[1], samples[2]});
+
+						skeletal_mesh.get_pose().set_relative_rotation(bone_index, rotation);
+					};
+			}
+			else if (property_name == "scale")
+			{
+				track.output() = [bone_index](auto samples, auto& context)
+					{
+						auto& scene_object = *(context.handle.template get<scene_object_component>().object);
+						auto& skeletal_mesh = static_cast<scene::skeletal_mesh&>(scene_object);
+
+						const auto scale = math::fvec3{samples[0], samples[1], samples[2]};
+
+						skeletal_mesh.get_pose().set_relative_scale(bone_index, scale);
+					};
+			}
+			else
+			{
+				throw std::runtime_error(std::format("Failed to bind animation track to bone: unsupported property \"{}\".", property_name));
+			}
 		}
 	}
 }
-

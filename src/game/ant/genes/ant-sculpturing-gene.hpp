@@ -5,8 +5,10 @@
 #define ANTKEEPER_GAME_ANT_SCULPTURING_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-#include <engine/gl/texture.hpp>
-#include <memory>
+import engine.gl.texture;
+import <memory>;
+
+using namespace engine;
 
 /// Ant surface sculpturing phene.
 struct ant_sculpturing_phene

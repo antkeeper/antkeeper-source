@@ -5,10 +5,10 @@
 #define ANTKEEPER_GAME_ANT_NEST_SITE_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-#include <cstdint>
+import engine.utility.sized_types;
 
 /// Ant nest site phene.
-enum class ant_nest_site_phene: std::uint8_t
+enum class ant_nest_site_phene: u8
 {
 	hypogeic,
 	arboreal

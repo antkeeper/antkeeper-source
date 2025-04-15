@@ -1,13 +1,16 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "game/textures/cocoon-silk-sdf.hpp"
-#include <engine/debug/log.hpp>
-#include <algorithm>
 #include <execution>
-#include <fstream>
 #include <stb/stb_image_write.h>
-#include <engine/noise/noise.hpp>
+#include "game/textures/cocoon-silk-sdf.hpp"
+import engine.debug.log;
+import engine.utility.sized_types;
+import engine.math.functions;
+import <algorithm>;
+import <fstream>;
+
+using namespace engine;
 
 void generate_cocoon_silk_sdf(std::filesystem::path /*path*/)
 {
@@ -33,9 +36,9 @@ void generate_cocoon_silk_sdf(std::filesystem::path /*path*/)
 		img.end<math::vec4<unsigned char>>(),
 		[pixels, width, height, scale_x, scale_y, frequency](auto& pixel)
 		{
-			const std::size_t i = &pixel - (math::vec4<unsigned char>*)pixels;
-			const std::size_t y = i / width;
-			const std::size_t x = i % width;
+			const usize i = &pixel - (math::vec4<unsigned char>*)pixels;
+			const usize y = i / width;
+			const usize x = i % width;
 			
 			const math::fvec2 position =
 			{
@@ -51,25 +54,25 @@ void generate_cocoon_silk_sdf(std::filesystem::path /*path*/)
 				f1_edge_sqr_distance
 			] = noise::voronoi::f1_edge<float, 2>(position, 1.0f, {frequency, frequency});
 			
-			const float f1_edge_distance = std::sqrt(f1_edge_sqr_distance);
+			const float f1_edge_distance = math::sqrt(f1_edge_sqr_distance);
 			
 			const float scale = 255.0f * (255.0f / 204.0f);
 			pixel = 
 			{
-				static_cast<unsigned char>(std::min(255.0f, f1_edge_distance * scale)),
-				static_cast<unsigned char>(std::min(255.0f, f1_edge_distance * scale)),
-				static_cast<unsigned char>(std::min(255.0f, f1_edge_distance * scale)),
+				static_cast<unsigned char>(math::min(255.0f, f1_edge_distance * scale)),
+				static_cast<unsigned char>(math::min(255.0f, f1_edge_distance * scale)),
+				static_cast<unsigned char>(math::min(255.0f, f1_edge_distance * scale)),
 				255
 			};
 			
-			// const float f1_distance = std::sqrt(f1_sqr_distance);
+			// const float f1_distance = math::sqrt(f1_sqr_distance);
 			// const math::fvec2 uv = (position + f1_displacement) / frequency;
 			
 			// pixel = 
 			// {
-				// static_cast<unsigned char>(std::min(255.0f, f1_distance * 255.0f)),
-				// static_cast<unsigned char>(std::min(255.0f, uv[0] * 255.0f)),
-				// static_cast<unsigned char>(std::min(255.0f, uv[1] * 255.0f)),
+				// static_cast<unsigned char>(math::min(255.0f, f1_distance * 255.0f)),
+				// static_cast<unsigned char>(math::min(255.0f, uv[0] * 255.0f)),
+				// static_cast<unsigned char>(math::min(255.0f, uv[1] * 255.0f)),
 				// static_cast<unsigned char>(f1_id % 256)
 			// };
 		}

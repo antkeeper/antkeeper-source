@@ -4,10 +4,12 @@
 #ifndef ANTKEEPER_GAME_NAVMESH_AGENT_COMPONENT_HPP
 #define ANTKEEPER_GAME_NAVMESH_AGENT_COMPONENT_HPP
 
-#include <engine/entity/id.hpp>
-#include <engine/math/vector.hpp>
-#include <engine/geom/brep/brep-mesh.hpp>
-#include <engine/geom/brep/brep-feature.hpp>
+import engine.geom.brep.mesh;
+import engine.geom.brep.feature;
+import engine.entity.id;
+import engine.math.vector;
+
+using namespace engine;
 
 struct navmesh_agent_component
 {
@@ -15,10 +17,10 @@ struct navmesh_agent_component
 	entity::id navmesh_eid{entt::null};
 	
 	/// Pointer to the current mesh through which the agent is navigating.
-	geom::brep_mesh* mesh{};
+	geom::brep::mesh* mesh{};
 	
 	/// Current mesh feature on which the agent is located.
-	geom::brep_feature feature{};
+	geom::brep::feature feature{};
 	
 	/// Smooth interpolated surface normal at the agent position.
 	math::fvec3 surface_normal{};

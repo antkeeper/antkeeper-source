@@ -6,6 +6,8 @@
 
 #include "game/systems/fixed-update-system.hpp"
 
+using namespace engine;
+
 class behavior_system:
 	public fixed_update_system
 {

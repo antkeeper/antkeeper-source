@@ -5,9 +5,11 @@
 #define ANTKEEPER_GAME_ANT_ANTENNAE_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-#include <engine/render/model.hpp>
-#include <memory>
-#include <cstdint>
+import engine.render.model;
+import engine.utility.sized_types;
+import <memory>;
+
+using namespace engine;
 
 /// Ant antennae phene.
 /// 
@@ -16,10 +18,10 @@
 struct ant_antennae_phene
 {
 	/// Total number of antennal segments per antenna.
-	std::uint8_t total_antennomere_count{0};
+	u8 total_antennomere_count{0};
 	
 	/// Number of antennal segments that constitute a club.
-	std::uint8_t club_antennomere_count{0};
+	u8 club_antennomere_count{0};
 	
 	/// 3D model of the antennae.
 	/// 

@@ -4,7 +4,9 @@
 #ifndef ANTKEEPER_GAME_CONSTRAINT_STACK_COMPONENT_HPP
 #define ANTKEEPER_GAME_CONSTRAINT_STACK_COMPONENT_HPP
 
-#include <engine/entity/id.hpp>
+import engine.entity.id;
+
+using namespace engine;
 
 /// Causes an ordered stack of constraints to be applied to an entity.
 struct constraint_stack_component

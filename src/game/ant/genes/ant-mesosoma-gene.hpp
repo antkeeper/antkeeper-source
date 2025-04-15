@@ -5,8 +5,10 @@
 #define ANTKEEPER_GAME_ANT_MESOSOMA_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-#include <engine/render/model.hpp>
-#include <memory>
+import engine.render.model;
+import <memory>;
+
+using namespace engine;
 
 /// Ant mesosoma phene.
 /// @see https://www.antwiki.org/wiki/Morphological_Measurements

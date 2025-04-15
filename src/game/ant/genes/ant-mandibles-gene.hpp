@@ -5,9 +5,11 @@
 #define ANTKEEPER_GAME_ANT_MANDIBLES_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-#include <engine/render/model.hpp>
-#include <memory>
-#include <cstdint>
+import engine.render.model;
+import engine.utility.sized_types;
+import <memory>;
+
+using namespace engine;
 
 /// Ant mandibles phene.
 /// @see https://www.antwiki.org/wiki/Character_States_for_Extant_Ant_Genera_of_the_Formicidae
@@ -19,10 +21,10 @@ struct ant_mandibles_phene
 	float length{0.0f};
 	
 	/// Number of teeth and denticles on the masticatory (apical) margin of the mandible.
-	std::uint8_t apical_dental_count{0};
+	u8 apical_dental_count{0};
 	
 	/// Number of teeth and denticles on the basal margin of the mandible.
-	std::uint8_t basal_dental_count{0};
+	u8 basal_dental_count{0};
 	
 	/// 3D model of the mandibles.
 	std::shared_ptr<render::model> model;

@@ -4,8 +4,10 @@
 #ifndef ANTKEEPER_GAME_EASE_TO_CONSTRAINT_HPP
 #define ANTKEEPER_GAME_EASE_TO_CONSTRAINT_HPP
 
-#include <engine/entity/id.hpp>
-#include <engine/math/vector.hpp>
+import engine.math.vector;
+import engine.entity.id;
+
+using namespace engine;
 
 /// Eases toward a target entity.
 struct ease_to_constraint

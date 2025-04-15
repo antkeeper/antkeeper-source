@@ -5,8 +5,10 @@
 #define ANTKEEPER_GAME_SETTINGS_HPP
 
 #include "game/game.hpp"
-#include <engine/debug/log.hpp>
-#include <string_view>
+import engine.debug.log;
+import <string_view>;
+
+using namespace engine;
 
 /// Reads a setting if found, inserts a setting if not found, and overwrites a setting if a type mismatch occurs.
 /// @tparam T Setting value type.

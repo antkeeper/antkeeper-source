@@ -1,19 +1,23 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "game/debug/shell.hpp"
-#include "game/game.hpp"
-#include "game/strings.hpp"
-#include <engine/config.hpp>
-#include <engine/debug/log.hpp>
-#include <engine/script/script-error.hpp>
-
 extern "C"
 {
 	#include <lua.h>
 	#include <lualib.h>
 	#include <lauxlib.h>
 }
+
+#include <nlohmann/json.hpp>
+#include "game/game.hpp"
+#include "game/debug/shell.hpp"
+#include "game/strings.hpp"
+import engine.config;
+import engine.debug.log;
+import engine.script.error;
+import engine.utility.sized_types;
+
+using namespace engine;
 
 namespace
 {
@@ -39,7 +43,7 @@ namespace
 
 		const char* key = luaL_checkstring(L, 2);
 
-		std::size_t len = 0;
+		usize len = 0;
 		const char* value = luaL_tolstring(L, 3, &len);
 		
 		(*ctx->string_map)[key] = std::string(value, len);
@@ -119,7 +123,7 @@ int shell::interpret(const std::string_view& input)
 			const auto n = lua_gettop(lua);
 			for (int i = 1; i <= n; ++i)
 			{
-				std::size_t len = 0;
+				usize len = 0;
 				const char* str = luaL_tolstring(lua, i, &len);
 
 				if (!str)

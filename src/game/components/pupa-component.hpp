@@ -4,8 +4,10 @@
 #ifndef ANTKEEPER_GAME_PUPA_COMPONENT_HPP
 #define ANTKEEPER_GAME_PUPA_COMPONENT_HPP
 
-#include <engine/entity/id.hpp>
-#include <engine/render/material-variable.hpp>
+import engine.render.material_variable;
+import engine.entity.id;
+
+using namespace engine;
 
 struct pupa_component
 {

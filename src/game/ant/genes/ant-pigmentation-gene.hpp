@@ -5,8 +5,10 @@
 #define ANTKEEPER_GAME_ANT_PIGMENTATION_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-#include <engine/render/material.hpp>
-#include <memory>
+import engine.render.material;
+import <memory>;
+
+using namespace engine;
 
 /// Ant pigmentation phene.
 struct ant_pigmentation_phene

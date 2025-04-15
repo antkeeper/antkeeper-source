@@ -4,7 +4,9 @@
 #ifndef ANTKEEPER_GAME_UTILITY_TIME_HPP
 #define ANTKEEPER_GAME_UTILITY_TIME_HPP
 
-#include <engine/entity/registry.hpp>
+import engine.entity.registry;
+
+using namespace engine;
 
 /// Sets the time scale in the time singleton component. If no time component was found, it will be created.
 /// @param registry Entity registry.

@@ -6,9 +6,11 @@
 
 #include "game/systems/fixed-update-system.hpp"
 #include "game/systems/variable-update-system.hpp"
-#include <engine/entity/id.hpp>
-#include <memory>
-#include <vector>
+import engine.entity.id;
+import <memory>;
+import <vector>;
+
+using namespace engine;
 
 class animation_player;
 

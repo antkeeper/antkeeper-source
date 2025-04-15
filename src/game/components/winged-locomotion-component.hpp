@@ -4,7 +4,9 @@
 #ifndef ANTKEEPER_GAME_WINGED_LOCOMOTION_COMPONENT_HPP
 #define ANTKEEPER_GAME_WINGED_LOCOMOTION_COMPONENT_HPP
 
-#include <engine/math/vector.hpp>
+import engine.math.vector;
+
+using namespace engine;
 
 /// Winged aerial locomotion.
 struct winged_locomotion_component

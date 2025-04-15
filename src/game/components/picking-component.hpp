@@ -4,8 +4,10 @@
 #ifndef ANTKEEPER_GAME_PICKING_COMPONENT_HPP
 #define ANTKEEPER_GAME_PICKING_COMPONENT_HPP
 
-#include <engine/geom/primitives/sphere.hpp>
-#include <cstdint>
+import engine.geom.primitives.sphere;
+import engine.utility.sized_types;
+
+using namespace engine;
 
 struct picking_component
 {
@@ -13,7 +15,7 @@ struct picking_component
 	geom::sphere<float> sphere;
 	
 	/// Picking flags.
-	std::uint32_t flags;
+	u32 flags;
 };
 
 #endif // ANTKEEPER_GAME_PICKING_COMPONENT_HPP

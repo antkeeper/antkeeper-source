@@ -4,9 +4,11 @@
 #ifndef ANTKEEPER_GAME_AUTOFOCUS_COMPONENT_HPP
 #define ANTKEEPER_GAME_AUTOFOCUS_COMPONENT_HPP
 
-#include <engine/math/vector.hpp>
-#include <engine/math/functions.hpp>
-#include <engine/physics/spring.hpp>
+import engine.physics.spring;
+import engine.math.vector;
+import engine.math.functions;
+
+using namespace engine;
 
 /// Modulates a camera's field of view and spring arm length.
 struct autofocus_component

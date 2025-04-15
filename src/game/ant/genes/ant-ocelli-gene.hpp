@@ -5,8 +5,10 @@
 #define ANTKEEPER_GAME_ANT_PHENE_OCELLI_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-#include <engine/render/model.hpp>
-#include <memory>
+import engine.render.model;
+import <memory>;
+
+using namespace engine;
 
 /// Ant ocelli phene.
 struct ant_ocelli_phene

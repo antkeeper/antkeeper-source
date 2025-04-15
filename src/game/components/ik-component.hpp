@@ -4,12 +4,14 @@
 #ifndef ANTKEEPER_GAME_IK_COMPONENT_HPP
 #define ANTKEEPER_GAME_IK_COMPONENT_HPP
 
-#include <engine/animation/ik/ik-rig.hpp>
-#include <memory>
+import engine.animation.ik_rig;
+import <memory>;
+
+using namespace engine;
 
 struct ik_component
 {
-	std::shared_ptr<ik_rig> rig;
+	std::shared_ptr<animation::ik_rig> rig;
 };
 
 #endif // ANTKEEPER_GAME_IK_COMPONENT_HPP

@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <entt/entt.hpp>
 #include "game/systems/orbit-system.hpp"
 #include "game/utility/time.hpp"
-#include <engine/physics/orbit/orbit.hpp>
-#include <engine/physics/time/constants.hpp>
+import engine.physics.orbit;
+import engine.physics.time;
 
 orbit_system::orbit_system(entity::registry& registry):
 	m_registry(registry)
@@ -42,7 +43,7 @@ void orbit_system::fixed_update(entity::registry& registry, float, float dt)
 	// Propagate orbits
 	registry.view<orbit_component>().each
 	(
-		[&]([[maybe_unused]] entity::id entity_eid, auto& orbit)
+		[&](entity::id, auto& orbit)
 		{
 			orbit.position = m_positions[orbit.ephemeris_index] * orbit.scale;
 			

@@ -4,8 +4,10 @@
 #ifndef ANTKEEPER_GAME_LARVA_COMPONENT_HPP
 #define ANTKEEPER_GAME_LARVA_COMPONENT_HPP
 
-#include <engine/entity/id.hpp>
-#include <engine/render/material-variable.hpp>
+import engine.render.material_variable;
+import engine.entity.id;
+
+using namespace engine;
 
 /// Larval development parameters.
 struct larva_component

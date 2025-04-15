@@ -4,12 +4,13 @@
 #ifndef ANTKEEER_GAME_CONTROL_PROFILE_HPP
 #define ANTKEEER_GAME_CONTROL_PROFILE_HPP
 
-#include <engine/input/mapping.hpp>
-#include <engine/utility/dict.hpp>
-#include <engine/hash/fnv.hpp>
-#include <map>
-#include <memory>
+import engine.utility.dict;
+import engine.hash.fnv;
+import engine.input.mapping;
+import <map>;
+import <memory>;
 
+using namespace engine;
 
 struct control_profile
 {
@@ -20,6 +21,5 @@ public:
 	/// Profile-specific settings.
 	dict<hash::fnv32_t> settings;
 };
-
 
 #endif // ANTKEEER_GAME_CONTROL_PROFILE_HPP

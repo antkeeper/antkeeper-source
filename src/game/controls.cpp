@@ -1,16 +1,17 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "game/game.hpp"
 #include "game/controls.hpp"
 #include "game/graphics.hpp"
 #include "game/menu.hpp"
 #include "game/control-profile.hpp"
-#include <engine/resources/resource-manager.hpp>
-#include <engine/utility/json.hpp>
-#include <engine/input/modifier-key.hpp>
-#include <engine/hash/fnv.hpp>
+import engine.input.modifier_key;
+import engine.resources.resource_manager;
+import engine.hash.fnv;
+import engine.utility.json;
 
-using namespace hash::literals;
+using namespace engine::hash::literals;
 
 void reset_control_profile(::control_profile& profile)
 {
@@ -424,7 +425,7 @@ void setup_game_controls(::game& ctx)
 	(
 		ctx.pause_action.get_activated_channel().subscribe
 		(
-			[&ctx]([[maybe_unused]] const auto& event)
+			[&ctx](const auto&)
 			{
 				ctx.function_queue.emplace
 				(

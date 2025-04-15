@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "game/controls.hpp"
 #include "game/menu.hpp"
 #include "game/strings.hpp"
-#include <engine/config.hpp>
-#include <engine/ui/range.hpp>
+#include "game/controls.hpp"
+import engine.ui.range;
+import engine.config;
 
 void setup_menu_controls(::game& ctx)
 {

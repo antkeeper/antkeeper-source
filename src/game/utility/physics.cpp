@@ -4,13 +4,16 @@
 #include "game/utility/physics.hpp"
 #include "game/components/time-component.hpp"
 #include "game/components/rigid-body-component.hpp"
-#include <engine/physics/kinematics/colliders/mesh-collider.hpp>
+import engine.physics.kinematics.mesh_collider;
+import engine.math.functions;
 
-std::optional<rigid_body_trace_result> trace_rigid_bodies(const entity::registry& registry, const geom::ray<float, 3>& ray, entity::id ignore_eid, std::uint32_t layer_mask)
+using namespace engine;
+
+std::optional<rigid_body_trace_result> trace_rigid_bodies(const entity::registry& registry, const geom::ray<float, 3>& ray, entity::id ignore_eid, u32 layer_mask)
 {
 	entity::id nearest_entity_id = entt::null;
 	float nearest_hit_sqr_distance = std::numeric_limits<float>::infinity();
-	std::uint32_t nearest_face_index = 0;
+	u32 nearest_face_index = 0;
 	math::fvec3 nearest_hit_normal{};
 
 	// For each entity with a rigid body
@@ -72,7 +75,7 @@ std::optional<rigid_body_trace_result> trace_rigid_bodies(const entity::registry
 	return rigid_body_trace_result
 	{
 		nearest_entity_id,
-		std::sqrt(nearest_hit_sqr_distance),
+		math::sqrt(nearest_hit_sqr_distance),
 		nearest_face_index,
 		nearest_hit_normal
 	};

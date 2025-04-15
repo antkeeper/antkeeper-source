@@ -4,8 +4,10 @@
 #ifndef ANTKEEPER_GAME_TRACK_TO_CONSTRAINT_HPP
 #define ANTKEEPER_GAME_TRACK_TO_CONSTRAINT_HPP
 
-#include <engine/entity/id.hpp>
-#include <engine/math/vector.hpp>
+import engine.math.vector;
+import engine.entity.id;
+
+using namespace engine;
 
 /// Rotates a transform to face a target.
 struct track_to_constraint

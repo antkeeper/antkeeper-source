@@ -1,20 +1,26 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <entt/entt.hpp>
 #include "game/utility/terrain.hpp"
 #include "game/components/terrain-component.hpp"
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/scene-object-component.hpp"
-#include <engine/geom/brep/brep-mesh.hpp>
-#include <engine/render/model.hpp>
-#include <engine/render/vertex-attribute-location.hpp>
-#include <engine/debug/log.hpp>
-#include <engine/physics/kinematics/colliders/mesh-collider.hpp>
-#include <engine/scene/static-mesh.hpp>
+import engine.gl.pipeline;
+import engine.render.model;
+import engine.render.vertex_attribute_location;
+import engine.physics.kinematics.mesh_collider;
+import engine.scene.static_mesh;
+import engine.debug.log;
+import engine.geom.brep.mesh;
+import engine.utility.sized_types;
+
+using namespace engine;
+using namespace engine::geom;
 
 namespace
 {
-	[[nodiscard]] std::unique_ptr<render::model> generate_terrain_model(const geom::brep_mesh& mesh, std::shared_ptr<render::material> material, const math::uvec2& quad_dimensions)
+	[[nodiscard]] std::unique_ptr<render::model> generate_terrain_model(const brep::mesh& mesh, std::shared_ptr<render::material> material, const math::uvec2& quad_dimensions)
 	{
 		const auto& vertex_positions = mesh.vertices().attributes().at<math::fvec3>("position");
 		const auto& vertex_normals = mesh.vertices().attributes().at<math::fvec3>("normal");
@@ -42,7 +48,7 @@ namespace
 				render::vertex_attribute_location::normal,
 				0,
 				gl::format::r32g32b32_sfloat,
-				3 * sizeof(std::int16_t)
+				3 * sizeof(i16)
 			}
 		};
 		auto& vao = model->get_vertex_array();
@@ -50,24 +56,24 @@ namespace
 
 		// Interleave vertex data
 		const auto vert_dimensions = quad_dimensions + 1u;
-		const std::size_t vertex_count = 2 * (vert_dimensions.x() * quad_dimensions.y() + quad_dimensions.y() - 1);
-		constexpr std::size_t vertex_stride = 3 * sizeof(std::int16_t) + 3 * sizeof(float);
+		const usize vertex_count = 2 * (vert_dimensions.x() * quad_dimensions.y() + quad_dimensions.y() - 1);
+		constexpr usize vertex_stride = 3 * sizeof(i16) + 3 * sizeof(float);
 		std::vector<std::byte> vertex_data(vertex_count * vertex_stride);
 		std::byte* v = vertex_data.data();
 
-		auto normalized_int16 = [](const math::fvec3& f) -> math::vec3<std::int16_t>
+		auto normalized_int16 = [](const math::fvec3& f) -> math::vec3<i16>
 			{
-				math::vec3<std::int16_t> i;
+				math::vec3<i16> i;
 				for (int j = 0; j < 3; ++j)
 				{
-					i[j] = static_cast<std::int16_t>(f[j] < 0.0f ? f[j] * 32768.0f : f[j] * 32767.0f);
+					i[j] = static_cast<i16>(f[j] < 0.0f ? f[j] * 32768.0f : f[j] * 32767.0f);
 				}
 				return i;
 			};
 
 		for (auto y = 0u; y < quad_dimensions.y(); ++y)
 		{
-			std::size_t indices[2];
+			usize indices[2];
 
 			for (auto x = 0u; x < vert_dimensions.x(); ++x)
 			{
@@ -78,8 +84,8 @@ namespace
 				{
 					auto position = normalized_int16(vertex_positions[i]);
 
-					std::memcpy(v, &position[0], sizeof(std::int16_t) * 3);
-					v += sizeof(std::int16_t) * 3;
+					std::memcpy(v, &position[0], sizeof(i16) * 3);
+					v += sizeof(i16) * 3;
 					std::memcpy(v, &vertex_normals[i], sizeof(float) * 3);
 					v += sizeof(float) * 3;
 
@@ -94,7 +100,7 @@ namespace
 
 
 				auto position = normalized_int16(vertex_positions[indices[1]]);
-				std::memcpy(v, &position[0], sizeof(std::int16_t) * 3);
+				std::memcpy(v, &position[0], sizeof(i16) * 3);
 				v += sizeof(int16_t) * 3;
 				std::memcpy(v, &vertex_normals[indices[1]], sizeof(float) * 3);
 				v += sizeof(float) * 3;
@@ -102,7 +108,7 @@ namespace
 				indices[0] = (y + 1) * vert_dimensions.x();
 
 				position = normalized_int16(vertex_positions[indices[0]]);
-				std::memcpy(v, &position[0], sizeof(std::int16_t) * 3);
+				std::memcpy(v, &position[0], sizeof(i16) * 3);
 				v += sizeof(int16_t) * 3;
 				std::memcpy(v, &vertex_normals[indices[0]], sizeof(float) * 3);
 				v += sizeof(float) * 3;
@@ -122,7 +128,7 @@ namespace
 		model_group.id = {};
 		model_group.primitive_topology = gl::primitive_topology::triangle_strip;
 		model_group.first_vertex = 0;
-		model_group.vertex_count = static_cast<std::uint32_t>(vertex_count);
+		model_group.vertex_count = static_cast<u32>(vertex_count);
 		model_group.material_index = 0;
 
 		return model;
@@ -206,8 +212,8 @@ entity::id generate_terrain(entity::registry& registry, std::shared_ptr<gl::imag
 		const auto& cell = registry.get<terrain_cell_component>(cell_eid);
 
 		// Allocate cell mesh and attributes
-		auto mesh = std::make_shared<geom::brep_mesh>();
-		auto& vertex_positions = static_cast<geom::brep_attribute<math::fvec3>&>(*mesh->vertices().attributes().emplace<math::fvec3>("position"));
+		auto mesh = std::make_shared<brep::mesh>();
+		auto& vertex_positions = static_cast<brep::attribute<math::fvec3>&>(*mesh->vertices().attributes().emplace<math::fvec3>("position"));
 
 		auto cell_pixel_bounds_min = cell.coordinates * cell_quad_dimensions;
 		auto cell_pixel_bounds_max = cell_pixel_bounds_min + cell_quad_dimensions;
@@ -242,8 +248,8 @@ entity::id generate_terrain(entity::registry& registry, std::shared_ptr<gl::imag
 				auto c = mesh->vertices()[a->index() + 1];
 				auto d = mesh->vertices()[b->index() + 1];
 
-				geom::brep_vertex* abc[3] = {a, b, c};
-				geom::brep_vertex* cbd[3] = {c, b, d};
+				brep::vertex* abc[3] = {a, b, c};
+				brep::vertex* cbd[3] = {c, b, d};
 
 				mesh->faces().emplace_back(abc);
 				mesh->faces().emplace_back(cbd);
@@ -251,7 +257,7 @@ entity::id generate_terrain(entity::registry& registry, std::shared_ptr<gl::imag
 		}
 
 		// Generate vertex normals
-		auto& vertex_normals = static_cast<geom::brep_attribute<math::fvec3>&>(*mesh->vertices().attributes().try_emplace<math::fvec3>("normal").first);
+		auto& vertex_normals = static_cast<brep::attribute<math::fvec3>&>(*mesh->vertices().attributes().try_emplace<math::fvec3>("normal").first);
 		for (pixel_position.y() = cell_pixel_bounds_min.y(); pixel_position.y() <= cell_pixel_bounds_max.y(); ++pixel_position.y())
 		{
 			for (pixel_position.x() = cell_pixel_bounds_min.x(); pixel_position.x() <= cell_pixel_bounds_max.x(); ++pixel_position.x())

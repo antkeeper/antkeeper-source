@@ -1,28 +1,33 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <entt/entt.hpp>
 #include "game/systems/astronomy-system.hpp"
-#include <engine/astro/apparent-size.hpp>
 #include "game/components/blackbody-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/diffuse-reflector-component.hpp"
 #include "game/utility/time.hpp"
-#include <engine/geom/intersection.hpp>
-#include <engine/geom/primitives/sphere.hpp>
-#include <engine/color/color.hpp>
-#include <engine/physics/orbit/orbit.hpp>
-#include <engine/physics/time/ut1.hpp>
-#include <engine/physics/time/jd.hpp>
-#include <engine/physics/time/constants.hpp>
-#include <engine/physics/light/photometry.hpp>
-#include <engine/physics/light/luminosity.hpp>
-#include <engine/physics/light/refraction.hpp>
-#include <engine/physics/gas/atmosphere.hpp>
-#include <engine/astro/apparent-size.hpp>
-#include <engine/geom/solid-angle.hpp>
-#include <engine/math/transform.hpp>
-#include <engine/math/polynomial.hpp>
-#include <engine/debug/log.hpp>
+import engine.geom.intersection;
+import engine.geom.primitives.sphere;
+import engine.physics.orbit.frame;
+import engine.physics.time;
+import engine.physics.light.photometry;
+import engine.physics.light.luminosity;
+import engine.physics.light.refraction;
+import engine.physics.gas.atmosphere;
+import engine.geom.solid_angle;
+import engine.geom.angular_radius;
+import engine.color.bt2020;
+import engine.color.bt709;
+import engine.debug.log;
+import engine.math.functions;
+import engine.math.matrix;
+import engine.math.quaternion;
+import engine.math.transform;
+import engine.math.polynomial;
+import engine.utility.sized_types;
+
+using namespace engine;
 
 astronomy_system::astronomy_system(entity::registry& registry):
 	m_registry{registry}
@@ -140,7 +145,7 @@ void astronomy_system::fixed_update(entity::registry& registry, float, float dt)
 	
 	// Update blackbody lighting
 	registry.view<celestial_body_component, orbit_component, blackbody_component>().each(
-	[&]([[maybe_unused]] entity::id entity_id, const auto& blackbody_body, const auto& blackbody_orbit, const auto& blackbody)
+	[&](entity::id, const auto& blackbody_body, const auto& blackbody_orbit, const auto& blackbody)
 	{
 		// Transform blackbody position from ICRF frame to EUS frame
 		const math::dvec3 blackbody_position_eus = m_icrf_to_eus * blackbody_orbit.position;
@@ -150,7 +155,7 @@ void astronomy_system::fixed_update(entity::registry& registry, float, float dt)
 		const math::dvec3 observer_blackbody_direction_eus = blackbody_position_eus / observer_blackbody_distance;
 		
 		// Measure blackbody solid angle as seen by observer
-		const double observer_blackbody_angular_radius = astro::angular_radius(blackbody_body.radius, observer_blackbody_distance);
+		const double observer_blackbody_angular_radius = geom::angular_radius(blackbody_body.radius, observer_blackbody_distance);
 		const double observer_blackbody_solid_angle = geom::solid_angle::cone(observer_blackbody_angular_radius);
 		
 		// Calculate illuminance from blackbody reaching observer
@@ -207,7 +212,7 @@ void astronomy_system::fixed_update(entity::registry& registry, float, float dt)
 		
 		// Update diffuse reflectors
 		registry.view<celestial_body_component, orbit_component, diffuse_reflector_component, transform_component>().each(
-		[&]([[maybe_unused]] entity::id entity_id, const auto& reflector_body, const auto& reflector_orbit, const auto& reflector, const auto& transform)
+		[&](entity::id, const auto& reflector_body, const auto& reflector_orbit, const auto& reflector, const auto& transform)
 		{
 			// Transform reflector position from ICRF frame to EUS frame
 			const math::dvec3 reflector_position_eus = m_icrf_to_eus * reflector_orbit.position;
@@ -222,21 +227,21 @@ void astronomy_system::fixed_update(entity::registry& registry, float, float dt)
 			reflector_blackbody_direction_eus /= reflector_blackbody_distance;
 			
 			// Measure blackbody solid angle as seen by reflector
-			const double reflector_blackbody_angular_radius = astro::angular_radius(blackbody_body.radius, reflector_blackbody_distance);
+			const double reflector_blackbody_angular_radius = geom::angular_radius(blackbody_body.radius, reflector_blackbody_distance);
 			const double reflector_blackbody_solid_angle = geom::solid_angle::cone(reflector_blackbody_angular_radius);
 			
 			// Calculate blackbody illuminance reaching reflector
 			const math::dvec3 reflector_blackbody_illuminance = blackbody.color * blackbody.luminance * reflector_blackbody_solid_angle;
 			
 			// Measure reflector solid angle as seen by observer
-			const double observer_reflector_angular_radius = astro::angular_radius(reflector_body.radius, observer_reflector_distance);
+			const double observer_reflector_angular_radius = geom::angular_radius(reflector_body.radius, observer_reflector_distance);
 			const double observer_reflector_solid_angle = geom::solid_angle::cone(observer_reflector_angular_radius);
 			
 			// Determine phase factor of reflector as seen by observer
 			const double observer_reflector_phase_factor = math::dot(observer_reflector_direction_eus, -reflector_blackbody_direction_eus) * 0.5 + 0.5;
 			
 			// Measure observer reference body solid angle as seen by reflector
-			const double reflector_observer_angular_radius = astro::angular_radius(reference_body->radius, observer_reflector_distance);
+			const double reflector_observer_angular_radius = geom::angular_radius(reference_body->radius, observer_reflector_distance);
 			const double reflector_observer_solid_angle = geom::solid_angle::cone(reflector_observer_angular_radius);
 			
 			// Determine phase factor of observer reference body as by reflector
@@ -322,7 +327,7 @@ void astronomy_system::set_observer(entity::id eid)
 	}
 }
 
-void astronomy_system::set_transmittance_samples(std::size_t samples)
+void astronomy_system::set_transmittance_samples(usize samples)
 {
 	m_transmittance_samples = samples;
 }
@@ -375,49 +380,49 @@ void astronomy_system::set_sky_pass(::render::sky_pass* pass)
 	}
 }
 
-void astronomy_system::on_observer_modified([[maybe_unused]] entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_observer_modified(entity::registry&, entity::id entity_id)
 {
 	if (entity_id == m_observer_eid)
 		observer_modified();
 }
 
-void astronomy_system::on_observer_destroyed([[maybe_unused]] entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_observer_destroyed(entity::registry&, entity::id entity_id)
 {
 	if (entity_id == m_observer_eid)
 		observer_modified();
 }
 
-void astronomy_system::on_celestial_body_modified([[maybe_unused]] entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_celestial_body_modified(entity::registry&, entity::id entity_id)
 {
 	if (entity_id == m_reference_body_eid)
 		reference_body_modified();
 }
 
-void astronomy_system::on_celestial_body_destroyed([[maybe_unused]] entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_celestial_body_destroyed(entity::registry&, entity::id entity_id)
 {
 	if (entity_id == m_reference_body_eid)
 		reference_body_modified();
 }
 
-void astronomy_system::on_orbit_modified([[maybe_unused]] entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_orbit_modified(entity::registry&, entity::id entity_id)
 {
 	if (entity_id == m_reference_body_eid)
 		reference_orbit_modified();
 }
 
-void astronomy_system::on_orbit_destroyed([[maybe_unused]] entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_orbit_destroyed(entity::registry&, entity::id entity_id)
 {
 	if (entity_id == m_reference_body_eid)
 		reference_orbit_modified();
 }
 
-void astronomy_system::on_atmosphere_modified([[maybe_unused]] entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_atmosphere_modified(entity::registry&, entity::id entity_id)
 {
 	if (entity_id == m_reference_body_eid)
 		reference_atmosphere_modified();
 }
 
-void astronomy_system::on_atmosphere_destroyed([[maybe_unused]] entity::registry& registry, entity::id entity_id)
+void astronomy_system::on_atmosphere_destroyed(entity::registry&, entity::id entity_id)
 {
 	if (entity_id == m_reference_body_eid)
 		reference_atmosphere_modified();
@@ -566,7 +571,7 @@ math::dvec3 astronomy_system::integrate_transmittance(const ::observer_component
 		// Integrate atmospheric particle densities
 		math::dvec3 densities{};
 		double previous_sample_distance = 0.0;
-		for (std::size_t i = 0; i < m_transmittance_samples; ++i)
+		for (usize i = 0; i < m_transmittance_samples; ++i)
 		{
 			// Determine distance along sample ray to sample point and length of the sample
 			const double sample_distance = (static_cast<double>(i) + 0.5) / static_cast<double>(m_transmittance_samples) * sample_end_distance;
@@ -574,7 +579,7 @@ math::dvec3 astronomy_system::integrate_transmittance(const ::observer_component
 			previous_sample_distance = sample_distance;
 			
 			// Calculate sample elevation
-			const double sample_height = std::sqrt(sample_distance * sample_distance + sqr_height + two_height_cos_view_zenith * sample_distance);
+			const double sample_height = math::sqrt(sample_distance * sample_distance + sqr_height + two_height_cos_view_zenith * sample_distance);
 			const double sample_elevation = sample_height - body.radius;
 			
 			// Weigh and sum atmospheric particle densities at sample elevation
@@ -589,7 +594,7 @@ math::dvec3 astronomy_system::integrate_transmittance(const ::observer_component
 			densities.z() * atmosphere.ozone_absorption;
 		
 		// Calculate transmittance factor from extinction coefficients
-		transmittance = {std::exp(-extinction.x()), std::exp(-extinction.y()), std::exp(-extinction.z())};
+		transmittance = {math::exp(-extinction.x()), math::exp(-extinction.y()), math::exp(-extinction.z())};
 	}
 	
 	// Scatter in BT.709, then convert to BT.2020

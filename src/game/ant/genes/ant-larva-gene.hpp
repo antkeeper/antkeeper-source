@@ -5,9 +5,11 @@
 #define ANTKEEPER_GAME_ANT_LARVA_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-#include <engine/render/model.hpp>
-#include <cstdint>
-#include <memory>
+import engine.render.model;
+import engine.utility.sized_types;
+import <memory>;
+
+using namespace engine;
 
 /// Ant larva phene.
 struct ant_larva_phene
@@ -19,7 +21,7 @@ struct ant_larva_phene
 	float spinning_period{};
 	
 	/// Number of larval instars before pupation.
-	std::uint8_t instar_count{};
+	u8 instar_count{};
 	
 	/// Scale of the first larva instar, relative to the final larval instar.
 	float first_instar_scale{};

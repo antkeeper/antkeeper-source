@@ -1,20 +1,19 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/debug/console-log.hpp>
-#include <engine/debug/log.hpp>
-#include <engine/debug/logger.hpp>
-#include <engine/debug/contract.hpp>
-#include <algorithm>
-#include <filesystem>
-#include <format>
-#include <iostream>
-#include <syncstream>
-
 #if defined(_WIN32)
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
 #endif
+#include <iostream>
+#include <syncstream>
+import engine.debug.console_log;
+import engine.debug.contract;
+import engine.debug.logger;
+import engine.debug.log;
+import engine.math.functions;
+import <filesystem>;
+import <format>;
 
 namespace
 {
@@ -61,58 +60,57 @@ namespace
 	#endif
 }
 
-namespace debug {
-
-console_log::console_log()
+namespace engine::debug
 {
-	// Get current time zone
-	m_time_zone = std::chrono::current_zone();
+	console_log::console_log()
+	{
+		// Get current time zone
+		m_time_zone = std::chrono::current_zone();
 
-	// Subscribe to log messages from default logger
-	m_message_logged_subscription = default_logger().message_logged_channel().subscribe
-	(
-		[this](const auto& event)
-		{
-			this->message_logged(event);
-		}
-	);
+		// Subscribe to log messages from default logger
+		m_message_logged_subscription = default_logger().message_logged_channel().subscribe
+		(
+			[this](const auto& event)
+			{
+				this->message_logged(event);
+			}
+		);
 
-	// Enable UTF-8 output and VT100 sequences on Windows
-	#if defined(_WIN32)
-		enable_utf8();
-		enable_vt100();
-	#endif
+		// Enable UTF-8 output and VT100 sequences on Windows
+		#if defined(_WIN32)
+			enable_utf8();
+			enable_vt100();
+		#endif
 
-	debug::postcondition(m_time_zone);
-}
+		debug::postcondition(m_time_zone);
+	}
 
-console_log::~console_log()
-{}
+	console_log::~console_log()
+	{}
 
-void console_log::message_logged(const message_logged_event& event)
-{
-	debug::precondition(m_time_zone);
+	void console_log::message_logged(const message_logged_event& event)
+	{
+		debug::precondition(m_time_zone);
 
-	// Clamp severity index to valid range
-	const auto severity_index = std::to_underlying(std::clamp(event.severity, log_message_severity::trace, log_message_severity::fatal));
+		// Clamp severity index to valid range
+		const auto severity_index = std::to_underlying(math::clamp(event.severity, log_message_severity::trace, log_message_severity::fatal));
 
-	// Round time to the millisecond and convert to local time zone
-	const std::chrono::zoned_time zoned_time{m_time_zone, std::chrono::floor<std::chrono::milliseconds>(event.time)};
+		// Round time to the millisecond and convert to local time zone
+		const std::chrono::zoned_time zoned_time{m_time_zone, std::chrono::floor<std::chrono::milliseconds>(event.time)};
 	
-	// Select and synchronize output stream based on severity
-	std::osyncstream output_stream(event.severity >= log_message_severity::error ? std::cerr : std::cout);
+		// Select and synchronize output stream based on severity
+		std::osyncstream output_stream(event.severity >= log_message_severity::error ? std::cerr : std::cout);
 
-	// Format and output log message
-	output_stream << std::format
-	(
-		"[{:%T}] {}{:7}: {}:{}: {}\33[0m\n",
-		zoned_time,
-		console_log_colors[severity_index],
-		log_message_severity_to_string(event.severity),
-		std::filesystem::path(event.location.file_name()).filename().string(),
-		event.location.line(),
-		event.message
-	);
+		// Format and output log message
+		output_stream << std::format
+		(
+			"[{:%T}] {}{:7}: {}:{}: {}\33[0m\n",
+			zoned_time,
+			console_log_colors[severity_index],
+			log_message_severity_to_string(event.severity),
+			std::filesystem::path(event.location.file_name()).filename().string(),
+			event.location.line(),
+			event.message
+		);
+	}
 }
-
-} // namespace debug

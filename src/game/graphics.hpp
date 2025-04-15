@@ -5,17 +5,18 @@
 #define ANTKEEPER_GAME_GRAPHICS_HPP
 
 #include "game/game.hpp"
-#include <engine/render/anti-aliasing-method.hpp>
+import engine.render.anti_aliasing_method;
 
-namespace graphics {
+using namespace engine;
 
-void create_framebuffers(::game& ctx);
-void destroy_framebuffers(::game& ctx);
-void change_render_resolution(::game& ctx, float scale);
-void save_screenshot(::game& ctx);
-void toggle_bloom(::game& ctx, bool enabled);
-void select_anti_aliasing_method(::game& ctx, render::anti_aliasing_method method);
-
-} // namespace graphics
+namespace graphics
+{
+	void create_framebuffers(::game& ctx);
+	void destroy_framebuffers(::game& ctx);
+	void change_render_resolution(::game& ctx, float scale);
+	void save_screenshot(::game& ctx);
+	void toggle_bloom(::game& ctx, bool enabled);
+	void select_anti_aliasing_method(::game& ctx, render::anti_aliasing_method method);
+}
 
 #endif // ANTKEEPER_GAME_GRAPHICS_HPP

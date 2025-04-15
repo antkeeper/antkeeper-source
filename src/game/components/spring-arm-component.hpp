@@ -4,11 +4,13 @@
 #ifndef ANTKEEPER_GAME_SPRING_ARM_COMPONENT_HPP
 #define ANTKEEPER_GAME_SPRING_ARM_COMPONENT_HPP
 
-#include <engine/entity/id.hpp>
-#include <engine/math/vector.hpp>
-#include <engine/math/quaternion.hpp>
-#include <engine/math/functions.hpp>
-#include <engine/physics/spring.hpp>
+import engine.physics.spring;
+import engine.math.vector;
+import engine.math.quaternion;
+import engine.math.functions;
+import engine.entity.id;
+
+using namespace engine;
 
 /// Attaches a camera to an entity using springs.
 struct spring_arm_component

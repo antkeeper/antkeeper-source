@@ -1,110 +1,112 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/animation/bone-container.hpp>
-#include <engine/animation/skeleton.hpp>
-#include <algorithm>
-#include <format>
-#include <stdexcept>
-#include <utility>
+import engine.animation.bone_container;
+import engine.animation.skeleton;
+import engine.utility.sized_types;
+import <format>;
+import <stdexcept>;
 
-bone_container::bone_container(::skeleton& skeleton, std::size_t bone_count):
-	m_skeleton{&skeleton},
-	m_bones(bone_count)
+namespace engine::animation
 {
-	for (std::size_t i = 0; i < bone_count; ++i)
+	bone_container::bone_container(animation::skeleton& skeleton, usize bone_count):
+		m_skeleton{&skeleton},
+		m_bones(bone_count)
 	{
-		m_bones[i].m_skeleton = m_skeleton;
-		m_bones[i].m_index = i;
-	}
-}
-
-bone_container::bone_container(const bone_container& other)
-{
-	*this = other;
-}
-
-bone_container& bone_container::operator=(const bone_container& other)
-{
-	m_skeleton = other.m_skeleton;
-	m_bones = other.m_bones;
-
-	for (auto& bone: m_bones)
-	{
-		// Fix parent pointer
-		if (bone.m_parent)
+		for (usize i = 0; i < bone_count; ++i)
 		{
-			bone.m_parent = &m_bones[bone.m_parent->index()];
-		}
-		
-		// Fix child pointers
-		for (auto& child: bone.m_children)
-		{
-			child = &m_bones[child->index()];
+			m_bones[i].m_skeleton = m_skeleton;
+			m_bones[i].m_index = i;
 		}
 	}
 
-	return *this;
-}
-
-bone_container::reference bone_container::at(const std::string& name)
-{
-	for (auto& bone: m_bones)
+	bone_container::bone_container(const bone_container& other)
 	{
-		if (bone.name() == name)
-		{
-			return bone;
-		}
+		*this = other;
 	}
 
-	throw std::out_of_range(std::format("Bone not found (\"{}\").", name));
-}
-
-bone_container::const_reference bone_container::at(const std::string& name) const
-{
-	for (const auto& bone: m_bones)
+	bone_container& bone_container::operator=(const bone_container& other)
 	{
-		if (bone.name() == name)
+		m_skeleton = other.m_skeleton;
+		m_bones = other.m_bones;
+
+		for (auto& bone : m_bones)
 		{
-			return bone;
+			// Fix parent pointer
+			if (bone.m_parent)
+			{
+				bone.m_parent = &m_bones[bone.m_parent->index()];
+			}
+
+			// Fix child pointers
+			for (auto& child : bone.m_children)
+			{
+				child = &m_bones[child->index()];
+			}
 		}
+
+		return *this;
 	}
 
-	throw std::out_of_range(std::format("Bone not found (\"{}\").", name));
-}
-
-bone_container::iterator bone_container::find(const std::string& name)
-{
-	for (auto it = m_bones.begin(); it != m_bones.end(); ++it)
+	bone_container::reference bone_container::at(const std::string& name)
 	{
-		if (it->name() == name)
+		for (auto& bone : m_bones)
 		{
-			return it;
+			if (bone.name() == name)
+			{
+				return bone;
+			}
 		}
+
+		throw std::out_of_range(std::format("Bone not found (\"{}\").", name));
 	}
 
-	return m_bones.end();
-}
-
-bone_container::const_iterator bone_container::find(const std::string& name) const
-{
-	for (auto it = m_bones.begin(); it != m_bones.end(); ++it)
+	bone_container::const_reference bone_container::at(const std::string& name) const
 	{
-		if (it->name() == name)
+		for (const auto& bone : m_bones)
 		{
-			return it;
+			if (bone.name() == name)
+			{
+				return bone;
+			}
 		}
+
+		throw std::out_of_range(std::format("Bone not found (\"{}\").", name));
 	}
 
-	return m_bones.end();
+	bone_container::iterator bone_container::find(const std::string& name)
+	{
+		for (auto it = m_bones.begin(); it != m_bones.end(); ++it)
+		{
+			if (it->name() == name)
+			{
+				return it;
+			}
+		}
+
+		return m_bones.end();
+	}
+
+	bone_container::const_iterator bone_container::find(const std::string& name) const
+	{
+		for (auto it = m_bones.begin(); it != m_bones.end(); ++it)
+		{
+			if (it->name() == name)
+			{
+				return it;
+			}
+		}
+
+		return m_bones.end();
+	}
 }
 
-// void bone_container::reserve(std::size_t new_cap)
+// void bone_container::reserve(usize new_cap)
 // {
 // 	if (new_cap > m_bones.capacity())
 // 	{
 // 		// Allocate indices of parents
-// 		std::vector<std::size_t> parents(m_bones.size());
+// 		std::vector<usize> parents(m_bones.size());
 //
 // 		for (auto& child: m_bones)
 // 		{
@@ -239,7 +241,7 @@ bone_container::const_iterator bone_container::find(const std::string& name) con
 // 	if (m_bones.size() == m_bones.capacity())
 // 	{
 // 		// Allocate indices of parents
-// 		std::vector<std::size_t> parents(m_bones.size());
+// 		std::vector<usize> parents(m_bones.size());
 //
 // 		for (auto& child: m_bones)
 // 		{

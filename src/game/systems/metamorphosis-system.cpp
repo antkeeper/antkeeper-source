@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <entt/entt.hpp>
 #include "game/systems/metamorphosis-system.hpp"
 #include "game/components/egg-component.hpp"
 #include "game/components/larva-component.hpp"
@@ -10,12 +11,15 @@
 #include "game/components/scene-object-component.hpp"
 #include "game/components/ant-genome-component.hpp"
 #include "game/utility/time.hpp"
-#include <engine/scene/static-mesh.hpp>
-#include <engine/scene/skeletal-mesh.hpp>
-#include <engine/debug/log.hpp>
-#include <engine/hash/fnv.hpp>
+import engine.debug.log;
+import engine.hash.fnv;
+import engine.scene.skeletal_mesh;
+import engine.scene.static_mesh;
+import engine.gl.pipeline;
+import engine.render.material;
+import <string>;
 
-using namespace hash::literals;
+using namespace engine::hash::literals;
 
 void metamorphosis_system::fixed_update(entity::registry& registry, float, float dt)
 {

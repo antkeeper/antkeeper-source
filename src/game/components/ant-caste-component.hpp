@@ -6,7 +6,9 @@
 
 #include "game/ant/ant-caste-type.hpp"
 #include "game/ant/ant-phenome.hpp"
-#include <memory>
+import <memory>;
+
+using namespace engine;
 
 struct ant_caste_component
 {

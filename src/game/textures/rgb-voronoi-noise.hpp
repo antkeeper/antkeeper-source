@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_RGB_VORONOI_NOISE_HPP
 #define ANTKEEPER_RGB_VORONOI_NOISE_HPP
 
-#include <filesystem>
+import <filesystem>;
 
 void generate_rgb_voronoi_noise(std::filesystem::path path, float frequency);
 

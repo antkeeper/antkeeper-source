@@ -4,7 +4,7 @@
 #include "game/spawn.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/scene-object-component.hpp"
-#include <engine/scene/static-mesh.hpp>
+import engine.scene.static_mesh;
 
 entity::id spawn_ant_egg(::game& ctx, const ant_genome& genome, const math::fvec3& position)
 {
@@ -19,7 +19,7 @@ entity::id spawn_ant_egg(::game& ctx, const ant_genome& genome, const math::fvec
 	ctx.entity_registry->emplace<::transform_component>(egg_eid, transform_component);
 	
 	// Construct scene component
-	ctx.entity_registry->emplace<::scene_object_component>(egg_eid, std::make_unique<scene::static_mesh>(genome.egg->phenes.front().model), std::uint8_t{1});
+	ctx.entity_registry->emplace<::scene_object_component>(egg_eid, std::make_unique<scene::static_mesh>(genome.egg->phenes.front().model), u8{1});
 	
 	return egg_eid;
 }
@@ -37,7 +37,7 @@ entity::id spawn_ant_larva(::game& ctx, const ant_genome& genome, const math::fv
 	ctx.entity_registry->emplace<::transform_component>(larva_eid, transform_component);
 	
 	// Construct scene component
-	ctx.entity_registry->emplace<::scene_object_component>(larva_eid, std::make_unique<scene::static_mesh>(genome.larva->phenes.front().model), std::uint8_t{1});
+	ctx.entity_registry->emplace<::scene_object_component>(larva_eid, std::make_unique<scene::static_mesh>(genome.larva->phenes.front().model), u8{1});
 	
 	return larva_eid;
 }

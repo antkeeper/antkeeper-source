@@ -4,8 +4,9 @@
 #ifndef ANTKEEPER_GAME_CAVITY_COMPONENT_HPP
 #define ANTKEEPER_GAME_CAVITY_COMPONENT_HPP
 
-#include <engine/math/vector.hpp>
+import engine.math.vector;
 
+using namespace engine;
 
 struct cavity_component
 {

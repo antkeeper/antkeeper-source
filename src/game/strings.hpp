@@ -5,8 +5,8 @@
 #define ANTKEEPER_GAME_STRINGS_HPP
 
 #include "game/game.hpp"
-#include <cstdint>
-#include <string_view>
+import engine.utility.sized_types;
+import <string_view>;
 
 /// Returns a localized string.
 /// @param ctx Game context.

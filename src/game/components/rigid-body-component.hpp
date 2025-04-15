@@ -4,8 +4,10 @@
 #ifndef ANTKEEPER_GAME_RIGID_BODY_COMPONENT_HPP
 #define ANTKEEPER_GAME_RIGID_BODY_COMPONENT_HPP
 
-#include <engine/physics/kinematics/rigid-body.hpp>
-#include <memory>
+import engine.physics.kinematics.rigid_body;
+import <memory>;
+
+using namespace engine;
 
 struct rigid_body_component
 {

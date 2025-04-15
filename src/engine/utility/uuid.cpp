@@ -1,26 +1,29 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/utility/uuid.hpp>
-#include <cstdint>
+import engine.utility.uuid;
+import engine.utility.sized_types;
 
-std::string uuid::string() const
+namespace engine
 {
-	static const char* hex = "0123456789abcdef";
-	
-	std::string str(32, '0');
-	
-	char* c = str.data();
-	for (std::byte byte: data)
+	std::string uuid::string() const
 	{
-		*(c++) = hex[static_cast<std::uint8_t>(byte) >> 4];
-        *(c++) = hex[static_cast<std::uint8_t>(byte) & 15];
+		static const char* hex = "0123456789abcdef";
+
+		std::string str(32, '0');
+
+		char* c = str.data();
+		for (std::byte byte : data)
+		{
+			*(c++) = hex[static_cast<u8>(byte) >> 4];
+			*(c++) = hex[static_cast<u8>(byte) & 15];
+		}
+
+		return str;
 	}
-	
-	return str;
 }
 
-std::ostream& operator<<(std::ostream& os, const uuid& id)
+std::ostream& operator<<(std::ostream& os, const engine::uuid& id)
 {
 	os << id.string();
 	return os;

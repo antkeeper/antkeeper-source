@@ -4,7 +4,9 @@
 #ifndef ANTKEEPER_GAME_COPY_ROTATION_CONSTRAINT_HPP
 #define ANTKEEPER_GAME_COPY_ROTATION_CONSTRAINT_HPP
 
-#include <engine/entity/id.hpp>
+import engine.entity.id;
+
+using namespace engine;
 
 /// Copies the rotation of a target entity.
 struct copy_rotation_constraint

@@ -1,23 +1,22 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/debug/crash-reporter.hpp>
-#include <engine/debug/log.hpp>
-#include <engine/utility/paths.hpp>
-#include <csignal>
-#include <stacktrace>
-
 #if defined(_WIN32)
 	#include <windows.h>
 	#include <dbghelp.h>
 	#include <tchar.h>
 	#include <system_error>
 #endif
+#include <csignal>
+#include <stacktrace>
+import engine.debug.crash_reporter;
+import engine.debug.log;
+import engine.utility.paths;
 
 namespace
 {
 	/// Global crash reporter.
-	debug::crash_reporter* g_crash_reporter = nullptr;
+	engine::debug::crash_reporter* g_crash_reporter = nullptr;
 
 	#if defined(_WIN32)
 		
@@ -74,8 +73,8 @@ namespace
 		{
 			try
 			{
-				debug::log_fatal("Unhandled exception");
-				debug::log_info("Stack trace:\n{}", std::stacktrace::current());
+				engine::log_fatal("Unhandled exception");
+				engine::log_info("Stack trace:\n{}", std::stacktrace::current());
 
 				const auto& crash_report_directory_path = g_crash_reporter->get_report_directory_path();
 				try
@@ -83,12 +82,12 @@ namespace
 					// Create crash report directory, if it doesn't exist
 					if (std::filesystem::create_directories(crash_report_directory_path))
 					{
-						debug::log_debug("Created crash report directory \"{}\"", crash_report_directory_path.string());
+						engine::log_debug("Created crash report directory \"{}\"", crash_report_directory_path.string());
 					}
 				}
 				catch (const std::exception& e)
 				{
-					debug::log_error("Failed to create crash report directory \"{}\": {}", crash_report_directory_path.string(), e.what());
+					engine::log_error("Failed to create crash report directory \"{}\": {}", crash_report_directory_path.string(), e.what());
 					return EXCEPTION_EXECUTE_HANDLER;
 				}
 
@@ -103,11 +102,11 @@ namespace
 				}
 				catch (const std::exception& e)
 				{
-					debug::log_error("Failed to generate crash dump \"{}\": {}", minidump_path.string(), e.what());
+					engine::log_error("Failed to generate crash dump \"{}\": {}", minidump_path.string(), e.what());
 					return EXCEPTION_EXECUTE_HANDLER;
 				}
 				
-				debug::log_info("Generated crash dump \"{}\"", minidump_path.string());
+				engine::log_info("Generated crash dump \"{}\"", minidump_path.string());
 
 				const int msgboxID = MessageBox(NULL, _T("An error has occurred and the application quit unexpectedly. A crash dump has been generated. Would you like to view it?"), _T("Crash Reporter"), MB_ICONERROR | MB_YESNO | MB_SYSTEMMODAL);
 				if (msgboxID == IDYES)
@@ -138,7 +137,7 @@ namespace
 	/// Handles SIGABRT signals.
 	void crash_reporter_handle_abort(int)
 	{
-		debug::log_fatal("abort() called");
+		engine::log_fatal("abort() called");
 
 		#if defined(_WIN32)
 			
@@ -151,118 +150,117 @@ namespace
 
 		#else
 
-			debug::log_info("Stack trace:\n{}", std::stacktrace::current());
+			engine::log_info("Stack trace:\n{}", std::stacktrace::current());
 
 		#endif
 	}
 }
 
-namespace debug {
-
-crash_reporter::~crash_reporter()
+namespace engine::debug
 {
-	if (g_crash_reporter == this)
+	crash_reporter::~crash_reporter()
 	{
-		set_crash_reporter(nullptr);
-	}
-}
-
-void crash_reporter::set_report_directory_path(const std::filesystem::path& path)
-{
-	m_report_directory_path = path;
-}
-
-void crash_reporter::set_report_prefix(const std::string& prefix)
-{
-	m_report_prefix = prefix;
-}
-
-crash_reporter* set_crash_reporter(crash_reporter* reporter)
-{
-	if (reporter == g_crash_reporter)
-	{
-		return g_crash_reporter;
+		if (g_crash_reporter == this)
+		{
+			set_crash_reporter(nullptr);
+		}
 	}
 
-	crash_reporter* previous_crash_reporter = g_crash_reporter;
-
-	using signal_handler_pointer = void (*)(int);
-	static signal_handler_pointer previous_abort_handler = nullptr;
-
-	#if defined(_WIN32)
-		static unsigned int previous_abort_flags = 0;
-		static LPTOP_LEVEL_EXCEPTION_FILTER previous_exception_handler = nullptr;
-		static PVOID vectored_exception_handler = nullptr;
-	#endif
-
-	if (reporter)
+	void crash_reporter::set_report_directory_path(const std::filesystem::path& path)
 	{
-		g_crash_reporter = reporter;
+		m_report_directory_path = path;
+	}
+
+	void crash_reporter::set_report_prefix(const std::string& prefix)
+	{
+		m_report_prefix = prefix;
+	}
+
+	crash_reporter* set_crash_reporter(crash_reporter* reporter)
+	{
+		if (reporter == g_crash_reporter)
+		{
+			return g_crash_reporter;
+		}
+
+		crash_reporter* previous_crash_reporter = g_crash_reporter;
+
+		using signal_handler_pointer = void (*)(int);
+		static signal_handler_pointer previous_abort_handler = nullptr;
 
 		#if defined(_WIN32)
+			static unsigned int previous_abort_flags = 0;
+			static LPTOP_LEVEL_EXCEPTION_FILTER previous_exception_handler = nullptr;
+			static PVOID vectored_exception_handler = nullptr;
+		#endif
+
+		if (reporter)
+		{
+			g_crash_reporter = reporter;
+
+			#if defined(_WIN32)
 			
+				if (!previous_crash_reporter)
+				{
+					// Prevent windows from generating/reporting crash dumps and showing a message boxes when `abort()` is called
+					previous_abort_flags = _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+
+					// Set unhandled exception handler
+					previous_exception_handler = SetUnhandledExceptionFilter(crash_reporter_unhandled_exception_filter);
+				}
+				else
+				{
+					_set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+					SetUnhandledExceptionFilter(crash_reporter_unhandled_exception_filter);
+				}
+
+				// Register a vectored exception handler to catch heap corruption exceptions, which are not caught by the unhandled exception filter
+				vectored_exception_handler = AddVectoredExceptionHandler(1, crash_reporter_vectored_exception_handler);
+				if (!vectored_exception_handler)
+				{
+					log_warning("Failed to register vectored exception handler.");
+				}
+
+			#endif
+
+			// Set SIGABRT signal handler
 			if (!previous_crash_reporter)
 			{
-				// Prevent windows from generating/reporting crash dumps and showing a message boxes when `abort()` is called
-				previous_abort_flags = _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
-
-				// Set unhandled exception handler
-				previous_exception_handler = SetUnhandledExceptionFilter(crash_reporter_unhandled_exception_filter);
+				previous_abort_handler = std::signal(SIGABRT, crash_reporter_handle_abort);
 			}
 			else
 			{
-				_set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
-				SetUnhandledExceptionFilter(crash_reporter_unhandled_exception_filter);
+				std::signal(SIGABRT, crash_reporter_handle_abort);
 			}
-
-			// Register a vectored exception handler to catch heap corruption exceptions, which are not caught by the unhandled exception filter
-			vectored_exception_handler = AddVectoredExceptionHandler(1, crash_reporter_vectored_exception_handler);
-			if (!vectored_exception_handler)
-			{
-				debug::log_warning("Failed to register vectored exception handler.");
-			}
-
-		#endif
-
-		// Set SIGABRT signal handler
-		if (!previous_crash_reporter)
-		{
-			previous_abort_handler = std::signal(SIGABRT, crash_reporter_handle_abort);
 		}
 		else
 		{
-			std::signal(SIGABRT, crash_reporter_handle_abort);
-		}
-	}
-	else
-	{
-		// Restore previous SIGABRT signal handler
-		std::signal(SIGABRT, previous_abort_handler);
+			// Restore previous SIGABRT signal handler
+			std::signal(SIGABRT, previous_abort_handler);
 
-		#if defined(_WIN32)
+			#if defined(_WIN32)
 			
-			// Unregister vectored exception handler
-			if (vectored_exception_handler)
-			{
-				if (!RemoveVectoredExceptionHandler(vectored_exception_handler))
+				// Unregister vectored exception handler
+				if (vectored_exception_handler)
 				{
-					debug::log_warning("Failed to unregister vectored exception handler.");
+					if (!RemoveVectoredExceptionHandler(vectored_exception_handler))
+					{
+						log_warning("Failed to unregister vectored exception handler.");
+					}
+					vectored_exception_handler = nullptr;
 				}
-				vectored_exception_handler = nullptr;
-			}
 
-			// Restore previous unhandled exception handler
-			SetUnhandledExceptionFilter(previous_exception_handler);
+				// Restore previous unhandled exception handler
+				SetUnhandledExceptionFilter(previous_exception_handler);
 
-			// Restore previous abort behavior
-			_set_abort_behavior(previous_abort_flags, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+				// Restore previous abort behavior
+				_set_abort_behavior(previous_abort_flags, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
 
-		#endif
+			#endif
 
-		g_crash_reporter = nullptr;
+			g_crash_reporter = nullptr;
+		}
+
+		return previous_crash_reporter;
 	}
-
-	return previous_crash_reporter;
 }
-
-} // namespace debug

@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "game/screen-transition.hpp"
 #include "game/game.hpp"
+#include "game/screen-transition.hpp"
 #include "game/components/animation-component.hpp"
 
 void fade_out_to(::game& ctx, const std::function<void()>& callback)

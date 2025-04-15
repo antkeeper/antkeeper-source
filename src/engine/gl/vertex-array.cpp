@@ -1,16 +1,17 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/gl/vertex-array.hpp>
-#include <engine/gl/opengl/gl-format-lut.hpp>
 #include <glad/gl.h>
-#include <stdexcept>
-#include <utility>
+import engine.gl.vertex_array;
+import engine.gl.opengl.format_lut;
+import engine.utility.sized_types;
+import <stdexcept>;
+import <utility>;
 
-namespace {
-	
+namespace engine::gl
+{	
 	// 0 = unscaled, 1 = normalized, 2 = scaled
-	static constexpr std::uint8_t format_scale_lut[] =
+	static constexpr u8 format_scale_lut[] =
 	{
 		0, // undefined
 		1, // r4g4_unorm_pack8
@@ -198,120 +199,116 @@ namespace {
 		1, // astc_12x12_unorm_block,
 		0, // astc_12x12_srgb_block
 	};
-}
 
-namespace gl {
-
-vertex_array::vertex_array(std::span<const vertex_input_attribute> attributes)
-{
-	m_attributes.assign(attributes.begin(), attributes.end());
-	
-	glCreateVertexArrays(1, &m_gl_named_array);
-	
-	for (const auto& attribute: m_attributes)
+	vertex_array::vertex_array(std::span<const vertex_input_attribute> attributes)
 	{
-		// Enable attribute
-		glEnableVertexArrayAttrib(m_gl_named_array, static_cast<GLuint>(attribute.location));
-		
-		// Set attribute vertex binding index
-		glVertexArrayAttribBinding
-		(
-			m_gl_named_array,
-			static_cast<GLuint>(attribute.location),
-			static_cast<GLuint>(attribute.binding)
-		);
-		
-		const auto format_index = std::to_underlying(attribute.format);
-		const auto gl_base_format = gl_format_lut[format_index][1];
-		const auto gl_type = gl_format_lut[format_index][2];
-		const auto format_scale = format_scale_lut[format_index];
-		
-		// Determine number of values per vertex
-		GLint gl_size;
-		switch (gl_base_format)
+		m_attributes.assign(attributes.begin(), attributes.end());
+
+		glCreateVertexArrays(1, &m_gl_named_array);
+
+		for (const auto& attribute : m_attributes)
 		{
-			case GL_RED:
-			case GL_RED_INTEGER:
-			case GL_DEPTH_COMPONENT:
-			case GL_STENCIL_INDEX:
-				gl_size = 1;
-				break;
-			
-			case GL_RG:
-			case GL_RG_INTEGER:
-			case GL_DEPTH_STENCIL:
-				gl_size = 2;
-				break;
-			
-			case GL_BGR:
-			case GL_BGR_INTEGER:
-			case GL_RGB:
-			case GL_RGB_INTEGER:
-				gl_size = 3;
-				break;
-			
-			case GL_BGRA:
-			case GL_BGRA_INTEGER:
-			case GL_RGBA:
-			case GL_RGBA_INTEGER:
-				gl_size = 4;
-				break;
-			
-			default:
-				gl_size = 0;
-				break;
-		}
-		
-		if (gl_size == 0 || gl_type == 0)
-		{
-			throw std::invalid_argument("Vertex input attribute has unsupported format.");
-		}
-		
-		if (format_scale > 0 || gl_type == GL_FLOAT || gl_type == GL_HALF_FLOAT)
-		{
-			glVertexArrayAttribFormat
+			// Enable attribute
+			glEnableVertexArrayAttrib(m_gl_named_array, static_cast<GLuint>(attribute.location));
+
+			// Set attribute vertex binding index
+			glVertexArrayAttribBinding
 			(
 				m_gl_named_array,
 				static_cast<GLuint>(attribute.location),
-				gl_size,
-				gl_type,
-				(format_scale == 1),
-				static_cast<GLuint>(attribute.offset)
+				static_cast<GLuint>(attribute.binding)
 			);
-		}
-		else if (gl_type == GL_DOUBLE)
-		{
-			glVertexArrayAttribLFormat
-			(
-				m_gl_named_array,
-				static_cast<GLuint>(attribute.location),
-				gl_size,
-				gl_type,
-				static_cast<GLuint>(attribute.offset)
-			);
-		}
-		else
-		{
-			glVertexArrayAttribIFormat
-			(
-				m_gl_named_array,
-				static_cast<GLuint>(attribute.location),
-				gl_size,
-				gl_type,
-				static_cast<GLuint>(attribute.offset)
-			);
+
+			const auto format_index = std::to_underlying(attribute.format);
+			const auto gl_base_format = opengl::format_lut[format_index][1];
+			const auto gl_type = opengl::format_lut[format_index][2];
+			const auto format_scale = format_scale_lut[format_index];
+
+			// Determine number of values per vertex
+			GLint gl_size;
+			switch (gl_base_format)
+			{
+				case GL_RED:
+				case GL_RED_INTEGER:
+				case GL_DEPTH_COMPONENT:
+				case GL_STENCIL_INDEX:
+					gl_size = 1;
+					break;
+
+				case GL_RG:
+				case GL_RG_INTEGER:
+				case GL_DEPTH_STENCIL:
+					gl_size = 2;
+					break;
+
+				case GL_BGR:
+				case GL_BGR_INTEGER:
+				case GL_RGB:
+				case GL_RGB_INTEGER:
+					gl_size = 3;
+					break;
+
+				case GL_BGRA:
+				case GL_BGRA_INTEGER:
+				case GL_RGBA:
+				case GL_RGBA_INTEGER:
+					gl_size = 4;
+					break;
+
+				default:
+					gl_size = 0;
+					break;
+			}
+
+			if (gl_size == 0 || gl_type == 0)
+			{
+				throw std::invalid_argument("Vertex input attribute has unsupported format.");
+			}
+
+			if (format_scale > 0 || gl_type == GL_FLOAT || gl_type == GL_HALF_FLOAT)
+			{
+				glVertexArrayAttribFormat
+				(
+					m_gl_named_array,
+					static_cast<GLuint>(attribute.location),
+					gl_size,
+					gl_type,
+					(format_scale == 1),
+					static_cast<GLuint>(attribute.offset)
+				);
+			}
+			else if (gl_type == GL_DOUBLE)
+			{
+				glVertexArrayAttribLFormat
+				(
+					m_gl_named_array,
+					static_cast<GLuint>(attribute.location),
+					gl_size,
+					gl_type,
+					static_cast<GLuint>(attribute.offset)
+				);
+			}
+			else
+			{
+				glVertexArrayAttribIFormat
+				(
+					m_gl_named_array,
+					static_cast<GLuint>(attribute.location),
+					gl_size,
+					gl_type,
+					static_cast<GLuint>(attribute.offset)
+				);
+			}
 		}
 	}
-}
 
-vertex_array::vertex_array()
-{
-	glCreateVertexArrays(1, &m_gl_named_array);
-}
+	vertex_array::vertex_array()
+	{
+		glCreateVertexArrays(1, &m_gl_named_array);
+	}
 
-vertex_array::~vertex_array()
-{
-	glDeleteVertexArrays(1, &m_gl_named_array);
+	vertex_array::~vertex_array()
+	{
+		glDeleteVertexArrays(1, &m_gl_named_array);
+	}
 }
-
-} // namespace gl

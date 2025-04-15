@@ -4,13 +4,15 @@
 #ifndef ANTKEEPER_GAME_UTILITY_TERRAIN_HPP
 #define ANTKEEPER_GAME_UTILITY_TERRAIN_HPP
 
-#include <engine/entity/registry.hpp>
-#include <engine/entity/id.hpp>
-#include <engine/gl/image.hpp>
-#include <engine/math/vector.hpp>
-#include <engine/math/transform.hpp>
-#include <engine/render/material.hpp>
-#include <memory>
+import engine.gl.image;
+import engine.render.material;
+import engine.math.vector;
+import engine.math.transform;
+import engine.entity.id;
+import engine.entity.registry;
+import <memory>;
+
+using namespace engine;
 
 /// Generates terrain entities from a heightmap.
 /// @param heightmap Heightmap from which the terrain should be generated.

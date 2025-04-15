@@ -1,15 +1,16 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <numeric>
+#include <entt/entt.hpp>
 #include "game/systems/blackbody-system.hpp"
 #include "game/components/blackbody-component.hpp"
-#include <engine/physics/light/blackbody.hpp>
-#include <engine/physics/light/photometry.hpp>
-#include <engine/math/quadrature.hpp>
-#include <engine/color/xyz.hpp>
-#include <engine/color/bt2020.hpp>
-#include <engine/color/illuminants.hpp>
-#include <numeric>
+import engine.physics.light.blackbody;
+import engine.physics.light.photometry;
+import engine.math.quadrature;
+import engine.color.bt2020;
+import engine.color.illuminants;
+import engine.color.xyz;
 
 blackbody_system::blackbody_system(entity::registry& registry):
 	m_registry(registry)
@@ -67,12 +68,12 @@ void blackbody_system::update_blackbody(entity::id entity_id)
 	blackbody.color = rgb_luminance / blackbody.luminance;
 }
 
-void blackbody_system::on_blackbody_construct([[maybe_unused]] entity::registry& registry, entity::id entity_id)
+void blackbody_system::on_blackbody_construct(entity::registry&, entity::id entity_id)
 {
 	update_blackbody(entity_id);
 }
 
-void blackbody_system::on_blackbody_update([[maybe_unused]] entity::registry& registry, entity::id entity_id)
+void blackbody_system::on_blackbody_update(entity::registry&, entity::id entity_id)
 {
 	update_blackbody(entity_id);
 }

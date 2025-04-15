@@ -4,51 +4,53 @@
 #ifndef ANTKEEPER_GAME_ANT_BONE_SET_HPP
 #define ANTKEEPER_GAME_ANT_BONE_SET_HPP
 
-#include <engine/animation/bone.hpp>
+import engine.animation.bone;
+
+using namespace engine;
 
 /// Set of bone indices for all possible bones in an ant skeleotn.
 struct ant_bone_set
 {
-	bone* mesosoma{};
-	bone* procoxa_l{};
-	bone* profemur_l{};
-	bone* protibia_l{};
-	bone* protarsomere1_l{};
-	bone* procoxa_r{};
-	bone* profemur_r{};
-	bone* protibia_r{};
-	bone* protarsomere1_r{};
-	bone* mesocoxa_l{};
-	bone* mesofemur_l{};
-	bone* mesotibia_l{};
-	bone* mesotarsomere1_l{};
-	bone* mesocoxa_r{};
-	bone* mesofemur_r{};
-	bone* mesotibia_r{};
-	bone* mesotarsomere1_r{};
-	bone* metacoxa_l{};
-	bone* metafemur_l{};
-	bone* metatibia_l{};
-	bone* metatarsomere1_l{};
-	bone* metacoxa_r{};
-	bone* metafemur_r{};
-	bone* metatibia_r{};
-	bone* metatarsomere1_r{};
-	bone* head{};
-	bone* mandible_l{};
-	bone* mandible_r{};
-	bone* antennomere1_l{};
-	bone* antennomere2_l{};
-	bone* antennomere1_r{};
-	bone* antennomere2_r{};
-	bone* petiole{};     // optional
-	bone* postpetiole{}; // optional
-	bone* gaster{};
-	bone* sting{};       // optional
-	bone* forewing_l{};  // optional
-	bone* forewing_r{};  // optional
-	bone* hindwing_l{};  // optional
-	bone* hindwing_r{};  // optional
+	animation::bone* mesosoma{};
+	animation::bone* procoxa_l{};
+	animation::bone* profemur_l{};
+	animation::bone* protibia_l{};
+	animation::bone* protarsomere1_l{};
+	animation::bone* procoxa_r{};
+	animation::bone* profemur_r{};
+	animation::bone* protibia_r{};
+	animation::bone* protarsomere1_r{};
+	animation::bone* mesocoxa_l{};
+	animation::bone* mesofemur_l{};
+	animation::bone* mesotibia_l{};
+	animation::bone* mesotarsomere1_l{};
+	animation::bone* mesocoxa_r{};
+	animation::bone* mesofemur_r{};
+	animation::bone* mesotibia_r{};
+	animation::bone* mesotarsomere1_r{};
+	animation::bone* metacoxa_l{};
+	animation::bone* metafemur_l{};
+	animation::bone* metatibia_l{};
+	animation::bone* metatarsomere1_l{};
+	animation::bone* metacoxa_r{};
+	animation::bone* metafemur_r{};
+	animation::bone* metatibia_r{};
+	animation::bone* metatarsomere1_r{};
+	animation::bone* head{};
+	animation::bone* mandible_l{};
+	animation::bone* mandible_r{};
+	animation::bone* antennomere1_l{};
+	animation::bone* antennomere2_l{};
+	animation::bone* antennomere1_r{};
+	animation::bone* antennomere2_r{};
+	animation::bone* petiole{};     // optional
+	animation::bone* postpetiole{}; // optional
+	animation::bone* gaster{};
+	animation::bone* sting{};       // optional
+	animation::bone* forewing_l{};  // optional
+	animation::bone* forewing_r{};  // optional
+	animation::bone* hindwing_l{};  // optional
+	animation::bone* hindwing_r{};  // optional
 };
 
 #endif // ANTKEEPER_GAME_ANT_BONE_SET_HPP

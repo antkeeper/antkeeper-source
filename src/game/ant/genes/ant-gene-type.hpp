@@ -4,10 +4,10 @@
 #ifndef ANTKEEPER_GAME_ANT_GENE_TYPE_HPP
 #define ANTKEEPER_GAME_ANT_GENE_TYPE_HPP
 
-#include <cstdint>
+import engine.utility.sized_types;
 
 /// Ant gene types.
-enum class ant_gene_type: std::uint8_t
+enum class ant_gene_type: u8
 {
 	antennae = 1,
 	body_size,

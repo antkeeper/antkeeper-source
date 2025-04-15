@@ -3,23 +3,27 @@
 
 #include "game/ant/ant-skeleton.hpp"
 #include "game/ant/ant-bone-set.hpp"
-#include <engine/math/functions.hpp>
-#include <engine/math/euler-angles.hpp>
+import engine.math.functions;
+import engine.math.euler_angles;
+import engine.math.vector;
+import engine.utility.sized_types;
 
-void generate_ant_rest_pose(::skeleton& skeleton, const ant_bone_set& bones, const ant_phenome& phenome)
+using namespace engine;
+
+void generate_ant_rest_pose(animation::skeleton& skeleton, const ant_bone_set& bones, const ant_phenome& phenome)
 {
 	// Get skeletons of individual body parts
-	const ::skeleton& mesosoma_skeleton = *phenome.mesosoma->model->skeleton();
-	const ::skeleton& legs_skeleton = *phenome.legs->model->skeleton();
-	const ::skeleton& head_skeleton = *phenome.head->model->skeleton();
-	const ::skeleton& mandibles_skeleton = *phenome.mandibles->model->skeleton();
-	const ::skeleton& antennae_skeleton = *phenome.antennae->model->skeleton();
-	const ::skeleton& waist_skeleton = *phenome.waist->model->skeleton();
-	const ::skeleton& gaster_skeleton = *phenome.gaster->model->skeleton();
-	const ::skeleton* sting_skeleton = (phenome.sting->present) ? phenome.sting->model->skeleton().get() : nullptr;
-	const ::skeleton* wings_skeleton = (phenome.wings->present) ? phenome.wings->model->skeleton().get() : nullptr;
+	const auto& mesosoma_skeleton = *phenome.mesosoma->model->skeleton();
+	const auto& legs_skeleton = *phenome.legs->model->skeleton();
+	const auto& head_skeleton = *phenome.head->model->skeleton();
+	const auto& mandibles_skeleton = *phenome.mandibles->model->skeleton();
+	const auto& antennae_skeleton = *phenome.antennae->model->skeleton();
+	const auto& waist_skeleton = *phenome.waist->model->skeleton();
+	const auto& gaster_skeleton = *phenome.gaster->model->skeleton();
+	const auto* sting_skeleton = (phenome.sting->present) ? phenome.sting->model->skeleton().get() : nullptr;
+	const auto* wings_skeleton = (phenome.wings->present) ? phenome.wings->model->skeleton().get() : nullptr;
 	
-	auto get_bone_transform = [](const ::skeleton& skeleton, const std::string& bone_name)
+	auto get_bone_transform = [](const animation::skeleton& skeleton, const std::string& bone_name)
 	{
 		return skeleton.rest_pose().get_relative_transform(skeleton.bones().at(bone_name).index());
 	};
@@ -99,12 +103,12 @@ void generate_ant_rest_pose(::skeleton& skeleton, const ant_bone_set& bones, con
 	rest_pose.update();
 }
 
-std::unique_ptr<skeleton_pose> generate_ant_midstance_pose(::skeleton& skeleton)
+std::unique_ptr<animation::skeleton_pose> generate_ant_midstance_pose(animation::skeleton& skeleton)
 {
 	const auto& rest_pose = skeleton.rest_pose();
 	const auto& bones = skeleton.bones();
 
-	auto pose = std::make_unique<skeleton_pose>(skeleton);
+	auto pose = std::make_unique<animation::skeleton_pose>(skeleton);
 	
 	// Pose forelegs
 	{
@@ -228,12 +232,12 @@ std::unique_ptr<skeleton_pose> generate_ant_midstance_pose(::skeleton& skeleton)
 	return pose;
 }
 
-std::unique_ptr<skeleton_pose> generate_ant_liftoff_pose(::skeleton& skeleton)
+std::unique_ptr<animation::skeleton_pose> generate_ant_liftoff_pose(animation::skeleton& skeleton)
 {
 	const auto& rest_pose = skeleton.rest_pose();
 	const auto& bones = skeleton.bones();
 
-	auto pose = std::make_unique<skeleton_pose>(skeleton);
+	auto pose = std::make_unique<animation::skeleton_pose>(skeleton);
 	
 	// Pose forelegs
 	{
@@ -357,12 +361,12 @@ std::unique_ptr<skeleton_pose> generate_ant_liftoff_pose(::skeleton& skeleton)
 	return pose;
 }
 
-std::unique_ptr<skeleton_pose> generate_ant_touchdown_pose(::skeleton& skeleton)
+std::unique_ptr<animation::skeleton_pose> generate_ant_touchdown_pose(animation::skeleton& skeleton)
 {
 	const auto& rest_pose = skeleton.rest_pose();
 	const auto& bones = skeleton.bones();
 
-	auto pose = std::make_unique<skeleton_pose>(skeleton);
+	auto pose = std::make_unique<animation::skeleton_pose>(skeleton);
 	
 	// Pose forelegs
 	{
@@ -486,12 +490,12 @@ std::unique_ptr<skeleton_pose> generate_ant_touchdown_pose(::skeleton& skeleton)
 	return pose;
 }
 
-std::unique_ptr<skeleton_pose> generate_ant_midswing_pose(::skeleton& skeleton)
+std::unique_ptr<animation::skeleton_pose> generate_ant_midswing_pose(animation::skeleton& skeleton)
 {
 	const auto& rest_pose = skeleton.rest_pose();
 	const auto& bones = skeleton.bones();
 
-	auto pose = std::make_unique<skeleton_pose>(skeleton);
+	auto pose = std::make_unique<animation::skeleton_pose>(skeleton);
 	
 	// Pose forelegs
 	{
@@ -615,12 +619,12 @@ std::unique_ptr<skeleton_pose> generate_ant_midswing_pose(::skeleton& skeleton)
 	return pose;
 }
 
-std::unique_ptr<skeleton_pose> generate_ant_pupa_pose(::skeleton& skeleton)
+std::unique_ptr<animation::skeleton_pose> generate_ant_pupa_pose(animation::skeleton& skeleton)
 {
 	const auto& rest_pose = skeleton.rest_pose();
 	const auto& bones = skeleton.bones();
 
-	auto pose = std::make_unique<skeleton_pose>(skeleton);
+	auto pose = std::make_unique<animation::skeleton_pose>(skeleton);
 	
 	// Fold forelegs
 	{
@@ -800,10 +804,10 @@ std::unique_ptr<skeleton_pose> generate_ant_pupa_pose(::skeleton& skeleton)
 	return pose;
 }
 
-std::unique_ptr<skeleton> generate_ant_skeleton(ant_bone_set& bones, const ant_phenome& phenome)
+std::unique_ptr<animation::skeleton> generate_ant_skeleton(ant_bone_set& bones, const ant_phenome& phenome)
 {
 	// Count bones
-	std::size_t bone_count = 33;
+	usize bone_count = 33;
 	{
 		if (phenome.waist->present)
 		{
@@ -827,11 +831,11 @@ std::unique_ptr<skeleton> generate_ant_skeleton(ant_bone_set& bones, const ant_p
 	}
 	
 	// Allocate skeleton
-	auto skeleton = std::make_unique<::skeleton>(bone_count);
+	auto skeleton = std::make_unique<animation::skeleton>(bone_count);
 	
 	// Construct bones
 	{
-		std::size_t i = 0;
+		usize i = 0;
 
 		bones.mesosoma = &skeleton->bones().at(i++);
 		bones.procoxa_l = &skeleton->bones().at(i++);

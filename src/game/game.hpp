@@ -4,60 +4,64 @@
 #ifndef ANTKEEPER_GAME_HPP
 #define ANTKEEPER_GAME_HPP
 
+#include <queue>
+#include <random>
+#include <entt/entt.hpp>
 #include "game/ecoregion.hpp"
 #include "game/states/game-state.hpp"
 #include "game/systems/component-system.hpp"
-#include <engine/app/input-manager.hpp>
-#include <engine/app/window-manager.hpp>
-#include <engine/entity/id.hpp>
-#include <engine/entity/registry.hpp>
-#include <engine/event/subscription.hpp>
-#include <engine/gl/framebuffer.hpp>
-#include <engine/gl/texture.hpp>
-#include <engine/i18n/string-map.hpp>
-#include <engine/input/action-map.hpp>
-#include <engine/input/action.hpp>
-#include <engine/input/mapper.hpp>
-#include <engine/math/moving-average.hpp>
-#include <engine/render/anti-aliasing-method.hpp>
-#include <engine/render/material-variable.hpp>
-#include <engine/render/material.hpp>
-#include <engine/type/font.hpp>
-#include <engine/type/typeface.hpp>
-#include <engine/utility/json.hpp>
-#include <engine/math/vector.hpp>
-#include <engine/utility/state-machine.hpp>
-#include <engine/utility/frame-scheduler.hpp>
-#include <engine/scene/text.hpp>
-#include <engine/scene/directional-light.hpp>
-#include <engine/scene/rectangle-light.hpp>
-#include <engine/scene/spot-light.hpp>
-#include <engine/scene/camera.hpp>
-#include <engine/scene/billboard.hpp>
-#include <engine/scene/collection.hpp>
-#include <engine/scene/text.hpp>
-#include <engine/math/functions.hpp>
-#include <engine/audio/sound-system.hpp>
-#include <engine/audio/sound-que.hpp>
-#include <engine/ui/canvas.hpp>
-#include <engine/ui/label.hpp>
-#include <engine/script/script-context.hpp>
-#include <entt/entt.hpp>
-#include <filesystem>
-#include <memory>
-#include <optional>
-#include <queue>
-#include <string>
-#include <unordered_map>
-#include <random>
-#include <vector>
+import engine.gl.framebuffer;
+import engine.gl.texture;
+import engine.render.anti_aliasing_method;
+import engine.render.material_variable;
+import engine.render.material;
+import engine.event.subscription;
+import engine.i18n.string_map;
+import engine.script.context;
+import engine.entity.id;
+import engine.entity.registry;
+import engine.audio.sound_system;
+import engine.audio.sound_que;
+import engine.type.font;
+import engine.type.typeface;
+import engine.app.input_manager;
+import engine.app.window_manager;
+import engine.ui.canvas;
+import engine.ui.label;
+import engine.input.action_map;
+import engine.input.action;
+import engine.input.mapper;
+import engine.utility.json;
+import engine.utility.state_machine;
+import engine.utility.frame_scheduler;
+import engine.utility.sized_types;
+import engine.scene.text;
+import engine.scene.directional_light;
+import engine.scene.rectangle_light;
+import engine.scene.spot_light;
+import engine.scene.camera;
+import engine.scene.billboard;
+import engine.scene.collection;
+import engine.math.moving_average;
+import engine.math.vector;
+import engine.math.functions;
+import engine.animation.animation_sequence;
+import <filesystem>;
+import <memory>;
+import <optional>;
+import <string>;
+import <unordered_map>;
+import <vector>;
+
+using namespace engine;
 
 // Forward declarations
-class resource_manager;
-class shell;
-class shell_buffer;
+namespace engine::resources
+{
+	class resource_manager;
+}
 
-namespace render
+namespace engine::render
 {
 	class bloom_pass;
 	class compositor;
@@ -69,8 +73,8 @@ namespace render
 	class clear_pass;
 }
 
-
-// Forward declarations of system types.
+class shell;
+class shell_buffer;
 class astronomy_system;
 class atmosphere_system;
 class blackbody_system;
@@ -82,9 +86,7 @@ class physics_system;
 class animation_sequence;
 class fixed_update_system;
 class variable_update_system;
-
 struct control_profile;
-
 
 class game
 {
@@ -111,7 +113,7 @@ public:
 	std::optional<bool> option_windowed;
 	
 	// Resource management and paths
-	std::unique_ptr<resource_manager> resource_manager;
+	std::unique_ptr<resources::resource_manager> resource_manager;
 	std::filesystem::path data_package_path;
 	std::filesystem::path mods_path;
 	std::filesystem::path local_config_path;
@@ -127,18 +129,18 @@ public:
 	std::unique_ptr<app::window_manager> window_manager;
 	std::shared_ptr<app::window> window;
 	bool closed{false};
-	std::shared_ptr<::event::subscription> window_closed_subscription;
-	std::shared_ptr<::event::subscription> window_resized_subscription;
+	std::shared_ptr<event::subscription> window_closed_subscription;
+	std::shared_ptr<event::subscription> window_resized_subscription;
 	
 	// Input management and input event handling
 	std::unique_ptr<app::input_manager> input_manager;
-	std::shared_ptr<::event::subscription> application_quit_subscription;
-	std::shared_ptr<::event::subscription> gamepad_axis_moved_subscription;
-	std::shared_ptr<::event::subscription> gamepad_button_pressed_subscription;
-	std::shared_ptr<::event::subscription> mouse_moved_subscription;
-	std::shared_ptr<::event::subscription> mouse_button_pressed_subscription;
-	std::shared_ptr<::event::subscription> mouse_button_released_subscription;
-	std::shared_ptr<::event::subscription> mouse_scrolled_subscription;
+	std::shared_ptr<event::subscription> application_quit_subscription;
+	std::shared_ptr<event::subscription> gamepad_axis_moved_subscription;
+	std::shared_ptr<event::subscription> gamepad_button_pressed_subscription;
+	std::shared_ptr<event::subscription> mouse_moved_subscription;
+	std::shared_ptr<event::subscription> mouse_button_pressed_subscription;
+	std::shared_ptr<event::subscription> mouse_button_released_subscription;
+	std::shared_ptr<event::subscription> mouse_scrolled_subscription;
 	bool gamepad_active;
 
 	std::shared_ptr<event::subscription> m_key_mapped_subscription;
@@ -232,11 +234,11 @@ public:
 	input::action terminal_paste_action;
 	input::action terminal_clear_line_action;
 	
-	std::vector<std::shared_ptr<::event::subscription>> event_subscriptions;
+	std::vector<std::shared_ptr<event::subscription>> event_subscriptions;
 	
-	std::vector<std::shared_ptr<::event::subscription>> menu_action_subscriptions;
-	std::vector<std::shared_ptr<::event::subscription>> menu_mouse_subscriptions;
-	std::vector<std::shared_ptr<::event::subscription>> movement_action_subscriptions;
+	std::vector<std::shared_ptr<event::subscription>> menu_action_subscriptions;
+	std::vector<std::shared_ptr<event::subscription>> menu_mouse_subscriptions;
+	std::vector<std::shared_ptr<event::subscription>> movement_action_subscriptions;
 
 	bool m_ingame{false};
 	
@@ -271,7 +273,7 @@ public:
 	std::unique_ptr<scene::text> frame_time_text;
 	bool terminal_enabled{false};
 	std::string command_line;
-	std::size_t command_line_cursor{};
+	usize command_line_cursor{};
 	std::shared_ptr<scene::text> command_line_text;
 	std::shared_ptr<scene::text> shell_buffer_text;
 	std::unique_ptr<::shell_buffer> shell_buffer;
@@ -336,11 +338,11 @@ public:
 	std::shared_ptr<ui::element> m_pause_menu_bg;
 
 	entity::id m_menu_animation_entity{entt::null};
-	std::shared_ptr<animation_sequence> m_menu_fade_in_sequence;
-	std::shared_ptr<animation_sequence> m_menu_fade_out_sequence;
+	std::shared_ptr<animation::animation_sequence> m_menu_fade_in_sequence;
+	std::shared_ptr<animation::animation_sequence> m_menu_fade_out_sequence;
 	entity::id m_pause_menu_bg_animation_entity{entt::null};
-	std::shared_ptr<animation_sequence> m_pause_menu_bg_fade_in_sequence;
-	std::shared_ptr<animation_sequence> m_pause_menu_bg_fade_out_sequence;
+	std::shared_ptr<animation::animation_sequence> m_pause_menu_bg_fade_in_sequence;
+	std::shared_ptr<animation::animation_sequence> m_pause_menu_bg_fade_out_sequence;
 	
 	float font_scale;
 	bool dyslexia_font;
@@ -359,11 +361,11 @@ public:
 	scene::collection* active_scene;
 	
 	// Animation
-	std::shared_ptr<animation_sequence> menu_fade_in_sequence;
-	std::shared_ptr<animation_sequence> menu_fade_out_sequence;
+	std::shared_ptr<animation::animation_sequence> menu_fade_in_sequence;
+	std::shared_ptr<animation::animation_sequence> menu_fade_out_sequence;
 	entity::id screen_transition_entity{entt::null};
-	std::shared_ptr<animation_sequence> screen_fade_in_sequence;
-	std::shared_ptr<animation_sequence> screen_fade_out_sequence;
+	std::shared_ptr<animation::animation_sequence> screen_fade_in_sequence;
+	std::shared_ptr<animation::animation_sequence> screen_fade_out_sequence;
 	
 	// Sound
 	std::unique_ptr<audio::sound_system> sound_system;
@@ -403,7 +405,7 @@ public:
 	float fixed_update_rate{60.0};
 	float max_frame_rate{120.0};
 	bool limit_frame_rate{false};
-	::frame_scheduler frame_scheduler;
+	engine::frame_scheduler frame_scheduler;
 	math::moving_average<float> average_frame_duration;
 	
 	std::shared_ptr<ecoregion> active_ecoregion;
@@ -428,8 +430,8 @@ private:
 	void setup_debugging();
 	void setup_timing();
 	
-	void fixed_update(::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval);
-	void variable_update(::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval, ::frame_scheduler::duration_type accumulated_time);
+	void fixed_update(engine::frame_scheduler::duration_type fixed_update_time, engine::frame_scheduler::duration_type fixed_update_interval);
+	void variable_update(engine::frame_scheduler::duration_type fixed_update_time, engine::frame_scheduler::duration_type fixed_update_interval, engine::frame_scheduler::duration_type accumulated_time);
 };
 
 #endif // ANTKEEPER_GAME_HPP

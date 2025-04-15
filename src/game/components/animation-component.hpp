@@ -4,11 +4,13 @@
 #ifndef ANTKEEPER_GAME_ANIMATION_COMPONENT_HPP
 #define ANTKEEPER_GAME_ANIMATION_COMPONENT_HPP
 
-#include <engine/animation/animation-player.hpp>
+import engine.animation.animation_player;
+
+using namespace engine;
 
 struct animation_component
 {
-	animation_player player;
+	animation::animation_player player;
 };
 
 #endif // ANTKEEPER_GAME_ANIMATION_COMPONENT_HPP

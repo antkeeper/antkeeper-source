@@ -4,11 +4,13 @@
 #ifndef ANTKEEPER_SHELL_HPP
 #define ANTKEEPER_SHELL_HPP
 
-#include <engine/script/script-context.hpp>
-#include <ostream>
-#include <string>
-#include <string_view>
-#include <vector>
+import engine.script.context;
+import <ostream>;
+import <string>;
+import <string_view>;
+import <vector>;
+
+using namespace engine;
 
 class game;
 

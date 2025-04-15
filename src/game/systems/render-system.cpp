@@ -5,6 +5,11 @@
 #include "game/components/transform-component.hpp"
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/scene-object-component.hpp"
+import engine.math.quaternion;
+import engine.math.transform;
+import engine.utility.sized_types;
+
+using namespace engine;
 
 template <>
 void render_system::on_construct<scene_object_component>(entity::registry& registry, entity::id entity_id)
@@ -17,9 +22,9 @@ void render_system::on_construct<scene_object_component>(entity::registry& regis
 		component.object->set_transform(transform->world);
 	}
 
-	for (std::size_t i = 0; i < m_layers.size(); ++i)
+	for (usize i = 0; i < m_layers.size(); ++i)
 	{
-		if (component.layer_mask & static_cast<std::uint8_t>(1 << i))
+		if (component.layer_mask & static_cast<u8>(1 << i))
 		{
 			m_layers[i]->add_object(*component.object);
 		}
@@ -31,13 +36,13 @@ void render_system::on_update<scene_object_component>(entity::registry& registry
 {
 	const auto& component = registry.get<::scene_object_component>(entity_id);
 
-	for (std::size_t i = 0; i < m_layers.size(); ++i)
+	for (usize i = 0; i < m_layers.size(); ++i)
 	{
 		// Remove from layer
 		scene::collection* layer = m_layers[i];
 		layer->remove_object(*component.object);
 
-		if (component.layer_mask & static_cast<std::uint8_t>(1 << i))
+		if (component.layer_mask & static_cast<u8>(1 << i))
 		{
 			// Add to layer
 			layer->add_object(*component.object);
@@ -50,9 +55,9 @@ void render_system::on_destroy<scene_object_component>(entity::registry& registr
 {
 	const auto& component = registry.get<::scene_object_component>(entity_id);
 
-	for (std::size_t i = 0; i < m_layers.size(); ++i)
+	for (usize i = 0; i < m_layers.size(); ++i)
 	{
-		if (component.layer_mask & static_cast<std::uint8_t>(1 << i))
+		if (component.layer_mask & static_cast<u8>(1 << i))
 		{
 			m_layers[i]->remove_object(*component.object);
 		}

@@ -1,17 +1,21 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/script/script-io-module.hpp>
-#include <engine/script/script-context.hpp>
-#include <engine/debug/contract.hpp>
-#include <string_view>
-
 extern "C"
 {
 	#include <lua.h>
 	#include <lualib.h>
 	#include <lauxlib.h>
 }
+
+import engine.script.context;
+import engine.script.io_module;
+import engine.debug.contract;
+import engine.utility.sized_types;
+import <ostream>;
+import <string_view>;
+
+using namespace engine;
 
 namespace
 {
@@ -22,7 +26,7 @@ namespace
 		const int n = lua_gettop(lua);
 		for (int i = 1; i <= n; ++i)
 		{
-			std::size_t len = 0;
+			usize len = 0;
 			const char* str = luaL_tolstring(lua, i, &len);
 			cout << std::string_view(str, len);
 
@@ -59,23 +63,26 @@ namespace
 	}
 }
 
-auto load_io_module(script_context& ctx, std::ostream& cout) -> void
+namespace engine
 {
-	lua_State* lua = ctx.state();
+	auto load_io_module(script_context& ctx, std::ostream& cout) -> void
+	{
+		lua_State* lua = ctx.state();
 
-	lua_newtable(lua);
+		lua_newtable(lua);
 
-	lua_pushlightuserdata(lua, &cout);
-	lua_pushcclosure(lua, lua_io_print, 1);
-	lua_setfield(lua, -2, "print");
+		lua_pushlightuserdata(lua, &cout);
+		lua_pushcclosure(lua, lua_io_print, 1);
+		lua_setfield(lua, -2, "print");
 
-	lua_pushlightuserdata(lua, &cout);
-	lua_pushcclosure(lua, lua_io_println, 1);
-	lua_setfield(lua, -2, "println");
+		lua_pushlightuserdata(lua, &cout);
+		lua_pushcclosure(lua, lua_io_println, 1);
+		lua_setfield(lua, -2, "println");
 
-	lua_pushlightuserdata(lua, &cout);
-	lua_pushcclosure(lua, lua_io_flush, 1);
-	lua_setfield(lua, -2, "flush");
+		lua_pushlightuserdata(lua, &cout);
+		lua_pushcclosure(lua, lua_io_flush, 1);
+		lua_setfield(lua, -2, "flush");
 
-	lua_setglobal(lua, "io");
+		lua_setglobal(lua, "io");
+	}
 }

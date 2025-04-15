@@ -4,7 +4,9 @@
 #ifndef ANTKEEPER_GAME_TRANSFORM_COMPONENT_HPP
 #define ANTKEEPER_GAME_TRANSFORM_COMPONENT_HPP
 
-#include <engine/math/transform.hpp>
+import engine.math.transform;
+
+using namespace engine;
 
 struct transform_component
 {

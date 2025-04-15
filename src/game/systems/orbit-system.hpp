@@ -4,12 +4,14 @@
 #ifndef ANTKEEPER_GAME_ORBIT_SYSTEM_HPP
 #define ANTKEEPER_GAME_ORBIT_SYSTEM_HPP
 
-#include "game/systems/fixed-update-system.hpp"
-#include <engine/math/vector.hpp>
-#include <engine/entity/id.hpp>
 #include "game/components/orbit-component.hpp"
-#include <engine/physics/orbit/ephemeris.hpp>
-#include <unordered_set>
+#include "game/systems/fixed-update-system.hpp"
+import engine.physics.orbit.ephemeris;
+import engine.math.vector;
+import engine.entity.id;
+import <unordered_set>;
+
+using namespace engine;
 
 /// Updates the Cartesian position and velocity of orbiting bodies given their Keplerian orbital elements and the current time.
 class orbit_system:

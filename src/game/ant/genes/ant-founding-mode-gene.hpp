@@ -5,11 +5,11 @@
 #define ANTKEEPER_GAME_ANT_FOUNDING_MODE_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-#include <cstdint>
+import engine.utility.sized_types;
 
 /// Colony founding mode phene.
 /// @see https://www.antwiki.org/wiki/Colony_Foundation
-enum class ant_founding_mode_phene: std::uint8_t
+enum class ant_founding_mode_phene: u8
 {
 	/// Foraging outside the claustral chamber is required.
 	semi_claustral,

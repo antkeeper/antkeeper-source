@@ -5,8 +5,10 @@
 #define ANTKEEPER_GAME_BLACKBODY_SYSTEM_HPP
 
 #include "game/systems/fixed-update-system.hpp"
-#include <engine/entity/id.hpp>
-#include <vector>
+import engine.entity.id;
+import <vector>;
+
+using namespace engine;
 
 /// Calculates the color and luminance of blackbody radiators.
 class blackbody_system:

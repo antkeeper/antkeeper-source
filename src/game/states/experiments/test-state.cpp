@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/states/experiments/test-state.hpp"
-
 #include "game/ant/ant-cladogenesis.hpp"
 #include "game/ant/ant-genome.hpp"
 #include "game/ant/ant-morphogenesis.hpp"
@@ -51,37 +50,36 @@
 #include "game/utility/physics.hpp"
 #include "game/utility/terrain.hpp"
 #include "game/world.hpp"
-#include <engine/animation/ease.hpp>
-#include <engine/config.hpp>
-#include <engine/entity/archetype.hpp>
-#include <engine/input/mouse.hpp>
-#include <engine/math/functions.hpp>
-#include <engine/math/projection.hpp>
-#include <engine/physics/light/exposure.hpp>
-#include <engine/physics/kinematics/constraints/spring-constraint.hpp>
-#include <engine/physics/kinematics/colliders/sphere-collider.hpp>
-#include <engine/physics/kinematics/colliders/plane-collider.hpp>
-#include <engine/physics/kinematics/colliders/box-collider.hpp>
-#include <engine/physics/kinematics/colliders/capsule-collider.hpp>
-#include <engine/physics/kinematics/colliders/mesh-collider.hpp>
-#include <engine/render/passes/material-pass.hpp>
-#include <engine/resources/resource-manager.hpp>
-#include <engine/utility/state-machine.hpp>
-#include <engine/scene/static-mesh.hpp>
-#include <engine/scene/skeletal-mesh.hpp>
-#include <engine/scene/rectangle-light.hpp>
-#include <engine/scene/point-light.hpp>
-#include <engine/geom/intersection.hpp>
-#include <engine/animation/ease.hpp>
-#include <engine/color/color.hpp>
-#include <engine/geom/brep/brep-operations.hpp>
-#include <engine/geom/coordinates.hpp>
-#include <engine/ai/navmesh.hpp>
-#include <engine/animation/ik/constraints/euler-ik-constraint.hpp>
-#include <engine/hash/fnv.hpp>
-#include <engine/scene/light-probe.hpp>
+import engine.config;
+import engine.physics.light.exposure;
+import engine.physics.kinematics.spring_constraint;
+import engine.physics.kinematics.sphere_collider;
+import engine.physics.kinematics.plane_collider;
+import engine.physics.kinematics.box_collider;
+import engine.physics.kinematics.capsule_collider;
+import engine.physics.kinematics.mesh_collider;
+import engine.render.passes.material_pass;
+import engine.geom.intersection;
+import engine.geom.coordinates;
+import engine.resources.resource_manager;
+import engine.hash.fnv;
+import engine.debug.log;
+import engine.ai.navmesh;
+import engine.input.mouse;
+import engine.utility.state_machine;
+import engine.utility.sized_types;
+import engine.scene.static_mesh;
+import engine.scene.skeletal_mesh;
+import engine.scene.rectangle_light;
+import engine.scene.point_light;
+import engine.scene.light_probe;
+import engine.math.functions;
+import engine.math.projection;
+import engine.animation.euler_ik_constraint;
+import engine.geom.brep.operations;
 
-using namespace hash::literals;
+using namespace engine;
+using namespace engine::hash::literals;
 
 test_state::test_state(::game& ctx):
 	game_state(ctx)
@@ -120,7 +118,7 @@ test_state::test_state(::game& ctx):
 		nest_exterior_scene_object_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere-nest-200mm-exterior.mdl"));
 		nest_exterior_scene_object_component.layer_mask = 1;
 		
-		auto nest_exterior_mesh = ctx.resource_manager->load<geom::brep_mesh>("sphere-nest-200mm-exterior.msh");
+		auto nest_exterior_mesh = ctx.resource_manager->load<geom::brep::mesh>("sphere-nest-200mm-exterior.msh");
 		
 		auto nest_exterior_rigid_body = std::make_unique<physics::rigid_body>();
 		nest_exterior_rigid_body->set_mass(0.0f);
@@ -141,7 +139,7 @@ test_state::test_state(::game& ctx):
 		nest_interior_scene_object_component.object->set_layer_mask(0b10);
 		nest_interior_scene_object_component.layer_mask = 1;
 
-		auto nest_interior_mesh = ctx.resource_manager->load<geom::brep_mesh>("soil-nest.msh");
+		auto nest_interior_mesh = ctx.resource_manager->load<geom::brep::mesh>("soil-nest.msh");
 
 		auto nest_interior_rigid_body = std::make_unique<physics::rigid_body>();
 		nest_interior_rigid_body->set_mass(0.0f);
@@ -173,8 +171,8 @@ test_state::test_state(::game& ctx):
 	
 	// Create worker IK rig
 	const auto& worker_skeleton = worker_model->skeleton();
-	worker_ik_rig = std::make_shared<ik_rig>(*worker_skeletal_mesh);
-	auto mesocoxa_ik_constraint = std::make_shared<euler_ik_constraint>();
+	worker_ik_rig = std::make_shared<animation::ik_rig>(*worker_skeletal_mesh);
+	auto mesocoxa_ik_constraint = std::make_shared<animation::euler_ik_constraint>();
 	mesocoxa_ik_constraint->set_min_angles({-math::pi<float>, -math::pi<float>, -math::pi<float>});
 	mesocoxa_ik_constraint->set_max_angles({ math::pi<float>,  math::pi<float>,  math::pi<float>});
 	worker_ik_rig->set_constraint(worker_skeleton->bones().at("mesocoxa_l").index(), std::move(mesocoxa_ik_constraint));
@@ -218,10 +216,10 @@ test_state::test_state(::game& ctx):
 		worker_skeleton->bones().at("metatarsomere1_r").index(),
 	};
 	worker_locomotion_component.leg_bone_count = 4;
-	worker_locomotion_component.gait = std::make_shared<::gait>();
+	worker_locomotion_component.gait = std::make_shared<animation::gait>();
 	worker_locomotion_component.gait->frequency = 4.0f;
 	worker_locomotion_component.gait->steps.resize(6);
-	for (std::size_t i = 0; i < 6; ++i)
+	for (usize i = 0; i < 6; ++i)
 	{
 		const float duty_factors[3] = {0.52f, 0.62f, 0.54f};
 		auto& step = worker_locomotion_component.gait->steps[i];
@@ -241,7 +239,7 @@ test_state::test_state(::game& ctx):
 	worker_ovary_component.ovipositor_bone = worker_skeleton->bones().at("gaster").index();
 	worker_ovary_component.oviposition_path = {{0.0f, -0.141708f, -0.799793f}, {0.0f, -0.187388f, -1.02008f}};
 	
-	ctx.entity_registry->emplace<scene_object_component>(worker_eid, std::move(worker_skeletal_mesh), std::uint8_t{1});
+	ctx.entity_registry->emplace<scene_object_component>(worker_eid, std::move(worker_skeletal_mesh), u8{1});
 	ctx.entity_registry->emplace<navmesh_agent_component>(worker_eid, std::move(worker_navmesh_agent_component));
 	ctx.entity_registry->emplace<pose_component>(worker_eid, std::move(worker_pose_component));
 	ctx.entity_registry->emplace<legged_locomotion_component>(worker_eid, std::move(worker_locomotion_component));
@@ -261,12 +259,12 @@ test_state::test_state(::game& ctx):
 	
 	auto sky_light_probe = std::make_shared<scene::light_probe>(gl::format::r16g16b16_sfloat, 128);
 	auto sky_light_probe_entity_id = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<scene_object_component>(sky_light_probe_entity_id, sky_light_probe, std::uint8_t{1});
+	ctx.entity_registry->emplace<scene_object_component>(sky_light_probe_entity_id, sky_light_probe, u8{1});
 	
 	ctx.sky_pass->set_sky_probe(sky_light_probe);
 	
 	// Set camera exposure
-	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
+	const float ev100_sunny16 = physics::light::settings_to_ev(16.0f, 1.0f / 100.0f, 100.0f);
 	ctx.exterior_camera->set_exposure_value(ev100_sunny16);
 	
 	// Create third person camera rig
@@ -344,7 +342,7 @@ void test_state::create_third_person_camera_rig()
 	spring_arm.max_angles.x() = 0.0;
 	
 	third_person_camera_rig_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace_or_replace<scene_object_component>(third_person_camera_rig_eid, ctx.exterior_camera, std::uint8_t{1});
+	ctx.entity_registry->emplace_or_replace<scene_object_component>(third_person_camera_rig_eid, ctx.exterior_camera, u8{1});
 	ctx.entity_registry->emplace<spring_arm_component>(third_person_camera_rig_eid, std::move(spring_arm));
 	ctx.active_camera_eid = third_person_camera_rig_eid;
 }
@@ -408,7 +406,7 @@ void test_state::setup_controls()
 	(
 		ctx.camera_mouse_pick_action.get_activated_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				mouse_grip = ctx.toggle_mouse_grip ? !mouse_grip : true;
 				
@@ -440,8 +438,8 @@ void test_state::setup_controls()
 					const auto hit_distance = trace->distance;
 					const auto& hit_normal = trace->normal;
 					
-					geom::brep_mesh* hit_mesh = nullptr;
-					geom::brep_face* hit_face = nullptr;
+					geom::brep::mesh* hit_mesh = nullptr;
+					geom::brep::face* hit_face = nullptr;
 					if (hit_collider.type() == physics::collider_type::mesh)
 					{
 						hit_mesh = static_cast<const physics::mesh_collider&>(hit_collider).get_mesh().get();
