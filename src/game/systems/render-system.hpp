@@ -4,12 +4,15 @@
 #ifndef ANTKEEPER_GAME_RENDER_SYSTEM_HPP
 #define ANTKEEPER_GAME_RENDER_SYSTEM_HPP
 
+#include <entt/entt.hpp>
 #include "game/systems/fixed-update-system.hpp"
 #include "game/systems/variable-update-system.hpp"
-#include <engine/scene/collection.hpp>
-#include <engine/entity/id.hpp>
-#include <engine/render/renderer.hpp>
-#include <vector>
+import engine.render.renderer;
+import engine.entity.id;
+import engine.scene.collection;
+import <vector>;
+
+using namespace engine;
 
 class render_system:
 	public fixed_update_system,

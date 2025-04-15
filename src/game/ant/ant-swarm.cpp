@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <random>
 #include "game/ant/ant-swarm.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/steering-component.hpp"
@@ -10,12 +11,13 @@
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/ant-caste-component.hpp"
 #include "game/systems/steering-system.hpp"
-#include <engine/resources/resource-manager.hpp>
-#include <engine/math/quaternion.hpp>
-#include <engine/math/functions.hpp>
-#include <engine/scene/static-mesh.hpp>
-#include <cmath>
-#include <random>
+import engine.scene.static_mesh;
+import engine.resources.resource_manager;
+import engine.math.quaternion;
+import engine.math.functions;
+import engine.utility.sized_types;
+
+using namespace engine;
 
 /// Generates a random point in a unit sphere.
 /// @see https://math.stackexchange.com/questions/87230/picking-random-points-in-the-volume-of-sphere-with-uniform-probability/87238#87238
@@ -25,10 +27,10 @@ static math::vec3<T> sphere_random(URBG& urbg)
 	std::uniform_real_distribution<T> distribution(T{-1}, T{1});
 	
 	math::vec3<T> position;
-	for (std::size_t i = 0; i < 3; ++i)
+	for (usize i = 0; i < 3; ++i)
 		position[i] = distribution(urbg);
 	
-	return math::normalize(position) * std::cbrt(distribution(urbg));
+	return math::normalize(position) * math::cbrt(distribution(urbg));
 }
 
 entity::id create_ant_swarm(::game& ctx)
@@ -36,9 +38,9 @@ entity::id create_ant_swarm(::game& ctx)
 	// Determine swarm properties
 	const math::fvec3 swarm_center = {0, 100, 0};
 	const float swarm_radius = 25.0f;
-	const std::size_t male_count = 50;
-	const std::size_t queen_count = 50;
-	const std::size_t alate_count = male_count + queen_count;
+	const usize male_count = 50;
+	const usize queen_count = 50;
+	const usize alate_count = male_count + queen_count;
 	
 	const math::fvec3 male_scale = {0.5, 0.5, 0.5};
 	const math::fvec3 queen_scale = {1, 1, 1};
@@ -51,8 +53,8 @@ entity::id create_ant_swarm(::game& ctx)
 	// Init picking component
 	::picking_component picking;
 	picking.sphere = {math::fvec3{0, 0, 0}, 0.5f * 2.0f};
-	std::uint32_t male_picking_flags = 0b01;
-	std::uint32_t queen_picking_flags = 0b10;
+	u32 male_picking_flags = 0b01;
+	u32 queen_picking_flags = 0b10;
 	
 	// Create swarm entity
 	entity::id swarm_eid = ctx.entity_registry->create();
@@ -104,7 +106,7 @@ entity::id create_ant_swarm(::game& ctx)
 	male_caste.type = ant_caste_type::male;
 	
 	// Create alates
-	for (std::size_t i = 0; i < alate_count; ++i)
+	for (usize i = 0; i < alate_count; ++i)
 	{
 		// Generate random position in swarm sphere
 		steering.agent.position = swarm_center + sphere_random<float>(ctx.rng) * swarm_radius;
@@ -119,7 +121,7 @@ entity::id create_ant_swarm(::game& ctx)
 		{
 			// Create male
 			ctx.entity_registry->emplace<ant_caste_component>(alate_eid, male_caste);
-			ctx.entity_registry->emplace<::scene_object_component>(alate_eid, std::make_unique<scene::static_mesh>(male_model), std::uint8_t{1});
+			ctx.entity_registry->emplace<::scene_object_component>(alate_eid, std::make_unique<scene::static_mesh>(male_model), u8{1});
 
 			
 			transform.local.scale = male_scale;
@@ -133,7 +135,7 @@ entity::id create_ant_swarm(::game& ctx)
 		{
 			// Create queen
 			ctx.entity_registry->emplace<ant_caste_component>(alate_eid, queen_caste);
-			ctx.entity_registry->emplace<::scene_object_component>(alate_eid, std::make_unique<scene::static_mesh>(queen_model), std::uint8_t{1});
+			ctx.entity_registry->emplace<::scene_object_component>(alate_eid, std::make_unique<scene::static_mesh>(queen_model), u8{1});
 			
 			transform.local.scale = queen_scale;
 			transform.world = transform.local;

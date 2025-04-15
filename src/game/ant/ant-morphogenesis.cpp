@@ -4,221 +4,227 @@
 #include "game/ant/ant-morphogenesis.hpp"
 #include "game/ant/ant-bone-set.hpp"
 #include "game/ant/ant-skeleton.hpp"
-#include <engine/render/material.hpp>
-#include <engine/render/vertex-attribute-location.hpp>
-#include <engine/math/quaternion.hpp>
-#include <engine/debug/log.hpp>
-#include <engine/geom/primitives/box.hpp>
-#include <engine/animation/bone.hpp>
-#include <unordered_set>
-#include <optional>
+import engine.render.material;
+import engine.render.vertex_attribute_location;
+import engine.geom.primitives.box;
+import engine.animation.bone;
+import engine.debug.log;
+import engine.math.functions;
+import engine.math.quaternion;
+import engine.math.transform;
+import engine.gl.vertex_input_attribute;
+import engine.gl.vertex_buffer;
+import engine.utility.sized_types;
+import <optional>;
+import <unordered_set>;
 
-using namespace hash::literals;
+using namespace engine;
+using namespace engine::math;
+using namespace engine::hash::literals;
 
-namespace {
-
-/// Reskins model vertices.
-/// @param vertex_data Vertex buffer data.
-/// @param vertex_count Number of vertices to reskin.
-/// @param position_attribute Vertex position attribute.
-/// @param normal_attribute Vertex normal attribute.
-/// @param tangent_attribute Vertex tangent attribute.
-/// @param bone_index_attribute Vertex bone index attribute.
-/// @param reskin_map Map of old bone index to a tuple containing the new bone index and a vertex transformation.
-void reskin_vertices
-(
-	std::byte* vertex_data,
-	std::size_t vertex_count,
-	const gl::vertex_input_attribute& position_attribute,
-	const gl::vertex_input_attribute& normal_attribute,
-	const gl::vertex_input_attribute& tangent_attribute,
-	const gl::vertex_input_attribute& bone_index_attribute,
-	std::size_t vertex_stride,
-	const std::unordered_map<std::size_t, std::tuple<std::size_t, const math::transform<float>*>>& reskin_map
-)
+namespace
 {
-	std::byte* position_data = vertex_data + position_attribute.offset;
-	std::byte* normal_data = vertex_data + normal_attribute.offset;
-	std::byte* tangent_data = vertex_data + tangent_attribute.offset;
-	std::byte* bone_index_data = vertex_data + bone_index_attribute.offset;
-	
-	for (std::size_t i = 0; i < vertex_count; ++i)
+	/// Reskins model vertices.
+	/// @param vertex_data Vertex buffer data.
+	/// @param vertex_count Number of vertices to reskin.
+	/// @param position_attribute Vertex position attribute.
+	/// @param normal_attribute Vertex normal attribute.
+	/// @param tangent_attribute Vertex tangent attribute.
+	/// @param bone_index_attribute Vertex bone index attribute.
+	/// @param reskin_map Map of old bone index to a tuple containing the new bone index and a vertex transformation.
+	void reskin_vertices
+	(
+		std::byte* vertex_data,
+		usize vertex_count,
+		const gl::vertex_input_attribute& position_attribute,
+		const gl::vertex_input_attribute& normal_attribute,
+		const gl::vertex_input_attribute& tangent_attribute,
+		const gl::vertex_input_attribute& bone_index_attribute,
+		usize vertex_stride,
+		const std::unordered_map<usize, std::tuple<usize, const transform<float>*>>& reskin_map
+	)
 	{
-		// Get bone index of current vertex
-		std::uint16_t& bone_index = reinterpret_cast<std::uint16_t&>(*(bone_index_data + vertex_stride * i));
-		
-		// Ignore vertices with unmapped bone indices
-		auto entry = reskin_map.find(static_cast<std::size_t>(bone_index));
-		if (entry == reskin_map.end())
+		std::byte* position_data = vertex_data + position_attribute.offset;
+		std::byte* normal_data = vertex_data + normal_attribute.offset;
+		std::byte* tangent_data = vertex_data + tangent_attribute.offset;
+		std::byte* bone_index_data = vertex_data + bone_index_attribute.offset;
+
+		for (usize i = 0; i < vertex_count; ++i)
 		{
-			continue;
+			// Get bone index of current vertex
+			u16& bone_index = reinterpret_cast<u16&>(*(bone_index_data + vertex_stride * i));
+
+			// Ignore vertices with unmapped bone indices
+			auto entry = reskin_map.find(static_cast<usize>(bone_index));
+			if (entry == reskin_map.end())
+			{
+				continue;
+			}
+
+			const auto& [new_bone_index, transform] = entry->second;
+
+			// Update bone index
+			bone_index = static_cast<u16>(new_bone_index);
+
+			// Get vertex attributes
+			float* px = reinterpret_cast<float*>(position_data + vertex_stride * i);
+			float* py = px + 1;
+			float* pz = py + 1;
+			float* nx = reinterpret_cast<float*>(normal_data + vertex_stride * i);
+			float* ny = nx + 1;
+			float* nz = ny + 1;
+			float* tx = reinterpret_cast<float*>(tangent_data + vertex_stride * i);
+			float* ty = tx + 1;
+			float* tz = ty + 1;
+
+			// Transform vertex attributes
+			const fvec3 position = (*transform) * fvec3{*px, *py, *pz};
+			const fvec3 normal = normalize(transform->rotation * fvec3{*nx, *ny, *nz});
+			const fvec3 tangent = normalize(transform->rotation * fvec3{*tx, *ty, *tz});
+
+			// Update vertex attributes
+			*px = position.x();
+			*py = position.y();
+			*pz = position.z();
+			*nx = normal.x();
+			*ny = normal.y();
+			*nz = normal.z();
+			*tx = tangent.x();
+			*ty = tangent.y();
+			*tz = tangent.z();
 		}
-		
-		const auto& [new_bone_index, transform] = entry->second;
-		
-		// Update bone index
-		bone_index = static_cast<std::uint16_t>(new_bone_index);
-		
-		// Get vertex attributes
-		float* px = reinterpret_cast<float*>(position_data + vertex_stride * i);
-		float* py = px + 1;
-		float* pz = py + 1;
-		float* nx = reinterpret_cast<float*>(normal_data + vertex_stride * i);
-		float* ny = nx + 1;
-		float* nz = ny + 1;
-		float* tx = reinterpret_cast<float*>(tangent_data + vertex_stride * i);
-		float* ty = tx + 1;
-		float* tz = ty + 1;
-		
-		// Transform vertex attributes
-		const math::fvec3 position = (*transform) * math::fvec3{*px, *py, *pz};
-		const math::fvec3 normal = math::normalize(transform->rotation * math::fvec3{*nx, *ny, *nz});
-		const math::fvec3 tangent = math::normalize(transform->rotation * math::fvec3{*tx, *ty, *tz});
-		
-		// Update vertex attributes
-		*px = position.x();
-		*py = position.y();
-		*pz = position.z();
-		*nx = normal.x();
-		*ny = normal.y();
-		*nz = normal.z();
-		*tx = tangent.x();
-		*ty = tangent.y();
-		*tz = tangent.z();
 	}
-}
 
-/// Tags the vertices of a body part by storing a value in the fourth bone index.
-/// @param vertex_data Vertex buffer data.
-/// @param bone_index_attribute Vertex bone index attribute.
-/// @param reskin_map Map of old bone index to a tuple containing the new bone index and a vertex transformation.
-void tag_vertices
-(
-	std::span<std::byte> vertex_data,
-	const gl::vertex_input_attribute& bone_index_attribute,
-	std::size_t vertex_stride,
-	std::uint16_t vertex_tag
-)
-{
-	std::byte* bone_index_data = vertex_data.data() + bone_index_attribute.offset;
-	
-	for (std::size_t i = 0; i < vertex_data.size(); ++i)
+	/// Tags the vertices of a body part by storing a value in the fourth bone index.
+	/// @param vertex_data Vertex buffer data.
+	/// @param bone_index_attribute Vertex bone index attribute.
+	/// @param reskin_map Map of old bone index to a tuple containing the new bone index and a vertex transformation.
+	void tag_vertices
+	(
+		std::span<std::byte> vertex_data,
+		const gl::vertex_input_attribute& bone_index_attribute,
+		usize vertex_stride,
+		u16 vertex_tag
+	)
 	{
-		// Get bone indices of current vertex
-		std::uint16_t* bone_indices = reinterpret_cast<std::uint16_t*>(bone_index_data + vertex_stride * i);
-		
-		// Tag fourth bone index
-		bone_indices[3] = vertex_tag;
-	}
-}
+		std::byte* bone_index_data = vertex_data.data() + bone_index_attribute.offset;
 
-/// Calculates the total area of UV coordinates.
-/// @param vertex_data Vertex buffer data.
-/// @param uv_attribute Vertex UV attribute.
-/// @return Total UV area.
-float calculate_uv_area
-(
-	std::span<std::byte> vertex_data,
-	const gl::vertex_input_attribute& uv_attribute,
-	std::size_t vertex_stride
-)
-{
-	std::byte* uv_data = vertex_data.data() + uv_attribute.offset;
-	
-	float sum_area = 0.0f;
-	
-	for (std::size_t i = 0; i + 2 < vertex_data.size(); i += 3)
+		for (usize i = 0; i < vertex_data.size(); ++i)
+		{
+			// Get bone indices of current vertex
+			u16* bone_indices = reinterpret_cast<u16*>(bone_index_data + vertex_stride * i);
+
+			// Tag fourth bone index
+			bone_indices[3] = vertex_tag;
+		}
+	}
+
+	/// Calculates the total area of UV coordinates.
+	/// @param vertex_data Vertex buffer data.
+	/// @param uv_attribute Vertex UV attribute.
+	/// @return Total UV area.
+	float calculate_uv_area
+	(
+		std::span<std::byte> vertex_data,
+		const gl::vertex_input_attribute& uv_attribute,
+		usize vertex_stride
+	)
 	{
-		const float* uv_data_a = reinterpret_cast<const float*>(uv_data + vertex_stride * i);
-		const float* uv_data_b = reinterpret_cast<const float*>(uv_data + vertex_stride * (i + 1));
-		const float* uv_data_c = reinterpret_cast<const float*>(uv_data + vertex_stride * (i + 2));
-		
-		const math::fvec3 uva = {uv_data_a[0], uv_data_a[1], 0.0f};
-		const math::fvec3 uvb = {uv_data_b[0], uv_data_b[1], 0.0f};
-		const math::fvec3 uvc = {uv_data_c[0], uv_data_c[1], 0.0f};
-		
-		const math::fvec3 uvab = uvb - uva;
-		const math::fvec3 uvac = uvc - uva;
-		
-		sum_area += math::length(math::cross(uvab, uvac)) * 0.5f;
-	}
-	
-	return sum_area;
-}
+		std::byte* uv_data = vertex_data.data() + uv_attribute.offset;
 
-/// Calculates the bounds of vertex data.
-/// @param vertex_data Pointer to vertex data.
-/// @param vertex_count Number of vertices.
-/// @param position_attribute Vertex position attribute.
-/// @return Bounds of the vertex data.
-[[nodiscard]] geom::box<float> calculate_bounds
-(
-	const std::byte* vertex_data,
-	std::size_t vertex_count,
-	const gl::vertex_input_attribute& position_attribute,
-	std::size_t vertex_stride
-)
-{
-	const std::byte* position_data = vertex_data + position_attribute.offset;
-	
-	geom::box<float> bounds = {math::inf<math::fvec3>, -math::inf<math::fvec3>};
-	for (std::size_t i = 0; i < vertex_count; ++i)
+		float sum_area = 0.0f;
+
+		for (usize i = 0; i + 2 < vertex_data.size(); i += 3)
+		{
+			const float* uv_data_a = reinterpret_cast<const float*>(uv_data + vertex_stride * i);
+			const float* uv_data_b = reinterpret_cast<const float*>(uv_data + vertex_stride * (i + 1));
+			const float* uv_data_c = reinterpret_cast<const float*>(uv_data + vertex_stride * (i + 2));
+
+			const fvec3 uva = {uv_data_a[0], uv_data_a[1], 0.0f};
+			const fvec3 uvb = {uv_data_b[0], uv_data_b[1], 0.0f};
+			const fvec3 uvc = {uv_data_c[0], uv_data_c[1], 0.0f};
+
+			const fvec3 uvab = uvb - uva;
+			const fvec3 uvac = uvc - uva;
+
+			sum_area += length(cross(uvab, uvac)) * 0.5f;
+		}
+
+		return sum_area;
+	}
+
+	/// Calculates the bounds of vertex data.
+	/// @param vertex_data Pointer to vertex data.
+	/// @param vertex_count Number of vertices.
+	/// @param position_attribute Vertex position attribute.
+	/// @return Bounds of the vertex data.
+	[[nodiscard]] geom::box<float> calculate_bounds
+	(
+		const std::byte* vertex_data,
+		usize vertex_count,
+		const gl::vertex_input_attribute& position_attribute,
+		usize vertex_stride
+	)
 	{
-		const float* px = reinterpret_cast<const float*>(position_data + vertex_stride * i);
-		const float* py = px + 1;
-		const float* pz = py + 1;
-		
-		bounds.extend(math::fvec3{*px, *py, *pz});
+		const std::byte* position_data = vertex_data + position_attribute.offset;
+
+		geom::box<float> bounds = {inf<fvec3>, -inf<fvec3>};
+		for (usize i = 0; i < vertex_count; ++i)
+		{
+			const float* px = reinterpret_cast<const float*>(position_data + vertex_stride * i);
+			const float* py = px + 1;
+			const float* pz = py + 1;
+
+			bounds.extend(fvec3{*px, *py, *pz});
+		}
+
+		return bounds;
 	}
-	
-	return bounds;
-}
 
-/// Calculates a scale factor which will give ant eyes the desired number of ommatidia.
-/// @param eye_uv_area Total UV area of a single eye.
-/// @param ommatidia_count Desired number of ommatidia.
-/// @return Ommatidia scale factor.
-[[nodiscard]] float calculate_ommatidia_scale(float eye_uv_area, float ommatidia_count)
-{
-	// Side length of hexagon tiles generated by the eye shader
-	constexpr float source_side_length = 1.0f / math::sqrt_3<float>;
-	
-	// Side length of hexagon tiles that will fill UV area
-	const float target_side_length = std::sqrt((eye_uv_area * 2.0f) / (3.0f * math::sqrt_3<float> * ommatidia_count));
-	
-	return source_side_length / target_side_length;
-}
-
-/// Generates an ant exoskeleton material.
-/// @param phenome Ant phenome.
-/// @param eye_uv_area Total UV area of a single eye.
-/// @return Generated ant exoskeleton material.
-[[nodiscard]] std::unique_ptr<render::material> generate_ant_exoskeleton_material
-(
-	const ant_phenome& phenome,
-	float eye_uv_area
-)
-{
-	// Allocate copy of pigmentation material
-	std::unique_ptr<render::material> exoskeleton_material = std::make_unique<render::material>(*phenome.pigmentation->material);
-	
-	// Set roughness variable
-	exoskeleton_material->set_variable("exoskeleton_roughness"_fnv1a32, std::make_shared<render::matvar_float>(1, phenome.sculpturing->roughness));
-	
-	// Set normal map variable
-	exoskeleton_material->set_variable("exoskeleton_normal_map"_fnv1a32, std::make_shared<render::matvar_texture_2d>(1, phenome.sculpturing->normal_map));
-	
-	if (phenome.eyes->present)
+	/// Calculates a scale factor which will give ant eyes the desired number of ommatidia.
+	/// @param eye_uv_area Total UV area of a single eye.
+	/// @param ommatidia_count Desired number of ommatidia.
+	/// @return Ommatidia scale factor.
+	[[nodiscard]] float calculate_ommatidia_scale(float eye_uv_area, float ommatidia_count)
 	{
-		// Set ommatidia scale variable
-		const float ommatidia_scale = calculate_ommatidia_scale(eye_uv_area, static_cast<float>(phenome.eyes->ommatidia_count));
-		exoskeleton_material->set_variable("ommatidia_scale"_fnv1a32, std::make_shared<render::matvar_float>(1, ommatidia_scale));
-	}
-	
-	return exoskeleton_material;
-}
+		// Side length of hexagon tiles generated by the eye shader
+		constexpr float source_side_length = 1.0f / sqrt_3<float>;
 
-} // namespace
+		// Side length of hexagon tiles that will fill UV area
+		const float target_side_length = sqrt((eye_uv_area * 2.0f) / (3.0f * sqrt_3<float> *ommatidia_count));
+
+		return source_side_length / target_side_length;
+	}
+
+	/// Generates an ant exoskeleton material.
+	/// @param phenome Ant phenome.
+	/// @param eye_uv_area Total UV area of a single eye.
+	/// @return Generated ant exoskeleton material.
+	[[nodiscard]] std::unique_ptr<render::material> generate_ant_exoskeleton_material
+	(
+		const ant_phenome& phenome,
+		float eye_uv_area
+	)
+	{
+		// Allocate copy of pigmentation material
+		std::unique_ptr<render::material> exoskeleton_material = std::make_unique<render::material>(*phenome.pigmentation->material);
+
+		// Set roughness variable
+		exoskeleton_material->set_variable("exoskeleton_roughness"_fnv1a32, std::make_shared<render::matvar_float>(1, phenome.sculpturing->roughness));
+
+		// Set normal map variable
+		exoskeleton_material->set_variable("exoskeleton_normal_map"_fnv1a32, std::make_shared<render::matvar_texture_2d>(1, phenome.sculpturing->normal_map));
+
+		if (phenome.eyes->present)
+		{
+			// Set ommatidia scale variable
+			const float ommatidia_scale = calculate_ommatidia_scale(eye_uv_area, static_cast<float>(phenome.eyes->ommatidia_count));
+			exoskeleton_material->set_variable("ommatidia_scale"_fnv1a32, std::make_shared<render::matvar_float>(1, ommatidia_scale));
+		}
+
+		return exoskeleton_material;
+	}
+}
 
 std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 {
@@ -295,37 +301,37 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	const gl::vertex_buffer* wings_vbo = (phenome.wings->present) ? wings_model->get_vertex_buffer().get() : nullptr;
 	
 	// Determine combined size of vertex buffers and save offsets
-	std::size_t vertex_buffer_size = 0;
-	const std::size_t mesosoma_vbo_offset = vertex_buffer_size;
+	usize vertex_buffer_size = 0;
+	const usize mesosoma_vbo_offset = vertex_buffer_size;
 	vertex_buffer_size += mesosoma_vbo->size();
-	const std::size_t legs_vbo_offset = vertex_buffer_size;
+	const usize legs_vbo_offset = vertex_buffer_size;
 	vertex_buffer_size += legs_vbo->size();
-	const std::size_t head_vbo_offset = vertex_buffer_size;
+	const usize head_vbo_offset = vertex_buffer_size;
 	vertex_buffer_size += head_vbo->size();
-	const std::size_t mandibles_vbo_offset = vertex_buffer_size;
+	const usize mandibles_vbo_offset = vertex_buffer_size;
 	vertex_buffer_size += mandibles_vbo->size();
-	const std::size_t antennae_vbo_offset = vertex_buffer_size;
+	const usize antennae_vbo_offset = vertex_buffer_size;
 	vertex_buffer_size += antennae_vbo->size();
-	const std::size_t waist_vbo_offset = vertex_buffer_size;
+	const usize waist_vbo_offset = vertex_buffer_size;
 	vertex_buffer_size += waist_vbo->size();
-	const std::size_t gaster_vbo_offset = vertex_buffer_size;
+	const usize gaster_vbo_offset = vertex_buffer_size;
 	vertex_buffer_size += gaster_vbo->size();
-	const std::size_t sting_vbo_offset = vertex_buffer_size;
+	const usize sting_vbo_offset = vertex_buffer_size;
 	if (phenome.sting->present)
 	{
 		vertex_buffer_size += sting_vbo->size();
 	}
-	const std::size_t eyes_vbo_offset = vertex_buffer_size;
+	const usize eyes_vbo_offset = vertex_buffer_size;
 	if (phenome.eyes->present)
 	{
 		vertex_buffer_size += eyes_vbo->size();
 	}
-	const std::size_t ocelli_vbo_offset = vertex_buffer_size;
+	const usize ocelli_vbo_offset = vertex_buffer_size;
 	if (phenome.ocelli->lateral_ocelli_present || phenome.ocelli->median_ocellus_present)
 	{
 		vertex_buffer_size += ocelli_vbo->size();
 	}
-	std::size_t wings_vbo_offset = vertex_buffer_size;
+	usize wings_vbo_offset = vertex_buffer_size;
 	if (phenome.wings->present)
 	{
 		vertex_buffer_size += wings_vbo->size();
@@ -403,55 +409,55 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	// Generate ant skeleton
 	ant_bone_set bones;
 	model->skeleton() = generate_ant_skeleton(bones, phenome);
-	::skeleton& skeleton = *model->skeleton();
+	auto& skeleton = *model->skeleton();
 	const auto& rest_pose = skeleton.rest_pose();
 	
 	// Get number of vertices for each body part
-	const std::uint32_t mesosoma_vertex_count = (mesosoma_model->get_groups()).front().vertex_count;
-	const std::uint32_t legs_vertex_count = (legs_model->get_groups()).front().vertex_count;
-	const std::uint32_t head_vertex_count = (head_model->get_groups()).front().vertex_count;
-	const std::uint32_t mandibles_vertex_count = (mandibles_model->get_groups()).front().vertex_count;
-	const std::uint32_t antennae_vertex_count = (antennae_model->get_groups()).front().vertex_count;
-	const std::uint32_t waist_vertex_count = (waist_model->get_groups()).front().vertex_count;
-	const std::uint32_t gaster_vertex_count = (gaster_model->get_groups()).front().vertex_count;
-	const std::uint32_t sting_vertex_count = (phenome.sting->present) ? (sting_model->get_groups()).front().vertex_count : 0;
-	const std::uint32_t eyes_vertex_count = (phenome.eyes->present) ? (eyes_model->get_groups()).front().vertex_count : 0;
-	const std::uint32_t ocelli_vertex_count = (phenome.ocelli->lateral_ocelli_present || phenome.ocelli->median_ocellus_present) ? (ocelli_model->get_groups()).front().vertex_count : 0;
-	const std::uint32_t wings_vertex_count = (phenome.wings->present) ? wings_model->get_groups().front().vertex_count : 0;
+	const u32 mesosoma_vertex_count = (mesosoma_model->get_groups()).front().vertex_count;
+	const u32 legs_vertex_count = (legs_model->get_groups()).front().vertex_count;
+	const u32 head_vertex_count = (head_model->get_groups()).front().vertex_count;
+	const u32 mandibles_vertex_count = (mandibles_model->get_groups()).front().vertex_count;
+	const u32 antennae_vertex_count = (antennae_model->get_groups()).front().vertex_count;
+	const u32 waist_vertex_count = (waist_model->get_groups()).front().vertex_count;
+	const u32 gaster_vertex_count = (gaster_model->get_groups()).front().vertex_count;
+	const u32 sting_vertex_count = (phenome.sting->present) ? (sting_model->get_groups()).front().vertex_count : 0;
+	const u32 eyes_vertex_count = (phenome.eyes->present) ? (eyes_model->get_groups()).front().vertex_count : 0;
+	const u32 ocelli_vertex_count = (phenome.ocelli->lateral_ocelli_present || phenome.ocelli->median_ocellus_present) ? (ocelli_model->get_groups()).front().vertex_count : 0;
+	const u32 wings_vertex_count = (phenome.wings->present) ? wings_model->get_groups().front().vertex_count : 0;
 	
 	// Get body part skeletons
-	const ::skeleton& mesosoma_skeleton = *phenome.mesosoma->model->skeleton();
-	const ::skeleton& legs_skeleton = *phenome.legs->model->skeleton();
-	const ::skeleton& head_skeleton = *phenome.head->model->skeleton();
-	const ::skeleton& mandibles_skeleton = *phenome.mandibles->model->skeleton();
-	const ::skeleton& antennae_skeleton = *phenome.antennae->model->skeleton();
-	const ::skeleton& waist_skeleton = *phenome.waist->model->skeleton();
-	const ::skeleton& gaster_skeleton = *phenome.gaster->model->skeleton();
-	const ::skeleton* sting_skeleton = (phenome.sting->present) ? phenome.sting->model->skeleton().get() : nullptr;
-	const ::skeleton* eyes_skeleton = (phenome.eyes->present) ? phenome.eyes->model->skeleton().get() : nullptr;
-	const ::skeleton* ocelli_skeleton = (phenome.ocelli->lateral_ocelli_present || phenome.ocelli->median_ocellus_present) ? phenome.ocelli->model->skeleton().get() : nullptr;
-	const ::skeleton* wings_skeleton = (phenome.wings->present) ? phenome.wings->model->skeleton().get() : nullptr;
+	const auto& mesosoma_skeleton = *phenome.mesosoma->model->skeleton();
+	const auto& legs_skeleton = *phenome.legs->model->skeleton();
+	const auto& head_skeleton = *phenome.head->model->skeleton();
+	const auto& mandibles_skeleton = *phenome.mandibles->model->skeleton();
+	const auto& antennae_skeleton = *phenome.antennae->model->skeleton();
+	const auto& waist_skeleton = *phenome.waist->model->skeleton();
+	const auto& gaster_skeleton = *phenome.gaster->model->skeleton();
+	const auto* sting_skeleton = (phenome.sting->present) ? phenome.sting->model->skeleton().get() : nullptr;
+	const auto* eyes_skeleton = (phenome.eyes->present) ? phenome.eyes->model->skeleton().get() : nullptr;
+	const auto* ocelli_skeleton = (phenome.ocelli->lateral_ocelli_present || phenome.ocelli->median_ocellus_present) ? phenome.ocelli->model->skeleton().get() : nullptr;
+	const auto* wings_skeleton = (phenome.wings->present) ? phenome.wings->model->skeleton().get() : nullptr;
 	
-	auto get_bone_transform = [](const ::skeleton& skeleton, const std::string& bone_name)
+	auto get_bone_transform = [](const animation::skeleton& skeleton, const std::string& bone_name)
 	{
 		return skeleton.rest_pose().get_relative_transform(skeleton.bones().at(bone_name).index());
 	};
 	
 	// Calculate transformations from part space to body space
-	const math::transform<float> procoxa_l_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "procoxa_socket_l");
-	const math::transform<float> procoxa_r_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "procoxa_socket_r");
-	const math::transform<float> mesocoxa_l_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "mesocoxa_socket_l");
-	const math::transform<float> mesocoxa_r_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "mesocoxa_socket_r");
-	const math::transform<float> metacoxa_l_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "metacoxa_socket_l");
-	const math::transform<float> metacoxa_r_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "metacoxa_socket_r");
-	const math::transform<float> head_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "head_socket");
-	const math::transform<float> mandible_l_to_body = rest_pose.get_absolute_transform(bones.head->index()) * get_bone_transform(head_skeleton, "mandible_socket_l");
-	const math::transform<float> mandible_r_to_body = rest_pose.get_absolute_transform(bones.head->index()) * get_bone_transform(head_skeleton, "mandible_socket_r");
-	const math::transform<float> antenna_l_to_body = rest_pose.get_absolute_transform(bones.head->index()) * get_bone_transform(head_skeleton, "antenna_socket_l");
-	const math::transform<float> antenna_r_to_body = rest_pose.get_absolute_transform(bones.head->index()) * get_bone_transform(head_skeleton, "antenna_socket_r");
-	const math::transform<float> waist_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "petiole_socket");
+	const transform<float> procoxa_l_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "procoxa_socket_l");
+	const transform<float> procoxa_r_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "procoxa_socket_r");
+	const transform<float> mesocoxa_l_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "mesocoxa_socket_l");
+	const transform<float> mesocoxa_r_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "mesocoxa_socket_r");
+	const transform<float> metacoxa_l_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "metacoxa_socket_l");
+	const transform<float> metacoxa_r_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "metacoxa_socket_r");
+	const transform<float> head_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "head_socket");
+	const transform<float> mandible_l_to_body = rest_pose.get_absolute_transform(bones.head->index()) * get_bone_transform(head_skeleton, "mandible_socket_l");
+	const transform<float> mandible_r_to_body = rest_pose.get_absolute_transform(bones.head->index()) * get_bone_transform(head_skeleton, "mandible_socket_r");
+	const transform<float> antenna_l_to_body = rest_pose.get_absolute_transform(bones.head->index()) * get_bone_transform(head_skeleton, "antenna_socket_l");
+	const transform<float> antenna_r_to_body = rest_pose.get_absolute_transform(bones.head->index()) * get_bone_transform(head_skeleton, "antenna_socket_r");
+	const transform<float> waist_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "petiole_socket");
 	
-	math::transform<float> gaster_to_body;
+	transform<float> gaster_to_body;
 	if (phenome.waist->present)
 	{
 		if (phenome.waist->postpetiole_present)
@@ -468,23 +474,23 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 		gaster_to_body = waist_to_body;
 	}
 	
-	math::transform<float> sting_to_body;
+	transform<float> sting_to_body;
 	if (phenome.sting->present)
 	{
 		sting_to_body = gaster_to_body * get_bone_transform(gaster_skeleton, "sting_socket");
 	}
 	
-	math::transform<float> eye_l_to_body;
-	math::transform<float> eye_r_to_body;
+	transform<float> eye_l_to_body;
+	transform<float> eye_r_to_body;
 	if (phenome.eyes->present)
 	{
 		eye_l_to_body = rest_pose.get_absolute_transform(bones.head->index()) * get_bone_transform(head_skeleton, "eye_socket_l");
 		eye_r_to_body = rest_pose.get_absolute_transform(bones.head->index()) * get_bone_transform(head_skeleton, "eye_socket_r");
 	}
 	
-	math::transform<float> ocellus_l_to_body;
-	math::transform<float> ocellus_r_to_body;
-	math::transform<float> ocellus_m_to_body;
+	transform<float> ocellus_l_to_body;
+	transform<float> ocellus_r_to_body;
+	transform<float> ocellus_m_to_body;
 	if (phenome.ocelli->lateral_ocelli_present || phenome.ocelli->median_ocellus_present)
 	{
 		ocellus_l_to_body = rest_pose.get_absolute_transform(bones.head->index()) * get_bone_transform(head_skeleton, "ocellus_socket_l");
@@ -493,7 +499,7 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	}
 	
 	// Build legs vertex reskin map
-	const std::unordered_map<std::size_t, std::tuple<std::size_t, const math::transform<float>*>> legs_reskin_map
+	const std::unordered_map<usize, std::tuple<usize, const transform<float>*>> legs_reskin_map
 	{
 		{legs_skeleton.bones().at("procoxa_l").index(),        {bones.procoxa_l->index(),    &procoxa_l_to_body}},
 		{legs_skeleton.bones().at("profemur_l").index(),       {bones.profemur_l->index(),   &procoxa_l_to_body}},
@@ -546,27 +552,27 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	};
 	
 	// Build head vertex reskin map
-	const std::unordered_map<std::size_t, std::tuple<std::size_t, const math::transform<float>*>> head_reskin_map
+	const std::unordered_map<usize, std::tuple<usize, const transform<float>*>> head_reskin_map
 	{
 		{head_skeleton.bones().at("head").index(), {bones.head->index(), &head_to_body}}
 	};
 	
 	// Build mandibles vertex reskin map
-	const std::unordered_map<std::size_t, std::tuple<std::size_t, const math::transform<float>*>> mandibles_reskin_map
+	const std::unordered_map<usize, std::tuple<usize, const transform<float>*>> mandibles_reskin_map
 	{
 		{mandibles_skeleton.bones().at("mandible_l").index(), {bones.mandible_l->index(), &mandible_l_to_body}},
 		{mandibles_skeleton.bones().at("mandible_r").index(), {bones.mandible_r->index(), &mandible_r_to_body}}
 	};
 	
 	// Build antennae vertex reskin map
-	std::unordered_map<std::size_t, std::tuple<std::size_t, const math::transform<float>*>> antennae_reskin_map
+	std::unordered_map<usize, std::tuple<usize, const transform<float>*>> antennae_reskin_map
 	{
 		{antennae_skeleton.bones().at("antennomere1_l").index(), {bones.antennomere1_l->index(), &antenna_l_to_body}},
 		{antennae_skeleton.bones().at("antennomere2_l").index(), {bones.antennomere2_l->index(), &antenna_l_to_body}},
 		{antennae_skeleton.bones().at("antennomere1_r").index(), {bones.antennomere1_r->index(), &antenna_r_to_body}},
 		{antennae_skeleton.bones().at("antennomere2_r").index(), {bones.antennomere2_r->index(), &antenna_r_to_body}}
 	};
-	for (std::uint8_t i = 3; i <= phenome.antennae->total_antennomere_count; ++i)
+	for (u8 i = 3; i <= phenome.antennae->total_antennomere_count; ++i)
 	{
 		const std::string antennomere_l_name = std::format("antennomere{}_l", i);
 		const std::string antennomere_r_name = std::format("antennomere{}_r", i);
@@ -576,7 +582,7 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	}
 	
 	// Build waist vertex reskin map
-	std::unordered_map<std::size_t, std::tuple<std::size_t, const math::transform<float>*>> waist_reskin_map;
+	std::unordered_map<usize, std::tuple<usize, const transform<float>*>> waist_reskin_map;
 	if (phenome.waist->present)
 	{
 		waist_reskin_map.emplace(waist_skeleton.bones().at("petiole").index(), std::tuple(bones.petiole->index(), &waist_to_body));
@@ -588,20 +594,20 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	}
 	
 	// Build gaster vertex reskin map
-	const std::unordered_map<std::size_t, std::tuple<std::size_t, const math::transform<float>*>> gaster_reskin_map
+	const std::unordered_map<usize, std::tuple<usize, const transform<float>*>> gaster_reskin_map
 	{
 		{gaster_skeleton.bones().at("gaster").index(), {bones.gaster->index(), &gaster_to_body}}
 	};
 	
 	// Build sting vertex reskin map
-	std::unordered_map<std::size_t, std::tuple<std::size_t, const math::transform<float>*>> sting_reskin_map;
+	std::unordered_map<usize, std::tuple<usize, const transform<float>*>> sting_reskin_map;
 	if (phenome.sting->present)
 	{
 		sting_reskin_map.emplace(sting_skeleton->bones().at("sting").index(), std::tuple(bones.sting->index(), &sting_to_body));
 	}
 	
 	// Build eyes vertex reskin map
-	std::unordered_map<std::size_t, std::tuple<std::size_t, const math::transform<float>*>> eyes_reskin_map;
+	std::unordered_map<usize, std::tuple<usize, const transform<float>*>> eyes_reskin_map;
 	if (phenome.eyes->present)
 	{
 		eyes_reskin_map.emplace(eyes_skeleton->bones().at("eye_l").index(), std::tuple(bones.head->index(), &eye_l_to_body));
@@ -609,7 +615,7 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	}
 	
 	// Build ocelli vertex reskin map
-	std::unordered_map<std::size_t, std::tuple<std::size_t, const math::transform<float>*>> ocelli_reskin_map;
+	std::unordered_map<usize, std::tuple<usize, const transform<float>*>> ocelli_reskin_map;
 	if (phenome.ocelli->lateral_ocelli_present)
 	{
 		ocelli_reskin_map.emplace(ocelli_skeleton->bones().at("ocellus_l").index(), std::tuple(bones.head->index(), &ocellus_l_to_body));
@@ -664,7 +670,7 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 		const auto hindwing_l_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "hindwing_socket_l");
 		const auto hindwing_r_to_body = rest_pose.get_absolute_transform(bones.mesosoma->index()) * get_bone_transform(mesosoma_skeleton, "hindwing_socket_r");
 		
-		std::unordered_map<std::size_t, std::tuple<std::size_t, const math::transform<float>*>> wings_reskin_map;
+		std::unordered_map<usize, std::tuple<usize, const transform<float>*>> wings_reskin_map;
 		wings_reskin_map.emplace(wings_skeleton->bones().at("forewing_l").index(), std::tuple(bones.forewing_l->index(), &forewing_l_to_body));
 		wings_reskin_map.emplace(wings_skeleton->bones().at("forewing_r").index(), std::tuple(bones.forewing_r->index(), &forewing_r_to_body));
 		wings_reskin_map.emplace(wings_skeleton->bones().at("hindwing_l").index(), std::tuple(bones.hindwing_l->index(), &hindwing_l_to_body));

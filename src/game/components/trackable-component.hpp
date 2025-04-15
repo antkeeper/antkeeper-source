@@ -4,8 +4,6 @@
 #ifndef ANTKEEPER_GAME_TRACKABLE_COMPONENT_HPP
 #define ANTKEEPER_GAME_TRACKABLE_COMPONENT_HPP
 
-#include <engine/math/vector.hpp>
-
 struct trackable_component
 {
 	float distance;

@@ -5,7 +5,9 @@
 #define ANTKEEPER_GAME_ANT_SWARM_HPP
 
 #include "game/game.hpp"
-#include <engine/entity/id.hpp>
+import engine.entity.id;
+
+using namespace engine;
 
 entity::id create_ant_swarm(::game& ctx);
 void destroy_ant_swarm(::game& ctx, entity::id swarm_eid);

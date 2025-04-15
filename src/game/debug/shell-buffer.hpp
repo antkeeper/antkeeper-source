@@ -4,9 +4,11 @@
 #ifndef ANTKEEPER_SHELL_BUFFER_HPP
 #define ANTKEEPER_SHELL_BUFFER_HPP
 
-#include <engine/scene/text.hpp>
-#include <memory>
 #include <sstream>
+import engine.scene.text;
+import <memory>;
+
+using namespace engine;
 
 /// Shell output string buffer.
 class shell_buffer: public std::stringbuf

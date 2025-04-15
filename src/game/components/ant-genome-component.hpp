@@ -5,7 +5,9 @@
 #define ANTKEEPER_GAME_ANT_GENOME_COMPONENT_HPP
 
 #include "game/ant/ant-genome.hpp"
-#include <memory>
+import <memory>;
+
+using namespace engine;
 
 struct ant_genome_component
 {

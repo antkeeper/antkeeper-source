@@ -4,10 +4,10 @@
 #ifndef ANTKEEPER_GAME_ANT_SUBCASTE_HPP
 #define ANTKEEPER_GAME_ANT_SUBCASTE_HPP
 
-#include <cstdint>
+import engine.utility.sized_types;
 
 /// Ant subcaste types.
-enum class ant_subcaste: std::uint8_t
+enum class ant_subcaste: u8
 {
 	/// Worker from the queen's first batch of eggs, smaller than normal workers.
 	nanitic = 1,

@@ -1,13 +1,18 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "game/textures/rgb-voronoi-noise.hpp"
-#include <engine/debug/log.hpp>
-#include <algorithm>
 #include <execution>
-#include <fstream>
 #include <stb/stb_image_write.h>
-#include <engine/noise/voronoi.hpp>
+#include "game/textures/rgb-voronoi-noise.hpp"
+import engine.debug.log;
+import engine.noise.voronoi;
+import engine.math.functions;
+import engine.math.vector;
+import engine.utility.sized_types;
+import <algorithm>;
+import <fstream>;
+
+using namespace engine;
 
 void generate_rgb_voronoi_noise(std::filesystem::path path, float frequency)
 {
@@ -52,7 +57,7 @@ void generate_rgb_voronoi_noise(std::filesystem::path path, float frequency)
 	const auto rows_per_thread = image_height / thread_count;
 
 	std::vector<std::thread> threads;
-	for (std::size_t i = 0; i < thread_count; ++i)
+	for (usize i = 0; i < thread_count; ++i)
 	{
 		const int start_y = static_cast<int>(i * rows_per_thread);
 		const int end_y = (i == thread_count - 1) ? image_height : start_y + rows_per_thread;
@@ -83,9 +88,9 @@ void generate_rgb_voronoi_noise(std::filesystem::path path, float frequency)
 		img.end<math::vec4<unsigned char>>(),
 		[pixels, width, height, scale_x, scale_y, frequency](auto& pixel)
 		{
-			const std::size_t i = &pixel - (math::vec4<unsigned char>*)pixels;
-			const std::size_t y = i / width;
-			const std::size_t x = i % width;
+			const usize i = &pixel - (math::vec4<unsigned char>*)pixels;
+			const usize y = i / width;
+			const usize x = i % width;
 			
 			const math::fvec2 position =
 			{
@@ -101,7 +106,7 @@ void generate_rgb_voronoi_noise(std::filesystem::path path, float frequency)
 				f1_edge_sqr_distance
 			] = noise::voronoi::f1_edge<float, 2>(position, 1.0f, {frequency, frequency});
 			
-			const float f1_edge_distance = std::sqrt(f1_edge_sqr_distance);
+			const float f1_edge_distance = math::sqrt(f1_edge_sqr_distance);
 			
 			const float scale = 255.0f * (255.0f / 204.0f);
 			pixel = 
@@ -112,14 +117,14 @@ void generate_rgb_voronoi_noise(std::filesystem::path path, float frequency)
 				static_cast<unsigned char>((f1_id >> 24) & 255)
 			};
 			
-			// const float f1_distance = std::sqrt(f1_sqr_distance);
+			// const float f1_distance = math::sqrt(f1_sqr_distance);
 			// const math::fvec2 uv = (position + f1_displacement) / frequency;
 			
 			// pixel = 
 			// {
-				// static_cast<unsigned char>(std::min(255.0f, f1_distance * 255.0f)),
-				// static_cast<unsigned char>(std::min(255.0f, uv[0] * 255.0f)),
-				// static_cast<unsigned char>(std::min(255.0f, uv[1] * 255.0f)),
+				// static_cast<unsigned char>(math::min(255.0f, f1_distance * 255.0f)),
+				// static_cast<unsigned char>(math::min(255.0f, uv[0] * 255.0f)),
+				// static_cast<unsigned char>(math::min(255.0f, uv[1] * 255.0f)),
 				// static_cast<unsigned char>(f1_id % 256)
 			// };
 		}

@@ -4,8 +4,10 @@
 #ifndef ANTKEEPER_GAME_NEST_COMPONENT_HPP
 #define ANTKEEPER_GAME_NEST_COMPONENT_HPP
 
-#include <vector>
-#include <engine/entity/id.hpp>
+import engine.entity.id;
+import <vector>;
+
+using namespace engine;
 
 struct nest_component
 {

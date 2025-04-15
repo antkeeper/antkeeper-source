@@ -4,20 +4,20 @@
 #ifndef ANTKEEPER_TEST_STATE_HPP
 #define ANTKEEPER_TEST_STATE_HPP
 
+#include <entt/entt.hpp>
 #include "game/states/game-state.hpp"
-#include <engine/entity/id.hpp>
-#include <engine/math/vector.hpp>
-#include <engine/render/model.hpp>
-#include <engine/event/subscription.hpp>
-#include <engine/input/mouse-events.hpp>
-#include <engine/geom/primitives/ray.hpp>
-#include <engine/geom/primitives/plane.hpp>
-#include <engine/math/functions.hpp>
-#include <engine/scene/rectangle-light.hpp>
-#include <engine/geom/bvh/bvh.hpp>
-#include <engine/geom/brep/brep-mesh.hpp>
-#include <engine/animation/ik/ik-rig.hpp>
 #include "game/ant/ant-phenome.hpp"
+import engine.event.subscription;
+import engine.entity.id;
+import engine.input.mouse;
+import engine.scene.rectangle_light;
+import engine.math.vector;
+import engine.math.functions;
+import engine.animation.ik_rig;
+import engine.geom.brep.mesh;
+import engine.render.model;
+import engine.geom.primitives.ray;
+import engine.geom.primitives.plane;
 
 class test_state: public game_state
 {
@@ -35,8 +35,8 @@ private:
 	
 	void setup_controls();
 	
-	std::vector<std::shared_ptr<::event::subscription>> action_subscriptions;
-	std::shared_ptr<::event::subscription> mouse_motion_subscription;
+	std::vector<std::shared_ptr<event::subscription>> action_subscriptions;
+	std::shared_ptr<event::subscription> mouse_motion_subscription;
 	
 	bool mouse_look{false};
 	bool mouse_grip{false};
@@ -51,7 +51,7 @@ private:
 	double third_person_camera_pitch{math::radians(45.0)};
 	math::dvec3 third_person_camera_focal_point{0.0, 0.0, 0.0};
 	double third_person_camera_zoom{0.25};
-	std::uint32_t third_person_camera_zoom_step_count{6};
+	u32 third_person_camera_zoom_step_count{6};
 	
 	double third_person_camera_near_focal_plane_height{1.0f};
 	double third_person_camera_far_focal_plane_height{50.0f};
@@ -74,7 +74,7 @@ private:
 	entity::id larva_eid;
 	entity::id worker_eid;
 	std::shared_ptr<ant_phenome> worker_phenome;
-	std::shared_ptr<ik_rig> worker_ik_rig;
+	std::shared_ptr<animation::ik_rig> worker_ik_rig;
 	std::shared_ptr<scene::rectangle_light> area_light;
 };
 

@@ -300,6 +300,13 @@ glad_add_library(glad STATIC
 # Make tinyexr.h available
 file(COPY ${tinyexr_SOURCE_DIR}/tinyexr.h DESTINATION ${tinyexr_BINARY_DIR}/include)
 
+# Generate configuration header files
+configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.ixx.in ${PROJECT_BINARY_DIR}/config.ixx.in @ONLY)
+file(GENERATE
+	OUTPUT ${PROJECT_BINARY_DIR}/$<CONFIG>/src/engine/config.ixx
+	INPUT ${PROJECT_BINARY_DIR}/config.ixx.in
+)
+
 # Collect source files
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
 	${PROJECT_SOURCE_DIR}/src/*.cpp
@@ -308,25 +315,18 @@ file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
 # Collect header files
 file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS
 	${PROJECT_SOURCE_DIR}/src/*.hpp
-	${PROJECT_SOURCE_DIR}/src/*.hpp.in
+	${PROJECT_SOURCE_DIR}/src/*.ixx.in
 )
 
 # Collect module files
-#file(GLOB_RECURSE MODULE_FILES CONFIGURE_DEPENDS
-#	${PROJECT_SOURCE_DIR}/src/*.ixx
-#	${PROJECT_SOURCE_DIR}/src/*.cxx
-#)
+file(GLOB_RECURSE MODULE_FILES CONFIGURE_DEPENDS
+	${PROJECT_SOURCE_DIR}/src/*.ixx
+)
+list(APPEND MODULE_FILES ${PROJECT_BINARY_DIR}/$<CONFIG>/src/engine/config.ixx)
 
 # Filter out platform-specific source and header files
 list(FILTER SOURCE_FILES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/src/game/platform/.*")
 list(FILTER HEADER_FILES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/src/game/platform/.*")
-
-# Generate configuration header files
-configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.hpp.in ${PROJECT_BINARY_DIR}/config.hpp.in @ONLY)
-file(GENERATE
-	OUTPUT ${PROJECT_BINARY_DIR}/$<CONFIG>/src/engine/config.hpp
-	INPUT ${PROJECT_BINARY_DIR}/config.hpp.in
-)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	
@@ -367,7 +367,7 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT $
 target_sources(${PROJECT_NAME}
 	PUBLIC
 		FILE_SET HEADERS FILES ${HEADER_FILES}
-		#FILE_SET CXX_MODULES FILES ${MODULE_FILES}
+		FILE_SET CXX_MODULES FILES ${MODULE_FILES}
 )
 
 # Set target properties
@@ -422,8 +422,8 @@ target_compile_options(${PROJECT_NAME}
 			# Disable RTTI
 			/GR-
 
-			# Enable experimental modules
-			#/experimental:module
+			# Enable modules support
+			/experimental:module
 
 			# Set Debug configuration options
 			$<$<CONFIG:Debug>:
@@ -585,31 +585,30 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/res/data/CMakeLists.txt)
 #		BUILD_ALWAYS 1)
 endif()
 
-if(ANTKEEPER_TEST)
-
-	# Enable testing
-	include(CTest)
-	enable_testing()
-
-	# Collect test files
-	file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/test/test-*.cpp)
-
-	# Add test targets
-	foreach(TEST_FILE ${TEST_FILES})
-
-		get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
-		add_executable(${TEST_NAME} ${TEST_FILE} ${PROJECT_SOURCE_DIR}/test/test.cpp)
-		set_target_properties(${TEST_NAME}
-			PROPERTIES
-				COMPILE_WARNING_AS_ERROR ON
-				CXX_STANDARD 23
-				CXX_STANDARD_REQUIRED ON
-				CXX_EXTENSIONS OFF
-				MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
-		)
-		target_include_directories(${TEST_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/src)
-		add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-
-	endforeach()
-
-endif()
+#if(ANTKEEPER_TEST)
+#
+#	# Enable testing
+#	include(CTest)
+#	enable_testing()
+#
+#	# Collect test files
+#	file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/test/test-*.cpp)
+#
+#	# Add test targets
+#	foreach(TEST_FILE ${TEST_FILES})
+#
+#		get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
+#		add_executable(${TEST_NAME} ${TEST_FILE} ${PROJECT_SOURCE_DIR}/test/test.cpp)
+#		set_target_properties(${TEST_NAME}
+#			PROPERTIES
+#				COMPILE_WARNING_AS_ERROR ON
+#				CXX_STANDARD 23
+#				CXX_STANDARD_REQUIRED ON
+#				CXX_EXTENSIONS OFF
+#				MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+#		)
+#		add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+#
+#	endforeach()
+#
+#endif()

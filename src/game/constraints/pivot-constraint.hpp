@@ -4,8 +4,10 @@
 #ifndef ANTKEEPER_GAME_PIVOT_CONSTRAINT_HPP
 #define ANTKEEPER_GAME_PIVOT_CONSTRAINT_HPP
 
-#include <engine/entity/id.hpp>
-#include <engine/math/vector.hpp>
+import engine.math.vector;
+import engine.entity.id;
+
+using namespace engine;
 
 /// Pivots around a target entity.
 struct pivot_constraint

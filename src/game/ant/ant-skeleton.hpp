@@ -4,11 +4,13 @@
 #ifndef ANTKEEPER_GAME_ANT_SKELETON_HPP
 #define ANTKEEPER_GAME_ANT_SKELETON_HPP
 
-#include <engine/animation/skeleton.hpp>
-#include <engine/animation/skeleton-pose.hpp>
 #include "game/ant/ant-phenome.hpp"
 #include "game/ant/ant-bone-set.hpp"
-#include <memory>
+import engine.animation.skeleton;
+import engine.animation.skeleton_pose;
+import <memory>;
+
+using namespace engine;
 
 /// Generates a skeleton for an ant model.
 /// @param[out] bones Ant bone set.
@@ -58,12 +60,12 @@
 ///     - †hindwing_r
 /// 
 /// †: bone presence dependent on phenome.
-[[nodiscard]] std::unique_ptr<skeleton> generate_ant_skeleton(ant_bone_set& bones, const ant_phenome& phenome);
+[[nodiscard]] std::unique_ptr<animation::skeleton> generate_ant_skeleton(ant_bone_set& bones, const ant_phenome& phenome);
 
-[[nodiscard]] std::unique_ptr<skeleton_pose> generate_ant_midstance_pose(::skeleton& skeleton);
-[[nodiscard]] std::unique_ptr<skeleton_pose> generate_ant_midswing_pose(::skeleton& skeleton);
-[[nodiscard]] std::unique_ptr<skeleton_pose> generate_ant_liftoff_pose(::skeleton& skeleton);
-[[nodiscard]] std::unique_ptr<skeleton_pose> generate_ant_touchdown_pose(::skeleton& skeleton);
-[[nodiscard]] std::unique_ptr<skeleton_pose> generate_ant_pupa_pose(::skeleton& skeleton);
+[[nodiscard]] std::unique_ptr<animation::skeleton_pose> generate_ant_midstance_pose(animation::skeleton& skeleton);
+[[nodiscard]] std::unique_ptr<animation::skeleton_pose> generate_ant_midswing_pose(animation::skeleton& skeleton);
+[[nodiscard]] std::unique_ptr<animation::skeleton_pose> generate_ant_liftoff_pose(animation::skeleton& skeleton);
+[[nodiscard]] std::unique_ptr<animation::skeleton_pose> generate_ant_touchdown_pose(animation::skeleton& skeleton);
+[[nodiscard]] std::unique_ptr<animation::skeleton_pose> generate_ant_pupa_pose(animation::skeleton& skeleton);
 
 #endif // ANTKEEPER_GAME_ANT_SKELETON_HPP

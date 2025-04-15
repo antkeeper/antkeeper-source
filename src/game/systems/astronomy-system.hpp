@@ -5,16 +5,19 @@
 #define ANTKEEPER_GAME_ASTRONOMY_SYSTEM_HPP
 
 #include "game/systems/fixed-update-system.hpp"
-#include <engine/entity/id.hpp>
-#include <engine/scene/directional-light.hpp>
-#include <engine/math/vector.hpp>
-#include <engine/math/se3.hpp>
-#include <engine/render/passes/sky-pass.hpp>
 #include "game/components/observer-component.hpp"
 #include "game/components/atmosphere-component.hpp"
 #include "game/components/celestial-body-component.hpp"
 #include "game/components/orbit-component.hpp"
-#include <engine/geom/primitives/ray.hpp>
+import engine.entity.id;
+import engine.scene.directional_light;
+import engine.math.vector;
+import engine.math.se3;
+import engine.geom.primitives.ray;
+import engine.render.passes.sky_pass;
+import engine.utility.sized_types;
+
+using namespace engine;
 
 /// Calculates apparent properties of celestial bodies as seen by an observer.
 class astronomy_system:
@@ -35,7 +38,7 @@ public:
 	
 	/// Sets the number of samples to take when integrating atmospheric transmittance.
 	/// @param samples Number of integration samples.
-	void set_transmittance_samples(std::size_t samples);
+	void set_transmittance_samples(usize samples);
 	
 	void set_sun_light(scene::directional_light* light);
 	void set_moon_light(scene::directional_light* light);
@@ -90,7 +93,7 @@ private:
 	double m_time_centuries{};
 	
 	/// Number of transmittance integration samples.
-	std::size_t m_transmittance_samples{};
+	usize m_transmittance_samples{};
 	
 	/// Entity ID of the observer.
 	entity::id m_observer_eid{entt::null};

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <entt/entt.hpp>
 #include "game/systems/reproductive-system.hpp"
 #include "game/components/ovary-component.hpp"
 #include "game/components/scene-object-component.hpp"
@@ -11,10 +12,17 @@
 #include "game/components/time-component.hpp"
 #include "game/utility/physics.hpp"
 #include "game/utility/time.hpp"
-#include <engine/math/functions.hpp>
-#include <engine/math/functions.hpp>
-#include <engine/scene/static-mesh.hpp>
-#include <engine/debug/log.hpp>
+import engine.scene.static_mesh;
+import engine.debug.log;
+import engine.math.functions;
+import engine.math.matrix;
+import engine.math.quaternion;
+import engine.math.transform;
+import engine.gl.shader_stage;
+import engine.gl.sampler;
+import engine.gl.pipeline;
+import engine.render.material;
+import engine.render.material_variable;
 
 void reproductive_system::fixed_update(entity::registry& registry, float, float dt)
 {
@@ -32,8 +40,8 @@ void reproductive_system::fixed_update(entity::registry& registry, float, float 
 			ovary.elapsed_egg_production_time += scaled_timestep;
 			if (ovary.elapsed_egg_production_time >= ovary.egg_production_duration)
 			{
-				ovary.egg_count += static_cast<std::uint16_t>(ovary.elapsed_egg_production_time / ovary.egg_production_duration);
-				ovary.egg_count = std::min(ovary.egg_count, ovary.egg_capacity);
+				ovary.egg_count += static_cast<u16>(ovary.elapsed_egg_production_time / ovary.egg_production_duration);
+				ovary.egg_count = math::min(ovary.egg_count, ovary.egg_capacity);
 				ovary.elapsed_egg_production_time = math::fract(ovary.elapsed_egg_production_time);
 			}
 		}
@@ -54,11 +62,11 @@ void reproductive_system::fixed_update(entity::registry& registry, float, float 
 			else
 			{
 				ovary.elapsed_oviposition_time -= scaled_timestep;
-				ovary.elapsed_oviposition_time = std::max(0.0f, ovary.elapsed_oviposition_time);
+				ovary.elapsed_oviposition_time = math::max(0.0f, ovary.elapsed_oviposition_time);
 			}
 			
 			// Determine position and orientation of egg
-			const float t = std::min(ovary.elapsed_oviposition_time / ovary.oviposition_duration, 1.0f);
+			const float t = math::min(ovary.elapsed_oviposition_time / ovary.oviposition_duration, 1.0f);
 			auto egg_transform = ovipositor_transform;
 			egg_transform.translation = egg_transform * math::lerp(ovary.oviposition_path.a, ovary.oviposition_path.b, t);
 			
@@ -98,7 +106,7 @@ void reproductive_system::fixed_update(entity::registry& registry, float, float 
 				// Place egg
 				auto& egg_rigid_body = *registry.get<rigid_body_component>(ovary.ovipositor_egg_eid).body;
 				const auto oviposition_ray = geom::ray<float, 3>{egg_transform.translation, egg_transform.rotation * math::fvec3{0, 0, -1}};
-				if (auto trace = trace_rigid_bodies(registry, oviposition_ray, ovary.ovipositor_egg_eid, ~std::uint32_t{0}))
+				if (auto trace = trace_rigid_bodies(registry, oviposition_ray, ovary.ovipositor_egg_eid, ~u32{0}))
 				{
 					egg_transform.translation = oviposition_ray.extrapolate(trace->distance);
 					egg_transform.rotation = math::normalize(math::rotation(egg_transform.rotation * math::fvec3{0, 1, 0}, trace->normal) * egg_transform.rotation);

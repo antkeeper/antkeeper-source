@@ -5,8 +5,11 @@
 #define ANTKEEPER_GAME_ANT_GENE_FREQUENCY_TABLE_HPP
 
 #include <random>
-#include <vector>
-#include <memory>
+import engine.utility.sized_types;
+import <vector>;
+import <memory>;
+
+using namespace engine;
 	
 /// Ant gene frequency table.
 /// @tparam T Gene type.
@@ -31,7 +34,7 @@ struct ant_gene_frequency_table
 			return nullptr;
 		}
 		
-		std::discrete_distribution<std::size_t> distribution(weights.begin(), weights.end());
+		std::discrete_distribution<usize> distribution(weights.begin(), weights.end());
 		
 		return genes[distribution(urbg)];
 	}

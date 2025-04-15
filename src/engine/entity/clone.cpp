@@ -1,19 +1,20 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/entity/clone.hpp>
+import engine.entity.clone;
+import engine.entity.id;
+import engine.entity.registry;
 
-namespace entity {
-
-void clone(entity::registry& registry, entity::id source, entity::id destination)
+namespace engine::entity
 {
-	for (auto&& it: registry.storage())
+	void clone(entity::registry& registry, entity::id source, entity::id destination)
 	{
-		if (auto& storage = it.second; storage.contains(source))
+		for (auto&& it: registry.storage())
 		{
-			storage.push(destination, storage.value(source));
+			if (auto& storage = it.second; storage.contains(source))
+			{
+				storage.push(destination, storage.value(source));
+			}
 		}
 	}
 }
-
-} // namespace entity

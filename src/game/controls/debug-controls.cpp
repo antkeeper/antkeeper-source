@@ -1,9 +1,11 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <ostream>
+#include "game/game.hpp"
+#include "game/world.hpp"
 #include "game/controls.hpp"
 #include "game/systems/astronomy-system.hpp"
-#include "game/world.hpp"
 
 void setup_debug_controls(::game& ctx)
 {
@@ -12,7 +14,7 @@ void setup_debug_controls(::game& ctx)
 	(
 		ctx.toggle_debug_ui_action.get_activated_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				ctx.debug_ui_visible = !ctx.debug_ui_visible;
 				if (ctx.debug_ui_visible)

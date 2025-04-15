@@ -5,9 +5,11 @@
 #define ANTKEEPER_GAME_ANT_EYES_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-#include <engine/render/model.hpp>
-#include <cstdint>
-#include <memory>
+import engine.render.model;
+import engine.utility.sized_types;
+import <memory>;
+
+using namespace engine;
 
 /// Ant eyes phene.
 /// @see https://www.antwiki.org/wiki/Morphological_Measurements
@@ -17,7 +19,7 @@ struct ant_eyes_phene
 	bool present{false};
 	
 	/// Number of ommatidia.
-	std::uint32_t ommatidia_count{0};
+	u32 ommatidia_count{0};
 	
 	/// Eye length, in mesosomal lengths.
 	float length{0.0f};

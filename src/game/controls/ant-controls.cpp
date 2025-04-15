@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "game/controls.hpp"
+#include "game/game.hpp"
 #include "game/world.hpp"
 #include "game/components/ant-caste-component.hpp"
 #include "game/components/rigid-body-component.hpp"
@@ -10,13 +10,16 @@
 #include "game/components/spring-arm-component.hpp"
 #include "game/components/scene-object-component.hpp"
 #include "game/components/pose-component.hpp"
-#include <engine/math/functions.hpp>
-#include <engine/math/euler-angles.hpp>
-#include <engine/debug/log.hpp>
+#include "game/controls.hpp"
+import engine.debug.log;
+import engine.math.functions;
+import engine.math.euler_angles;
+import engine.animation.skeleton;
+import <filesystem>;
 
 namespace {
 	
-	void handle_mouse_motion(::game& ctx, [[maybe_unused]] const input::mouse_moved_event& event)
+	void handle_mouse_motion(::game& ctx, const input::mouse_moved_event&)
 	{
 		if (ctx.controlled_ant_eid == entt::null)
 		{
@@ -51,12 +54,12 @@ namespace {
 		float control_magnitude = 0.0f;
 		if (auto sqr_length = math::sqr_length(control_vector))
 		{
-			control_magnitude = std::sqrt(sqr_length);
+			control_magnitude = math::sqrt(sqr_length);
 			control_direction = control_vector / control_magnitude;
 		}
 		
 		// Clamp control magnitude
-		const auto clamped_control_magnitude = std::min(1.0f, control_magnitude);
+		const auto clamped_control_magnitude = math::min(1.0f, control_magnitude);
 		
 		// Determine locomotive speed
 		float locomotive_speed;
@@ -141,7 +144,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_forward_action.get_active_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -151,7 +154,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_forward_action.get_deactivated_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -163,7 +166,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_back_action.get_active_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -173,7 +176,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_back_action.get_deactivated_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -185,7 +188,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_left_action.get_active_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -195,7 +198,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_left_action.get_deactivated_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -207,7 +210,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_right_action.get_active_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -217,7 +220,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_move_right_action.get_deactivated_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				steer_controlled_ant(ctx);
 			}
@@ -229,7 +232,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_interact_action.get_activated_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				// if (ctx.active_camera_eid == entt::null)
 				// {
@@ -248,7 +251,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_oviposit_action.get_activated_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				if (ctx.controlled_ant_eid == entt::null)
 				{
@@ -266,7 +269,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_oviposit_action.get_deactivated_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				if (ctx.controlled_ant_eid == entt::null)
 				{
@@ -286,7 +289,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_stridulate_action.get_active_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				if (ctx.controlled_ant_eid == entt::null)
 				{
@@ -335,11 +338,11 @@ void setup_ant_controls(::game& ctx)
 					//
 					//	// Seek based on mouse position
 					//	float seek_factor = static_cast<float>(mouse_position.y()) / static_cast<float>(ctx.window->get_viewport_size().y());
-					//	ctx.stridulation_sounds[sound_index]->seek_samples(static_cast<std::size_t>(seek_factor * static_cast<double>(duration_samples - 1)));
+					//	ctx.stridulation_sounds[sound_index]->seek_samples(static_cast<usize>(seek_factor * static_cast<double>(duration_samples - 1)));
 					//
 					//	// Modulate pitch based on mouse speed
 					//	float pitch = ((static_cast<float>(mouse_difference.y()) / static_cast<float>(ctx.window->get_viewport_size().y())) * duration_seconds) * ctx.fixed_update_rate;
-					//	ctx.stridulation_sounds[sound_index]->set_pitch(std::abs(pitch));
+					//	ctx.stridulation_sounds[sound_index]->set_pitch(math::abs(pitch));
 					//
 					//	// Play sound if not playing
 					//	if (!ctx.stridulation_sounds[sound_index]->is_playing())
@@ -358,7 +361,7 @@ void setup_ant_controls(::game& ctx)
 	(
 		ctx.ant_stridulate_action.get_deactivated_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				if (ctx.controlled_ant_eid == entt::null)
 				{

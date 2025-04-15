@@ -4,9 +4,11 @@
 #ifndef ANTKEEPER_GAME_CHAMBER_COMPONENT_HPP
 #define ANTKEEPER_GAME_CHAMBER_COMPONENT_HPP
 
-#include <array>
-#include <unordered_set>
-#include <engine/entity/id.hpp>
+import engine.entity.id;
+import <array>;
+import <unordered_set>;
+
+using namespace engine;
 
 /// Ant nest chamber.
 struct chamber_component

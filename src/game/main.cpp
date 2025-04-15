@@ -2,14 +2,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/game.hpp"
-#include <chrono>
-#include <engine/config.hpp>
-#include <engine/debug/log.hpp>
-#include <engine/debug/console-log.hpp>
-#include <engine/debug/file-log.hpp>
-#include <engine/debug/crash-reporter.hpp>
-#include <engine/utility/paths.hpp>
-#include <set>
+import engine.config;
+import engine.utility.json;
+import engine.utility.paths;
+import engine.debug.console_log;
+import engine.debug.file_log;
+import engine.debug.crash_reporter;
+import engine.debug.log;
+import engine.utility.sized_types;
+import <chrono>;
+import <set>;
+
+using namespace engine;
 
 int main(int argc, char* argv[])
 {
@@ -21,7 +25,7 @@ int main(int argc, char* argv[])
 	// Get time at which the application was launched
 	const auto launch_time = std::chrono::system_clock::now();
 
-	const auto& shared_config_directory = shared_config_directory_path();
+	const auto shared_config_directory = paths::shared_config_directory_path();
 
 	// Set up crash reporting
 	debug::crash_reporter crash_reporter;
@@ -92,7 +96,7 @@ int main(int argc, char* argv[])
 			// Delete expired logs
 			if (!log_archive.empty())
 			{
-				for (std::size_t i = log_archive.size(); i > config::debug_log_archive_capacity; --i)
+				for (usize i = log_archive.size(); i > config::debug_log_archive_capacity; --i)
 				{
 					if (std::filesystem::remove(*log_archive.begin()))
 					{

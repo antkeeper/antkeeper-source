@@ -4,11 +4,14 @@
 #ifndef ANTKEEPER_GAME_ATMOSPHERE_SYSTEM_HPP
 #define ANTKEEPER_GAME_ATMOSPHERE_SYSTEM_HPP
 
-#include <engine/entity/id.hpp>
-#include <engine/math/vector.hpp>
-#include <engine/render/passes/sky-pass.hpp>
+#include <entt/entt.hpp>
 #include "game/components/atmosphere-component.hpp"
 #include "game/systems/fixed-update-system.hpp"
+import engine.entity.id;
+import engine.math.vector;
+import engine.render.passes.sky_pass;
+
+using namespace engine;
 
 /// Updates variables related to atmospheric scattering.
 class atmosphere_system:

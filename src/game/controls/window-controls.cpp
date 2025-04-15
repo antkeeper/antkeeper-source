@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "game/controls.hpp"
 #include "game/graphics.hpp"
+#include "game/controls.hpp"
 
 void setup_window_controls(::game& ctx)
 {
@@ -11,7 +11,7 @@ void setup_window_controls(::game& ctx)
 	(
 		ctx.fullscreen_action.get_activated_channel().subscribe
 		(
-			[&ctx]([[maybe_unused]] const auto& event)
+			[&ctx](const auto&)
 			{
 				ctx.window->set_fullscreen(!ctx.window->is_fullscreen());
 			}
@@ -23,7 +23,7 @@ void setup_window_controls(::game& ctx)
 	(
 		ctx.screenshot_action.get_activated_channel().subscribe
 		(
-			[&ctx]([[maybe_unused]] const auto& event)
+			[&ctx](const auto&)
 			{
 				::graphics::save_screenshot(ctx);
 			}
@@ -35,7 +35,7 @@ void setup_window_controls(::game& ctx)
 	(
 		ctx.toggle_terminal_action.get_activated_channel().subscribe
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto&)
 			{
 				ctx.terminal_enabled = !ctx.terminal_enabled;
 				if (ctx.terminal_enabled)
@@ -55,7 +55,7 @@ void setup_window_controls(::game& ctx)
 					ctx.ui_canvas->get_scene().add_object(*ctx.command_line_text);
 					ctx.ui_canvas->get_scene().add_object(*ctx.shell_buffer_text);
 
-					[[maybe_unused]] const auto& text_box_bounds = ctx.command_line_text->get_bounds();
+					const auto& text_box_bounds = ctx.command_line_text->get_bounds();
 
 					const auto& viewport_size = ctx.window->get_viewport_size();
 					geom::rectangle<int> text_box_rect;

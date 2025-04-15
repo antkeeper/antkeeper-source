@@ -1,18 +1,19 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/utility/paths.hpp>
-#include <cstdlib>
-
 #if defined(_WIN32)
 	#include <system_error>
 	#include <windows.h>
 	#include <Shlobj.h>
 #endif
+#include <cstdlib>
+import engine.utility.paths;
 
-std::filesystem::path executable_path()
+namespace engine::paths
 {
-	#if defined(_WIN32)
+	std::filesystem::path executable_path()
+	{
+#if defined(_WIN32)
 
 		wchar_t buffer[MAX_PATH];
 		if (!GetModuleFileNameW(nullptr, buffer, MAX_PATH))
@@ -22,26 +23,26 @@ std::filesystem::path executable_path()
 		}
 		return std::filesystem::path(buffer);
 
-	#else
+#else
 
 		return std::filesystem::read_symlink("/proc/self/exe");
 
-	#endif
-}
+#endif
+	}
 
-std::filesystem::path executable_data_directory_path()
-{
-	#if defined(_WIN32)
+	std::filesystem::path executable_data_directory_path()
+	{
+#if defined(_WIN32)
 		return executable_path().parent_path();
-	#else
+#else
 		return executable_path().parent_path().parent_path() / "share";
-	#endif
-}
+#endif
+	}
 
-std::filesystem::path local_config_directory_path()
-{
-	#if defined(_WIN32)
-		
+	std::filesystem::path local_config_directory_path()
+	{
+#if defined(_WIN32)
+
 		wchar_t buffer[MAX_PATH];
 		const auto result = SHGetFolderPathW(nullptr, CSIDL_LOCAL_APPDATA, nullptr, SHGFP_TYPE_CURRENT, buffer);
 		if (!SUCCEEDED(result))
@@ -50,8 +51,8 @@ std::filesystem::path local_config_directory_path()
 			throw std::filesystem::filesystem_error(ec.message(), ec);
 		}
 		return std::filesystem::path(buffer);
-		
-	#else
+
+#else
 
 		if (const char* xdg_config_home = std::getenv("XDG_CONFIG_HOME"))
 		{
@@ -65,12 +66,12 @@ std::filesystem::path local_config_directory_path()
 
 		return std::filesystem::path();
 
-	#endif
-}
+#endif
+	}
 
-std::filesystem::path shared_config_directory_path()
-{
-	#if defined(_WIN32)
+	std::filesystem::path shared_config_directory_path()
+	{
+#if defined(_WIN32)
 
 		wchar_t buffer[MAX_PATH];
 		const auto result = SHGetFolderPathW(nullptr, CSIDL_APPDATA, nullptr, SHGFP_TYPE_CURRENT, buffer);
@@ -81,9 +82,10 @@ std::filesystem::path shared_config_directory_path()
 		}
 		return std::filesystem::path(buffer);
 
-	#else
+#else
 
 		return local_config_directory_path();
 
-	#endif
+#endif
+	}
 }

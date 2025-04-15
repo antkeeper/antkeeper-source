@@ -1,18 +1,22 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <entt/entt.hpp>
 #include "game/systems/locomotion-system.hpp"
 #include "game/components/pose-component.hpp"
 #include "game/components/legged-locomotion-component.hpp"
 #include "game/components/winged-locomotion-component.hpp"
 #include "game/components/navmesh-agent-component.hpp"
 #include "game/components/rigid-body-component.hpp"
-#include <engine/entity/id.hpp>
-#include <engine/animation/skeleton.hpp>
-#include <engine/debug/log.hpp>
-#include <engine/math/functions.hpp>
-#include <engine/math/functions.hpp>
-#include <engine/ai/navmesh.hpp>
+import engine.animation.skeleton;
+import engine.math.functions;
+import engine.debug.log;
+import engine.entity.id;
+import engine.ai.navmesh;
+import engine.utility.sized_types;
+import <string>;
+
+using namespace engine;
 
 void locomotion_system::fixed_update(entity::registry& registry, float t, float dt)
 {
@@ -52,7 +56,7 @@ void locomotion_system::update_legged(entity::registry& registry, float, float d
 		
 		auto& navmesh_agent = legged_group.get<navmesh_agent_component>(entity_id);
 
-		geom::brep_face** face = std::get_if<geom::brep_face*>(&navmesh_agent.feature);
+		geom::brep::face** face = std::get_if<geom::brep::face*>(&navmesh_agent.feature);
 		
 		// Traverse navmesh
 		if (locomotion.speed != 0.0f/* && cos_target_direction >= 0.0f*/ && face)
@@ -84,7 +88,7 @@ void locomotion_system::update_legged(entity::registry& registry, float, float d
 			// Update navmesh agent face
 			navmesh_agent.feature = traversal.feature;
 
-			face = std::get_if<geom::brep_face*>(&navmesh_agent.feature);
+			face = std::get_if<geom::brep::face*>(&navmesh_agent.feature);
 			if (face)
 			{
 				// Interpolate navmesh vertex normals
@@ -123,25 +127,25 @@ void locomotion_system::update_legged(entity::registry& registry, float, float d
 			
 			// Update current pose of body bone
 			auto body_xf = locomotion.midstance_pose->get_relative_transform(locomotion.body_bone);
-			// body_xf.translation.x() += -std::cos(locomotion.gait_phase * math::two_pi<float>) * 0.01f;
-			body_xf.translation.y() += locomotion.standing_height;// - std::sin(locomotion.gait_phase * math::four_pi<float>) * 0.025f;
+			// body_xf.translation.x() += -math::cos(locomotion.gait_phase * math::two_pi<float>) * 0.01f;
+			body_xf.translation.y() += locomotion.standing_height;// - math::sin(locomotion.gait_phase * math::four_pi<float>) * 0.025f;
 			pose_component.current_pose.set_relative_transform(locomotion.body_bone, body_xf);
 			
 			// For each leg
-			for (std::size_t i = 0; i < locomotion.tip_bones.size(); ++i)
+			for (usize i = 0; i < locomotion.tip_bones.size(); ++i)
 			{
 				// Determine step phase
 				float step_phase = locomotion.gait->steps[i].phase(locomotion.gait_phase);
 				
 				// Determine leg pose
-				const skeleton_pose* pose_a;
-				const skeleton_pose* pose_b;
+				const animation::skeleton_pose* pose_a;
+				const animation::skeleton_pose* pose_b;
 				float t;
 				if (step_phase < 0.0f)
 				{
 					pose_b = locomotion.touchdown_pose.get();
 					pose_a = locomotion.liftoff_pose.get();
-					t = std::abs(step_phase);
+					t = math::abs(step_phase);
 				}
 				else
 				{
@@ -161,7 +165,7 @@ void locomotion_system::update_legged(entity::registry& registry, float, float d
 				
 				// Update leg bones
 				auto bone_index = locomotion.tip_bones[i];
-				for (std::uint8_t j = 0; j < locomotion.leg_bone_count; ++j)
+				for (u8 j = 0; j < locomotion.leg_bone_count; ++j)
 				{
 					if (j)
 					{

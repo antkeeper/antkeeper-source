@@ -18,8 +18,9 @@
 #include "game/constraints/spring-translation-constraint.hpp"
 #include "game/constraints/three-dof-constraint.hpp"
 #include "game/constraints/track-to-constraint.hpp"
-#include <engine/entity/id.hpp>
+import engine.entity.id;
 
+using namespace engine;
 
 /// Applies constraint stacks to transform components.
 class constraint_system:

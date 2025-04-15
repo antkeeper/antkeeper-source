@@ -1,32 +1,31 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/physics/kinematics/restitution.hpp>
-#include <algorithm>
+import engine.physics.kinematics.restitution;
+import engine.math.functions;
 
-namespace physics {
-
-float combine_restitution(float a, float b, restitution_combine_mode mode) noexcept
+namespace engine::physics
 {
-	switch (mode)
+	float combine_restitution(float a, float b, restitution_combine_mode mode) noexcept
 	{
-		case restitution_combine_mode::average:
-			return (a + b) * 0.5f;
-		
-		case restitution_combine_mode::minimum:
-			return std::min(a, b);
-		
-		case restitution_combine_mode::multiply:
-			return a * b;
-		
-		case restitution_combine_mode::maximum:
-			return std::max(a, b);
-		
-		default:
-			break;
-	}
-	
-	return 0.0f;
-}
+		switch (mode)
+		{
+			case restitution_combine_mode::average:
+				return (a + b) * 0.5f;
 
-} // namespace physics
+			case restitution_combine_mode::minimum:
+				return math::min(a, b);
+
+			case restitution_combine_mode::multiply:
+				return a * b;
+
+			case restitution_combine_mode::maximum:
+				return math::max(a, b);
+
+			default:
+				break;
+		}
+
+		return 0.0f;
+	}
+}

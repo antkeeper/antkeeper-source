@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <execution>
+#include <entt/entt.hpp>
 #include "game/systems/ik-system.hpp"
 #include "game/components/ik-component.hpp"
-#include <engine/entity/id.hpp>
-#include <algorithm>
-#include <execution>
+import engine.entity.id;
+import <algorithm>;
 
 void ik_system::fixed_update(entity::registry& registry, float, float)
 {

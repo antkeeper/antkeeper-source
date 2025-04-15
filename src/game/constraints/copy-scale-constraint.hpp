@@ -4,7 +4,9 @@
 #ifndef ANTKEEPER_GAME_COPY_SCALE_CONSTRAINT_HPP
 #define ANTKEEPER_GAME_COPY_SCALE_CONSTRAINT_HPP
 
-#include <engine/entity/id.hpp>
+import engine.entity.id;
+
+using namespace engine;
 
 /// Copies the scale of a target entity.
 struct copy_scale_constraint

@@ -1,21 +1,23 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "game/systems/steering-system.hpp"
-#include "game/components/steering-component.hpp"
+#include <entt/entt.hpp>
 #include "game/components/transform-component.hpp"
 #include "game/components/winged-locomotion-component.hpp"
 #include "game/components/rigid-body-component.hpp"
-#include <engine/entity/id.hpp>
-#include <engine/ai/steering/behavior/wander.hpp>
-#include <engine/ai/steering/behavior/seek.hpp>
-#include <engine/math/quaternion.hpp>
+#include "game/systems/steering-system.hpp"
+#include "game/components/steering-component.hpp"
+import engine.entity.id;
+import engine.ai.steering.behavior.seek;
+import engine.ai.steering.behavior.wander;
+import engine.math.functions;
+import engine.math.quaternion;
 
 void steering_system::fixed_update(entity::registry& registry, float, float dt)
 {
 	registry.group<steering_component>(entt::get<transform_component, winged_locomotion_component, rigid_body_component>).each
 	(
-		[&](entity::id entity_id, auto& steering, auto& transform, [[maybe_unused]] auto& locomotion, const auto& body_component)
+		[&](entity::id entity_id, auto& steering, auto& transform, auto&, const auto& body_component)
 		{
 			auto& agent = steering.agent;
 			auto& body = *body_component.body;
@@ -57,7 +59,7 @@ void steering_system::fixed_update(entity::registry& registry, float, float dt)
 			const float speed_squared = math::sqr_length(agent.velocity);
 			if (speed_squared)
 			{
-				agent.orientation = math::look_rotation(agent.velocity / std::sqrt(speed_squared), agent.up);
+				agent.orientation = math::look_rotation(agent.velocity / math::sqrt(speed_squared), agent.up);
 				agent.forward = agent.orientation * global_forward;
 				agent.up = agent.orientation * global_up;
 			}

@@ -5,8 +5,10 @@
 #define ANTKEEPER_GAME_ANT_GASTER_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-#include <engine/render/model.hpp>
-#include <memory>
+import engine.render.model;
+import <memory>;
+
+using namespace engine;
 
 /// Ant gaster phene.
 /// @see https://antwiki.org/wiki/Phragmosis

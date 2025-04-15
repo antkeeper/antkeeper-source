@@ -5,7 +5,9 @@
 #define ANTKEEPER_GAME_VARIABLE_UPDATE_SYSTEM_HPP
 
 #include "game/systems/component-system.hpp"
-#include <engine/entity/registry.hpp>
+import engine.entity.registry;
+
+using namespace engine;
 
 /// Abstract base class for systems which perform variable-rate updates.
 class variable_update_system: public virtual component_system

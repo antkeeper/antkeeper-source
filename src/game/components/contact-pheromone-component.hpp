@@ -4,13 +4,13 @@
 #ifndef ANTKEEPER_CONTACT_PHEROMONE_COMPONENT_HPP
 #define ANTKEEPER_CONTACT_PHEROMONE_COMPONENT_HPP
 
-#include <cstdint>
+import engine.utility.sized_types;
 
 /// Pheromones that coat an exoskeleton, providing short-range chemical communication.
 struct contact_pheromone_component
 {
 	/// Bit mask representing a cuticular hydrocarbon (CHC) profile.
-	std::uint32_t profile{};
+	u32 profile{};
 };
 
 #endif // ANTKEEPER_CONTACT_PHEROMONE_COMPONENT_HPP

@@ -4,9 +4,11 @@
 #ifndef ANTKEEPER_GAME_SPRING_TO_CONSTRAINT_HPP
 #define ANTKEEPER_GAME_SPRING_TO_CONSTRAINT_HPP
 
-#include <engine/entity/id.hpp>
-#include <engine/physics/spring.hpp>
-#include <engine/math/vector.hpp>
+import engine.physics.spring;
+import engine.math.vector;
+import engine.entity.id;
+
+using namespace engine;
 
 /// Springs to a target entity.
 struct spring_to_constraint

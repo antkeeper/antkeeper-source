@@ -4,7 +4,9 @@
 #ifndef ANTKEEPER_GAME_GRAVITY_COMPONENT_HPP
 #define ANTKEEPER_GAME_GRAVITY_COMPONENT_HPP
 
-#include <engine/math/vector.hpp>
+import engine.math.vector;
+
+using namespace engine;
 
 struct gravity_component
 {

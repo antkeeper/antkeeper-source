@@ -1,15 +1,17 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <nlohmann/json.hpp>
 #include "game/fonts.hpp"
-#include <engine/type/font.hpp>
-#include <engine/resources/resource-manager.hpp>
-#include <engine/render/material.hpp>
-#include <engine/render/material-flags.hpp>
-#include <engine/hash/fnv.hpp>
 #include "game/strings.hpp"
+import engine.hash.fnv;
+import engine.type.font;
+import engine.resources.resource_manager;
+import engine.render.material;
+import engine.gl.shader_template;
 
-using namespace hash::literals;
+using namespace engine;
+using namespace engine::hash::literals;
 
 void build_font_material(render::material& material, const type::font& font, std::shared_ptr<gl::shader_template> shader_template)
 {

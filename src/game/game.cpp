@@ -1,6 +1,14 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <cctype>
+#include <nlohmann/json.hpp>
+#include <entt/entt.hpp>
+
+// Prevent cxxopts from using RTTI
+#define CXXOPTS_NO_RTTI
+#include <cxxopts.hpp>
+
 #include "game/game.hpp"
 #include "game/debug/shell.hpp"
 #include "game/debug/shell-buffer.hpp"
@@ -37,59 +45,52 @@
 #include "game/components/gravity-component.hpp"
 #include "game/components/time-component.hpp"
 #include "game/components/tag-component.hpp"
-#include <algorithm>
-#include <cctype>
-#include <engine/animation/ease.hpp>
-#include <engine/animation/animation-sequence.hpp>
-#include <engine/color/color.hpp>
-#include <engine/config.hpp>
-#include <engine/debug/log.hpp>
-#include <engine/gl/framebuffer.hpp>
-#include <engine/gl/pixel-format.hpp>
-#include <engine/gl/pixel-type.hpp>
-#include <engine/gl/texture.hpp>
-#include <engine/gl/vertex-array.hpp>
-#include <engine/gl/vertex-buffer.hpp>
-#include <engine/input/application-events.hpp>
-#include <engine/input/gamepad.hpp>
-#include <engine/input/keyboard.hpp>
-#include <engine/input/mapper.hpp>
-#include <engine/input/mouse.hpp>
-#include <engine/input/scancode.hpp>
-#include <engine/render/compositor.hpp>
-#include <engine/render/material-flags.hpp>
-#include <engine/render/material-variable.hpp>
-#include <engine/render/passes/bloom-pass.hpp>
-#include <engine/render/passes/composite-pass.hpp>
-#include <engine/render/passes/material-pass.hpp>
-#include <engine/render/passes/sky-pass.hpp>
-#include <engine/render/passes/clear-pass.hpp>
-#include <engine/render/renderer.hpp>
-#include <engine/render/vertex-attribute-location.hpp>
-#include <engine/resources/resource-manager.hpp>
-#include <engine/scene/scene.hpp>
-#include <engine/utility/dict.hpp>
-#include <engine/hash/fnv.hpp>
-#include <engine/utility/paths.hpp>
-#include <engine/ui/label.hpp>
-#include <engine/ui/range.hpp>
-#include <entt/entt.hpp>
-#include <filesystem>
-#include <functional>
-#include <string>
-#include <vector>
-#include <chrono>
+import engine.config;
+import engine.gl.framebuffer;
+import engine.gl.pixel_format;
+import engine.gl.pixel_type;
+import engine.gl.texture;
+import engine.gl.vertex_array;
+import engine.gl.vertex_buffer;
+import engine.gl.clear_bits;
+import engine.render.compositor;
+import engine.render.material;
+import engine.render.passes.bloom_pass;
+import engine.render.passes.composite_pass;
+import engine.render.passes.material_pass;
+import engine.render.passes.sky_pass;
+import engine.render.passes.clear_pass;
+import engine.render.renderer;
+import engine.render.vertex_attribute_location;
+import engine.utility.paths;
+import engine.utility.dict;
+import engine.hash.fnv;
+import engine.script.math_module;
+import engine.script.io_module;
+import engine.script.event_module;
+import engine.script.global_module;
+import engine.audio.sound_wave;
+import engine.debug.log;
+import engine.resources.resource_manager;
+import engine.ui.range;
+import engine.ui.label;
+import engine.input.application_events;
+import engine.input.gamepad;
+import engine.input.keyboard;
+import engine.input.mapper;
+import engine.input.mouse;
+import engine.input.scancode;
+import engine.animation.ease;
+import engine.animation.animation_sequence;
+import engine.math.functions;
+import <filesystem>;
+import <functional>;
+import <string>;
+import <vector>;
+import <chrono>;
 
-#include <engine/script/script-math-module.hpp>
-#include <engine/script/script-io-module.hpp>
-#include <engine/script/script-event-module.hpp>
-#include <engine/script/script-global-module.hpp>
-
-// Prevent cxxopts from using RTTI
-#define CXXOPTS_NO_RTTI
-#include <cxxopts.hpp>
-
-using namespace hash::literals;
+using namespace engine;
+using namespace engine::hash::literals;
 
 game::game(int argc, const char* const* argv)
 {
@@ -242,10 +243,10 @@ void game::setup_resources()
 	debug::log_debug("Setting up resources...");
 
 	// Allocate resource manager
-	resource_manager = std::make_unique<::resource_manager>();
+	resource_manager = std::make_unique<resources::resource_manager>();
 	
 	// Get executable data path
-	const auto data_path = executable_data_directory_path();
+	const auto data_path = paths::executable_data_directory_path();
 	
 	// Determine data package path
 	if (option_data)
@@ -266,8 +267,8 @@ void game::setup_resources()
 	mods_path = data_path / "mods";
 	
 	// Determine config paths
-	local_config_path = ::local_config_directory_path() / config::application_name;
-	shared_config_path = ::shared_config_directory_path() / config::application_name;
+	local_config_path = paths::local_config_directory_path() / config::application_name;
+	shared_config_path = paths::shared_config_directory_path() / config::application_name;
 	saves_path = shared_config_path / "saves";
 	screenshots_path = shared_config_path / "gallery";
 	controls_path = shared_config_path / "controls";
@@ -447,7 +448,7 @@ void game::setup_window()
 	// Setup window closed callback
 	window_closed_subscription = window->get_closed_channel().subscribe
 	(
-		[&]([[maybe_unused]] const auto& event)
+		[&](const auto&)
 		{
 			closed = true;
 		}
@@ -510,7 +511,7 @@ void game::setup_input()
 	// Setup application quit callback
 	application_quit_subscription = input_manager->get_event_dispatcher().subscribe<input::application_quit_event>
 	(
-		[&]([[maybe_unused]] const auto& event)
+		[&](const auto&)
 		{
 			closed = true;
 		}
@@ -534,7 +535,7 @@ void game::setup_input()
 	(
 		[&](const auto& event)
 		{
-			if (!gamepad_active && std::abs(event.position) > 0.5f)
+			if (!gamepad_active && math::abs(event.position) > 0.5f)
 			{
 				gamepad_active = true;
 				input_manager->set_cursor_visible(false);
@@ -806,13 +807,13 @@ void game::setup_ui()
 	// Screen transition billboard
 	screen_transition_billboard = std::make_unique<scene::billboard>();
 	screen_transition_billboard->set_material(screen_transition_material);
-	screen_transition_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
-	screen_transition_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), 98.0f});
+	screen_transition_billboard->set_scale({math::ceil(viewport_size.x() * 0.5f), math::ceil(viewport_size.y() * 0.5f), 1.0f});
+	screen_transition_billboard->set_translation({math::floor(viewport_size.x() * 0.5f), math::floor(viewport_size.y() * 0.5f), 98.0f});
 	screen_transition_billboard->set_layer_mask(0);
 
 	// Construct screen fade in sequence
 	{
-		screen_fade_in_sequence = std::make_shared<animation_sequence>();
+		screen_fade_in_sequence = std::make_shared<animation::animation_sequence>();
 		auto& opacity_track = screen_fade_in_sequence->tracks()["opacity"];
 		auto& opacity_channel = opacity_track.channels().emplace_back();
 		opacity_channel.keyframes().emplace(0.0f, 1.0f);
@@ -826,7 +827,7 @@ void game::setup_ui()
 
 	// Construct screen fade out sequence
 	{
-		screen_fade_out_sequence = std::make_shared<animation_sequence>();
+		screen_fade_out_sequence = std::make_shared<animation::animation_sequence>();
 		auto& opacity_track = screen_fade_out_sequence->tracks()["opacity"];
 		auto& opacity_channel = opacity_track.channels().emplace_back();
 		opacity_channel.keyframes().emplace(0.0f, 0.0f);
@@ -872,7 +873,7 @@ void game::setup_ui()
 	);
 	version_label->set_mouse_button_pressed_callback
 	(
-		[&]([[maybe_unused]] const auto& event)
+		[&](const auto&)
 		{
 			// test_sound->play();
 		}
@@ -911,11 +912,11 @@ void game::setup_ui()
 			);
 
 			// Resize screen transition billboard
-			screen_transition_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
-			screen_transition_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), 98.0f});
+			screen_transition_billboard->set_scale({math::ceil(viewport_size.x() * 0.5f), math::ceil(viewport_size.y() * 0.5f), 1.0f});
+			screen_transition_billboard->set_translation({math::floor(viewport_size.x() * 0.5f), math::floor(viewport_size.y() * 0.5f), 98.0f});
 			
 			// Re-align debug text
-			frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - debug_font->get_metrics().size), 99.0f});
+			frame_time_text->set_translation({math::round(0.0f), math::round(viewport_size.y() - debug_font->get_metrics().size), 99.0f});
 
 			if (m_graphics_menu_container)
 			{
@@ -1228,8 +1229,8 @@ void game::setup_debugging()
 	command_line_text->set_font(debug_font);
 	command_line_text->set_translation
 	({
-		std::round(debug_font->get_metrics().linespace),
-		std::round(debug_font->get_metrics().linespace - debug_font->get_metrics().descent),
+		math::round(debug_font->get_metrics().linespace),
+		math::round(debug_font->get_metrics().linespace - debug_font->get_metrics().descent),
 		99.0f
 	});
 	
@@ -1255,7 +1256,7 @@ void game::setup_debugging()
 	frame_time_text->set_material(debug_font_material);
 	frame_time_text->set_color({1.0f, 1.0f, 0.0f, 1.0f});
 	frame_time_text->set_font(debug_font);
-	frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - debug_font->get_metrics().size), 99.0f});
+	frame_time_text->set_translation({math::round(0.0f), math::round(viewport_size.y() - debug_font->get_metrics().size), 99.0f});
 
 	debug::log_debug("Setting up debugging... OK");
 }
@@ -1272,8 +1273,8 @@ void game::setup_timing()
 	read_or_write_setting(*this, "max_frame_rate", max_frame_rate);
 	read_or_write_setting(*this, "limit_frame_rate", limit_frame_rate);
 	
-	const auto fixed_update_interval = std::chrono::duration_cast<::frame_scheduler::duration_type>(std::chrono::duration<double>(1.0 / fixed_update_rate));
-	const auto min_frame_duration = (limit_frame_rate) ? std::chrono::duration_cast<::frame_scheduler::duration_type>(std::chrono::duration<double>(1.0 / max_frame_rate)) : frame_scheduler::duration_type::zero();
+	const auto fixed_update_interval = std::chrono::duration_cast<engine::frame_scheduler::duration_type>(std::chrono::duration<double>(1.0 / fixed_update_rate));
+	const auto min_frame_duration = (limit_frame_rate) ? std::chrono::duration_cast<engine::frame_scheduler::duration_type>(std::chrono::duration<double>(1.0 / max_frame_rate)) : frame_scheduler::duration_type::zero();
 	const auto max_frame_duration = fixed_update_interval * 15;
 	
 	// Configure frame scheduler
@@ -1289,7 +1290,7 @@ void game::setup_timing()
 	debug::log_debug("Setting up timing... OK");
 }
 
-void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval)
+void game::fixed_update(engine::frame_scheduler::duration_type fixed_update_time, engine::frame_scheduler::duration_type fixed_update_interval)
 {
 	const float t = std::chrono::duration<float>(fixed_update_time).count();
 	const float dt = std::chrono::duration<float>(fixed_update_interval).count();
@@ -1311,11 +1312,11 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 	}
 }
 
-void game::variable_update([[maybe_unused]] ::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval, ::frame_scheduler::duration_type accumulated_time)
+void game::variable_update(engine::frame_scheduler::duration_type fixed_update_time, engine::frame_scheduler::duration_type fixed_update_interval, engine::frame_scheduler::duration_type accumulated_time)
 {
 	const float t = std::chrono::duration<float>(fixed_update_time).count();
 	const float dt = std::chrono::duration<float>(fixed_update_interval).count();
-	const float alpha = static_cast<float>(std::chrono::duration<double, ::frame_scheduler::duration_type::period>{accumulated_time} / fixed_update_interval);
+	const float alpha = static_cast<float>(std::chrono::duration<double, engine::frame_scheduler::duration_type::period>{accumulated_time} / fixed_update_interval);
 	
 	// Sample average frame duration
 	const float average_frame_ms = average_frame_duration(std::chrono::duration<float, std::milli>(frame_scheduler.get_frame_duration()).count());
@@ -1343,9 +1344,9 @@ void game::execute()
 	open_main_menu(*this, true);
 
 	debug::log_debug("Entered main loop");
-	
+
 	frame_scheduler.refresh();
-	
+
 	while (!closed)
 	{
 		frame_scheduler.tick();

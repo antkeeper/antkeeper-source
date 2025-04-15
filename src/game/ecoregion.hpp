@@ -4,12 +4,15 @@
 #ifndef ANTKEEPER_GAME_ECOREGION_HPP
 #define ANTKEEPER_GAME_ECOREGION_HPP
 
-#include <engine/math/vector.hpp>
-#include <engine/render/material.hpp>
-#include "game/ant/ant-gene-pool.hpp"
-#include <string>
 #include <random>
-#include <memory>
+#include "game/ant/ant-gene-pool.hpp"
+import engine.math.vector;
+import engine.render.material;
+import engine.utility.sized_types;
+import <memory>;
+import <string>;
+
+using namespace engine;
 
 struct ecoregion
 {
@@ -35,7 +38,7 @@ struct ecoregion
 	std::vector<ant_gene_pool> gene_pools;
 	
 	/// Discrete probability distribution of gene pools.
-	std::discrete_distribution<std::size_t> gene_pool_distribution;
+	std::discrete_distribution<usize> gene_pool_distribution;
 };
 
 #endif // ANTKEEPER_GAME_ECOREGION_HPP

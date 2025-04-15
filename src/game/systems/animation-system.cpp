@@ -1,15 +1,19 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <entt/entt.hpp>
+#include <execution>
 #include "game/systems/animation-system.hpp"
 #include "game/components/pose-component.hpp"
 #include "game/components/scene-object-component.hpp"
 #include "game/components/animation-component.hpp"
-#include <engine/animation/bone.hpp>
-#include <engine/scene/skeletal-mesh.hpp>
-#include <engine/math/functions.hpp>
-#include <algorithm>
-#include <execution>
+import engine.animation.bone;
+import engine.math.functions;
+import engine.scene.skeletal_mesh;
+import engine.utility.sized_types;
+import <algorithm>;
+
+using namespace engine;
 
 animation_system::animation_system(entity::registry& registry):
 	m_registry(registry)
@@ -39,7 +43,7 @@ void animation_system::variable_update(entity::registry& registry, float t, floa
 			auto& scene = pose_group.get<scene_object_component>(entity_id);
 			
 			auto& skeletal_mesh = static_cast<scene::skeletal_mesh&>(*scene.object);
-			for (std::size_t i = 0; i < skeletal_mesh.get_skeleton()->bones().size(); ++i)
+			for (usize i = 0; i < skeletal_mesh.get_skeleton()->bones().size(); ++i)
 			{
 				const auto& previous_transform = pose.previous_pose.get_relative_transform(i);
 				const auto& current_transform = pose.current_pose.get_relative_transform(i);
@@ -59,7 +63,7 @@ void animation_system::variable_update(entity::registry& registry, float t, floa
 	m_previous_render_time = m_render_time;
 	m_render_time = t + dt * alpha;
 
-	const auto variable_dt = std::max(0.0f, m_render_time - m_previous_render_time);
+	const auto variable_dt = math::max(0.0f, m_render_time - m_previous_render_time);
 
 	auto animation_view = registry.view<animation_component>();
 	for (auto entity: animation_view)

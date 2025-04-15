@@ -5,8 +5,10 @@
 #define ANTKEEPER_GAME_ANT_STING_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-#include <engine/render/model.hpp>
-#include <memory>
+import engine.render.model;
+import <memory>;
+
+using namespace engine;
 
 /// Trait that describes the sting of an ant.
 struct ant_sting_phene

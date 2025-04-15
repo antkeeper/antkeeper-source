@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <entt/entt.hpp>
 #include "game/systems/spatial-system.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/constraint-stack-component.hpp"

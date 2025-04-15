@@ -1,29 +1,29 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/input/keyboard.hpp>
-#include <engine/input/scancode.hpp>
+import engine.input.keyboard;
+import engine.event.publisher;
+import engine.utility.sized_types;
 
-namespace input {
-
-void keyboard::press(scancode scancode, std::uint16_t modifiers, bool repeat)
+namespace engine::input
 {
-	m_key_pressed_publisher.publish({this, scancode, modifiers, repeat});
-}
+	void keyboard::press(scancode scancode, u16 modifiers, bool repeat)
+	{
+		m_key_pressed_publisher.publish({this, scancode, modifiers, repeat});
+	}
 
-void keyboard::release(scancode scancode, std::uint16_t modifiers)
-{
-	m_key_released_publisher.publish({this, scancode, modifiers});
-}
+	void keyboard::release(scancode scancode, u16 modifiers)
+	{
+		m_key_released_publisher.publish({this, scancode, modifiers});
+	}
 
-void keyboard::input_text(const std::string& text)
-{
-	m_text_input_publisher.publish({this, text});
-}
+	void keyboard::input_text(const std::string& text)
+	{
+		m_text_input_publisher.publish({this, text});
+	}
 
-void keyboard::edit_text(const std::string& text, std::size_t position, std::size_t length)
-{
-	m_text_edit_publisher.publish({this, text, position, length});
+	void keyboard::edit_text(const std::string& text, usize position, usize length)
+	{
+		m_text_edit_publisher.publish({this, text, position, length});
+	}
 }
-
-} // namespace input

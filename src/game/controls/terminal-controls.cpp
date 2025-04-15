@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "game/controls.hpp"
+#include "game/game.hpp"
 #include "game/debug/shell.hpp"
-#include <engine/input/keyboard-events.hpp>
-#include <engine/debug/log.hpp>
-#include <engine/type/unicode.hpp>
+#include "game/controls.hpp"
+import engine.input.keyboard;
+import engine.debug.log;
+import engine.type.unicode;
 
 void setup_terminal_controls(::game& ctx)
 {
@@ -14,7 +15,7 @@ void setup_terminal_controls(::game& ctx)
 	(
 		ctx.terminal_enter_action.get_activated_channel().subscribe
 		(
-			[&ctx]([[maybe_unused]] const auto& event)
+			[&ctx](const auto&)
 			{
 				ctx.shell->interpret(ctx.command_line);
 				ctx.command_line.clear();
@@ -29,7 +30,7 @@ void setup_terminal_controls(::game& ctx)
 	(
 		ctx.terminal_up_action.get_activated_channel().subscribe
 		(
-			[&ctx]([[maybe_unused]] const auto& event)
+			[&ctx](const auto&)
 			{
 				if (ctx.command_line.empty())
 				{
@@ -50,7 +51,7 @@ void setup_terminal_controls(::game& ctx)
 	(
 		ctx.terminal_left_action.get_activated_channel().subscribe
 		(
-			[&ctx]([[maybe_unused]] const auto& event)
+			[&ctx](const auto&)
 			{
 				if (!ctx.command_line.empty() && ctx.command_line_cursor)
 				{
@@ -70,7 +71,7 @@ void setup_terminal_controls(::game& ctx)
 	(
 		ctx.terminal_right_action.get_activated_channel().subscribe
 		(
-			[&ctx]([[maybe_unused]] const auto& event)
+			[&ctx](const auto&)
 			{
 				if (!ctx.command_line.empty() && ctx.command_line_cursor < ctx.command_line.length())
 				{
@@ -90,7 +91,7 @@ void setup_terminal_controls(::game& ctx)
 	(
 		ctx.terminal_backspace_action.get_activated_channel().subscribe
 		(
-			[&ctx]([[maybe_unused]] const auto& event)
+			[&ctx](const auto&)
 			{
 				if (!ctx.command_line.empty() && ctx.command_line_cursor)
 				{
@@ -125,7 +126,7 @@ void setup_terminal_controls(::game& ctx)
 	(
 		ctx.terminal_paste_action.get_activated_channel().subscribe
 		(
-			[&ctx]([[maybe_unused]] const auto& event)
+			[&ctx](const auto&)
 			{
 				auto text = ctx.input_manager->get_clipboard_text();
 				if (!text.empty())
@@ -143,7 +144,7 @@ void setup_terminal_controls(::game& ctx)
 	(
 		ctx.terminal_clear_line_action.get_activated_channel().subscribe
 		(
-			[&ctx]([[maybe_unused]] const auto& event)
+			[&ctx](const auto&)
 			{
 				if (!ctx.command_line.empty())
 				{
@@ -160,7 +161,7 @@ void setup_terminal_controls(::game& ctx)
 	(
 		ctx.input_manager->get_event_dispatcher().subscribe<input::text_input_event>
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto& event)
 			{
 				if (ctx.terminal_enabled && !ctx.toggle_terminal_action.is_active())
 				{
@@ -177,7 +178,7 @@ void setup_terminal_controls(::game& ctx)
 	(
 		ctx.input_manager->get_event_dispatcher().subscribe<input::text_edit_event>
 		(
-			[&]([[maybe_unused]] const auto& event)
+			[&](const auto& event)
 			{
 				// debug::log_info("edit text: {} {} {}", event.text, event.position, event.length);
 				

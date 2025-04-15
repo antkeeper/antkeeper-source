@@ -1,14 +1,16 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <entt/entt.hpp>
 #include "game/systems/camera-system.hpp"
 #include "game/components/autofocus-component.hpp"
 #include "game/components/spring-arm-component.hpp"
 #include "game/components/scene-object-component.hpp"
-#include <engine/animation/ease.hpp>
-#include <engine/math/projection.hpp>
-#include <engine/scene/camera.hpp>
-#include <engine/math/euler-angles.hpp>
+import engine.animation.ease;
+import engine.math.functions;
+import engine.math.projection;
+import engine.math.euler_angles;
+import engine.scene.camera;
 
 void camera_system::fixed_update(entity::registry&, float, float)
 {}
@@ -16,7 +18,7 @@ void camera_system::fixed_update(entity::registry&, float, float)
 void camera_system::variable_update(entity::registry& registry, float t, float dt, float alpha)
 {
 	const double variable_update_time = t + dt * alpha;
-	const double variable_timestep = std::max(0.0, variable_update_time - m_variable_update_time);
+	const double variable_timestep = math::max(0.0, variable_update_time - m_variable_update_time);
 	m_variable_update_time = variable_update_time;
 	
 	/*
@@ -32,18 +34,18 @@ void camera_system::variable_update(entity::registry& registry, float t, float d
 			auto& camera = static_cast<scene::camera&>(*autofocus_group.get<scene_object_component>(entity_id).object);
 			
 			// Clamp zoom factor
-			autofocus.zoom = std::min<double>(std::max<double>(autofocus.zoom, 0.0), 1.0);
+			autofocus.zoom = math::clamp(autofocus.zoom, 0.0, 1.0);
 			
 			// Calculate horizontal and vertical FoV
-			autofocus.hfov = ease<double, double>::out_sine(autofocus.far_hfov, autofocus.near_hfov, autofocus.zoom);
+			autofocus.hfov = animation::ease<double, double>::out_sine(autofocus.far_hfov, autofocus.near_hfov, autofocus.zoom);
 			autofocus.vfov = math::vertical_fov(autofocus.hfov, static_cast<double>(camera.get_aspect_ratio()));
 			
 			// Calculate focal plane dimensions
-			autofocus.focal_plane_size.y() = ease<double, double>::out_sine(autofocus.far_focal_plane_height, autofocus.near_focal_plane_height, autofocus.zoom);
+			autofocus.focal_plane_size.y() = animation::ease<double, double>::out_sine(autofocus.far_focal_plane_height, autofocus.near_focal_plane_height, autofocus.zoom);
 			autofocus.focal_plane_size.x() = autofocus.focal_plane_size.y() * static_cast<double>(camera.get_aspect_ratio());
 			
 			// Calculate focal distance
-			autofocus.focal_distance = autofocus.focal_plane_height * 0.5 / std::tan(autofocus.vfov * 0.5);
+			autofocus.focal_distance = autofocus.focal_plane_height * 0.5 / math::tan(autofocus.vfov * 0.5);
 			
 			// Update camera projection matrix
 			camera.set_vertical_fov(static_cast<float>(autofocus.vfov));
@@ -84,22 +86,22 @@ void camera_system::variable_update(entity::registry& registry, float t, float d
 		// Recalculate zoom
 		// if (spring_arm.pitch_velocity)
 		{
-			spring_arm.zoom = ease<double, double>::in_sine(1.0, 0.0, spring_arm.angles_spring.get_value().x() / -math::half_pi<double>);
+			spring_arm.zoom = animation::ease<double, double>::in_sine(1.0, 0.0, spring_arm.angles_spring.get_value().x() / -math::half_pi<double>);
 		}
 		
 		// Clamp zoom
-		spring_arm.zoom = std::min<double>(std::max<double>(spring_arm.zoom, 0.0), 1.0);
+		spring_arm.zoom = math::clamp(spring_arm.zoom, 0.0, 1.0);
 		
 		// Update FoV
-		spring_arm.hfov = ease<double, double>::out_sine(spring_arm.far_hfov, spring_arm.near_hfov, spring_arm.zoom);
+		spring_arm.hfov = animation::ease<double, double>::out_sine(spring_arm.far_hfov, spring_arm.near_hfov, spring_arm.zoom);
 		spring_arm.vfov = math::vertical_fov(spring_arm.hfov, static_cast<double>(camera.get_aspect_ratio()));
 		
 		// Update focal plane size
-		spring_arm.focal_plane_height = ease<double, double>::out_sine(spring_arm.far_focal_plane_height, spring_arm.near_focal_plane_height, spring_arm.zoom);
+		spring_arm.focal_plane_height = animation::ease<double, double>::out_sine(spring_arm.far_focal_plane_height, spring_arm.near_focal_plane_height, spring_arm.zoom);
 		spring_arm.focal_plane_width = spring_arm.focal_plane_height * static_cast<double>(camera.get_aspect_ratio());
 		
 		// Update focal distance
-		spring_arm.focal_distance = spring_arm.focal_plane_height * 0.5 / std::tan(spring_arm.vfov * 0.5);
+		spring_arm.focal_distance = spring_arm.focal_plane_height * 0.5 / math::tan(spring_arm.vfov * 0.5);
 		
 		const auto camera_up = spring_arm.up_rotation * math::dvec3{0, 1, 0};
 		const auto parent_up = parent_transform.rotation * math::dvec3{0, 1, 0};
@@ -117,7 +119,7 @@ void camera_system::variable_update(entity::registry& registry, float t, float d
 		camera_transform.scale = {1, 1, 1};
 		
 		
-		double center_offset = (1.0 - std::abs(spring_arm.angles_spring.get_value().x()) / math::half_pi<double>) * (spring_arm.focal_plane_height / 3.0 * 0.5);
+		double center_offset = (1.0 - math::abs(spring_arm.angles_spring.get_value().x()) / math::half_pi<double>) * (spring_arm.focal_plane_height / 3.0 * 0.5);
 		camera_transform.translation += math::fvec3(spring_arm.camera_rotation * math::dvec3{0, center_offset, 0});
 		
 		camera.set_transform(camera_transform);

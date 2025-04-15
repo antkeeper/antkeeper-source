@@ -1,16 +1,18 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/script/script-global-module.hpp>
-#include <engine/script/script-context.hpp>
-#include <engine/debug/contract.hpp>
-
 extern "C"
 {
 	#include <lua.h>
 	#include <lualib.h>
 	#include <lauxlib.h>
 }
+
+import engine.script.context;
+import engine.script.global_module;
+import engine.debug.contract;
+
+using namespace engine;
 
 namespace
 {
@@ -51,10 +53,13 @@ namespace
 	}
 }
 
-auto load_global_module(script_context& ctx) -> void
+namespace engine
 {
-	lua_State* lua = ctx.state();
+	auto load_global_module(script_context& ctx) -> void
+	{
+		lua_State* lua = ctx.state();
 
-	lua_pushcclosure(lua, lua_global_help, 0);
-	lua_setglobal(lua, "help");
+		lua_pushcclosure(lua, lua_global_help, 0);
+		lua_setglobal(lua, "help");
+	}
 }

@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <entt/entt.hpp>
 #include "game/systems/constraint-system.hpp"
 #include "game/components/constraint-stack-component.hpp"
-#include <engine/math/quaternion.hpp>
+import engine.math.quaternion;
 
 constraint_system::constraint_system(entity::registry& registry):
 	m_registry(registry)
@@ -25,7 +26,7 @@ void constraint_system::fixed_update(entity::registry& registry, float, float dt
 	// For each entity with transform and constraint stack components
 	registry.view<transform_component, constraint_stack_component>().each
 	(
-		[&]([[maybe_unused]] entity::id transform_eid, auto& transform, auto& stack)
+		[&](entity::id, auto& transform, auto& stack)
 		{
 			// Init world-space transform
 			transform.world = transform.local;
@@ -90,7 +91,7 @@ void constraint_system::evaluate(entity::id entity_id)
 	}
 }
 
-void constraint_system::on_constraint_stack_update(entity::registry& registry, [[maybe_unused]] entity::id constraint_stack_eid)
+void constraint_system::on_constraint_stack_update(entity::registry& registry, entity::id)
 {
 	registry.sort<constraint_stack_component>
 	(

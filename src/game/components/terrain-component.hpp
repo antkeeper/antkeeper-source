@@ -4,9 +4,11 @@
 #ifndef ANTKEEPER_GAME_TERRAIN_COMPONENT_HPP
 #define ANTKEEPER_GAME_TERRAIN_COMPONENT_HPP
 
-#include <engine/entity/id.hpp>
-#include <engine/math/vector.hpp>
-#include <vector>
+import engine.math.vector;
+import engine.entity.id;
+import <vector>;
+
+using namespace engine;
 
 /// Grid of terrain cells.
 struct terrain_grid_component

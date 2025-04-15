@@ -4,19 +4,21 @@
 #ifndef ANTKEEPER_GAME_OVARY_COMPONENT_HPP
 #define ANTKEEPER_GAME_OVARY_COMPONENT_HPP
 
-#include <engine/animation/bone.hpp>
-#include <engine/geom/primitives/line-segment.hpp>
-#include <engine/entity/id.hpp>
-#include <cstdint>
-#include <memory>
+import engine.geom.primitives.line_segment;
+import engine.entity.id;
+import engine.animation.bone;
+import engine.utility.sized_types;
+import <memory>;
+
+using namespace engine;
 
 struct ovary_component
 {
 	/// Maximum number of concurrent eggs.
-	std::uint16_t egg_capacity{};
+	u16 egg_capacity{};
 	
 	/// Number of fully-developed eggs.
-	std::uint16_t egg_count{};
+	u16 egg_count{};
 	
 	/// Duration required to produce an egg, in seconds.
 	float egg_production_duration{};
@@ -34,7 +36,7 @@ struct ovary_component
 	bool ovipositing{};
 	
 	/// Bone of the ovipositor.
-	std::size_t ovipositor_bone{};
+	usize ovipositor_bone{};
 	
 	/// Path along which eggs travel while being oviposited, relative to the ovipositor bone.
 	geom::line_segment<float, 3> oviposition_path{};

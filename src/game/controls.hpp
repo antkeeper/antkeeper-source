@@ -4,10 +4,9 @@
 #ifndef ANTKEEPER_GAME_CONTROLS_HPP
 #define ANTKEEPER_GAME_CONTROLS_HPP
 
-#include "game/game.hpp"
-#include <engine/utility/json.hpp>
-#include <engine/input/gamepad.hpp>
-#include <filesystem>
+#include "game/control-profile.hpp"
+
+class game;
 
 /// Resets a control profile to default settings.
 /// @param profile Control profile to reset.

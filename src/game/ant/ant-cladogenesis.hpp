@@ -4,10 +4,10 @@
 #ifndef ANTKEEPER_GAME_ANT_CLADOGENESIS_HPP
 #define ANTKEEPER_GAME_ANT_CLADOGENESIS_HPP
 
+#include <random>
 #include "game/ant/ant-genome.hpp"
 #include "game/ant/ant-gene-pool.hpp"
-#include <memory>
-#include <random>
+import <memory>;
 
 /// Generates an ant genome from a gene pool.
 /// @tparam URBG Uniform random bit generator type.

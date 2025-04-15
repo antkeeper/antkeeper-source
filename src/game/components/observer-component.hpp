@@ -4,7 +4,9 @@
 #ifndef ANTKEEPER_GAME_OBSERVER_COMPONENT_HPP
 #define ANTKEEPER_GAME_OBSERVER_COMPONENT_HPP
 
-#include <engine/entity/id.hpp>
+import engine.entity.id;
+
+using namespace engine;
 
 struct observer_component
 {

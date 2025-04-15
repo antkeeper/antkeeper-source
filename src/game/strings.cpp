@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <nlohmann/json.hpp>
 #include "game/strings.hpp"
-#include <format>
+import <format>;
 
 std::string get_string(const ::game& ctx, std::string_view key)
 {

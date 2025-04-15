@@ -1,10 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/resources/resource-loader.hpp>
-#include <engine/resources/resource-manager.hpp>
-#include <engine/render/model.hpp>
-#include <engine/math/functions.hpp>
+#include <nlohmann/json.hpp>
+#include <entt/entt.hpp>
 #include "game/components/atmosphere-component.hpp"
 #include "game/components/behavior-component.hpp"
 #include "game/components/diffuse-reflector-component.hpp"
@@ -14,11 +12,17 @@
 #include "game/components/orbit-component.hpp"
 #include "game/components/blackbody-component.hpp"
 #include "game/components/celestial-body-component.hpp"
-#include <engine/entity/archetype.hpp>
-#include <engine/physics/orbit/elements.hpp>
-#include <engine/utility/json.hpp>
-#include <engine/scene/static-mesh.hpp>
-#include <stdexcept>
+import engine.physics.orbit.elements;
+import engine.render.model;
+import engine.entity.archetype;
+import engine.resources.resource_loader;
+import engine.resources.resource_manager;
+import engine.utility.json;
+import engine.scene.static_mesh;
+import engine.math.functions;
+import <stdexcept>;
+
+using namespace engine;
 
 static bool load_component_atmosphere(entity::archetype& archetype, const json& element)
 {
@@ -152,7 +156,7 @@ static bool load_component_diffuse_reflector(entity::archetype& archetype, const
 	return true;
 }
 
-static bool load_component_model(entity::archetype& archetype, resource_manager& resource_manager, const json& element)
+static bool load_component_model(entity::archetype& archetype, resources::resource_manager& resource_manager, const json& element)
 {
 	std::shared_ptr<render::model> model;
 	if (element.contains("file"))
@@ -167,7 +171,7 @@ static bool load_component_model(entity::archetype& archetype, resource_manager&
 			handle.emplace_or_replace<scene_object_component>
 			(
 				std::make_shared<scene::static_mesh>(model),
-				std::uint8_t{0b00000001}
+				u8{0b00000001}
 			);
 		}
 	);
@@ -243,7 +247,7 @@ static bool load_component_transform(entity::archetype& archetype, const json& e
 	return true;
 }
 
-static bool load_component(entity::archetype& archetype, resource_manager& resource_manager, json::const_iterator element)
+static bool load_component(entity::archetype& archetype, resources::resource_manager& resource_manager, json::const_iterator element)
 {
 	if (element.key() == "atmosphere")
 		return load_component_atmosphere(archetype, element.value());
@@ -267,23 +271,26 @@ static bool load_component(entity::archetype& archetype, resource_manager& resou
 	return false;
 }
 
-template <>
-std::unique_ptr<entity::archetype> resource_loader<entity::archetype>::load(::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
+namespace engine::resources
 {
-	// Load JSON data
-	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
-	
-	// Allocate archetype
-	std::unique_ptr<entity::archetype> archetype = std::make_unique<entity::archetype>();
-	
-	// Load components from table rows
-	for (auto element = json_data->cbegin(); element != json_data->cend(); ++element)
+	template <>
+	std::unique_ptr<entity::archetype> resource_loader<entity::archetype>::load(resources::resource_manager& resource_manager, std::shared_ptr<deserialize_context> ctx)
 	{
-		if (!load_component(*archetype, resource_manager, element))
+		// Load JSON data
+		auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
+
+		// Allocate archetype
+		std::unique_ptr<entity::archetype> archetype = std::make_unique<entity::archetype>();
+
+		// Load components from table rows
+		for (auto element = json_data->cbegin(); element != json_data->cend(); ++element)
 		{
-			throw std::runtime_error("Failed to load component \"" + element.key() + "\"");
+			if (!load_component(*archetype, resource_manager, element))
+			{
+				throw std::runtime_error("Failed to load component \"" + element.key() + "\"");
+			}
 		}
+
+		return archetype;
 	}
-	
-	return archetype;
 }

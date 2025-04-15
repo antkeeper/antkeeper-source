@@ -4,11 +4,13 @@
 #ifndef ANTKEEPER_GAME_ANT_CASTE_TYPE_HPP
 #define ANTKEEPER_GAME_ANT_CASTE_TYPE_HPP
 
-#include <cstdint>
+import engine.utility.sized_types;
+
+using namespace engine;
 
 /// Ant caste types.
 /// @see https://www.antwiki.org/wiki/Caste_Terminology
-enum class ant_caste_type: std::uint8_t
+enum class ant_caste_type: u8
 {
 	/// Queen caste.
 	queen   = 0b0001,

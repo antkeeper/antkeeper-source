@@ -4,8 +4,9 @@
 #ifndef ANTKEEPER_GAME_CHILD_OF_CONSTRAINT_HPP
 #define ANTKEEPER_GAME_CHILD_OF_CONSTRAINT_HPP
 
-#include <engine/entity/id.hpp>
-#include <engine/math/vector.hpp>
+import engine.entity.id;
+
+using namespace engine;
 
 /// Makes the entity a child of the target entity.
 struct child_of_constraint

@@ -1,11 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <nlohmann/json.hpp>
 #include "game/menu.hpp"
-#include <engine/scene/text.hpp>
-#include <engine/config.hpp>
-#include <algorithm>
-#include <engine/math/vector.hpp>
 #include "game/components/animation-component.hpp"
 #include "game/components/tag-component.hpp"
 #include "game/strings.hpp"
@@ -13,24 +10,28 @@
 #include "game/control-profile.hpp"
 #include "game/fonts.hpp"
 #include "game/graphics.hpp"
-
 #include "game/states/experiments/test-state.hpp"
 #include "game/screen-transition.hpp"
+import engine.render.passes.sky_pass;
+import engine.ui.center_container;
+import engine.ui.column_container;
+import engine.ui.row_container;
+import engine.ui.margin_container;
+import engine.ui.label;
+import engine.ui.separator;
+import engine.ui.range;
+import engine.ui.image;
+import engine.debug.contract;
+import engine.debug.log;
+import engine.resources.resource_manager;
+import engine.scene.text;
+import engine.math.vector;
+import engine.config;
+import engine.utility.sized_types;
+import engine.math.functions;
 
-#include <engine/render/passes/sky-pass.hpp>
-#include <engine/ui/center-container.hpp>
-#include <engine/ui/column-container.hpp>
-#include <engine/ui/row-container.hpp>
-#include <engine/ui/margin-container.hpp>
-#include <engine/ui/label.hpp>
-#include <engine/ui/separator.hpp>
-#include <engine/ui/range.hpp>
-#include <engine/ui/image.hpp>
-#include <engine/debug/contract.hpp>
-#include <engine/debug/log.hpp>
-#include <engine/resources/resource-manager.hpp>
-
-using namespace hash::literals;
+using namespace engine;
+using namespace engine::hash::literals;
 
 namespace
 {
@@ -42,7 +43,7 @@ namespace
 	inline constexpr math::fvec4 menu_inactive_label_color = {1.0f, 1.0f, 1.0f, 0.5f};
 	inline constexpr math::fvec4 pause_menu_bg_color = {0.0f, 0.0f, 0.0f, 0.75f};
 
-	void fade_out_menu(::game& ctx, std::function<void(animation_context&)> end_callback)
+	void fade_out_menu(::game& ctx, std::function<void(animation::animation_context&)> end_callback)
 	{
 		ctx.m_menu_fade_out_sequence->cues().clear();
 		if (end_callback)
@@ -59,7 +60,7 @@ namespace
 		ctx.m_root_menu_container->set_input_handling_enabled(false);
 	}
 
-	void fade_in_menu(::game& ctx, std::function<void(animation_context&)> end_callback)
+	void fade_in_menu(::game& ctx, std::function<void(animation::animation_context&)> end_callback)
 	{
 		ctx.m_menu_fade_in_sequence->cues().clear();
 		if (end_callback)
@@ -650,7 +651,7 @@ namespace
 		// Construct menu labels
 		std::vector<std::shared_ptr<ui::label>> menu_labels;
 		menu_labels.reserve(items.size());
-		for (std::size_t i = 0; i < items.size(); ++i)
+		for (usize i = 0; i < items.size(); ++i)
 		{
 			const auto& [text, callback] = items[i];
 
@@ -690,7 +691,7 @@ namespace
 			menu_labels.push_back(label);
 		}
 
-		for (std::size_t i = 0; i < menu_labels.size(); ++i)
+		for (usize i = 0; i < menu_labels.size(); ++i)
 		{
 			auto& label = menu_labels[i];
 			label->set_focus_down(menu_labels[(i + 1) % menu_labels.size()]);
@@ -741,7 +742,7 @@ namespace
 		// Construct menu labels
 		std::vector<std::shared_ptr<ui::label>> menu_labels;
 		menu_labels.reserve(items.size());
-		for (std::size_t i = 0; i < items.size(); ++i)
+		for (usize i = 0; i < items.size(); ++i)
 		{
 			auto& [text, label, range] = items[i];
 
@@ -797,7 +798,7 @@ namespace
 			}
 		}
 
-		for (std::size_t i = 0; i < menu_labels.size(); ++i)
+		for (usize i = 0; i < menu_labels.size(); ++i)
 		{
 			auto& label = menu_labels[i];
 			label->set_focus_down(menu_labels[(i + 1) % menu_labels.size()]);
@@ -1661,7 +1662,7 @@ namespace
 		(
 			[&ctx](const auto& event)
 			{
-				const auto index = static_cast<std::size_t>(std::round(event.value));
+				const auto index = static_cast<usize>(math::round(event.value));
 				auto language_it = ctx.languages->begin();
 				std::advance(language_it, index);
 
@@ -1807,7 +1808,7 @@ namespace
 
 		// Construct fade in animation
 		{
-			ctx.m_menu_fade_in_sequence = std::make_shared<animation_sequence>();
+			ctx.m_menu_fade_in_sequence = std::make_shared<animation::animation_sequence>();
 			auto& opacity_track = ctx.m_menu_fade_in_sequence->tracks()["opacity"];
 			auto& opacity_channel = opacity_track.channels().emplace_back();
 			opacity_channel.keyframes().emplace(0.0f, 0.0f);
@@ -1817,7 +1818,7 @@ namespace
 
 		// Construct fade out animation
 		{
-			ctx.m_menu_fade_out_sequence = std::make_shared<animation_sequence>();
+			ctx.m_menu_fade_out_sequence = std::make_shared<animation::animation_sequence>();
 			auto& opacity_track = ctx.m_menu_fade_out_sequence->tracks()["opacity"];
 			auto& opacity_channel = opacity_track.channels().emplace_back();
 			opacity_channel.keyframes().emplace(0.0f, 1.0f);
@@ -1839,7 +1840,7 @@ namespace
 
 		// Construct fade in animation
 		{
-			ctx.m_pause_menu_bg_fade_in_sequence = std::make_shared<animation_sequence>();
+			ctx.m_pause_menu_bg_fade_in_sequence = std::make_shared<animation::animation_sequence>();
 			auto& opacity_track = ctx.m_pause_menu_bg_fade_in_sequence->tracks()["opacity"];
 			auto& opacity_channel = opacity_track.channels().emplace_back();
 			opacity_channel.keyframes().emplace(0.0f, 0.0f);
@@ -1849,7 +1850,7 @@ namespace
 
 		// Construct fade out animation
 		{
-			ctx.m_pause_menu_bg_fade_out_sequence = std::make_shared<animation_sequence>();
+			ctx.m_pause_menu_bg_fade_out_sequence = std::make_shared<animation::animation_sequence>();
 			auto& opacity_track = ctx.m_pause_menu_bg_fade_out_sequence->tracks()["opacity"];
 			auto& opacity_channel = opacity_track.channels().emplace_back();
 			opacity_channel.keyframes().emplace(0.0f, 1.0f);

@@ -1,29 +1,25 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/ai/steering/behavior/seek.hpp>
-#include <engine/math/functions.hpp>
+import engine.ai.steering.behavior.seek;
+import engine.ai.steering.agent;
+import engine.math.functions;
 
-namespace ai {
-namespace steering {
-namespace behavior {
-
-math::fvec3 seek(const agent& agent, const math::fvec3& target)
+namespace engine::ai::steering::behavior
 {
-	math::fvec3 force = {0, 0, 0};
-	const math::fvec3 difference = target - agent.position;
-	const float sqr_distance = math::dot(difference, difference);
-	
-	if (sqr_distance)
+	math::fvec3 seek(const agent& agent, const math::fvec3& target)
 	{
-		const float inverse_distance = 1.0f / math::sqrt(sqr_distance);
-		force = difference * inverse_distance * agent.max_force;
-		force -= agent.velocity;
-	}
-	
-	return force;
-}
+		math::fvec3 force = {0, 0, 0};
+		const math::fvec3 difference = target - agent.position;
+		const float sqr_distance = math::dot(difference, difference);
 
-} // namespace behavior
-} // namespace steering
-} // namespace ai
+		if (sqr_distance)
+		{
+			const float inverse_distance = 1.0f / math::sqrt(sqr_distance);
+			force = difference * inverse_distance * agent.max_force;
+			force -= agent.velocity;
+		}
+
+		return force;
+	}
+}

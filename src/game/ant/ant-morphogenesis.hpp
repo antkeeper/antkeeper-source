@@ -5,8 +5,10 @@
 #define ANTKEEPER_GAME_ANT_MORPHOGENESIS_HPP
 
 #include "game/ant/ant-phenome.hpp"
-#include <engine/render/model.hpp>
-#include <memory>
+import engine.render.model;
+import <memory>;
+
+using namespace engine;
 
 /// Generates a 3D model of an ant given its phenome.
 /// @param phenome Ant phenome.

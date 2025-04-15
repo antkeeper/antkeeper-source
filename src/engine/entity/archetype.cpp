@@ -1,25 +1,23 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <engine/entity/archetype.hpp>
-#include <engine/entity/clone.hpp>
+import engine.entity.archetype;
 
-namespace entity {
-
-entity::id archetype::create(entity::registry& registry) const
+namespace engine::entity
 {
-	entt::handle instance_handle(registry, registry.create());
+	entity::id archetype::create(entity::registry& registry) const
+	{
+		entt::handle instance_handle(registry, registry.create());
 	
-	for (const auto& function: stamps)
-		function(instance_handle);
+		for (const auto& function: stamps)
+			function(instance_handle);
 	
-	return instance_handle.entity();
-}
+		return instance_handle.entity();
+	}
 
-void archetype::stamp(entt::handle& handle) const
-{
-	for (const auto& function: stamps)
-		function(handle);
+	void archetype::stamp(entt::handle& handle) const
+	{
+		for (const auto& function: stamps)
+			function(handle);
+	}
 }
-
-} // namespace entity

@@ -4,8 +4,10 @@
 #ifndef ANTKEEPER_GAME_ORBIT_COMPONENT_HPP
 #define ANTKEEPER_GAME_ORBIT_COMPONENT_HPP
 
-#include <engine/entity/id.hpp>
-#include <engine/math/vector.hpp>
+import engine.math.vector;
+import engine.entity.id;
+
+using namespace engine;
 
 struct orbit_component
 {

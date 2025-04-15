@@ -4,9 +4,11 @@
 #ifndef ANTKEEPER_GAME_SCENE_OBJECT_COMPONENT_HPP
 #define ANTKEEPER_GAME_SCENE_OBJECT_COMPONENT_HPP
 
-#include <engine/scene/object.hpp>
-#include <cstdint>
-#include <memory>
+import engine.scene.object;
+import engine.utility.sized_types;
+import <memory>;
+
+using namespace engine;
 
 /// Attaches a scene object, such as a mesh or light, to an entity.
 struct scene_object_component
@@ -15,7 +17,7 @@ struct scene_object_component
 	std::shared_ptr<scene::object_base> object;
 
 	/// Mask of layers in which the object is visible.
-	std::uint8_t layer_mask{0b00000001};
+	u8 layer_mask{0b00000001};
 };
 
 #endif // ANTKEEPER_GAME_SCENE_OBJECT_COMPONENT_HPP

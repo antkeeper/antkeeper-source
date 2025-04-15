@@ -4,11 +4,14 @@
 #ifndef ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP
 #define ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP
 
-#include <engine/math/vector.hpp>
-#include <engine/animation/skeleton-pose.hpp>
-#include <engine/animation/locomotion/gait.hpp>
-#include <memory>
-#include <vector>
+import engine.animation.skeleton_pose;
+import engine.animation.locomotion.gait;
+import engine.math.vector;
+import engine.utility.sized_types;
+import <memory>;
+import <vector>;
+
+using namespace engine;
 
 /// Legged terrestrial locomotion.
 struct legged_locomotion_component
@@ -16,20 +19,20 @@ struct legged_locomotion_component
 	/// Force vector.
 	math::fvec3 force{0.0f, 0.0f, 0.0f};
 	
-	std::shared_ptr<skeleton_pose> midstance_pose{};
-	std::shared_ptr<skeleton_pose> midswing_pose{};
-	std::shared_ptr<skeleton_pose> liftoff_pose{};
-	std::shared_ptr<skeleton_pose> touchdown_pose{};
+	std::shared_ptr<animation::skeleton_pose> midstance_pose{};
+	std::shared_ptr<animation::skeleton_pose> midswing_pose{};
+	std::shared_ptr<animation::skeleton_pose> liftoff_pose{};
+	std::shared_ptr<animation::skeleton_pose> touchdown_pose{};
 	
 	/// Indices of the the final bones in the legs.
-	std::vector<std::size_t> tip_bones;
+	std::vector<usize> tip_bones;
 	
-	std::size_t body_bone{};
+	usize body_bone{};
 	
 	/// Number of bones per leg.
-	std::uint8_t leg_bone_count{};
+	u8 leg_bone_count{};
 	
-	std::shared_ptr<::gait> gait;
+	std::shared_ptr<animation::gait> gait;
 	
 	float standing_height{};
 	

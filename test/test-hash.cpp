@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "test.hpp"
-#include <engine/hash/hash.hpp>
+import hash;
 
 using namespace hash;
 
