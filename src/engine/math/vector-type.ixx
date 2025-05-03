@@ -494,7 +494,7 @@ export namespace std
 				formatter<T>::format(t[0], fc);
 			}
 			
-			for (const auto& i = 1; i < N; ++i)
+			for (engine::usize i = 1; i < N; ++i)
 			{
 				format_to(out, ", ");
 				formatter<T>::format(t[i], fc);

@@ -140,6 +140,18 @@ namespace engine::inline sized_types
 		/// 64-bit floating-point type.
 		using f64 = sized_float_t<8>;
 
+		/// isize literal operator.
+		[[nodiscard]] consteval isize operator ""_isize(unsigned long long x)
+		{
+			return static_cast<isize>(x);
+		}
+
+		/// usize literal operator.
+		[[nodiscard]] consteval usize operator ""_usize(unsigned long long x)
+		{
+			return static_cast<usize>(x);
+		}
+
 		/// 8-bit signed integer literal operator.
 		[[nodiscard]] consteval i8 operator ""_i8(unsigned long long x)
 		{

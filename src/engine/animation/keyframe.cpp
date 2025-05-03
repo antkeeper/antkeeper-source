@@ -2,17 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import engine.animation.keyframe;
+import engine.math.functions;
 import <stdexcept>;
 
 namespace engine::animation
 {
 	float interpolate_keyframes_linear(const keyframe& a, const keyframe& b, float time) noexcept
 	{
-		// Calculate normalized interpolation factor
 		const auto t = (time - a.time) / (b.time - a.time);
-
-		// Lerp
-		return (b.value - a.value) * t + a.value;
+		return math::lerp(a.value, b.value, t);
 	}
 
 	float interpolate_keyframes_constant(const keyframe& a, const keyframe&, float) noexcept

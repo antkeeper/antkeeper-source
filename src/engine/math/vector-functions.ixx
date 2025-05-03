@@ -689,6 +689,15 @@ export namespace engine::math::inline functions
 		return result;
 	}
 
+	/// Calculates the reciprocal of each element.
+	/// @param v Input vector.
+	/// @return Reciprocal of input vector.
+	template <std::floating_point T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> rcp(const vec<T, N>& v) noexcept
+	{
+		return 1.0f / v;
+	}
+
 	/// Performs a multiply-add operation.
 	/// @param x Input vector
 	/// @param y Value to multiply.
@@ -717,7 +726,7 @@ export namespace engine::math::inline functions
 		return result;
 	}
 
-	/// Returns a vector containing the fractional part of each element.
+	/// Returns a vector containing the fractional part of each element, for positive values. Implemented as `v - floor(v)`.
 	/// @param v Input vector.
 	/// @return Fractional parts of input vector.
 	template <std::floating_point T, usize N>
@@ -838,12 +847,32 @@ export namespace engine::math::inline functions
 	/// @tparam T Floating-point type.
 	/// @param a First vector.
 	/// @param b Second vector.
+	/// @param t Interpolation factors.
+	/// @return Linearly-interpolated value.
+	template <class T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> lerp(const vec<T, N>& a, const vec<T, N>& b, const vec<T, N>& t) noexcept
+	{
+		// Imprecise:
+		// return (b - a) * t + a;
+
+		// Precise:
+		return a * (T{1} - t) + b * t;
+	}
+
+	/// Linearly interpolates between two vectors.
+	/// @tparam T Floating-point type.
+	/// @param a First vector.
+	/// @param b Second vector.
 	/// @param t Interpolation factor.
-	/// @return `(b - a) * t + a`
+	/// @return Linearly-interpolated value.
 	template <class T, usize N>
 	[[nodiscard]] inline constexpr vec<T, N> lerp(const vec<T, N>& a, const vec<T, N>& b, T t) noexcept
 	{
-		return (b - a) * t + a;
+		// Imprecise:
+		// return (b - a) * t + a;
+
+		// Precise:
+		return a * (T{1} - t) + b * t;
 	}
 
 	/// Raises each element to a power.
@@ -873,9 +902,9 @@ export namespace engine::math::inline functions
 		return result;
 	}
 
-	/// Performs an element-wise round operation.
+	/// Rounds elements to the nearest integer value, rounding halfway cases away from zero.
 	/// @param v Input vector
-	/// @return Component-wise round of input vector.
+	/// @return Rounded vector.
 	template <std::floating_point T, usize N>
 	[[nodiscard]] inline constexpr vec<T, N> round(const vec<T, N>& v)
 	{
@@ -883,6 +912,50 @@ export namespace engine::math::inline functions
 		for (usize i = 0; i < N; ++i)
 		{
 			result[i] = round(v[i]);
+		}
+		return result;
+	}
+
+	/// Rounds elements to the nearest integer value, rounding halfway cases to nearest even integer.
+	/// @param v Input vector
+	/// @return Rounded vector.
+	template <std::floating_point T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> roundeven(const vec<T, N>& v)
+	{
+		vec<T, N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = roundeven(v[i]);
+		}
+		return result;
+	}
+
+	/// Extracts the sign of vector elements with a given magnitude.
+	/// @param magnitude Magnitude vector.
+	/// @param v Input vector.
+	/// @return Vector with the same sign as @p v and the given magnitude.
+	template <std::floating_point T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> copysign(T magnitude, const vec<T, N>& v)
+	{
+		vec<T, N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = copysign(magnitude, v[i]);
+		}
+		return result;
+	}
+
+	/// Extracts the sign of vector elements with a given magnitude.
+	/// @param magnitude Magnitude of the result.
+	/// @param v Input vector.
+	/// @return Vector with the same sign as @p v and the given magnitude.
+	template <std::floating_point T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> copysign(const vec<T, N>& magnitude, const vec<T, N>& v)
+	{
+		vec<T, N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = copysign(magnitude[i], v[i]);
 		}
 		return result;
 	}
@@ -910,6 +983,24 @@ export namespace engine::math::inline functions
 	[[nodiscard]] inline T signed_angle(const vec3<T>& from, const vec3<T>& to, const vec3<T>& axis)
 	{
 		return atan(triple(axis, from, to), dot(from, to));
+	}
+
+	/// Squares each element.
+	/// @param v Input vector
+	/// @return Squared input vector.
+	template <class T, usize N>
+	[[nodiscard]] inline vec<T, N> sqr(const vec<T, N>& v) noexcept
+	{
+		return v * v;
+	}
+
+	/// Cubes each element.
+	/// @param v Input vector
+	/// @return Cubed input vector.
+	template <class T, usize N>
+	[[nodiscard]] inline vec<T, N> cube(const vec<T, N>& v) noexcept
+	{
+		return v * v * v;
 	}
 
 	/// Takes the square root of each element.

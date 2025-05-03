@@ -3,6 +3,7 @@
 
 export module engine.math.functions;
 import engine.math.constants;
+import engine.utility.sized_types;
 export import <tuple>;
 import <cmath>;
 import <concepts>;
@@ -72,13 +73,39 @@ export namespace engine::math::inline functions
 		return std::floor(x);
 	}
 
-	/// Rounds to the nearest integer value.
+	/// Rounds to the nearest integer value, rounding halfway cases away from zero.
 	/// @param x Floating-point value.
 	/// @return Nearest integer value.
 	template <std::floating_point T>
 	[[nodiscard]] inline constexpr T round(T x)
 	{
 		return std::round(x);
+	}
+
+	/// Rounds to the nearest integer value, rounding halfway cases to nearest even integer.
+	/// @param x Floating-point value.
+	/// @return Nearest integer value.
+	template <std::floating_point T>
+	[[nodiscard]] inline constexpr T roundeven(T x)
+	{
+		T i;
+		T f = std::modf(x, &i);
+
+		if (std::abs(f) != T{0.5})
+		{
+			return std::round(x);
+		}
+
+		return (static_cast<isize>(i) % 2 == 0) ? i : i + (x > T{0} ? T{1} : T{-1});
+	}
+
+	/// Calculates the reciprocal of a value.
+	/// @param x Floating-point value.
+	/// @return Reciprocal of @p x.
+	template <std::floating_point T>
+	[[nodiscard]] inline constexpr T rcp(T x) noexcept
+	{
+		return T{1} / x;
 	}
 
 	/// Performs a multiply-add operation.
@@ -398,7 +425,7 @@ export namespace engine::math::inline functions
 	/// Extracts the sign of a floating-point value with a specified magnitude.
 	/// @param magnitude Magnitude of the result.
 	/// @param x Value from which to extract the sign.
-	/// @return Sign of @p x with a magnitude of 1.
+	/// @return Sign of @p x with the given magnitude.
 	template <class T>
 		requires (std::is_arithmetic_v<T>)
 	[[nodiscard]] inline constexpr T copysign(T magnitude, T x)
@@ -431,14 +458,13 @@ export namespace engine::math::inline functions
 	/// @name Floating-point manipulation functions
 	/// @{
 
-	/// Returns the fractional part of a floating-point value.
+	/// Returns the fractional part of a floating-point value for positive values. Implemented as `x - floor(x)`.
 	/// @param x Floating-point value.
 	/// @return Fractional part of @p x.
 	template <std::floating_point T>
 	[[nodiscard]] inline constexpr T fract(T x)
 	{
-		T i{};
-		return std::modf(x, &i);
+		return x - floor(x);
 	}
 
 	/// Returns @p x with the fractional part removed.
@@ -480,11 +506,15 @@ export namespace engine::math::inline functions
 	/// @param a First value.
 	/// @param b Second value.
 	/// @param t Interpolation factor.
-	/// @return `(b - a) * t + a`
+	/// @return Linearly-interpolated value.
 	template <std::floating_point T>
 	[[nodiscard]] inline constexpr T lerp(T a, T b, T t) noexcept
 	{
-		return (b - a) * t + a;
+		// Imprecise:
+		// return (b - a) * t + a;
+
+		// Precise:
+		return a * (T{1} - t) + b * t;
 	}
 
 	/// Linearly interpolates between two angles, @p x and @p y.
