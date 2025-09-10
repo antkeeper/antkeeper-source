@@ -6,7 +6,7 @@
 
 using namespace engine::math;
 
-int main(int argc, char* argv[])
+int main(int, char*[])
 {
 	test_suite suite;
 
@@ -112,13 +112,13 @@ int main(int argc, char* argv[])
 		ASSERT(!v3.empty());
 		ASSERT(!v4.empty());
 
-		ASSERT_EQ(v2.size(), 2);
-		ASSERT_EQ(v3.size(), 3);
-		ASSERT_EQ(v4.size(), 4);
+		STATIC_ASSERT_EQ(v2.size(), 2);
+		STATIC_ASSERT_EQ(v3.size(), 3);
+		STATIC_ASSERT_EQ(v4.size(), 4);
 
-		ASSERT_EQ(v2.max_size(), 2);
-		ASSERT_EQ(v3.max_size(), 3);
-		ASSERT_EQ(v4.max_size(), 4);
+		STATIC_ASSERT_EQ(v2.max_size(), 2);
+		STATIC_ASSERT_EQ(v3.max_size(), 3);
+		STATIC_ASSERT_EQ(v4.max_size(), 4);
 	});
 
 	suite.tests.emplace_back("vector iterators", []()
@@ -426,20 +426,20 @@ int main(int argc, char* argv[])
 		ASSERT(!a.empty());
 		ASSERT(!b.empty());
 
-		ASSERT_EQ(a.size(), 2);
-		ASSERT_EQ(b.size(), 3);
+		STATIC_ASSERT_EQ(a.size(), 2);
+		STATIC_ASSERT_EQ(b.size(), 3);
 
-		ASSERT_EQ(a.max_size(), 2);
-		ASSERT_EQ(b.max_size(), 3);
+		STATIC_ASSERT_EQ(a.max_size(), 2);
+		STATIC_ASSERT_EQ(b.max_size(), 3);
 
-		ASSERT_EQ(a.size_columns(), 2);
-		ASSERT_EQ(b.size_columns(), 3);
+		STATIC_ASSERT_EQ(a.size_columns(), 2);
+		STATIC_ASSERT_EQ(b.size_columns(), 3);
 
-		ASSERT_EQ(a.size_rows(), 3);
-		ASSERT_EQ(b.size_rows(), 2);
+		STATIC_ASSERT_EQ(a.size_rows(), 3);
+		STATIC_ASSERT_EQ(b.size_rows(), 2);
 
-		ASSERT_EQ(a.size_elements(), 6);
-		ASSERT_EQ(b.size_elements(), 6);
+		STATIC_ASSERT_EQ(a.size_elements(), 6);
+		STATIC_ASSERT_EQ(b.size_elements(), 6);
 	});
 
 	suite.tests.emplace_back("matrix operations", []()

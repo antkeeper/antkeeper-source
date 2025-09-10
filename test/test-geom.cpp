@@ -9,7 +9,7 @@ using namespace engine::geom;
 using namespace engine::geom::primitives;
 using namespace engine::math;
 
-int main(int argc, char* argv[])
+int main(int, char*[])
 {
 	test_suite suite;
 

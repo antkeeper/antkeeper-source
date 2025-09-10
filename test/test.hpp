@@ -52,3 +52,17 @@ struct test_suite
 
 #define ASSERT_NEAR(a, b, tolerance) \
 	if (std::fabs((a) - (b)) > (tolerance)) throw std::runtime_error("Assertion failed: |" #a " - " #b "| <= " #tolerance)
+
+#define STATIC_ASSERT(condition) static_assert(condition, "Static assertion failed: " #condition)
+
+#define STATIC_ASSERT_EQ(a, b) static_assert((a) == (b), "Static assertion failed: " #a " == " #b)
+
+#define STATIC_ASSERT_NE(a, b) static_assert((a) != (b), "Static assertion failed: " #a " != " #b)
+
+#define STATIC_ASSERT_LT(a, b) static_assert((a) < (b), "Static assertion failed: " #a " < " #b)
+
+#define STATIC_ASSERT_LE(a, b) static_assert((a) <= (b), "Static assertion failed: " #a " <= " #b)
+
+#define STATIC_ASSERT_GT(a, b) static_assert((a) > (b), "Static assertion failed: " #a " > " #b)
+
+#define STATIC_ASSERT_GE(a, b) static_assert((a) >= (b), "Static assertion failed: " #a " >= " #b)
