@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.render.material_variable;
+#include <engine/render/material-variable.hpp>
 
 namespace engine::render
 {

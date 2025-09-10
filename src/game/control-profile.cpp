@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/control-profile.hpp"
-import engine.debug.log;
-import engine.resources.resource_loader;
-import engine.resources.serializer;
-import engine.resources.serialize_error;
-import engine.resources.deserializer;
-import engine.resources.deserialize_error;
-import engine.utility.sized_types;
+#include <engine/debug/log.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/serializer.hpp>
+#include <engine/resources/serialize-error.hpp>
+#include <engine/resources/deserializer.hpp>
+#include <engine/resources/deserialize-error.hpp>
+#include <engine/utility/sized-types.hpp>
 
 namespace engine::resources
 {

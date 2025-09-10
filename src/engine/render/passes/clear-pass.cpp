@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.render.passes.clear_pass;
-import engine.gl.pipeline;
+#include <engine/render/passes/clear-pass.hpp>
+#include <engine/gl/pipeline.hpp>
 
 namespace engine::render
 {

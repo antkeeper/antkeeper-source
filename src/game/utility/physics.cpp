@@ -4,8 +4,8 @@
 #include "game/utility/physics.hpp"
 #include "game/components/time-component.hpp"
 #include "game/components/rigid-body-component.hpp"
-import engine.physics.kinematics.mesh_collider;
-import engine.math.functions;
+#include <engine/physics/kinematics/colliders/mesh-collider.hpp>
+#include <engine/math/functions.hpp>
 
 using namespace engine;
 

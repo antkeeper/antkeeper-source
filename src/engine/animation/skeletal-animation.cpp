@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/components/scene-object-component.hpp"
-import engine.animation.skeletal_animation;
-import engine.animation.skeleton;
-import engine.animation.animation_sequence;
-import engine.scene.skeletal_mesh;
-import engine.debug.log;
-import engine.math.euler_angles;
-import <filesystem>;
-import <format>;
-import <stdexcept>;
+#include <engine/animation/skeletal-animation.hpp>
+#include <engine/animation/skeleton.hpp>
+#include <engine/animation/animation-sequence.hpp>
+#include <engine/scene/skeletal-mesh.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/math/euler-angles.hpp>
+#include <filesystem>
+#include <format>
+#include <stdexcept>
 
 namespace engine::animation
 {

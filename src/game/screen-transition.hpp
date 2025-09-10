@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_SCREEN_TRANSITION_HPP
 #define ANTKEEPER_GAME_SCREEN_TRANSITION_HPP
 
-import <functional>;
+#include <functional>
 
 class game;
 

@@ -6,14 +6,14 @@
 #include "game/components/terrain-component.hpp"
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/scene-object-component.hpp"
-import engine.gl.pipeline;
-import engine.render.model;
-import engine.render.vertex_attribute_location;
-import engine.physics.kinematics.mesh_collider;
-import engine.scene.static_mesh;
-import engine.debug.log;
-import engine.geom.brep.mesh;
-import engine.utility.sized_types;
+#include <engine/gl/pipeline.hpp>
+#include <engine/render/model.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
+#include <engine/physics/kinematics/colliders/mesh-collider.hpp>
+#include <engine/scene/static-mesh.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/geom/brep/mesh.hpp>
+#include <engine/utility/sized-types.hpp>
 
 using namespace engine;
 using namespace engine::geom;

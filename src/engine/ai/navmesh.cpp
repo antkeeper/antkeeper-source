@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.ai.navmesh;
-import engine.math.functions;
-import engine.math.quaternion;
-import engine.geom.coordinates;
-import engine.geom.closest_point;
+#include <engine/ai/navmesh.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/quaternion.hpp>
+#include <engine/geom/coordinates.hpp>
+#include <engine/geom/closest-point.hpp>
 
 namespace brep = engine::geom::brep;
 

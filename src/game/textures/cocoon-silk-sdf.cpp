@@ -4,11 +4,11 @@
 #include <execution>
 #include <stb/stb_image_write.h>
 #include "game/textures/cocoon-silk-sdf.hpp"
-import engine.debug.log;
-import engine.utility.sized_types;
-import engine.math.functions;
-import <algorithm>;
-import <fstream>;
+#include <engine/debug/log.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <engine/math/functions.hpp>
+#include <algorithm>
+#include <fstream>
 
 using namespace engine;
 

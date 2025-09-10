@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.geom.brep.vertex_edge_list;
-import engine.utility.sized_types;
+#include <engine/geom/brep/vertex-edge-list.hpp>
+#include <engine/utility/sized-types.hpp>
 
 namespace engine::geom::brep
 {

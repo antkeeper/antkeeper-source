@@ -4,13 +4,13 @@
 #include <execution>
 #include <stb/stb_image_write.h>
 #include "game/textures/rgb-voronoi-noise.hpp"
-import engine.debug.log;
-import engine.noise.voronoi;
-import engine.math.functions;
-import engine.math.vector;
-import engine.utility.sized_types;
-import <algorithm>;
-import <fstream>;
+#include <engine/debug/log.hpp>
+#include <engine/noise/voronoi.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <algorithm>
+#include <fstream>
 
 using namespace engine;
 

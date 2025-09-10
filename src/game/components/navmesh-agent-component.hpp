@@ -4,10 +4,10 @@
 #ifndef ANTKEEPER_GAME_NAVMESH_AGENT_COMPONENT_HPP
 #define ANTKEEPER_GAME_NAVMESH_AGENT_COMPONENT_HPP
 
-import engine.geom.brep.mesh;
-import engine.geom.brep.feature;
-import engine.entity.id;
-import engine.math.vector;
+#include <engine/geom/brep/mesh.hpp>
+#include <engine/geom/brep/feature.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/math/vector.hpp>
 
 using namespace engine;
 

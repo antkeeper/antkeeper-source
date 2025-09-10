@@ -6,9 +6,9 @@
 
 #include "game/ant/ant-caste-type.hpp"
 #include "game/ant/genes/ant-gene-type.hpp"
-import engine.hash.fnv;
-import <vector>;
-import <unordered_map>;
+#include <engine/hash/fnv.hpp>
+#include <vector>
+#include <unordered_map>
 
 using namespace engine;
 

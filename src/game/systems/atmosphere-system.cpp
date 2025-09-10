@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/systems/atmosphere-system.hpp"
-import engine.physics.gas.atmosphere;
-import engine.physics.gas.ozone;
-import engine.physics.number_density;
+#include <engine/physics/gas/atmosphere.hpp>
+#include <engine/physics/gas/ozone.hpp>
+#include <engine/physics/number-density.hpp>
 
 atmosphere_system::atmosphere_system(entity::registry& registry):
 	m_registry(registry)

@@ -1,26 +1,26 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.render.passes.sky_pass;
-import engine.gl.framebuffer;
-import engine.gl.shader_program;
-import engine.gl.shader_variable;
-import engine.gl.vertex_buffer;
-import engine.gl.vertex_array;
-import engine.gl.texture;
-import engine.gl.stencil_face_bits;
-import engine.render.vertex_attribute_location;
-import engine.render.context;
-import engine.render.model;
-import engine.render.material;
-import engine.physics.orbit;
-import engine.physics.light.photometry;
-import engine.resources.resource_manager;
-import engine.debug.log;
-import engine.scene.camera;
-import engine.math.vector;
-import engine.math.transform;
-import engine.math.functions;
+#include <engine/render/passes/sky-pass.hpp>
+#include <engine/gl/framebuffer.hpp>
+#include <engine/gl/shader-program.hpp>
+#include <engine/gl/shader-variable.hpp>
+#include <engine/gl/vertex-buffer.hpp>
+#include <engine/gl/vertex-array.hpp>
+#include <engine/gl/texture.hpp>
+#include <engine/gl/stencil-face-bits.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
+#include <engine/render/context.hpp>
+#include <engine/render/model.hpp>
+#include <engine/render/material.hpp>
+#include <engine/physics/orbit/orbit.hpp>
+#include <engine/physics/light/photometry.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/scene/camera.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/math/transform.hpp>
+#include <engine/math/functions.hpp>
 
 namespace engine::render
 {

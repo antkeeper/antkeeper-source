@@ -4,8 +4,8 @@
 #include <entt/entt.hpp>
 #include "game/systems/orbit-system.hpp"
 #include "game/utility/time.hpp"
-import engine.physics.orbit;
-import engine.physics.time;
+#include <engine/physics/orbit/orbit.hpp>
+#include <engine/physics/time.hpp>
 
 orbit_system::orbit_system(entity::registry& registry):
 	m_registry(registry)

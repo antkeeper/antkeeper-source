@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.scene.spot_light;
-import engine.math.functions;
+#include <engine/scene/spot-light.hpp>
+#include <engine/math/functions.hpp>
 
 namespace engine::scene
 {

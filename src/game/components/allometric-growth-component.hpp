@@ -4,9 +4,9 @@
 #ifndef ANTKEEPER_GAME_ALLOMETRIC_GROWTH_COMPONENT_HPP
 #define ANTKEEPER_GAME_ALLOMETRIC_GROWTH_COMPONENT_HPP
 
-import engine.animation.bone;
-import engine.utility.sized_types;
-import <unordered_map>;
+#include <engine/animation/bone.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <unordered_map>
 
 using namespace engine;
 

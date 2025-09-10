@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import <physfs.h>;
-import engine.resources.physfs_serialize_context;
-import engine.resources.serialize_error;
-import engine.utility.sized_types;
+#include <physfs.h>
+#include <engine/resources/physfs/physfs-serialize-context.hpp>
+#include <engine/resources/serialize-error.hpp>
+#include <engine/utility/sized-types.hpp>
 
 namespace engine::resources
 {

@@ -7,9 +7,9 @@
 #include <entt/entt.hpp>
 #include "game/components/atmosphere-component.hpp"
 #include "game/systems/fixed-update-system.hpp"
-import engine.entity.id;
-import engine.math.vector;
-import engine.render.passes.sky_pass;
+#include <engine/entity/id.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/render/passes/sky-pass.hpp>
 
 using namespace engine;
 

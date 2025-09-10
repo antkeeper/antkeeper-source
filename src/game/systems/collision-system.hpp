@@ -5,9 +5,9 @@
 #define ANTKEEPER_GAME_COLLISION_SYSTEM_HPP
 
 #include "game/systems/fixed-update-system.hpp"
-import engine.geom.primitives.ray;
-import engine.entity.id;
-import engine.utility.sized_types;
+#include <engine/geom/primitives/ray.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/utility/sized-types.hpp>
 
 using namespace engine;
 

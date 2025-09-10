@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <AL/al.h>
-import engine.audio.sound_que;
-import engine.math.functions;
-import engine.utility.sized_types;
-import <format>;
-import <stdexcept>;
+#include <engine/audio/sound-que.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <format>
+#include <stdexcept>
 
 namespace engine::audio
 {

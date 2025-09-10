@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <sstream>
-import engine.gl.shader_template;
-import engine.hash.combine_hash;
-import engine.resources.resource_loader;
-import engine.resources.resource_manager;
-import engine.debug.log;
-import engine.utility.text_file;
-import engine.utility.sized_types;
-import <unordered_set>;
-import <map>;
-import <vector>;
+#include <engine/gl/shader-template.hpp>
+#include <engine/hash/combine-hash.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/utility/text-file.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <unordered_set>
+#include <map>
+#include <vector>
 
 namespace engine::gl
 {

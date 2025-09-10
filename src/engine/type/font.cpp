@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.debug.log;
-import engine.type.font;
-import engine.type.unicode;
-import engine.type.typeface;
-import engine.math.vector;
-import engine.gl.texture;
-import engine.geom.rect_pack;
-import engine.utility.sized_types;
-import <bit>;
-import <stdexcept>;
+#include <engine/debug/log.hpp>
+#include <engine/type/font.hpp>
+#include <engine/type/unicode.hpp>
+#include <engine/type/typeface.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/gl/texture.hpp>
+#include <engine/geom/rect-pack.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <bit>
+#include <stdexcept>
 
 namespace engine::type
 {

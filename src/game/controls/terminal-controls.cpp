@@ -4,9 +4,9 @@
 #include "game/game.hpp"
 #include "game/debug/shell.hpp"
 #include "game/controls.hpp"
-import engine.input.keyboard;
-import engine.debug.log;
-import engine.type.unicode;
+#include <engine/input/keyboard.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/type/unicode.hpp>
 
 void setup_terminal_controls(::game& ctx)
 {

@@ -11,13 +11,13 @@
 #include "game/components/scene-object-component.hpp"
 #include "game/components/ant-genome-component.hpp"
 #include "game/utility/time.hpp"
-import engine.debug.log;
-import engine.hash.fnv;
-import engine.scene.skeletal_mesh;
-import engine.scene.static_mesh;
-import engine.gl.pipeline;
-import engine.render.material;
-import <string>;
+#include <engine/debug/log.hpp>
+#include <engine/hash/fnv.hpp>
+#include <engine/scene/skeletal-mesh.hpp>
+#include <engine/scene/static-mesh.hpp>
+#include <engine/gl/pipeline.hpp>
+#include <engine/render/material.hpp>
+#include <string>
 
 using namespace engine::hash::literals;
 

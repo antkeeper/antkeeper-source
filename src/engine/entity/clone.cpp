@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.entity.clone;
-import engine.entity.id;
-import engine.entity.registry;
+#include <engine/entity/clone.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/entity/registry.hpp>
 
 namespace engine::entity
 {

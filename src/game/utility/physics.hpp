@@ -5,12 +5,12 @@
 #define ANTKEEPER_GAME_UTILITY_PHYSICS_HPP
 
 #include <entt/entt.hpp>
-import engine.geom.primitives.ray;
-import engine.math.vector;
-import engine.entity.id;
-import engine.entity.registry;
-import engine.utility.sized_types;
-import <optional>;
+#include <engine/geom/primitives/ray.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/entity/registry.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <optional>
 
 using namespace engine;
 

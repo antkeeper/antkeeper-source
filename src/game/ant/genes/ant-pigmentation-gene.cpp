@@ -3,9 +3,9 @@
 
 #include "game/ant/genes/ant-pigmentation-gene.hpp"
 #include "game/ant/genes/ant-gene-loader.hpp"
-import engine.render.material;
-import engine.resources.resource_loader;
-import engine.resources.resource_manager;
+#include <engine/render/material.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
 
 namespace engine::resources
 {

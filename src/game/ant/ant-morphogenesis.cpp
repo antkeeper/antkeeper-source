@@ -4,19 +4,19 @@
 #include "game/ant/ant-morphogenesis.hpp"
 #include "game/ant/ant-bone-set.hpp"
 #include "game/ant/ant-skeleton.hpp"
-import engine.render.material;
-import engine.render.vertex_attribute_location;
-import engine.geom.primitives.box;
-import engine.animation.bone;
-import engine.debug.log;
-import engine.math.functions;
-import engine.math.quaternion;
-import engine.math.transform;
-import engine.gl.vertex_input_attribute;
-import engine.gl.vertex_buffer;
-import engine.utility.sized_types;
-import <optional>;
-import <unordered_set>;
+#include <engine/render/material.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
+#include <engine/geom/primitives/box.hpp>
+#include <engine/animation/bone.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/quaternion.hpp>
+#include <engine/math/transform.hpp>
+#include <engine/gl/vertex-input-attribute.hpp>
+#include <engine/gl/vertex-buffer.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <optional>
+#include <unordered_set>
 
 using namespace engine;
 using namespace engine::math;

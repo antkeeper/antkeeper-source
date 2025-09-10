@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.input.device;
-import engine.event.publisher;
+#include <engine/input/device.hpp>
+#include <engine/event/publisher.hpp>
 
 namespace engine::input
 {

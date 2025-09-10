@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.gl.texture;
-import engine.resources.deserialize_context;
-import engine.resources.deserialize_error;
-import engine.resources.resource_loader;
-import engine.resources.resource_manager;
-import engine.utility.sized_types;
+#include <engine/gl/texture.hpp>
+#include <engine/resources/deserialize-context.hpp>
+#include <engine/resources/deserialize-error.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/utility/sized-types.hpp>
 
 using namespace engine;
 

@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.geom.brep.vertex_container;
-import engine.geom.brep.mesh;
+#include <engine/geom/brep/vertex-container.hpp>
+#include <engine/geom/brep/mesh.hpp>
 
 namespace engine::geom::brep
 {

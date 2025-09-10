@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.render.renderer;
-import engine.render.light_probe_stage;
-import engine.render.cascaded_shadow_map_stage;
-import engine.render.culling_stage;
-import engine.render.queue_stage;
-import engine.render.compositor;
-import engine.scene.collection;
-import engine.scene.camera;
+#include <engine/render/renderer.hpp>
+#include <engine/render/stages/light-probe-stage.hpp>
+#include <engine/render/stages/cascaded-shadow-map-stage.hpp>
+#include <engine/render/stages/culling-stage.hpp>
+#include <engine/render/stages/queue-stage.hpp>
+#include <engine/render/compositor.hpp>
+#include <engine/scene/collection.hpp>
+#include <engine/scene/camera.hpp>
 
 namespace engine::render
 {

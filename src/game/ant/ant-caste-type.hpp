@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_ANT_CASTE_TYPE_HPP
 #define ANTKEEPER_GAME_ANT_CASTE_TYPE_HPP
 
-import engine.utility.sized_types;
+#include <engine/utility/sized-types.hpp>
 
 using namespace engine;
 

@@ -12,10 +12,10 @@ extern "C"
 #include "game/game.hpp"
 #include "game/debug/shell.hpp"
 #include "game/strings.hpp"
-import engine.config;
-import engine.debug.log;
-import engine.script.error;
-import engine.utility.sized_types;
+#include <engine/config.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/script/script-error.hpp>
+#include <engine/utility/sized-types.hpp>
 
 using namespace engine;
 

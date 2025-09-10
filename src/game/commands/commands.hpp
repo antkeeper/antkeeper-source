@@ -4,10 +4,10 @@
 #ifndef ANTKEEPER_GAME_COMMANDS_HPP
 #define ANTKEEPER_GAME_COMMANDS_HPP
 
-import engine.math.vector;
-import engine.math.transform;
-import engine.entity.id;
-import engine.entity.registry;
+#include <engine/math/vector.hpp>
+#include <engine/math/transform.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/entity/registry.hpp>
 
 using namespace engine;
 

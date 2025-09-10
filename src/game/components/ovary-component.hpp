@@ -4,11 +4,11 @@
 #ifndef ANTKEEPER_GAME_OVARY_COMPONENT_HPP
 #define ANTKEEPER_GAME_OVARY_COMPONENT_HPP
 
-import engine.geom.primitives.line_segment;
-import engine.entity.id;
-import engine.animation.bone;
-import engine.utility.sized_types;
-import <memory>;
+#include <engine/geom/primitives/line-segment.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/animation/bone.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <memory>
 
 using namespace engine;
 

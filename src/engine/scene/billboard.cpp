@@ -1,17 +1,17 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.scene.billboard;
-import engine.scene.camera;
-import engine.math.vector;
-import engine.math.quaternion;
-import engine.geom.projection;
-import engine.render.vertex_attribute_location;
-import engine.render.context;
-import engine.gl.vertex_input_attribute;
-import engine.gl.format;
-import engine.config;
-import engine.utility.sized_types;
+#include <engine/scene/billboard.hpp>
+#include <engine/scene/camera.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/math/quaternion.hpp>
+#include <engine/geom/projection.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
+#include <engine/render/context.hpp>
+#include <engine/gl/vertex-input-attribute.hpp>
+#include <engine/gl/format.hpp>
+#include <engine/config.hpp>
+#include <engine/utility/sized-types.hpp>
 
 namespace engine::scene
 {

@@ -4,8 +4,8 @@
 #ifndef ANTKEEPER_GAME_NEST_COMPONENT_HPP
 #define ANTKEEPER_GAME_NEST_COMPONENT_HPP
 
-import engine.entity.id;
-import <vector>;
+#include <engine/entity/id.hpp>
+#include <vector>
 
 using namespace engine;
 

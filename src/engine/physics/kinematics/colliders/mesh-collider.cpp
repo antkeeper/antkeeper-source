@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.physics.kinematics.mesh_collider;
-import engine.geom.intersection;
-import engine.geom.brep.operations;
-import engine.math.constants;
+#include <engine/physics/kinematics/colliders/mesh-collider.hpp>
+#include <engine/geom/intersection.hpp>
+#include <engine/geom/brep/operations.hpp>
+#include <engine/math/constants.hpp>
 
 namespace engine::physics
 {

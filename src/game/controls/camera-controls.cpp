@@ -6,8 +6,8 @@
 #include "game/components/spring-arm-component.hpp"
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/scene-object-component.hpp"
-import engine.debug.log;
-import engine.math.functions;
+#include <engine/debug/log.hpp>
+#include <engine/math/functions.hpp>
 
 namespace
 {

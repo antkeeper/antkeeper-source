@@ -6,9 +6,9 @@
 
 #include "game/ant/ant-caste-type.hpp"
 #include "game/ant/ant-phenome.hpp"
-import engine.render.model;
-import <unordered_map>;
-import <memory>;
+#include <engine/render/model.hpp>
+#include <unordered_map>
+#include <memory>
 
 using namespace engine;
 

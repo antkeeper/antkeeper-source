@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.animation.locomotion.step;
-import engine.math.functions;
+#include <engine/animation/locomotion/step.hpp>
+#include <engine/math/functions.hpp>
 
 namespace engine::animation
 {

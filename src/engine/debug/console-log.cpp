@@ -1,19 +1,20 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <engine/debug/console-log.hpp>
+#include <engine/debug/contract.hpp>
+#include <engine/debug/logger.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/math/functions.hpp>
+
 #if defined(_WIN32)
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
 #endif
 #include <iostream>
 #include <syncstream>
-import engine.debug.console_log;
-import engine.debug.contract;
-import engine.debug.logger;
-import engine.debug.log;
-import engine.math.functions;
-import <filesystem>;
-import <format>;
+#include <filesystem>
+#include <format>
 
 namespace
 {

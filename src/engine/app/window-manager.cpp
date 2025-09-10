@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.app.window_manager;
-import engine.app.sdl_window_manager;
-import <memory>;
+#include <engine/app/window-manager.hpp>
+#include <engine/app/sdl/sdl-window-manager.hpp>
+#include <memory>
 
 namespace engine::app
 {

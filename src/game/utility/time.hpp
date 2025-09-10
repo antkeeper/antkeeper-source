@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_UTILITY_TIME_HPP
 #define ANTKEEPER_GAME_UTILITY_TIME_HPP
 
-import engine.entity.registry;
+#include <engine/entity/registry.hpp>
 
 using namespace engine;
 

@@ -1,20 +1,20 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.utility.dict;
-import engine.resources.serializer;
-import engine.resources.serialize_context;
-import engine.resources.serialize_error;
-import engine.resources.deserializer;
-import engine.resources.deserialize_context;
-import engine.resources.deserialize_error;
-import engine.resources.resource_loader;
-import engine.hash.fnv;
-import engine.utility.sized_types;
-import <string>;
-import <tuple>;
-import <typeindex>;
-import <unordered_map>;
+#include <engine/utility/dict.hpp>
+#include <engine/resources/serializer.hpp>
+#include <engine/resources/serialize-context.hpp>
+#include <engine/resources/serialize-error.hpp>
+#include <engine/resources/deserializer.hpp>
+#include <engine/resources/deserialize-context.hpp>
+#include <engine/resources/deserialize-error.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/hash/fnv.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <string>
+#include <tuple>
+#include <typeindex>
+#include <unordered_map>
 
 namespace
 {

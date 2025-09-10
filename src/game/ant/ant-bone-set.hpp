@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_ANT_BONE_SET_HPP
 #define ANTKEEPER_GAME_ANT_BONE_SET_HPP
 
-import engine.animation.bone;
+#include <engine/animation/bone.hpp>
 
 using namespace engine;
 

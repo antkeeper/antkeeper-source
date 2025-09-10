@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.geom.brep.edge_container;
-import engine.geom.brep.mesh;
-import engine.utility.sized_types;
-import engine.math.functions;
+#include <engine/geom/brep/edge-container.hpp>
+#include <engine/geom/brep/mesh.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <engine/math/functions.hpp>
 
 namespace engine::geom::brep
 {

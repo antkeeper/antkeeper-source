@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.physics.kinematics.restitution;
-import engine.math.functions;
+#include <engine/physics/kinematics/restitution.hpp>
+#include <engine/math/functions.hpp>
 
 namespace engine::physics
 {

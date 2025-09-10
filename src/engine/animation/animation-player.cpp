@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.animation.animation_player;
-import engine.math.functions;
-import engine.utility.sized_types;
-import <utility>;
-import <vector>;
+#include <engine/animation/animation-player.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <utility>
+#include <vector>
 
 namespace engine::animation
 {

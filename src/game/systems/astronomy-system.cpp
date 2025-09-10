@@ -7,25 +7,25 @@
 #include "game/components/transform-component.hpp"
 #include "game/components/diffuse-reflector-component.hpp"
 #include "game/utility/time.hpp"
-import engine.geom.intersection;
-import engine.geom.primitives.sphere;
-import engine.physics.orbit.frame;
-import engine.physics.time;
-import engine.physics.light.photometry;
-import engine.physics.light.luminosity;
-import engine.physics.light.refraction;
-import engine.physics.gas.atmosphere;
-import engine.geom.solid_angle;
-import engine.geom.angular_radius;
-import engine.color.bt2020;
-import engine.color.bt709;
-import engine.debug.log;
-import engine.math.functions;
-import engine.math.matrix;
-import engine.math.quaternion;
-import engine.math.transform;
-import engine.math.polynomial;
-import engine.utility.sized_types;
+#include <engine/geom/intersection.hpp>
+#include <engine/geom/primitives/sphere.hpp>
+#include <engine/physics/orbit/frame.hpp>
+#include <engine/physics/time.hpp>
+#include <engine/physics/light/photometry.hpp>
+#include <engine/physics/light/luminosity.hpp>
+#include <engine/physics/light/refraction.hpp>
+#include <engine/physics/gas/atmosphere.hpp>
+#include <engine/geom/solid-angle.hpp>
+#include <engine/geom/angular-radius.hpp>
+#include <engine/color/bt2020.hpp>
+#include <engine/color/bt709.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/matrix.hpp>
+#include <engine/math/quaternion.hpp>
+#include <engine/math/transform.hpp>
+#include <engine/math/polynomial.hpp>
+#include <engine/utility/sized-types.hpp>
 
 using namespace engine;
 

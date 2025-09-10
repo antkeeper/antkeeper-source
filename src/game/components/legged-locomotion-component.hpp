@@ -4,12 +4,12 @@
 #ifndef ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP
 #define ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP
 
-import engine.animation.skeleton_pose;
-import engine.animation.locomotion.gait;
-import engine.math.vector;
-import engine.utility.sized_types;
-import <memory>;
-import <vector>;
+#include <engine/animation/skeleton-pose.hpp>
+#include <engine/animation/locomotion/gait.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <memory>
+#include <vector>
 
 using namespace engine;
 

@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_STEERING_COMPONENT_HPP
 #define ANTKEEPER_GAME_STEERING_COMPONENT_HPP
 
-import engine.ai.steering.agent;
+#include <engine/ai/steering/agent.hpp>
 
 using namespace engine;
 

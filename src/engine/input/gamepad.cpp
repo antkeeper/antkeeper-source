@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.input.gamepad;
-import engine.event.publisher;
-import engine.math.functions;
-import <type_traits>;
+#include <engine/input/gamepad.hpp>
+#include <engine/event/publisher.hpp>
+#include <engine/math/functions.hpp>
+#include <type_traits>
 
 using namespace engine::math;
 

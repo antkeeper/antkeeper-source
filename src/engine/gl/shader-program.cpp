@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <glad/gl.h>
-import engine.gl.shader_program;
-import engine.gl.shader_object;
-import engine.gl.opengl.shader_variables;
-import engine.debug.log;
-import engine.utility.sized_types;
-import <string_view>;
-import <stdexcept>;
-import <unordered_set>;
+#include <engine/gl/shader-program.hpp>
+#include <engine/gl/shader-object.hpp>
+#include <engine/gl/opengl/shader-variables.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <string_view>
+#include <stdexcept>
+#include <unordered_set>
 
 namespace engine::gl
 {

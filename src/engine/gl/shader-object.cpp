@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <glad/gl.h>
-import engine.gl.shader_object;
-import engine.debug.log;
-import engine.utility.sized_types;
-import <stdexcept>;
+#include <engine/gl/shader-object.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <stdexcept>
 
 namespace engine::gl::opengl
 {

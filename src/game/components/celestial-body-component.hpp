@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_CELESTIAL_BODY_COMPONENT_HPP
 #define ANTKEEPER_GAME_CELESTIAL_BODY_COMPONENT_HPP
 
-import <vector>;
+#include <vector>
 
 /// A simple celestial body.
 struct celestial_body_component

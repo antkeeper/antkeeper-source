@@ -5,9 +5,9 @@
 #include "game/components/transform-component.hpp"
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/scene-object-component.hpp"
-import engine.math.quaternion;
-import engine.math.transform;
-import engine.utility.sized_types;
+#include <engine/math/quaternion.hpp>
+#include <engine/math/transform.hpp>
+#include <engine/utility/sized-types.hpp>
 
 using namespace engine;
 

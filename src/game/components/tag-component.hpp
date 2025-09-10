@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_TAG_COMPONENT_HPP
 #define ANTKEEPER_TAG_COMPONENT_HPP
 
-import engine.hash.fnv;
+#include <engine/hash/fnv.hpp>
 
 using namespace engine;
 

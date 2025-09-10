@@ -4,9 +4,9 @@
 #ifndef ANTKEEPER_GAME_CHAMBER_COMPONENT_HPP
 #define ANTKEEPER_GAME_CHAMBER_COMPONENT_HPP
 
-import engine.entity.id;
-import <array>;
-import <unordered_set>;
+#include <engine/entity/id.hpp>
+#include <array>
+#include <unordered_set>
 
 using namespace engine;
 

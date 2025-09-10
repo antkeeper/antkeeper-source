@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <syncstream>
-import engine.debug.file_log;
-import engine.debug.contract;
-import engine.debug.logger;
-import <filesystem>;
-import <format>;
-import <stdexcept>;
+#include <engine/debug/file-log.hpp>
+#include <engine/debug/contract.hpp>
+#include <engine/debug/logger.hpp>
+#include <filesystem>
+#include <format>
+#include <stdexcept>
 
 namespace engine::debug
 {

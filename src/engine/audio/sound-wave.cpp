@@ -7,17 +7,17 @@
 #define OV_EXCLUDE_STATIC_CALLBACKS
 #include <vorbis/vorbisfile.h>
 
-import engine.audio.sound_wave;
-import engine.debug.log;
-import engine.resources.deserialize_error;
-import engine.resources.resource_loader;
-import engine.utility.sized_types;
-import <bit>;
-import <format>;
-import <memory>;
-import <span>;
-import <stdexcept>;
-import <vector>;
+#include <engine/audio/sound-wave.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/resources/deserialize-error.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <bit>
+#include <format>
+#include <memory>
+#include <span>
+#include <stdexcept>
+#include <vector>
 
 namespace engine::audio
 {

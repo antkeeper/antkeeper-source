@@ -5,7 +5,7 @@
 #define ANTKEEPER_GAME_ANT_FOUNDING_MODE_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-import engine.utility.sized_types;
+#include <engine/utility/sized-types.hpp>
 
 /// Colony founding mode phene.
 /// @see https://www.antwiki.org/wiki/Colony_Foundation

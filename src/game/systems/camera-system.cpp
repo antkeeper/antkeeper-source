@@ -6,11 +6,11 @@
 #include "game/components/autofocus-component.hpp"
 #include "game/components/spring-arm-component.hpp"
 #include "game/components/scene-object-component.hpp"
-import engine.animation.ease;
-import engine.math.functions;
-import engine.math.projection;
-import engine.math.euler_angles;
-import engine.scene.camera;
+#include <engine/animation/ease.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/projection.hpp>
+#include <engine/math/euler-angles.hpp>
+#include <engine/scene/camera.hpp>
 
 void camera_system::fixed_update(entity::registry&, float, float)
 {}

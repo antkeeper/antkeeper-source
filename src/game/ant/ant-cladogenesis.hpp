@@ -7,7 +7,7 @@
 #include <random>
 #include "game/ant/ant-genome.hpp"
 #include "game/ant/ant-gene-pool.hpp"
-import <memory>;
+#include <memory>
 
 /// Generates an ant genome from a gene pool.
 /// @tparam URBG Uniform random bit generator type.

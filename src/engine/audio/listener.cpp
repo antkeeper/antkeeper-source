@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <AL/al.h>
-import engine.audio.listener;
+#include <engine/audio/listener.hpp>
 
 namespace engine::audio
 {

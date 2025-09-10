@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "game/game.hpp"
-import engine.config;
-import engine.utility.json;
-import engine.utility.paths;
-import engine.debug.console_log;
-import engine.debug.file_log;
-import engine.debug.crash_reporter;
-import engine.debug.log;
-import engine.utility.sized_types;
-import <chrono>;
-import <set>;
+#include <engine/config.hpp>
+#include <engine/utility/json.hpp>
+#include <engine/utility/paths.hpp>
+#include <engine/debug/console-log.hpp>
+#include <engine/debug/file-log.hpp>
+#include <engine/debug/crash-reporter.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <chrono>
+#include <set>
 
 using namespace engine;
 

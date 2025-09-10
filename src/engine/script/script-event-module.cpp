@@ -8,14 +8,14 @@ extern "C"
 	#include <lauxlib.h>
 }
 
-import engine.script.event_module;
-import engine.script.context;
-import engine.script.error;
-import engine.input.mouse;
-import engine.event.subscription;
-import engine.event.dispatcher;
-import engine.debug.contract;
-import engine.debug.log;
+#include <engine/script/script-event-module.hpp>
+#include <engine/script/script-context.hpp>
+#include <engine/script/script-error.hpp>
+#include <engine/input/mouse.hpp>
+#include <engine/event/subscription.hpp>
+#include <engine/event/dispatcher.hpp>
+#include <engine/debug/contract.hpp>
+#include <engine/debug/log.hpp>
 
 using namespace engine;
 

@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.animation.skeleton_rest_pose;
-import engine.animation.skeleton;
-import engine.utility.sized_types;
+#include <engine/animation/skeleton-rest-pose.hpp>
+#include <engine/animation/skeleton.hpp>
+#include <engine/utility/sized-types.hpp>
 
 namespace engine::animation
 {

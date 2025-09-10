@@ -18,7 +18,7 @@
 #include "game/constraints/spring-translation-constraint.hpp"
 #include "game/constraints/three-dof-constraint.hpp"
 #include "game/constraints/track-to-constraint.hpp"
-import engine.entity.id;
+#include <engine/entity/id.hpp>
 
 using namespace engine;
 

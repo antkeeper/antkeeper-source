@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_ANT_GENE_TYPE_HPP
 #define ANTKEEPER_GAME_ANT_GENE_TYPE_HPP
 
-import engine.utility.sized_types;
+#include <engine/utility/sized-types.hpp>
 
 /// Ant gene types.
 enum class ant_gene_type: u8

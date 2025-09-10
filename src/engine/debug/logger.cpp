@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.debug.logger;
-import <chrono>;
-import <thread>;
-import <utility>;
+#include <engine/debug/logger.hpp>
+#include <chrono>
+#include <thread>
+#include <utility>
 
 namespace engine::debug
 {

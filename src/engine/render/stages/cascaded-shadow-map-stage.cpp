@@ -2,28 +2,28 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <execution>
-import engine.render.cascaded_shadow_map_stage;
-import engine.render.context;
-import engine.render.material;
-import engine.render.vertex_attribute_location;
-import engine.render.operation;
-import engine.gl.pipeline;
-import engine.gl.framebuffer;
-import engine.gl.shader_program;
-import engine.gl.clear_bits;
-import engine.geom.primitives.view_frustum;
-import engine.hash.fnv;
-import engine.debug.log;
-import engine.scene.camera;
-import engine.scene.collection;
-import engine.scene.light;
-import engine.math.functions;
-import engine.math.vector;
-import engine.math.matrix;
-import engine.math.quaternion;
-import engine.math.projection;
-import engine.resources.resource_manager;
-import engine.utility.sized_types;
+#include <engine/render/stages/cascaded-shadow-map-stage.hpp>
+#include <engine/render/context.hpp>
+#include <engine/render/material.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
+#include <engine/render/operation.hpp>
+#include <engine/gl/pipeline.hpp>
+#include <engine/gl/framebuffer.hpp>
+#include <engine/gl/shader-program.hpp>
+#include <engine/gl/clear-bits.hpp>
+#include <engine/geom/primitives/view-frustum.hpp>
+#include <engine/hash/fnv.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/scene/camera.hpp>
+#include <engine/scene/collection.hpp>
+#include <engine/scene/light.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/math/matrix.hpp>
+#include <engine/math/quaternion.hpp>
+#include <engine/math/projection.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/utility/sized-types.hpp>
 
 namespace engine::render
 {

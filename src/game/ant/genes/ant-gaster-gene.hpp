@@ -5,8 +5,8 @@
 #define ANTKEEPER_GAME_ANT_GASTER_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-import engine.render.model;
-import <memory>;
+#include <engine/render/model.hpp>
+#include <memory>
 
 using namespace engine;
 

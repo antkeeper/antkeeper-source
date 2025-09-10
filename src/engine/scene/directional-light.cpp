@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.scene.directional_light;
-import engine.debug.log;
-import engine.math.projection;
-import engine.math.functions;
+#include <engine/scene/directional-light.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/math/projection.hpp>
+#include <engine/math/functions.hpp>
 
 namespace engine::scene
 {

@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.render.pass;
-import engine.gl.pipeline;
+#include <engine/render/pass.hpp>
+#include <engine/gl/pipeline.hpp>
 
 namespace engine::render
 {

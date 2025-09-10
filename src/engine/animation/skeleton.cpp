@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <nlohmann/json.hpp>
-import engine.animation.skeleton;
-import engine.resources.deserializer;
-import engine.resources.deserialize_error;
-import engine.resources.resource_loader;
-import engine.utility.json;
-import engine.utility.sized_types;
-import <stdexcept>;
-import <format>;
+#include <engine/animation/skeleton.hpp>
+#include <engine/resources/deserializer.hpp>
+#include <engine/resources/deserialize-error.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/utility/json.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <stdexcept>
+#include <format>
 
 namespace engine::animation
 {

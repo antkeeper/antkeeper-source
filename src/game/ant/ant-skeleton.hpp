@@ -6,9 +6,9 @@
 
 #include "game/ant/ant-phenome.hpp"
 #include "game/ant/ant-bone-set.hpp"
-import engine.animation.skeleton;
-import engine.animation.skeleton_pose;
-import <memory>;
+#include <engine/animation/skeleton.hpp>
+#include <engine/animation/skeleton-pose.hpp>
+#include <memory>
 
 using namespace engine;
 

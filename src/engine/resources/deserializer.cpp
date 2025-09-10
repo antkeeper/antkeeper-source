@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.resources.deserializer;
-import engine.resources.deserialize_context;
-import engine.utility.sized_types;
-import <string>;
+#include <engine/resources/deserializer.hpp>
+#include <engine/resources/deserialize-context.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <string>
 
 namespace engine::resources
 {

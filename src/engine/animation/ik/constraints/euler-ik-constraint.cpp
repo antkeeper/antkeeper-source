@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.animation.euler_ik_constraint;
-import engine.math.functions;
+#include <engine/animation/ik/constraints/euler-ik-constraint.hpp>
+#include <engine/math/functions.hpp>
 
 namespace engine::animation
 {

@@ -7,11 +7,11 @@
 #include "game/components/pose-component.hpp"
 #include "game/components/scene-object-component.hpp"
 #include "game/components/animation-component.hpp"
-import engine.animation.bone;
-import engine.math.functions;
-import engine.scene.skeletal_mesh;
-import engine.utility.sized_types;
-import <algorithm>;
+#include <engine/animation/bone.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/scene/skeletal-mesh.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <algorithm>
 
 using namespace engine;
 

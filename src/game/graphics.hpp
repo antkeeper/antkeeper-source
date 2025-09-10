@@ -5,7 +5,7 @@
 #define ANTKEEPER_GAME_GRAPHICS_HPP
 
 #include "game/game.hpp"
-import engine.render.anti_aliasing_method;
+#include <engine/render/anti-aliasing-method.hpp>
 
 using namespace engine;
 

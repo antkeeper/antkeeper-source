@@ -301,10 +301,10 @@ glad_add_library(glad STATIC
 file(COPY ${tinyexr_SOURCE_DIR}/tinyexr.h DESTINATION ${tinyexr_BINARY_DIR}/include)
 
 # Generate configuration header files
-configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.ixx.in ${PROJECT_BINARY_DIR}/config.ixx.in @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.hpp.in ${PROJECT_BINARY_DIR}/config.hpp.in @ONLY)
 file(GENERATE
-	OUTPUT ${PROJECT_BINARY_DIR}/$<CONFIG>/src/engine/config.ixx
-	INPUT ${PROJECT_BINARY_DIR}/config.ixx.in
+	OUTPUT ${PROJECT_BINARY_DIR}/$<CONFIG>/src/engine/config.hpp
+	INPUT ${PROJECT_BINARY_DIR}/config.hpp.in
 )
 
 # Collect source files
@@ -315,14 +315,13 @@ file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
 # Collect header files
 file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS
 	${PROJECT_SOURCE_DIR}/src/*.hpp
-	${PROJECT_SOURCE_DIR}/src/*.ixx.in
+	${PROJECT_SOURCE_DIR}/src/*.hpp.in
 )
 
 # Collect module files
 file(GLOB_RECURSE MODULE_FILES CONFIGURE_DEPENDS
 	${PROJECT_SOURCE_DIR}/src/*.ixx
 )
-list(APPEND MODULE_FILES ${PROJECT_BINARY_DIR}/$<CONFIG>/src/engine/config.ixx)
 
 # Filter out platform-specific source and header files
 list(FILTER SOURCE_FILES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/src/game/platform/.*")

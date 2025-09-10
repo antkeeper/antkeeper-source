@@ -9,9 +9,9 @@
 #endif
 #include <csignal>
 #include <stacktrace>
-import engine.debug.crash_reporter;
-import engine.debug.log;
-import engine.utility.paths;
+#include <engine/debug/crash-reporter.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/utility/paths.hpp>
 
 namespace
 {

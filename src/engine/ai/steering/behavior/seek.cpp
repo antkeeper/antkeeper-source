@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.ai.steering.behavior.seek;
-import engine.ai.steering.agent;
-import engine.math.functions;
+#include <engine/ai/steering/behavior/seek.hpp>
+#include <engine/ai/steering/agent.hpp>
+#include <engine/math/functions.hpp>
 
 namespace engine::ai::steering::behavior
 {

@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.geom.brep.operations;
-import engine.math.functions;
-import engine.math.vector;
+#include <engine/geom/brep/operations.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/vector.hpp>
 
 namespace engine::geom::brep
 {

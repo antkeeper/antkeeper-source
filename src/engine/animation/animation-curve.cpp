@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.animation.animation_curve;
-import engine.math.functions;
-import <iterator>;
+#include <engine/animation/animation-curve.hpp>
+#include <engine/math/functions.hpp>
+#include <iterator>
 
 namespace engine::animation
 {

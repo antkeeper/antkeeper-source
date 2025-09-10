@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.geom.brep.edge_loop_list;
+#include <engine/geom/brep/edge-loop-list.hpp>
 
 namespace engine::geom::brep
 {

@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <SDL3/SDL.h>
-import engine.app.sdl_input_manager;
-import engine.input.application_events;
-import engine.input.clipboard_events;
-import engine.input.update_event;
-import engine.input.modifier_key;
-import engine.debug.log;
-import engine.math.functions;
-import engine.utility.sized_types;
-import <stdexcept>;
+#include <engine/app/sdl/sdl-input-manager.hpp>
+#include <engine/input/application-events.hpp>
+#include <engine/input/clipboard-events.hpp>
+#include <engine/input/input-update-event.hpp>
+#include <engine/input/modifier-key.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <stdexcept>
 
 namespace engine::app
 {

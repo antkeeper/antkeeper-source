@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.render.compositor;
-import engine.render.pass;
+#include <engine/render/compositor.hpp>
+#include <engine/render/pass.hpp>
 
 namespace engine::render
 {

@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_TOOL_COMPONENT_HPP
 #define ANTKEEPER_GAME_TOOL_COMPONENT_HPP
 
-import <functional>;
+#include <functional>
 
 struct tool_component
 {

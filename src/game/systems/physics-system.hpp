@@ -5,12 +5,12 @@
 #define ANTKEEPER_GAME_PHYSICS_SYSTEM_HPP
 
 #include "game/systems/fixed-update-system.hpp"
-import engine.physics.kinematics.rigid_body;
-import engine.physics.kinematics.collision;
-import engine.entity.id;
-import engine.math.vector;
-import <array>;
-import <functional>;
+#include <engine/physics/kinematics/rigid-body.hpp>
+#include <engine/physics/kinematics/collision.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/math/vector.hpp>
+#include <array>
+#include <functional>
 
 using namespace engine;
 

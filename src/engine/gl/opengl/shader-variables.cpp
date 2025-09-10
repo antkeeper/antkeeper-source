@@ -3,9 +3,9 @@
 
 #include <glad/gl.h>
 #include <numeric>
-import engine.gl.opengl.shader_variables;
-import engine.gl.texture;
-import engine.utility.sized_types;
+#include <engine/gl/opengl/shader-variables.hpp>
+#include <engine/gl/texture.hpp>
+#include <engine/utility/sized-types.hpp>
 
 namespace engine::gl::opengl
 {

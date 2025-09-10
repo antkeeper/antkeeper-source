@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_POSE_COMPONENT_HPP
 #define ANTKEEPER_GAME_POSE_COMPONENT_HPP
 
-import engine.animation.skeleton_pose;
+#include <engine/animation/skeleton-pose.hpp>
 
 using namespace engine;
 

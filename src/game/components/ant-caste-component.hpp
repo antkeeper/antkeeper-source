@@ -6,7 +6,7 @@
 
 #include "game/ant/ant-caste-type.hpp"
 #include "game/ant/ant-phenome.hpp"
-import <memory>;
+#include <memory>
 
 using namespace engine;
 

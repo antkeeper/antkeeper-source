@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_CONTACT_PHEROMONE_COMPONENT_HPP
 #define ANTKEEPER_CONTACT_PHEROMONE_COMPONENT_HPP
 
-import engine.utility.sized_types;
+#include <engine/utility/sized-types.hpp>
 
 /// Pheromones that coat an exoskeleton, providing short-range chemical communication.
 struct contact_pheromone_component

@@ -8,10 +8,10 @@ extern "C"
 	#include <lauxlib.h>
 }
 
-import engine.script.context;
-import engine.script.error;
-import <string>;
-import <utility>;
+#include <engine/script/script-context.hpp>
+#include <engine/script/script-error.hpp>
+#include <string>
+#include <utility>
 
 namespace engine
 {

@@ -4,8 +4,8 @@
 #include "game/menu.hpp"
 #include "game/strings.hpp"
 #include "game/controls.hpp"
-import engine.ui.range;
-import engine.config;
+#include <engine/ui/range.hpp>
+#include <engine/config.hpp>
 
 void setup_menu_controls(::game& ctx)
 {

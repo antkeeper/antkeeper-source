@@ -4,11 +4,11 @@
 #ifndef ANTKEEER_GAME_CONTROL_PROFILE_HPP
 #define ANTKEEER_GAME_CONTROL_PROFILE_HPP
 
-import engine.utility.dict;
-import engine.hash.fnv;
-import engine.input.mapping;
-import <map>;
-import <memory>;
+#include <engine/utility/dict.hpp>
+#include <engine/hash/fnv.hpp>
+#include <engine/input/mapping.hpp>
+#include <map>
+#include <memory>
 
 using namespace engine;
 

@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.physics.orbit.ephemeris;
-import engine.resources.deserializer;
-import engine.resources.resource_loader;
-import engine.utility.sized_types;
-import engine.math.functions;
-import <bit>;
-import <functional>;
+#include <engine/physics/orbit/ephemeris.hpp>
+#include <engine/resources/deserializer.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <engine/math/functions.hpp>
+#include <bit>
+#include <functional>
 
 namespace engine::resources
 {

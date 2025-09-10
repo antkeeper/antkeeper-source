@@ -3,9 +3,9 @@
 
 #include <AL/al.h>
 #include <AL/alc.h>
-import engine.audio.sound_system;
-import <format>;
-import <stdexcept>;
+#include <engine/audio/sound-system.hpp>
+#include <format>
+#include <stdexcept>
 
 namespace engine::audio
 {

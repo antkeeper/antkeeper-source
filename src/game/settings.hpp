@@ -5,8 +5,8 @@
 #define ANTKEEPER_GAME_SETTINGS_HPP
 
 #include "game/game.hpp"
-import engine.debug.log;
-import <string_view>;
+#include <engine/debug/log.hpp>
+#include <string_view>
 
 using namespace engine;
 

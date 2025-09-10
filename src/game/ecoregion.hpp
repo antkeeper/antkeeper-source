@@ -6,11 +6,11 @@
 
 #include <random>
 #include "game/ant/ant-gene-pool.hpp"
-import engine.math.vector;
-import engine.render.material;
-import engine.utility.sized_types;
-import <memory>;
-import <string>;
+#include <engine/math/vector.hpp>
+#include <engine/render/material.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <memory>
+#include <string>
 
 using namespace engine;
 

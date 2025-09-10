@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_NAME_COMPONENT_HPP
 #define ANTKEEPER_NAME_COMPONENT_HPP
 
-import <string>;
+#include <string>
 
 /// Supplies a human-readable name.
 struct name_component

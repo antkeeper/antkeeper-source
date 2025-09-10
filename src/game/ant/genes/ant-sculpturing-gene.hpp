@@ -5,8 +5,8 @@
 #define ANTKEEPER_GAME_ANT_SCULPTURING_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-import engine.gl.texture;
-import <memory>;
+#include <engine/gl/texture.hpp>
+#include <memory>
 
 using namespace engine;
 

@@ -6,9 +6,9 @@
 #include <sstream>
 #include <regex>
 #include "game/debug/shell-buffer.hpp"
-import engine.debug.log;
-import engine.utility.sized_types;
-import engine.math.functions;
+#include <engine/debug/log.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <engine/math/functions.hpp>
 
 using namespace engine;
 

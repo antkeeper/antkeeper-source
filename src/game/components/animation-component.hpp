@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_ANIMATION_COMPONENT_HPP
 #define ANTKEEPER_GAME_ANIMATION_COMPONENT_HPP
 
-import engine.animation.animation_player;
+#include <engine/animation/animation-player.hpp>
 
 using namespace engine;
 

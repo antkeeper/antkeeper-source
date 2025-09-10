@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import <physfs.h>;
-import engine.resources.resource_manager;
-import engine.resources.physfs_deserialize_context;
-import engine.resources.physfs_serialize_context;
-import engine.debug.log;
-import <stdexcept>;
+#include <physfs.h>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/resources/physfs/physfs-deserialize-context.hpp>
+#include <engine/resources/physfs/physfs-serialize-context.hpp>
+#include <engine/debug/log.hpp>
+#include <stdexcept>
 
 namespace engine::resources
 {

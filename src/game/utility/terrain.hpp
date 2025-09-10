@@ -4,13 +4,13 @@
 #ifndef ANTKEEPER_GAME_UTILITY_TERRAIN_HPP
 #define ANTKEEPER_GAME_UTILITY_TERRAIN_HPP
 
-import engine.gl.image;
-import engine.render.material;
-import engine.math.vector;
-import engine.math.transform;
-import engine.entity.id;
-import engine.entity.registry;
-import <memory>;
+#include <engine/gl/image.hpp>
+#include <engine/render/material.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/math/transform.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/entity/registry.hpp>
+#include <memory>
 
 using namespace engine;
 

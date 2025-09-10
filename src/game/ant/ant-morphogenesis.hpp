@@ -5,8 +5,8 @@
 #define ANTKEEPER_GAME_ANT_MORPHOGENESIS_HPP
 
 #include "game/ant/ant-phenome.hpp"
-import engine.render.model;
-import <memory>;
+#include <engine/render/model.hpp>
+#include <memory>
 
 using namespace engine;
 

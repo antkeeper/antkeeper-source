@@ -8,12 +8,12 @@ extern "C"
 	#include <lauxlib.h>
 }
 
-import engine.script.context;
-import engine.script.math_module;
-import engine.debug.contract;
-import engine.debug.log;
-import engine.math.constants;
-import engine.math.functions;
+#include <engine/script/script-context.hpp>
+#include <engine/script/script-math-module.hpp>
+#include <engine/debug/contract.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/math/constants.hpp>
+#include <engine/math/functions.hpp>
 
 using namespace engine;
 

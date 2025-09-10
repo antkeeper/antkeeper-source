@@ -11,11 +11,11 @@
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/ant-caste-component.hpp"
 #include "game/systems/steering-system.hpp"
-import engine.scene.static_mesh;
-import engine.resources.resource_manager;
-import engine.math.quaternion;
-import engine.math.functions;
-import engine.utility.sized_types;
+#include <engine/scene/static-mesh.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/math/quaternion.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/utility/sized-types.hpp>
 
 using namespace engine;
 

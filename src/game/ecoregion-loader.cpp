@@ -3,11 +3,11 @@
 
 #include <nlohmann/json.hpp>
 #include "game/ecoregion.hpp"
-import engine.resources.resource_loader;
-import engine.resources.resource_manager;
-import engine.utility.json;
-import engine.math.functions;
-import <stdexcept>;
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/utility/json.hpp>
+#include <engine/math/functions.hpp>
+#include <stdexcept>
 
 namespace engine::resources
 {

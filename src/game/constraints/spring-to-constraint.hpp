@@ -4,9 +4,9 @@
 #ifndef ANTKEEPER_GAME_SPRING_TO_CONSTRAINT_HPP
 #define ANTKEEPER_GAME_SPRING_TO_CONSTRAINT_HPP
 
-import engine.physics.spring;
-import engine.math.vector;
-import engine.entity.id;
+#include <engine/physics/spring.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/entity/id.hpp>
 
 using namespace engine;
 

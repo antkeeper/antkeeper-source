@@ -5,9 +5,9 @@
 #define ANTKEEPER_GAME_ANT_EYES_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-import engine.render.model;
-import engine.utility.sized_types;
-import <memory>;
+#include <engine/render/model.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <memory>
 
 using namespace engine;
 

@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.animation.ik_rig;
-import engine.utility.sized_types;
+#include <engine/animation/ik/ik-rig.hpp>
+#include <engine/utility/sized-types.hpp>
 
 namespace engine::animation
 {

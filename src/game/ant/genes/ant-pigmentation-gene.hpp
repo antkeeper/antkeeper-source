@@ -5,8 +5,8 @@
 #define ANTKEEPER_GAME_ANT_PIGMENTATION_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-import engine.render.material;
-import <memory>;
+#include <engine/render/material.hpp>
+#include <memory>
 
 using namespace engine;
 

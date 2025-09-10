@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.utility.frame_scheduler;
-import engine.debug.contract;
-import engine.math.functions;
-import <thread>;
+#include <engine/utility/frame-scheduler.hpp>
+#include <engine/debug/contract.hpp>
+#include <engine/math/functions.hpp>
+#include <thread>
 
 namespace engine
 {

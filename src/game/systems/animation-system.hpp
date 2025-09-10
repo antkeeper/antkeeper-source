@@ -6,9 +6,9 @@
 
 #include "game/systems/fixed-update-system.hpp"
 #include "game/systems/variable-update-system.hpp"
-import engine.entity.id;
-import <memory>;
-import <vector>;
+#include <engine/entity/id.hpp>
+#include <memory>
+#include <vector>
 
 using namespace engine;
 
