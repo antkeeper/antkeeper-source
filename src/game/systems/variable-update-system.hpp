@@ -5,7 +5,7 @@
 #define ANTKEEPER_GAME_VARIABLE_UPDATE_SYSTEM_HPP
 
 #include "game/systems/component-system.hpp"
-import engine.entity.registry;
+#include <engine/entity/registry.hpp>
 
 using namespace engine;
 

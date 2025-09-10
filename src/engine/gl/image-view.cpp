@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <glad/gl.h>
-import engine.gl.image_view;
-import engine.gl.opengl.format_lut;
-import <stdexcept>;
+#include <engine/gl/image-view.hpp>
+#include <engine/gl/opengl/format-lut.hpp>
+#include <stdexcept>
 
 namespace engine::gl
 {

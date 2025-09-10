@@ -3,8 +3,8 @@
 
 #include "game/ant/genes/ant-foraging-time-gene.hpp"
 #include "game/ant/genes/ant-gene-loader.hpp"
-import engine.resources.resource_loader;
-import engine.resources.resource_manager;
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
 
 namespace engine::resources
 {

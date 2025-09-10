@@ -4,16 +4,16 @@
 #include <ft2build.h>
 #include <freetype/freetype.h>
 #include <cstring>
-import engine.type.ft_typeface;
-import engine.resources.resource_loader;
-import engine.resources.deserialize_error;
-import engine.debug.log;
-import engine.utility.sized_types;
-import engine.math.functions;
-import <format>;
-import <memory>;
-import <stdexcept>;
-import <utility>;
+#include <engine/type/freetype/ft-typeface.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/deserialize-error.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <engine/math/functions.hpp>
+#include <format>
+#include <memory>
+#include <stdexcept>
+#include <utility>
 
 namespace engine::type
 {

@@ -8,9 +8,9 @@ extern "C"
 	#include <lauxlib.h>
 }
 
-import engine.script.context;
-import engine.script.global_module;
-import engine.debug.contract;
+#include <engine/script/script-context.hpp>
+#include <engine/script/script-global-module.hpp>
+#include <engine/debug/contract.hpp>
 
 using namespace engine;
 

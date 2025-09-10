@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <nlohmann/json.hpp>
-import engine.utility.json;
-import engine.i18n.string_map;
-import engine.hash.fnv;
-import engine.resources.serializer;
-import engine.resources.serialize_error;
-import engine.resources.deserializer;
-import engine.resources.deserialize_error;
-import engine.resources.resource_loader;
-import engine.utility.sized_types;
-import <utility>;
+#include <engine/utility/json.hpp>
+#include <engine/i18n/string-map.hpp>
+#include <engine/hash/fnv.hpp>
+#include <engine/resources/serializer.hpp>
+#include <engine/resources/serialize-error.hpp>
+#include <engine/resources/deserializer.hpp>
+#include <engine/resources/deserialize-error.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <utility>
 
 namespace engine::resources
 {

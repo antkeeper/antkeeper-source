@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.ui.image;
-import engine.scene.billboard;
+#include <engine/ui/image.hpp>
+#include <engine/scene/billboard.hpp>
 
 namespace engine::ui
 {

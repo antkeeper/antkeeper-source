@@ -2,18 +2,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <nlohmann/json.hpp>
-import engine.render.model;
-import engine.render.vertex_attribute_location;
-import engine.debug.log;
-import engine.resources.resource_loader;
-import engine.resources.resource_manager;
-import engine.resources.deserializer;
-import engine.resources.deserialize_error;
-import engine.utility.json;
-import engine.utility.sized_types;
-import engine.math.constants;
-import engine.geom.brep.mesh;
-import <functional>;
+#include <engine/render/model.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/resources/deserializer.hpp>
+#include <engine/resources/deserialize-error.hpp>
+#include <engine/utility/json.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <engine/math/constants.hpp>
+#include <engine/geom/brep/mesh.hpp>
+#include <functional>
 
 using namespace engine::geom;
 

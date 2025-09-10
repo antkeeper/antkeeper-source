@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.input.action_map;
-import engine.math.functions;
-import <type_traits>;
-import <utility>;
+#include <engine/input/action-map.hpp>
+#include <engine/math/functions.hpp>
+#include <type_traits>
+#include <utility>
 
 namespace engine::input
 {

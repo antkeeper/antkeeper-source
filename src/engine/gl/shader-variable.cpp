@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.gl.shader_variable;
-import engine.utility.sized_types;
-import <stdexcept>;
+#include <engine/gl/shader-variable.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <stdexcept>
 
 namespace engine::gl
 {

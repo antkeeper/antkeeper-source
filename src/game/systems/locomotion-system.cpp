@@ -8,13 +8,13 @@
 #include "game/components/winged-locomotion-component.hpp"
 #include "game/components/navmesh-agent-component.hpp"
 #include "game/components/rigid-body-component.hpp"
-import engine.animation.skeleton;
-import engine.math.functions;
-import engine.debug.log;
-import engine.entity.id;
-import engine.ai.navmesh;
-import engine.utility.sized_types;
-import <string>;
+#include <engine/animation/skeleton.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/ai/navmesh.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <string>
 
 using namespace engine;
 

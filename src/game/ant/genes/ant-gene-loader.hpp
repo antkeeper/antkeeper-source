@@ -5,9 +5,9 @@
 #define ANTKEEPER_GAME_ANT_GENE_LOADER_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-import engine.resources.resource_manager;
-import engine.resources.deserialize_context;
-import engine.resources.deserialize_error;
+#include <engine/resources/resource-manager.hpp>
+#include <engine/resources/deserialize-context.hpp>
+#include <engine/resources/deserialize-error.hpp>
 
 using namespace engine;
 

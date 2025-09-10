@@ -4,11 +4,11 @@
 #ifndef ANTKEEPER_GAME_SPRING_ARM_COMPONENT_HPP
 #define ANTKEEPER_GAME_SPRING_ARM_COMPONENT_HPP
 
-import engine.physics.spring;
-import engine.math.vector;
-import engine.math.quaternion;
-import engine.math.functions;
-import engine.entity.id;
+#include <engine/physics/spring.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/math/quaternion.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/entity/id.hpp>
 
 using namespace engine;
 

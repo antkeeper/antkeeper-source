@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.animation.ccd_ik_solver;
-import engine.debug.log;
-import engine.utility.sized_types;
-import <stdexcept>;
+#include <engine/animation/ik/solvers/ccd-ik-solver.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <stdexcept>
 
 namespace engine::animation
 {

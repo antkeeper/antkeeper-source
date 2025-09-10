@@ -3,7 +3,7 @@
 
 #include <nlohmann/json.hpp>
 #include "game/strings.hpp"
-import <format>;
+#include <format>
 
 std::string get_string(const ::game& ctx, std::string_view key)
 {

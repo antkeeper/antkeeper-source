@@ -12,15 +12,15 @@
 #include "game/components/orbit-component.hpp"
 #include "game/components/blackbody-component.hpp"
 #include "game/components/celestial-body-component.hpp"
-import engine.physics.orbit.elements;
-import engine.render.model;
-import engine.entity.archetype;
-import engine.resources.resource_loader;
-import engine.resources.resource_manager;
-import engine.utility.json;
-import engine.scene.static_mesh;
-import engine.math.functions;
-import <stdexcept>;
+#include <engine/physics/orbit/elements.hpp>
+#include <engine/render/model.hpp>
+#include <engine/entity/archetype.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/utility/json.hpp>
+#include <engine/scene/static-mesh.hpp>
+#include <engine/math/functions.hpp>
+#include <stdexcept>
 
 using namespace engine;
 

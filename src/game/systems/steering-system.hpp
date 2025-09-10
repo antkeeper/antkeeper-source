@@ -5,7 +5,7 @@
 #define ANTKEEPER_GAME_STEERING_SYSTEM_HPP
 
 #include "game/systems/fixed-update-system.hpp"
-import engine.math.vector;
+#include <engine/math/vector.hpp>
 
 using namespace engine;
 

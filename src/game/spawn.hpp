@@ -6,7 +6,7 @@
 
 #include "game/game.hpp"
 #include "game/ant/ant-genome.hpp"
-import engine.math.vector;
+#include <engine/math/vector.hpp>
 
 using namespace engine;
 

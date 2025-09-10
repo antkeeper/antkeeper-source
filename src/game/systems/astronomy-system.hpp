@@ -9,13 +9,13 @@
 #include "game/components/atmosphere-component.hpp"
 #include "game/components/celestial-body-component.hpp"
 #include "game/components/orbit-component.hpp"
-import engine.entity.id;
-import engine.scene.directional_light;
-import engine.math.vector;
-import engine.math.se3;
-import engine.geom.primitives.ray;
-import engine.render.passes.sky_pass;
-import engine.utility.sized_types;
+#include <engine/entity/id.hpp>
+#include <engine/scene/directional-light.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/math/se3.hpp>
+#include <engine/geom/primitives/ray.hpp>
+#include <engine/render/passes/sky-pass.hpp>
+#include <engine/utility/sized-types.hpp>
 
 using namespace engine;
 

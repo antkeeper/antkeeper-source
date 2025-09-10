@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <glad/gl.h>
-import engine.gl.framebuffer;
-import <stdexcept>;
+#include <engine/gl/framebuffer.hpp>
+#include <stdexcept>
 
 namespace engine::gl
 {

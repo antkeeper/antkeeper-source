@@ -3,14 +3,14 @@
 
 #include <SDL3/SDL.h>
 #include <glad/gl.h>
-import engine.app.sdl_window;
-import engine.app.sdl_window_manager;
-import engine.debug.contract;
-import engine.debug.log;
-import engine.gl.pipeline;
-import engine.gl.clear_bits;
-import engine.config;
-import <stdexcept>;
+#include <engine/app/sdl/sdl-window.hpp>
+#include <engine/app/sdl/sdl-window-manager.hpp>
+#include <engine/debug/contract.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/gl/pipeline.hpp>
+#include <engine/gl/clear-bits.hpp>
+#include <engine/config.hpp>
+#include <stdexcept>
 
 namespace engine::app
 {

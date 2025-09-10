@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <SDL3/SDL.h>
-import engine.app.sdl_window_manager;
-import engine.app.sdl_window;
-import engine.gl.pipeline;
-import engine.debug.contract;
-import engine.debug.log;
-import engine.config;
-import <optional>;
-import <filesystem>;
-import <stdexcept>;
+#include <engine/app/sdl/sdl-window-manager.hpp>
+#include <engine/app/sdl/sdl-window.hpp>
+#include <engine/gl/pipeline.hpp>
+#include <engine/debug/contract.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/config.hpp>
+#include <optional>
+#include <filesystem>
+#include <stdexcept>
 
 namespace engine::app
 {

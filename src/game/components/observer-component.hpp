@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_OBSERVER_COMPONENT_HPP
 #define ANTKEEPER_GAME_OBSERVER_COMPONENT_HPP
 
-import engine.entity.id;
+#include <engine/entity/id.hpp>
 
 using namespace engine;
 

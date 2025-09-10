@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_BLACKBODY_COMPONENT_HPP
 #define ANTKEEPER_GAME_BLACKBODY_COMPONENT_HPP
 
-import engine.math.vector;
+#include <engine/math/vector.hpp>
 
 using namespace engine;
 

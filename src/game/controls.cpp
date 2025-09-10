@@ -6,10 +6,10 @@
 #include "game/graphics.hpp"
 #include "game/menu.hpp"
 #include "game/control-profile.hpp"
-import engine.input.modifier_key;
-import engine.resources.resource_manager;
-import engine.hash.fnv;
-import engine.utility.json;
+#include <engine/input/modifier-key.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/hash/fnv.hpp>
+#include <engine/utility/json.hpp>
 
 using namespace engine::hash::literals;
 

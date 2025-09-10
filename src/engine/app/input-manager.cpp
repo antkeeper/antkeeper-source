@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.app.input_manager;
-import engine.app.sdl_input_manager;
-import <memory>;
+#include <engine/app/input-manager.hpp>
+#include <engine/app/sdl/sdl-input-manager.hpp>
+#include <memory>
 
 namespace engine::app
 {

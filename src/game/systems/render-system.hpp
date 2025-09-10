@@ -7,10 +7,10 @@
 #include <entt/entt.hpp>
 #include "game/systems/fixed-update-system.hpp"
 #include "game/systems/variable-update-system.hpp"
-import engine.render.renderer;
-import engine.entity.id;
-import engine.scene.collection;
-import <vector>;
+#include <engine/render/renderer.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/scene/collection.hpp>
+#include <vector>
 
 using namespace engine;
 

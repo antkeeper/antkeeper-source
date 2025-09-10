@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.render.light_probe_stage;
-import engine.render.vertex_attribute_location;
-import engine.scene.light_probe;
-import engine.scene.collection;
-import engine.hash.fnv;
-import engine.debug.contract;
-import engine.debug.log;
-import engine.utility.sized_types;
-import engine.gl.texture;
-import <stdexcept>;
+#include <engine/render/stages/light-probe-stage.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
+#include <engine/scene/light-probe.hpp>
+#include <engine/scene/collection.hpp>
+#include <engine/hash/fnv.hpp>
+#include <engine/debug/contract.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <engine/gl/texture.hpp>
+#include <stdexcept>
 
 namespace engine::render
 {

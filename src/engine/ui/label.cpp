@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.ui.label;
-import engine.scene.text;
-import engine.math.functions;
+#include <engine/ui/label.hpp>
+#include <engine/scene/text.hpp>
+#include <engine/math/functions.hpp>
 
 namespace engine::ui
 {

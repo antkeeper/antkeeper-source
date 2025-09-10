@@ -5,16 +5,16 @@
 #include <stb/stb_image.h>
 #include <tinyexr.h>
 #include <cstring>
-import engine.gl.image;
-import engine.gl.cube_map;
-import engine.gl.opengl.format_lut;
-import engine.resources.deserializer;
-import engine.resources.deserialize_error;
-import engine.resources.resource_loader;
-import engine.debug.log;
-import engine.utility.sized_types;
-import engine.math.functions;
-import <stdexcept>;
+#include <engine/gl/image.hpp>
+#include <engine/gl/cube-map.hpp>
+#include <engine/gl/opengl/format-lut.hpp>
+#include <engine/resources/deserializer.hpp>
+#include <engine/resources/deserialize-error.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <engine/math/functions.hpp>
+#include <stdexcept>
 
 namespace engine::gl
 {

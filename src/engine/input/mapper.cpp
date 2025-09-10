@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.input.mapper;
-import engine.event.publisher;
-import engine.math.functions;
-import <functional>;
+#include <engine/input/mapper.hpp>
+#include <engine/event/publisher.hpp>
+#include <engine/math/functions.hpp>
+#include <functional>
 
 namespace engine::input
 {

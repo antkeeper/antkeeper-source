@@ -4,8 +4,8 @@
 #ifndef ANTKEEPER_GAME_PICKING_COMPONENT_HPP
 #define ANTKEEPER_GAME_PICKING_COMPONENT_HPP
 
-import engine.geom.primitives.sphere;
-import engine.utility.sized_types;
+#include <engine/geom/primitives/sphere.hpp>
+#include <engine/utility/sized-types.hpp>
 
 using namespace engine;
 

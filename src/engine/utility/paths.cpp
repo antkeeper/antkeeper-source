@@ -7,7 +7,7 @@
 	#include <Shlobj.h>
 #endif
 #include <cstdlib>
-import engine.utility.paths;
+#include <engine/utility/paths.hpp>
 
 namespace engine::paths
 {

@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <nlohmann/json.hpp>
-import engine.geom.brep.mesh;
-import engine.resources.deserializer;
-import engine.resources.deserialize_error;
-import engine.resources.resource_loader;
-import engine.debug.log;
-import engine.utility.json;
-import engine.math.vector;
-import engine.utility.sized_types;
-import <format>;
+#include <engine/geom/brep/mesh.hpp>
+#include <engine/resources/deserializer.hpp>
+#include <engine/resources/deserialize-error.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/utility/json.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <format>
 
 namespace engine::geom::brep
 {

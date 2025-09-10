@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.scene.object;
-import engine.utility.sized_types;
+#include <engine/scene/object.hpp>
+#include <engine/utility/sized-types.hpp>
 
 namespace engine::scene
 {

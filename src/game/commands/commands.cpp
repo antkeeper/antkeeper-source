@@ -7,8 +7,8 @@
 #include "game/components/transform-component.hpp"
 #include "game/components/celestial-body-component.hpp"
 #include "game/components/terrain-component.hpp"
-import engine.math.quaternion;
-import <limits>;
+#include <engine/math/quaternion.hpp>
+#include <limits>
 
 namespace command
 {

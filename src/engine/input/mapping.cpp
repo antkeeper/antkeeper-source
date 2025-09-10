@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.input.mapping;
-import engine.resources.serializer;
-import engine.resources.serialize_error;
-import engine.resources.deserializer;
-import engine.resources.deserialize_error;
+#include <engine/input/mapping.hpp>
+#include <engine/resources/serializer.hpp>
+#include <engine/resources/serialize-error.hpp>
+#include <engine/resources/deserializer.hpp>
+#include <engine/resources/deserialize-error.hpp>
 
 namespace engine::input
 {

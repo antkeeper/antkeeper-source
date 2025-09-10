@@ -4,19 +4,19 @@
 #include <glad/gl.h>
 #include <stb/stb_image_write.h>
 #include "game/graphics.hpp"
-import engine.config;
-import engine.gl.framebuffer;
-import engine.gl.texture;
-import engine.render.passes.clear_pass;
-import engine.render.passes.bloom_pass;
-import engine.render.passes.composite_pass;
-import engine.render.passes.sky_pass;
-import engine.render.passes.material_pass;
-import engine.debug.log;
-import <chrono>;
-import <filesystem>;
-import <format>;
-import <thread>;
+#include <engine/config.hpp>
+#include <engine/gl/framebuffer.hpp>
+#include <engine/gl/texture.hpp>
+#include <engine/render/passes/clear-pass.hpp>
+#include <engine/render/passes/bloom-pass.hpp>
+#include <engine/render/passes/composite-pass.hpp>
+#include <engine/render/passes/sky-pass.hpp>
+#include <engine/render/passes/material-pass.hpp>
+#include <engine/debug/log.hpp>
+#include <chrono>
+#include <filesystem>
+#include <format>
+#include <thread>
 
 namespace graphics
 {

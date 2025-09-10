@@ -5,8 +5,8 @@
 #include <entt/entt.hpp>
 #include "game/systems/ik-system.hpp"
 #include "game/components/ik-component.hpp"
-import engine.entity.id;
-import <algorithm>;
+#include <engine/entity/id.hpp>
+#include <algorithm>
 
 void ik_system::fixed_update(entity::registry& registry, float, float)
 {

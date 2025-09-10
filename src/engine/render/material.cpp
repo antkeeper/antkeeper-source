@@ -2,18 +2,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <nlohmann/json.hpp>
-import engine.render.material;
-import engine.render.material_variable;
-import engine.utility.json;
-import engine.resources.resource_loader;
-import engine.resources.resource_manager;
-import engine.hash.combine_hash;
-import engine.math.vector;
-import engine.math.matrix;
-import engine.utility.sized_types;
-import <type_traits>;
-import <string>;
-import <utility>;
+#include <engine/render/material.hpp>
+#include <engine/render/material-variable.hpp>
+#include <engine/utility/json.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/hash/combine-hash.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/math/matrix.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <type_traits>
+#include <string>
+#include <utility>
 
 namespace engine::render
 {

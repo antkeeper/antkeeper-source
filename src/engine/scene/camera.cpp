@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.scene.camera;
-import engine.math.functions;
-import engine.math.vector;
-import engine.math.quaternion;
-import engine.math.matrix;
-import engine.math.projection;
-import engine.utility.sized_types;
+#include <engine/scene/camera.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/math/quaternion.hpp>
+#include <engine/math/matrix.hpp>
+#include <engine/math/projection.hpp>
+#include <engine/utility/sized-types.hpp>
 
 using namespace engine::math;
 

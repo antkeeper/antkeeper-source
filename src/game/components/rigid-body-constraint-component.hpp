@@ -4,8 +4,8 @@
 #ifndef ANTKEEPER_GAME_RIGID_BODY_CONSTRAINT_COMPONENT_HPP
 #define ANTKEEPER_GAME_RIGID_BODY_CONSTRAINT_COMPONENT_HPP
 
-import engine.physics.kinematics.constraint;
-import <memory>;
+#include <engine/physics/kinematics/constraint.hpp>
+#include <memory>
 
 using namespace engine;
 

@@ -4,7 +4,7 @@
 #include "game/spawn.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/scene-object-component.hpp"
-import engine.scene.static_mesh;
+#include <engine/scene/static-mesh.hpp>
 
 entity::id spawn_ant_egg(::game& ctx, const ant_genome& genome, const math::fvec3& position)
 {

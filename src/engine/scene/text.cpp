@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.scene.text;
-import engine.scene.camera;
-import engine.debug.log;
-import engine.type.unicode;
-import engine.math.constants;
-import engine.math.functions;
-import engine.render.vertex_attribute_location;
-import engine.render.context;
-import engine.gl.vertex_input_attribute;
-import engine.utility.sized_types;
+#include <engine/scene/text.hpp>
+#include <engine/scene/camera.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/type/unicode.hpp>
+#include <engine/math/constants.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
+#include <engine/render/context.hpp>
+#include <engine/gl/vertex-input-attribute.hpp>
+#include <engine/utility/sized-types.hpp>
 
 namespace engine::scene
 {

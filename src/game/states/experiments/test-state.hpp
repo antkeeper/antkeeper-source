@@ -7,17 +7,17 @@
 #include <entt/entt.hpp>
 #include "game/states/game-state.hpp"
 #include "game/ant/ant-phenome.hpp"
-import engine.event.subscription;
-import engine.entity.id;
-import engine.input.mouse;
-import engine.scene.rectangle_light;
-import engine.math.vector;
-import engine.math.functions;
-import engine.animation.ik_rig;
-import engine.geom.brep.mesh;
-import engine.render.model;
-import engine.geom.primitives.ray;
-import engine.geom.primitives.plane;
+#include <engine/event/subscription.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/input/mouse.hpp>
+#include <engine/scene/rectangle-light.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/animation/ik/ik-rig.hpp>
+#include <engine/geom/brep/mesh.hpp>
+#include <engine/render/model.hpp>
+#include <engine/geom/primitives/ray.hpp>
+#include <engine/geom/primitives/plane.hpp>
 
 class test_state: public game_state
 {

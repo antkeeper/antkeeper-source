@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <numeric>
-import engine.geom.bvh;
-import engine.geom.brep.mesh;
-import engine.geom.intersection;
+#include <engine/geom/bvh.hpp>
+#include <engine/geom/brep/mesh.hpp>
+#include <engine/geom/intersection.hpp>
 
 namespace engine::geom
 {

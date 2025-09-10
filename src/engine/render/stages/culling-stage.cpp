@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.render.culling_stage;
-import engine.render.context;
-import engine.scene.camera;
-import engine.scene.collection;
+#include <engine/render/stages/culling-stage.hpp>
+#include <engine/render/context.hpp>
+#include <engine/scene/camera.hpp>
+#include <engine/scene/collection.hpp>
 
 namespace engine::render
 {

@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.geom.marching_cubes;
-import engine.math.functions;
-import engine.utility.sized_types;
+#include <engine/geom/marching-cubes.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/utility/sized-types.hpp>
 
 namespace engine::geom::marching_cubes
 {

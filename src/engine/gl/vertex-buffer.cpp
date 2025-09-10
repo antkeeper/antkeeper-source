@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <glad/gl.h>
-import engine.gl.vertex_buffer;
-import engine.utility.sized_types;
-import <stdexcept>;
-import <utility>;
+#include <engine/gl/vertex-buffer.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <stdexcept>
+#include <utility>
 
 namespace engine::gl::opengl
 {

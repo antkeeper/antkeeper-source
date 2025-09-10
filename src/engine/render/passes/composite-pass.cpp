@@ -1,21 +1,21 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.render.passes.composite_pass;
-import engine.gl.pipeline;
-import engine.gl.framebuffer;
-import engine.gl.shader_program;
-import engine.gl.shader_variable;
-import engine.gl.shader_template;
-import engine.gl.vertex_buffer;
-import engine.gl.vertex_array;
-import engine.gl.texture;
-import engine.render.vertex_attribute_location;
-import engine.render.context;
-import engine.debug.log;
-import engine.hash.fnv;
-import engine.resources.resource_manager;
-import engine.utility.sized_types;
+#include <engine/render/passes/composite-pass.hpp>
+#include <engine/gl/pipeline.hpp>
+#include <engine/gl/framebuffer.hpp>
+#include <engine/gl/shader-program.hpp>
+#include <engine/gl/shader-variable.hpp>
+#include <engine/gl/shader-template.hpp>
+#include <engine/gl/vertex-buffer.hpp>
+#include <engine/gl/vertex-array.hpp>
+#include <engine/gl/texture.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
+#include <engine/render/context.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/hash/fnv.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/utility/sized-types.hpp>
 
 namespace engine::render
 {

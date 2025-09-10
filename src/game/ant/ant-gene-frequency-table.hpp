@@ -5,9 +5,9 @@
 #define ANTKEEPER_GAME_ANT_GENE_FREQUENCY_TABLE_HPP
 
 #include <random>
-import engine.utility.sized_types;
-import <vector>;
-import <memory>;
+#include <engine/utility/sized-types.hpp>
+#include <vector>
+#include <memory>
 
 using namespace engine;
 	

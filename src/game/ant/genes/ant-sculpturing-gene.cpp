@@ -3,9 +3,9 @@
 
 #include "game/ant/genes/ant-sculpturing-gene.hpp"
 #include "game/ant/genes/ant-gene-loader.hpp"
-import engine.gl.texture;
-import engine.resources.resource_loader;
-import engine.resources.resource_manager;
+#include <engine/gl/texture.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
 
 namespace engine::resources
 {

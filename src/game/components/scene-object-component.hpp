@@ -4,9 +4,9 @@
 #ifndef ANTKEEPER_GAME_SCENE_OBJECT_COMPONENT_HPP
 #define ANTKEEPER_GAME_SCENE_OBJECT_COMPONENT_HPP
 
-import engine.scene.object;
-import engine.utility.sized_types;
-import <memory>;
+#include <engine/scene/object.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <memory>
 
 using namespace engine;
 

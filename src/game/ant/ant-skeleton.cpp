@@ -3,10 +3,10 @@
 
 #include "game/ant/ant-skeleton.hpp"
 #include "game/ant/ant-bone-set.hpp"
-import engine.math.functions;
-import engine.math.euler_angles;
-import engine.math.vector;
-import engine.utility.sized_types;
+#include <engine/math/functions.hpp>
+#include <engine/math/euler-angles.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/utility/sized-types.hpp>
 
 using namespace engine;
 

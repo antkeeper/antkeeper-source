@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.scene.light;
-import engine.color.bt2020;
-import engine.color.cct;
+#include <engine/scene/light.hpp>
+#include <engine/color/bt2020.hpp>
+#include <engine/color/cct.hpp>
 
 namespace engine::scene
 {

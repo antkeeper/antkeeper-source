@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.animation.bone_container;
-import engine.animation.skeleton;
-import engine.utility.sized_types;
-import <format>;
-import <stdexcept>;
+#include <engine/animation/bone-container.hpp>
+#include <engine/animation/skeleton.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <format>
+#include <stdexcept>
 
 namespace engine::animation
 {

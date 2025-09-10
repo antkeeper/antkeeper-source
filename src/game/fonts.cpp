@@ -4,11 +4,11 @@
 #include <nlohmann/json.hpp>
 #include "game/fonts.hpp"
 #include "game/strings.hpp"
-import engine.hash.fnv;
-import engine.type.font;
-import engine.resources.resource_manager;
-import engine.render.material;
-import engine.gl.shader_template;
+#include <engine/hash/fnv.hpp>
+#include <engine/type/font.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/render/material.hpp>
+#include <engine/gl/shader-template.hpp>
 
 using namespace engine;
 using namespace engine::hash::literals;

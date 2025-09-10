@@ -5,8 +5,8 @@
 #define ANTKEEPER_SHELL_BUFFER_HPP
 
 #include <sstream>
-import engine.scene.text;
-import <memory>;
+#include <engine/scene/text.hpp>
+#include <memory>
 
 using namespace engine;
 

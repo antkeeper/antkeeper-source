@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.geom.brep.face_container;
-import engine.geom.brep.mesh;
-import engine.utility.sized_types;
-import <utility>;
-import <vector>;
+#include <engine/geom/brep/face-container.hpp>
+#include <engine/geom/brep/mesh.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <utility>
+#include <vector>
 
 namespace engine::geom::brep
 {

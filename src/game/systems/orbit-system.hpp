@@ -6,10 +6,10 @@
 
 #include "game/components/orbit-component.hpp"
 #include "game/systems/fixed-update-system.hpp"
-import engine.physics.orbit.ephemeris;
-import engine.math.vector;
-import engine.entity.id;
-import <unordered_set>;
+#include <engine/physics/orbit/ephemeris.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/entity/id.hpp>
+#include <unordered_set>
 
 using namespace engine;
 

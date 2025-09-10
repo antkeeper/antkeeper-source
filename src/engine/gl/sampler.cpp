@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <glad/gl.h>
-import engine.gl.sampler;
-import <utility>;
+#include <engine/gl/sampler.hpp>
+#include <utility>
 
 namespace engine::gl
 {

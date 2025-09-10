@@ -1,0 +1,20 @@
+// SPDX-FileCopyrightText: 2025 C. J. Howard
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#pragma once
+
+#include <engine/color/aces.hpp>
+#include <engine/color/bt2020.hpp>
+#include <engine/color/bt709.hpp>
+#include <engine/color/cat.hpp>
+#include <engine/color/cct.hpp>
+#include <engine/color/illuminants.hpp>
+#include <engine/color/index.hpp>
+#include <engine/color/rgb.hpp>
+#include <engine/color/srgb.hpp>
+#include <engine/color/ucs.hpp>
+#include <engine/color/xyy.hpp>
+#include <engine/color/xyz.hpp>
+
+/// Color science.
+namespace engine::color {}

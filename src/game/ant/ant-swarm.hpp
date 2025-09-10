@@ -5,7 +5,7 @@
 #define ANTKEEPER_GAME_ANT_SWARM_HPP
 
 #include "game/game.hpp"
-import engine.entity.id;
+#include <engine/entity/id.hpp>
 
 using namespace engine;
 

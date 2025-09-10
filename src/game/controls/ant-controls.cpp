@@ -11,11 +11,11 @@
 #include "game/components/scene-object-component.hpp"
 #include "game/components/pose-component.hpp"
 #include "game/controls.hpp"
-import engine.debug.log;
-import engine.math.functions;
-import engine.math.euler_angles;
-import engine.animation.skeleton;
-import <filesystem>;
+#include <engine/debug/log.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/euler-angles.hpp>
+#include <engine/animation/skeleton.hpp>
+#include <filesystem>
 
 namespace {
 	

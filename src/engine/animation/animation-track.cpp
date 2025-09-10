@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.animation.animation_track;
-import engine.utility.sized_types;
-import engine.math.functions;
+#include <engine/animation/animation-track.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <engine/math/functions.hpp>
 
 namespace engine::animation
 {

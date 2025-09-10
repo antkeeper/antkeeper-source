@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_COCOON_SILK_SDF_HPP
 #define ANTKEEPER_COCOON_SILK_SDF_HPP
 
-import <filesystem>;
+#include <filesystem>
 
 /// Generates the cocoon silk signed distance field texture.
 void generate_silk_sdf_image(std::filesystem::path path);

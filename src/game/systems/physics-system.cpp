@@ -8,18 +8,18 @@
 #include "game/components/rigid-body-constraint-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/gravity-component.hpp"
-import engine.physics.kinematics.plane_collider;
-import engine.physics.kinematics.sphere_collider;
-import engine.physics.kinematics.box_collider;
-import engine.physics.kinematics.capsule_collider;
-import engine.physics.kinematics.mesh_collider;
-import engine.geom.closest_point;
-import engine.debug.log;
-import engine.entity.id;
-import engine.utility.sized_types;
-import engine.math.functions;
-import <algorithm>;
-import <optional>;
+#include <engine/physics/kinematics/colliders/plane-collider.hpp>
+#include <engine/physics/kinematics/colliders/sphere-collider.hpp>
+#include <engine/physics/kinematics/colliders/box-collider.hpp>
+#include <engine/physics/kinematics/colliders/capsule-collider.hpp>
+#include <engine/physics/kinematics/colliders/mesh-collider.hpp>
+#include <engine/geom/closest-point.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <engine/math/functions.hpp>
+#include <algorithm>
+#include <optional>
 
 using namespace engine;
 using namespace engine::math;

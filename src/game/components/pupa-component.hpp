@@ -4,8 +4,8 @@
 #ifndef ANTKEEPER_GAME_PUPA_COMPONENT_HPP
 #define ANTKEEPER_GAME_PUPA_COMPONENT_HPP
 
-import engine.render.material_variable;
-import engine.entity.id;
+#include <engine/render/material-variable.hpp>
+#include <engine/entity/id.hpp>
 
 using namespace engine;
 

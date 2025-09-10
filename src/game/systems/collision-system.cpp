@@ -5,9 +5,9 @@
 #include "game/systems/collision-system.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/picking-component.hpp"
-import engine.geom.intersection;
-import engine.geom.primitives.plane;
-import <limits>;
+#include <engine/geom/intersection.hpp>
+#include <engine/geom/primitives/plane.hpp>
+#include <limits>
 
 void collision_system::fixed_update(entity::registry&, float, float)
 {}

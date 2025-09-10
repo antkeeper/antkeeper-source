@@ -4,8 +4,8 @@
 #ifndef ANTKEEPER_GAME_ORBIT_COMPONENT_HPP
 #define ANTKEEPER_GAME_ORBIT_COMPONENT_HPP
 
-import engine.math.vector;
-import engine.entity.id;
+#include <engine/math/vector.hpp>
+#include <engine/entity/id.hpp>
 
 using namespace engine;
 

@@ -3,15 +3,15 @@
 
 #include <glad/gl.h>
 #include <stacktrace>
-import engine.gl.pipeline;
-import engine.gl.clear_bits;
-import engine.gl.stencil_face_bits;
-import engine.gl.color_component_bits;
-import engine.debug.log;
-import engine.utility.sized_types;
-import engine.math.functions;
-import <stdexcept>;
-import <bit>;
+#include <engine/gl/pipeline.hpp>
+#include <engine/gl/clear-bits.hpp>
+#include <engine/gl/stencil-face-bits.hpp>
+#include <engine/gl/color-component-bits.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <engine/math/functions.hpp>
+#include <stdexcept>
+#include <bit>
 
 namespace
 {

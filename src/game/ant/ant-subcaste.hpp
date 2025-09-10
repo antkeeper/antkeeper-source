@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_ANT_SUBCASTE_HPP
 #define ANTKEEPER_GAME_ANT_SUBCASTE_HPP
 
-import engine.utility.sized_types;
+#include <engine/utility/sized-types.hpp>
 
 /// Ant subcaste types.
 enum class ant_subcaste: u8

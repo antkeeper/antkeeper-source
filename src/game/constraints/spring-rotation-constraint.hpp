@@ -4,8 +4,8 @@
 #ifndef ANTKEEPER_GAME_SPRING_ROTATION_CONSTRAINT_HPP
 #define ANTKEEPER_GAME_SPRING_ROTATION_CONSTRAINT_HPP
 
-import engine.physics.spring;
-import engine.math.vector;
+#include <engine/physics/spring.hpp>
+#include <engine/math/vector.hpp>
 
 using namespace engine;
 

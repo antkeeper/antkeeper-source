@@ -5,8 +5,8 @@
 #define ANTKEEPER_GAME_BLACKBODY_SYSTEM_HPP
 
 #include "game/systems/fixed-update-system.hpp"
-import engine.entity.id;
-import <vector>;
+#include <engine/entity/id.hpp>
+#include <vector>
 
 using namespace engine;
 

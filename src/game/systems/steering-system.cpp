@@ -7,11 +7,11 @@
 #include "game/components/rigid-body-component.hpp"
 #include "game/systems/steering-system.hpp"
 #include "game/components/steering-component.hpp"
-import engine.entity.id;
-import engine.ai.steering.behavior.seek;
-import engine.ai.steering.behavior.wander;
-import engine.math.functions;
-import engine.math.quaternion;
+#include <engine/entity/id.hpp>
+#include <engine/ai/steering/behavior/seek.hpp>
+#include <engine/ai/steering/behavior/wander.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/quaternion.hpp>
 
 void steering_system::fixed_update(entity::registry& registry, float, float dt)
 {

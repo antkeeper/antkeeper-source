@@ -8,12 +8,12 @@ extern "C"
 	#include <lauxlib.h>
 }
 
-import engine.script.context;
-import engine.script.io_module;
-import engine.debug.contract;
-import engine.utility.sized_types;
-import <ostream>;
-import <string_view>;
+#include <engine/script/script-context.hpp>
+#include <engine/script/script-io-module.hpp>
+#include <engine/debug/contract.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <ostream>
+#include <string_view>
 
 using namespace engine;
 

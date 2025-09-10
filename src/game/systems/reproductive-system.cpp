@@ -12,17 +12,17 @@
 #include "game/components/time-component.hpp"
 #include "game/utility/physics.hpp"
 #include "game/utility/time.hpp"
-import engine.scene.static_mesh;
-import engine.debug.log;
-import engine.math.functions;
-import engine.math.matrix;
-import engine.math.quaternion;
-import engine.math.transform;
-import engine.gl.shader_stage;
-import engine.gl.sampler;
-import engine.gl.pipeline;
-import engine.render.material;
-import engine.render.material_variable;
+#include <engine/scene/static-mesh.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/matrix.hpp>
+#include <engine/math/quaternion.hpp>
+#include <engine/math/transform.hpp>
+#include <engine/gl/shader-stage.hpp>
+#include <engine/gl/sampler.hpp>
+#include <engine/gl/pipeline.hpp>
+#include <engine/render/material.hpp>
+#include <engine/render/material-variable.hpp>
 
 void reproductive_system::fixed_update(entity::registry& registry, float, float dt)
 {

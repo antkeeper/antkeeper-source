@@ -4,9 +4,9 @@
 #ifndef ANTKEEPER_GAME_AUTOFOCUS_COMPONENT_HPP
 #define ANTKEEPER_GAME_AUTOFOCUS_COMPONENT_HPP
 
-import engine.physics.spring;
-import engine.math.vector;
-import engine.math.functions;
+#include <engine/physics/spring.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/math/functions.hpp>
 
 using namespace engine;
 

@@ -4,7 +4,7 @@
 #ifndef ANTKEEPER_GAME_COPY_TRANSLATION_CONSTRAINT_HPP
 #define ANTKEEPER_GAME_COPY_TRANSLATION_CONSTRAINT_HPP
 
-import engine.entity.id;
+#include <engine/entity/id.hpp>
 
 using namespace engine;
 

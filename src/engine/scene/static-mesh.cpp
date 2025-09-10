@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.scene.static_mesh;
-import engine.scene.camera;
-import engine.math.constants;
-import engine.render.material;
-import engine.render.context;
-import engine.debug.log;
-import engine.utility.sized_types;
+#include <engine/scene/static-mesh.hpp>
+#include <engine/scene/camera.hpp>
+#include <engine/math/constants.hpp>
+#include <engine/render/material.hpp>
+#include <engine/render/context.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/utility/sized-types.hpp>
 
 namespace engine::scene
 {

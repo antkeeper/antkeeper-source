@@ -4,8 +4,8 @@
 #ifndef ANTKEEPER_GAME_IK_COMPONENT_HPP
 #define ANTKEEPER_GAME_IK_COMPONENT_HPP
 
-import engine.animation.ik_rig;
-import <memory>;
+#include <engine/animation/ik/ik-rig.hpp>
+#include <memory>
 
 using namespace engine;
 

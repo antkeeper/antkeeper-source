@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <nlohmann/json.hpp>
-import engine.utility.json;
-import engine.resources.serializer;
-import engine.resources.deserializer;
-import engine.resources.resource_loader;
+#include <engine/utility/json.hpp>
+#include <engine/resources/serializer.hpp>
+#include <engine/resources/deserializer.hpp>
+#include <engine/resources/resource-loader.hpp>
 
 namespace engine::resources
 {

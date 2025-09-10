@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.animation.swing_twist_ik_constraint;
-import engine.math.functions;
-import engine.math.vector;
-import engine.math.quaternion;
+#include <engine/animation/ik/constraints/swing-twist-ik-constraint.hpp>
+#include <engine/math/functions.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/math/quaternion.hpp>
 
 namespace engine::animation
 {

@@ -5,12 +5,12 @@
 #include <entt/entt.hpp>
 #include "game/systems/blackbody-system.hpp"
 #include "game/components/blackbody-component.hpp"
-import engine.physics.light.blackbody;
-import engine.physics.light.photometry;
-import engine.math.quadrature;
-import engine.color.bt2020;
-import engine.color.illuminants;
-import engine.color.xyz;
+#include <engine/physics/light/blackbody.hpp>
+#include <engine/physics/light/photometry.hpp>
+#include <engine/math/quadrature.hpp>
+#include <engine/color/bt2020.hpp>
+#include <engine/color/illuminants.hpp>
+#include <engine/color/xyz.hpp>
 
 blackbody_system::blackbody_system(entity::registry& registry):
 	m_registry(registry)

@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.render.queue_stage;
-import engine.scene.object;
+#include <engine/render/stages/queue-stage.hpp>
+#include <engine/scene/object.hpp>
 
 namespace engine::render
 {

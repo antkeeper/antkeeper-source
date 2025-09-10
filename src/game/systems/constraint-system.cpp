@@ -4,7 +4,7 @@
 #include <entt/entt.hpp>
 #include "game/systems/constraint-system.hpp"
 #include "game/components/constraint-stack-component.hpp"
-import engine.math.quaternion;
+#include <engine/math/quaternion.hpp>
 
 constraint_system::constraint_system(entity::registry& registry):
 	m_registry(registry)

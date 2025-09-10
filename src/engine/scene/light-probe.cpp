@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.scene.light_probe;
-import engine.debug.contract;
+#include <engine/scene/light-probe.hpp>
+#include <engine/debug/contract.hpp>
 
 namespace engine::scene
 {

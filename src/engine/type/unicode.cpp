@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.type.unicode;
-import engine.utility.sized_types;
-import <stdexcept>;
+#include <engine/type/unicode.hpp>
+#include <engine/utility/sized-types.hpp>
+#include <stdexcept>
 
 namespace engine::type
 {

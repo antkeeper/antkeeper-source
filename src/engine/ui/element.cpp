@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 C. J. Howard
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import engine.ui.element;
-import engine.debug.log;
-import <algorithm>;
-import <stdexcept>;
+#include <engine/ui/element.hpp>
+#include <engine/debug/log.hpp>
+#include <algorithm>
+#include <stdexcept>
 
 namespace engine::ui
 {
