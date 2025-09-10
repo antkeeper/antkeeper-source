@@ -5,8 +5,9 @@
 #include <engine/geom/primitives/hypersphere.hpp>
 #include <engine/math/constants.hpp>
 
-using namespace geom;
-using namespace geom::primitives;
+using namespace engine::geom;
+using namespace engine::geom::primitives;
+using namespace engine::math;
 
 int main(int argc, char* argv[])
 {
@@ -23,10 +24,10 @@ int main(int argc, char* argv[])
 		hypersphere<float, 5> h5{{}, r};
 
 		ASSERT_NEAR(h1.volume(), 2.0f * r, 1e-6);
-		ASSERT_NEAR(h2.volume(), math::pi<float> * r * r, 1e-6);
-		ASSERT_NEAR(h3.volume(), 4.0f * math::pi<float> / 3.0f * r * r * r, 1e-6);
-		ASSERT_NEAR(h4.volume(), math::pi<float> * math::pi<float> / 2.0f * r * r * r * r, 1e-6);
-		ASSERT_NEAR(h5.volume(), 8.0f * math::pi<float> * math::pi<float> / 15.0f * r * r * r * r * r, 1e-6);
+		ASSERT_NEAR(h2.volume(), pi<float> * r * r, 1e-6);
+		ASSERT_NEAR(h3.volume(), 4.0f * pi<float> / 3.0f * r * r * r, 1e-6);
+		ASSERT_NEAR(h4.volume(), pi<float> * pi<float> / 2.0f * r * r * r * r, 1e-6);
+		ASSERT_NEAR(h5.volume(), 8.0f * pi<float> * pi<float> / 15.0f * r * r * r * r * r, 1e-6);
 	});
 
 	return suite.run();

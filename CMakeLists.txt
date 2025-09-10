@@ -584,30 +584,35 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/res/data/CMakeLists.txt)
 #		BUILD_ALWAYS 1)
 endif()
 
-#if(ANTKEEPER_TEST)
-#
-#	# Enable testing
-#	include(CTest)
-#	enable_testing()
-#
-#	# Collect test files
-#	file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/test/test-*.cpp)
-#
-#	# Add test targets
-#	foreach(TEST_FILE ${TEST_FILES})
-#
-#		get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
-#		add_executable(${TEST_NAME} ${TEST_FILE} ${PROJECT_SOURCE_DIR}/test/test.cpp)
-#		set_target_properties(${TEST_NAME}
-#			PROPERTIES
-#				COMPILE_WARNING_AS_ERROR ON
-#				CXX_STANDARD 23
-#				CXX_STANDARD_REQUIRED ON
-#				CXX_EXTENSIONS OFF
-#				MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
-#		)
-#		add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-#
-#	endforeach()
-#
-#endif()
+if(ANTKEEPER_TEST)
+
+	# Enable testing
+	include(CTest)
+	enable_testing()
+
+	# Collect test files
+	file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/test/test-*.cpp)
+
+	# Add test targets
+	foreach(TEST_FILE ${TEST_FILES})
+
+		get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
+		add_executable(${TEST_NAME} ${TEST_FILE} ${PROJECT_SOURCE_DIR}/test/test.cpp)
+		set_target_properties(${TEST_NAME}
+			PROPERTIES
+				COMPILE_WARNING_AS_ERROR ON
+				CXX_STANDARD 23
+				CXX_STANDARD_REQUIRED ON
+				CXX_EXTENSIONS OFF
+				MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+		)
+		target_include_directories(${TEST_NAME}
+			PRIVATE
+				${PROJECT_SOURCE_DIR}/src
+				${PROJECT_BINARY_DIR}/$<CONFIG>/src
+		)
+		add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+
+	endforeach()
+
+endif()

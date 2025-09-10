@@ -4,7 +4,7 @@
 #include "test.hpp"
 #include <engine/math/math.hpp>
 
-using namespace math;
+using namespace engine::math;
 
 int main(int argc, char* argv[])
 {
@@ -592,7 +592,7 @@ int main(int argc, char* argv[])
 		ASSERT_NEAR(m[2][2], 1.0f, 1e-6);
 
 		// Matrix conversion (X-axis, 90 degrees)
-		q = {std::cos(math::pi<float> / 4.0f), std::sin(math::pi<float> / 4.0f), 0.0f, 0.0f};
+		q = {cos(pi<float> / 4.0f), sin(pi<float> / 4.0f), 0.0f, 0.0f};
 		m = fmat3(q);
 		ASSERT_NEAR(m[0][0], 1.0f, 1e-6);
 		ASSERT_NEAR(m[0][1], 0.0f, 1e-6);
@@ -605,7 +605,7 @@ int main(int argc, char* argv[])
 		ASSERT_NEAR(m[2][2], 0.0f, 1e-6);
 
 		// Matrix conversion (Y-axis, 90 degrees)
-		q = {std::cos(math::pi<float> / 4.0f), 0.0f, std::sin(math::pi<float> / 4.0f), 0.0f};
+		q = {cos(pi<float> / 4.0f), 0.0f, sin(pi<float> / 4.0f), 0.0f};
 		m = fmat3(q);
 		ASSERT_NEAR(m[0][0], 0.0f, 1e-6);
 		ASSERT_NEAR(m[0][1], 0.0f, 1e-6);
@@ -618,7 +618,7 @@ int main(int argc, char* argv[])
 		ASSERT_NEAR(m[2][2], 0.0f, 1e-6);
 
 		// Matrix conversion (Z-axis, 90 degrees)
-		q = {std::cos(math::pi<float> / 4.0f), 0.0f, 0.0f, std::sin(math::pi<float> / 4.0f)};
+		q = {cos(pi<float> / 4.0f), 0.0f, 0.0f, sin(pi<float> / 4.0f)};
 		m = fmat3(q);
 		ASSERT_NEAR(m[0][0], 0.0f, 1e-6);
 		ASSERT_NEAR(m[0][1], 1.0f, 1e-6);
