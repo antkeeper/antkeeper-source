@@ -300,46 +300,98 @@ glad_add_library(glad STATIC
 # Make tinyexr.h available
 file(COPY ${tinyexr_SOURCE_DIR}/tinyexr.h DESTINATION ${tinyexr_BINARY_DIR}/include)
 
-# Generate configuration header files
-configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.hpp.in ${PROJECT_BINARY_DIR}/config.hpp.in @ONLY)
+# Generate engine configuration header files
+configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.hpp.in ${PROJECT_BINARY_DIR}/engine-config.hpp.in @ONLY)
 file(GENERATE
 	OUTPUT ${PROJECT_BINARY_DIR}/$<CONFIG>/src/engine/config.hpp
-	INPUT ${PROJECT_BINARY_DIR}/config.hpp.in
+	INPUT ${PROJECT_BINARY_DIR}/engine-config.hpp.in
 )
 
-# Collect source files
-file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
-	${PROJECT_SOURCE_DIR}/src/*.cpp
+# Collect engine source and header files
+file(GLOB_RECURSE ENGINE_SOURCE_FILES CONFIGURE_DEPENDS
+	${PROJECT_SOURCE_DIR}/src/engine/*.cpp
+)
+file(GLOB_RECURSE ENGINE_HEADER_FILES CONFIGURE_DEPENDS
+	${PROJECT_SOURCE_DIR}/src/engine/*.hpp
+	${PROJECT_SOURCE_DIR}/src/engine/*.hpp.in
 )
 
-# Collect header files
-file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS
-	${PROJECT_SOURCE_DIR}/src/*.hpp
-	${PROJECT_SOURCE_DIR}/src/*.hpp.in
+# Build engine static library
+add_library(antkeeper-engine STATIC
+	${ENGINE_SOURCE_FILES}
+	${ENGINE_HEADER_FILES}
 )
 
-# Collect module files
-file(GLOB_RECURSE MODULE_FILES CONFIGURE_DEPENDS
-	${PROJECT_SOURCE_DIR}/src/*.ixx
+# Set engine library properties
+set_target_properties(antkeeper-engine
+	PROPERTIES
+		COMPILE_WARNING_AS_ERROR ON
+		CXX_STANDARD 23
+		CXX_STANDARD_REQUIRED ON
+		CXX_EXTENSIONS OFF
+		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 )
 
-# Filter out platform-specific source and header files
-list(FILTER SOURCE_FILES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/src/game/platform/.*")
-list(FILTER HEADER_FILES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/src/game/platform/.*")
+target_include_directories(antkeeper-engine
+	PUBLIC
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/$<CONFIG>/src
+		${tinyexr_BINARY_DIR}/include
+)
+
+# Link engine to dependencies
+target_link_libraries(antkeeper-engine
+	PUBLIC
+		EnTT
+		glad
+		lua
+		nlohmann_json
+		stb
+
+	PRIVATE
+		dr_wav
+		tinyexr
+		SDL3::SDL3-static
+		OpenAL
+		physfs-static
+		freetype
+		${OPENGL_gl_LIBRARY}
+		vorbisfile
+		$<$<PLATFORM_ID:Windows>:Dbghelp>
+
+		# Set GNU-specific dependencies
+		$<$<CXX_COMPILER_ID:GNU>:
+			stdc++
+			stdc++exp # Link to libstdc++exp.a for <stacktrace>
+		>
+)
+
+# Collect game source and header files
+file(GLOB_RECURSE GAME_SOURCE_FILES CONFIGURE_DEPENDS
+	${PROJECT_SOURCE_DIR}/src/game/*.cpp
+)
+file(GLOB_RECURSE GAME_HEADER_FILES CONFIGURE_DEPENDS
+	${PROJECT_SOURCE_DIR}/src/game/*.hpp
+	${PROJECT_SOURCE_DIR}/src/game/*.hpp.in
+)
+
+# Filter out platform-specific game source and header files
+list(FILTER GAME_SOURCE_FILES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/src/game/platform/.*")
+list(FILTER GAME_HEADER_FILES EXCLUDE REGEX "${PROJECT_SOURCE_DIR}/src/game/platform/.*")
 
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	
-	# Collect Windows-specific source files
-	file(GLOB_RECURSE WINDOWS_SOURCE_FILES CONFIGURE_DEPENDS
+	# Collect Windows-specific game source files
+	file(GLOB_RECURSE GAME_WINDOWS_SOURCE_FILES CONFIGURE_DEPENDS
 		${PROJECT_SOURCE_DIR}/src/game/platform/windows/*.cpp
 	)
-	list(APPEND SOURCE_FILES ${WINDOWS_SOURCE_FILES})
+	list(APPEND GAME_SOURCE_FILES ${GAME_WINDOWS_SOURCE_FILES})
 	
 	# Generate Windows icon resource file
 	set(ICON_FILE "${PROJECT_SOURCE_DIR}/res/data/src/icons/antkeeper.ico")
 	if(EXISTS "${ICON_FILE}")
 		configure_file(${PROJECT_SOURCE_DIR}/res/windows/icon.rc.in ${PROJECT_BINARY_DIR}/res/windows/icon.rc)
-		list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/res/windows/icon.rc")
+		list(APPEND GAME_SOURCE_FILES "${PROJECT_BINARY_DIR}/res/windows/icon.rc")
 	endif()
 	
 	# Generate Windows version-information resource file
@@ -348,29 +400,27 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 		OUTPUT ${PROJECT_BINARY_DIR}/$<CONFIG>/res/windows/version.rc
 		INPUT ${PROJECT_BINARY_DIR}/version.rc.in
 	)
-
-	list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/$<CONFIG>/res/windows/version.rc")
+	list(APPEND GAME_SOURCE_FILES "${PROJECT_BINARY_DIR}/$<CONFIG>/res/windows/version.rc")
 	
 	# Make executable DPI-aware on Windows
-	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/res/windows/dpi-aware.manifest")
+	list(APPEND GAME_SOURCE_FILES "${PROJECT_SOURCE_DIR}/res/windows/dpi-aware.manifest")
 	
 endif()
 
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES} ${HEADER_FILES} ${MODULE_FILES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${ENGINE_SOURCE_FILES} ${ENGINE_HEADER_FILES} ${GAME_SOURCE_FILES} ${GAME_HEADER_FILES})
 
-# Add executable target
-add_executable(${PROJECT_NAME} ${SOURCE_FILES})
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+# Build game executable
+add_executable(antkeeper-game ${GAME_SOURCE_FILES})
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT antkeeper-game)
 
 # Set additional target sources
-target_sources(${PROJECT_NAME}
+target_sources(antkeeper-game
 	PUBLIC
-		FILE_SET HEADERS FILES ${HEADER_FILES}
-		FILE_SET CXX_MODULES FILES ${MODULE_FILES}
+		FILE_SET HEADERS FILES ${GAME_HEADER_FILES}
 )
 
-# Set target properties
-set_target_properties(${PROJECT_NAME}
+# Set game executable properties
+set_target_properties(antkeeper-game
 	PROPERTIES
 		OUTPUT_NAME $<LOWER_CASE:${PROJECT_NAME}>
 		RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/$<LOWER_CASE:${PROJECT_NAME}-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}-${ANTKEEPER_BUILD_ARCH}-$<CONFIG>>
@@ -381,114 +431,108 @@ set_target_properties(${PROJECT_NAME}
 		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 )
 
-# Set compile definitions
-target_compile_definitions(${PROJECT_NAME}
-	PRIVATE
-		$<$<NOT:$<CONFIG:Debug>>:N>DEBUG
-		_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
-		_SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING
-		
-		# Set minimum Windows version (Windows XP)
-		$<$<PLATFORM_ID:Windows>:
-			WINVER=0x0501
-			_WIN32_WINNT=0x0501
-		>
+# Shared compile definitions
+set(ANTKEEPER_COMPILE_DEFINITIONS
+	$<$<NOT:$<CONFIG:Debug>>:N>DEBUG
+	
+	# Set minimum Windows version (Windows XP)
+	$<$<PLATFORM_ID:Windows>:
+		WINVER=0x0501
+		_WIN32_WINNT=0x0501
+	>
 )
 
-# Set compile options
-target_compile_options(${PROJECT_NAME}
-	PRIVATE
+set(ANTKEEPER_COMPILE_OPTIONS
+	# MSVC-specific compile options
+	$<$<CXX_COMPILER_ID:MSVC>:
 		
-		# Set MSVC-specific compile options
-		$<$<CXX_COMPILER_ID:MSVC>:
+		# Set warning level 4
+		/W4
 		
-			# Set warning level 4
-			/W4
-			
-			# Treat specific warnings as errors
-			/we4061 # enumerator 'identifier' in switch of enum 'enumeration' is not explicitly handled by a case label
-			/we4062 # enumerator 'identifier' in switch of enum 'enumeration' is not handled
-			/we4265 # 'class' : class has virtual functions, but destructor is not virtual
-			/we4355 # 'this' : used in base member initializer list
-			/we4822 # local class member function does not have a body
-			/we4946 # reinterpret_cast used between related classes
-			/we5204 # 'function' : class has virtual functions, but destructor is not virtual
-			/we5263 # 'function' : 'noexcept' used with no exception specification
+		# Treat specific warnings as errors
+		/we4061 # enumerator 'identifier' in switch of enum 'enumeration' is not explicitly handled by a case label
+		/we4062 # enumerator 'identifier' in switch of enum 'enumeration' is not handled
+		/we4265 # 'class' : class has virtual functions, but destructor is not virtual
+		/we4355 # 'this' : used in base member initializer list
+		/we4822 # local class member function does not have a body
+		/we4946 # reinterpret_cast used between related classes
+		/we5204 # 'function' : class has virtual functions, but destructor is not virtual
+		/we5263 # 'function' : 'noexcept' used with no exception specification
 
-			# Enable C++ exception handling
-			/EHsc
+		# Enable C++ exception handling
+		/EHsc
 
-			# Disable RTTI
-			/GR-
+		# Disable RTTI
+		/GR-
 
-			# Enable modules support
-			/experimental:module
-
-			# Set Debug configuration options
-			$<$<CONFIG:Debug>:
-				$<$<NOT:$<BOOL:${ANTKEEPER_ASAN}>>:
-					/ZI    # Enable Edit and Continue
-				>
-				/Gy        # Enable function-level linking
-				/GS        # Enable security checks
-				/fp:except # Enable floating-point exceptions
+		# Set Debug configuration options
+		$<$<CONFIG:Debug>:
+			$<$<NOT:$<BOOL:${ANTKEEPER_ASAN}>>:
+				/ZI # Enable Edit and Continue
 			>
-
-			# Set Release configuration options
-			$<$<CONFIG:Release>:
-				/O2                    # Optimize for speed
-				/Ob3                   # Inline any suitable function
-				/Oi                    # Enable intrinsic functions
-				/Ot                    # Favor speed
-				/Oy                    # Omits frame pointers
-				/GT                    # Enable fiber-safe optimizations
-				/GL                    # Enable whole program optimization
-
-				/Qfast_transcendentals # Use fast transcendentals
-				/GS-                   # Disable security checks
-				/Zi                    # Generate PDB file
-
-				/GF                    # Enable string pooling
-				/Qpar                  # Enable parallel code generation
-			>
+			/Gy        # Enable function-level linking
+			/GS        # Enable security checks
+			/fp:except # Enable floating-point exceptions
 		>
 
-		# Set GNU/Clang-specific compile options
-		$<$<CXX_COMPILER_ID:GNU,Clang>:
-
-			#-Wall      # Treat all warnings as errors
-			#-Wpedantic # Issue all the warnings demanded by strict ISO C and C++
-			#-Wextra    # Enable  extra warning flags that are not enabled by -Wall
-
-			-Wno-changes-meaning
+		# Set Release configuration options
+		$<$<CONFIG:Release>:
+			/O2                    # Optimize for speed
+			/Ob3                   # Inline any suitable function
+			/Oi                    # Enable intrinsic functions
+			/Ot                    # Favor speed
+			/Oy                    # Omits frame pointers
+			/GT                    # Enable fiber-safe optimizations
+			/GL                    # Enable whole program optimization
+			/Qfast_transcendentals # Use fast transcendentals
+			/GS-                   # Disable security checks
+			/Zi                    # Generate PDB file
+			/GF                    # Enable string pooling
+			/Qpar                  # Enable parallel code generation
 		>
+	>
 
-		# Set Clang-specific compile options
-		$<$<CXX_COMPILER_ID:Clang>:
-			
-			# Suppress warnings about compatibility with older C++ standards
-			-Wno-c++98-compat
-			-Wno-c++98-compat-pedantic
-			-Wno-c++11-compat
-			-Wno-c++11-compat-pedantic
-			-Wno-c++14-compat
-			-Wno-c++14-compat-pedantic
-			-Wno-c++17-compat
-			-Wno-c++17-compat-pedantic
-			-Wno-c++20-compat
-			-Wno-c++20-compat-pedantic
-		>
+	# GNU/Clang-specific compile options
+	$<$<CXX_COMPILER_ID:GNU,Clang>:
+		#-Wall      # Treat all warnings as errors
+		#-Wpedantic # Issue all the warnings demanded by strict ISO C and C++
+		#-Wextra    # Enable  extra warning flags that are not enabled by -Wall
+		-Wno-changes-meaning
+	>
+
+	# Clang-specific compile options
+	$<$<CXX_COMPILER_ID:Clang>:
+		# Suppress warnings about compatibility with older C++ standards
+		-Wno-c++98-compat
+		-Wno-c++98-compat-pedantic
+		-Wno-c++11-compat
+		-Wno-c++11-compat-pedantic
+		-Wno-c++14-compat
+		-Wno-c++14-compat-pedantic
+		-Wno-c++17-compat
+		-Wno-c++17-compat-pedantic
+		-Wno-c++20-compat
+		-Wno-c++20-compat-pedantic
+	>
 )
+
+# Set engine compile definitions and options
+target_compile_definitions(antkeeper-engine PRIVATE ${ANTKEEPER_COMPILE_DEFINITIONS})
+target_compile_options(antkeeper-engine PRIVATE ${ANTKEEPER_COMPILE_OPTIONS})
+
+# Set game compile definitions and options
+target_compile_definitions(antkeeper-game PRIVATE ${ANTKEEPER_COMPILE_DEFINITIONS})
+target_compile_options(antkeeper-game PRIVATE ${ANTKEEPER_COMPILE_OPTIONS})
 
 # Set link options
-target_link_options(${PROJECT_NAME} PRIVATE
+target_link_options(antkeeper-game PRIVATE
 	
 	# Set Windows-specific link options
 	$<$<PLATFORM_ID:Windows>:
-			
+		
 		# Set MSVC-specific link options
 		$<$<CXX_COMPILER_ID:MSVC>:
-
+			
 			# Set link options for Debug configuration
 			$<$<CONFIG:Debug>:
 				/SUBSYSTEM:CONSOLE # Specify console subsystem
@@ -521,44 +565,23 @@ target_link_options(${PROJECT_NAME} PRIVATE
 	>
 )
 
-# Set include directories
-target_include_directories(${PROJECT_NAME}
+# Set game include directories
+target_include_directories(antkeeper-game
 	PRIVATE
 		${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/$<CONFIG>/src
-		${tinyexr_BINARY_DIR}/include
 )
 
-# Link to dependencies
-target_link_libraries(${PROJECT_NAME}
+# Link game to dependencies
+target_link_libraries(antkeeper-game
 	PRIVATE
-		dr_wav
-		stb
-		tinyexr
-		glad
-		EnTT
+		antkeeper-engine
 		cxxopts
-		nlohmann_json
-		SDL3::SDL3-static
-		OpenAL
-		physfs-static
-		freetype
-		${OPENGL_gl_LIBRARY}
-		vorbisfile
-		lua
-
-		$<$<PLATFORM_ID:Windows>:Dbghelp>
-
-		# Set GNU-specific dependencies
-		$<$<CXX_COMPILER_ID:GNU>:
-			stdc++
-			stdc++exp # Link to libstdc++exp.a for <stacktrace>
-		>
 )
 
 # Determine data output directory
-get_target_property(RUNTIME_OUTPUT_DIRECTORY ${PROJECT_NAME} RUNTIME_OUTPUT_DIRECTORY)
-set(DATA_OUTPUT_DIRECTORY "${RUNTIME_OUTPUT_DIRECTORY}/data")
+get_target_property(GAME_RUNTIME_OUTPUT_DIRECTORY antkeeper-game RUNTIME_OUTPUT_DIRECTORY)
+set(DATA_OUTPUT_DIRECTORY "${GAME_RUNTIME_OUTPUT_DIRECTORY}/data")
 
 # Add localization CMakeLists
 add_subdirectory(${PROJECT_SOURCE_DIR}/res/localization)
@@ -582,32 +605,36 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/res/data/CMakeLists.txt)
 #			"-DBLENDER=${BLENDER}"
 #		INSTALL_COMMAND ""
 #		BUILD_ALWAYS 1)
+
 endif()
 
-#if(ANTKEEPER_TEST)
-#
-#	# Enable testing
-#	include(CTest)
-#	enable_testing()
-#
-#	# Collect test files
-#	file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/test/test-*.cpp)
-#
-#	# Add test targets
-#	foreach(TEST_FILE ${TEST_FILES})
-#
-#		get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
-#		add_executable(${TEST_NAME} ${TEST_FILE} ${PROJECT_SOURCE_DIR}/test/test.cpp)
-#		set_target_properties(${TEST_NAME}
-#			PROPERTIES
-#				COMPILE_WARNING_AS_ERROR ON
-#				CXX_STANDARD 23
-#				CXX_STANDARD_REQUIRED ON
-#				CXX_EXTENSIONS OFF
-#				MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
-#		)
-#		add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-#
-#	endforeach()
-#
-#endif()
+if(ANTKEEPER_TEST)
+
+	# Enable testing
+	include(CTest)
+	enable_testing()
+
+	# Collect test files
+	file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/test/test-*.cpp)
+
+	# Add test targets
+	foreach(TEST_FILE ${TEST_FILES})
+
+		get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
+		add_executable(${TEST_NAME} ${TEST_FILE} ${PROJECT_SOURCE_DIR}/test/test.cpp)
+		set_target_properties(${TEST_NAME}
+			PROPERTIES
+				COMPILE_WARNING_AS_ERROR ON
+				CXX_STANDARD 23
+				CXX_STANDARD_REQUIRED ON
+				CXX_EXTENSIONS OFF
+				MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+		)
+		target_compile_definitions(${TEST_NAME} PRIVATE ${ANTKEEPER_COMPILE_DEFINITIONS})
+		target_compile_options(${TEST_NAME} PRIVATE ${ANTKEEPER_COMPILE_OPTIONS})
+		target_link_libraries(${TEST_NAME} PRIVATE antkeeper-engine)
+		add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+
+	endforeach()
+
+endif()

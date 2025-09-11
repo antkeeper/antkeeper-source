@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "test.hpp"
-import hash;
+#include <engine/hash/hash.hpp>
 
-using namespace hash;
+using namespace engine::hash;
 
-int main(int argc, char* argv[])
+int main(int, char*[])
 {
 	test_suite suite;
 

@@ -4,9 +4,9 @@
 #include "test.hpp"
 #include <engine/math/math.hpp>
 
-using namespace math;
+using namespace engine::math;
 
-int main(int argc, char* argv[])
+int main(int, char*[])
 {
 	test_suite suite;
 
@@ -112,13 +112,13 @@ int main(int argc, char* argv[])
 		ASSERT(!v3.empty());
 		ASSERT(!v4.empty());
 
-		ASSERT_EQ(v2.size(), 2);
-		ASSERT_EQ(v3.size(), 3);
-		ASSERT_EQ(v4.size(), 4);
+		STATIC_ASSERT_EQ(v2.size(), 2);
+		STATIC_ASSERT_EQ(v3.size(), 3);
+		STATIC_ASSERT_EQ(v4.size(), 4);
 
-		ASSERT_EQ(v2.max_size(), 2);
-		ASSERT_EQ(v3.max_size(), 3);
-		ASSERT_EQ(v4.max_size(), 4);
+		STATIC_ASSERT_EQ(v2.max_size(), 2);
+		STATIC_ASSERT_EQ(v3.max_size(), 3);
+		STATIC_ASSERT_EQ(v4.max_size(), 4);
 	});
 
 	suite.tests.emplace_back("vector iterators", []()
@@ -426,20 +426,20 @@ int main(int argc, char* argv[])
 		ASSERT(!a.empty());
 		ASSERT(!b.empty());
 
-		ASSERT_EQ(a.size(), 2);
-		ASSERT_EQ(b.size(), 3);
+		STATIC_ASSERT_EQ(a.size(), 2);
+		STATIC_ASSERT_EQ(b.size(), 3);
 
-		ASSERT_EQ(a.max_size(), 2);
-		ASSERT_EQ(b.max_size(), 3);
+		STATIC_ASSERT_EQ(a.max_size(), 2);
+		STATIC_ASSERT_EQ(b.max_size(), 3);
 
-		ASSERT_EQ(a.size_columns(), 2);
-		ASSERT_EQ(b.size_columns(), 3);
+		STATIC_ASSERT_EQ(a.size_columns(), 2);
+		STATIC_ASSERT_EQ(b.size_columns(), 3);
 
-		ASSERT_EQ(a.size_rows(), 3);
-		ASSERT_EQ(b.size_rows(), 2);
+		STATIC_ASSERT_EQ(a.size_rows(), 3);
+		STATIC_ASSERT_EQ(b.size_rows(), 2);
 
-		ASSERT_EQ(a.size_elements(), 6);
-		ASSERT_EQ(b.size_elements(), 6);
+		STATIC_ASSERT_EQ(a.size_elements(), 6);
+		STATIC_ASSERT_EQ(b.size_elements(), 6);
 	});
 
 	suite.tests.emplace_back("matrix operations", []()
@@ -592,7 +592,7 @@ int main(int argc, char* argv[])
 		ASSERT_NEAR(m[2][2], 1.0f, 1e-6);
 
 		// Matrix conversion (X-axis, 90 degrees)
-		q = {std::cos(math::pi<float> / 4.0f), std::sin(math::pi<float> / 4.0f), 0.0f, 0.0f};
+		q = {cos(pi<float> / 4.0f), sin(pi<float> / 4.0f), 0.0f, 0.0f};
 		m = fmat3(q);
 		ASSERT_NEAR(m[0][0], 1.0f, 1e-6);
 		ASSERT_NEAR(m[0][1], 0.0f, 1e-6);
@@ -605,7 +605,7 @@ int main(int argc, char* argv[])
 		ASSERT_NEAR(m[2][2], 0.0f, 1e-6);
 
 		// Matrix conversion (Y-axis, 90 degrees)
-		q = {std::cos(math::pi<float> / 4.0f), 0.0f, std::sin(math::pi<float> / 4.0f), 0.0f};
+		q = {cos(pi<float> / 4.0f), 0.0f, sin(pi<float> / 4.0f), 0.0f};
 		m = fmat3(q);
 		ASSERT_NEAR(m[0][0], 0.0f, 1e-6);
 		ASSERT_NEAR(m[0][1], 0.0f, 1e-6);
@@ -618,7 +618,7 @@ int main(int argc, char* argv[])
 		ASSERT_NEAR(m[2][2], 0.0f, 1e-6);
 
 		// Matrix conversion (Z-axis, 90 degrees)
-		q = {std::cos(math::pi<float> / 4.0f), 0.0f, 0.0f, std::sin(math::pi<float> / 4.0f)};
+		q = {cos(pi<float> / 4.0f), 0.0f, 0.0f, sin(pi<float> / 4.0f)};
 		m = fmat3(q);
 		ASSERT_NEAR(m[0][0], 0.0f, 1e-6);
 		ASSERT_NEAR(m[0][1], 1.0f, 1e-6);
