@@ -13,7 +13,7 @@ using namespace engine;
 /// Grid of terrain cells.
 struct terrain_grid_component
 {
-	math::uvec2 dimensions;
+	math::uvec2 dimensions{};
 	std::vector<entity::id> cells;
 };
 

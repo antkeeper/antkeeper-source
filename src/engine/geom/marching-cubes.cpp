@@ -338,7 +338,7 @@ namespace engine::geom::marching_cubes
 		const i8* indices = triangle_table[edge_index];
 
 		// Calculate vertices and store in vertex buffer
-		float vertex_buffer[12 * 3];
+		float vertex_buffer[12 * 3]{};
 		for (u16 i = 0; i < 12; ++i)
 		{
 			// If this edge is intersected
@@ -373,7 +373,7 @@ namespace engine::geom::marching_cubes
 		}
 
 		// Remap vertex buffer to be stored contiguously
-		i8 vertex_remap[12];
+		i8 vertex_remap[12]{};
 		for (u8 i = 0; i < 12; ++i)
 			vertex_remap[i] = -1;
 		for (u8 i = 0; indices[i] != -1; ++i)

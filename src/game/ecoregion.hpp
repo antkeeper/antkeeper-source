@@ -20,19 +20,19 @@ struct ecoregion
 	std::string name;
 	
 	/// Elevation, in meters.
-	float elevation;
+	float elevation{};
 	
 	/// Latitude, in radians.
-	float latitude;
+	float latitude{};
 	
 	/// Longitude, in radians.
-	float longitude;
+	float longitude{};
 	
 	/// Terrain material.
 	std::shared_ptr<render::material> terrain_material;
 	
 	/// Terrain albedo.
-	math::fvec3 terrain_albedo;
+	math::fvec3 terrain_albedo{};
 	
 	/// Array of gene pools.
 	std::vector<ant_gene_pool> gene_pools;

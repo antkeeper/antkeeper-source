@@ -49,7 +49,7 @@ namespace engine::gl
 		copy(buffer, m_size);
 	}
 
-	vertex_buffer::vertex_buffer(vertex_buffer&& buffer):
+	vertex_buffer::vertex_buffer(vertex_buffer&& buffer) noexcept:
 		m_gl_named_buffer{std::exchange(buffer.m_gl_named_buffer, 0)},
 		m_usage{std::move(buffer.m_usage)},
 		m_size{std::exchange(buffer.m_size, 0)}
@@ -72,7 +72,7 @@ namespace engine::gl
 		return *this;
 	}
 
-	vertex_buffer& vertex_buffer::operator=(vertex_buffer&& buffer)
+	vertex_buffer& vertex_buffer::operator=(vertex_buffer&& buffer) noexcept
 	{
 		if (m_gl_named_buffer)
 		{

@@ -25,13 +25,13 @@ namespace engine::animation
 		skeleton(const skeleton& other);
 
 		/// Move-constructs a skeleton.
-		skeleton(skeleton&& other);
+		skeleton(skeleton&& other) noexcept;
 
 		/// Copy-assigns a skeleton.
 		skeleton& operator=(const skeleton& other);
 
 		/// Move-assigns a skeleton.
-		skeleton& operator=(skeleton&& other);
+		skeleton& operator=(skeleton&& other) noexcept;
 
 		/// Sets the name of the skeleton.
 		/// @param name Skeleton name.

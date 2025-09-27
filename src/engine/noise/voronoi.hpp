@@ -20,7 +20,7 @@ namespace engine::noise
 	/// @tparam N Number of dimensions.
 	/// @private
 	template <usize N>
-	inline constexpr usize voronoi_kernel_size = 4 << math::max(usize{0}, (2 * (N - 1)));
+	inline constexpr usize voronoi_kernel_size = usize{4} << math::max(usize{0}, (2 * (N - 1)));
 
 	/// Generates an kernel offset vector for a given index.
 	/// @tparam T Real type.
@@ -32,7 +32,7 @@ namespace engine::noise
 	template <class T, usize N, usize... I>
 	[[nodiscard]] constexpr math::vector<T, N> voronoi_kernel_offset(usize i, std::index_sequence<I...>)
 	{
-		return {static_cast<T>((I ? (i / (2 << math::max(usize{0}, 2 * I - 1))) : i) % 4)...};
+		return {static_cast<T>((I ? (i / (usize{2} << math::max(usize{0}, 2 * I - 1))) : i) % 4)...};
 	}
 
 	/// Generates a Voronoi search kernel.

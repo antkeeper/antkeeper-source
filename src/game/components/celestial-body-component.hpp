@@ -10,19 +10,19 @@
 struct celestial_body_component
 {
 	/// Mean radius of the body, in meters.
-	double radius;
+	double radius{};
 	
 	/// Mass of the body, in kilograms.
-	double mass;
+	double mass{};
 	
 	/// Polynomial coefficients, in descending order of degree, of the right ascension of the body's north pole, in radians, w.r.t. Julian centuries (36525 days) from epoch.
-	std::vector<double> pole_ra;
+	std::vector<double> pole_ra{};
 	
 	/// Polynomial coefficients, in descending order of degree, of the declination of the body's north pole, in radians, w.r.t. Julian centuries (36525 days) from epoch.
-	std::vector<double> pole_dec;
+	std::vector<double> pole_dec{};
 	
 	/// Polynomial coefficients, in descending order of degree, of the rotation state of the body's prime meridian, in radians, w.r.t. days from epoch.
-	std::vector<double> prime_meridian;
+	std::vector<double> prime_meridian{};
 	
 	/*
 	/// Polynomial coefficients, in descending order of degree, of the nutation and precession angles, in radians. Angles are calculated as `x + y * d`, where `d` is the days from epoch.
@@ -39,7 +39,7 @@ struct celestial_body_component
 	*/
 	
 	/// Geometric albedo
-	double albedo;
+	double albedo{};
 };
 
 #endif // ANTKEEPER_GAME_CELESTIAL_BODY_COMPONENT_HPP

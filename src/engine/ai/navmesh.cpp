@@ -22,8 +22,8 @@ namespace engine::ai
 	
 		geom::triangle_region region;
 	
-		auto target_point = end;
-		auto traversal_direction = math::normalize(end - start);
+		math::fvec3 target_point = end;
+		math::fvec3 traversal_direction = math::normalize(end - start);
 		math::fvec3 closest_point;
 	
 		brep::edge* previous_closest_edge{};

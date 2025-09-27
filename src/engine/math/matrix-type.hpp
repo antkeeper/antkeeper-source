@@ -706,7 +706,7 @@ namespace std
 	/// @tparam N Number of columns.
 	/// @tparam M Number of rows.
 	/// @relates engine::math::matrix
-	template <class T, const auto& N, const auto& M>
+	template <class T, engine::usize N, engine::usize M>
 	struct tuple_size<engine::math::matrix<T, N, M>>:
 		std::integral_constant<engine::usize, N>
 	{};
@@ -717,7 +717,7 @@ namespace std
 	/// @tparam N Number of columns.
 	/// @tparam M Number of rows.
 	/// @relates engine::math::matrix
-	template <engine::usize I, class T, const auto& N, const auto& M>
+	template <engine::usize I, class T, engine::usize N, engine::usize M>
 	struct tuple_element<I, engine::math::matrix<T, N, M>>
 	{
 		/// Matrix column type.
@@ -729,7 +729,7 @@ namespace std
 	/// @tparam N Number of columns.
 	/// @tparam M Number of rows.
 	/// @relates engine::math::matrix
-    template <class T, const auto& N, const auto& M>
+    template <class T, engine::usize N, engine::usize M>
     struct formatter<engine::math::matrix<T, N, M>>: formatter<engine::math::vector<T, M>>
     {
 		auto format(const engine::math::matrix<T, N, M>& t, format_context& fc) const

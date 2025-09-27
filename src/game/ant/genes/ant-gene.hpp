@@ -22,7 +22,7 @@ struct ant_gene_base
 	[[nodiscard]] virtual constexpr ant_gene_type type() const noexcept = 0;
 	
 	/// 32-bit FNV-1a hash of gene name.
-	hash::fnv32_t name;
+	hash::fnv32_t name{};
 };
 
 /// Ant gene with caste-specific phenes.

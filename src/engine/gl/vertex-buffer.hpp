@@ -40,7 +40,7 @@ namespace engine::gl
 
 		/// Move-constructs a vertex buffer.
 		/// @param buffer Buffer to move.
-		vertex_buffer(vertex_buffer&& buffer);
+		vertex_buffer(vertex_buffer&& buffer) noexcept;
 
 		/// Destroys a vertex buffer.
 		~vertex_buffer();
@@ -53,7 +53,7 @@ namespace engine::gl
 		/// Moves another vertex buffer into this buffer.
 		/// @param buffer Buffer to move.
 		/// @return Reference to this vertex buffer.
-		vertex_buffer& operator=(vertex_buffer&& buffer);
+		vertex_buffer& operator=(vertex_buffer&& buffer) noexcept;
 
 		/// Repurposes the vertex buffer, changing its usage hint, size, and updating its data.
 		/// @param usage New buffer usage hint.

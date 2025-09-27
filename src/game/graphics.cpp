@@ -139,7 +139,7 @@ namespace graphics
 		ctx.ui_framebuffer = std::make_shared<gl::framebuffer>(ui_attachments, ctx.render_resolution.x(), ctx.render_resolution.y());
 	}
 
-	void rebuild_shadow_framebuffer(::game& ctx)
+	static void rebuild_shadow_framebuffer(::game& ctx)
 	{
 		// Construct shadow map sampler
 		auto shadow_sampler = std::make_shared<gl::sampler>
@@ -262,7 +262,7 @@ namespace graphics
 		const auto& viewport_size = ctx.window->get_viewport_size();
 
 		// Allocate screenshot pixel data buffer
-		std::unique_ptr<std::byte[]> frame = std::make_unique<std::byte[]>(viewport_size.x() * viewport_size.y() * 3);
+		std::unique_ptr<std::byte[]> frame = std::make_unique<std::byte[]>(static_cast<usize>(viewport_size.x() * viewport_size.y() * 3));
 
 		// Read pixel data from backbuffer into pixel data buffer
 		glReadBuffer(GL_BACK);

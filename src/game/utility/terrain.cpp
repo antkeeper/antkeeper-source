@@ -56,14 +56,14 @@ namespace
 
 		// Interleave vertex data
 		const auto vert_dimensions = quad_dimensions + 1u;
-		const usize vertex_count = 2 * (vert_dimensions.x() * quad_dimensions.y() + quad_dimensions.y() - 1);
+		const usize vertex_count = 2 * static_cast<usize>(vert_dimensions.x() * quad_dimensions.y() + quad_dimensions.y() - 1);
 		constexpr usize vertex_stride = 3 * sizeof(i16) + 3 * sizeof(float);
 		std::vector<std::byte> vertex_data(vertex_count * vertex_stride);
 		std::byte* v = vertex_data.data();
 
 		auto normalized_int16 = [](const math::fvec3& f) -> math::vec3<i16>
 			{
-				math::vec3<i16> i;
+				math::vec3<i16> i{};
 				for (int j = 0; j < 3; ++j)
 				{
 					i[j] = static_cast<i16>(f[j] < 0.0f ? f[j] * 32768.0f : f[j] * 32767.0f);
@@ -73,11 +73,11 @@ namespace
 
 		for (auto y = 0u; y < quad_dimensions.y(); ++y)
 		{
-			usize indices[2];
+			usize indices[2]{};
 
 			for (auto x = 0u; x < vert_dimensions.x(); ++x)
 			{
-				indices[0] = y * vert_dimensions.x() + x;
+				indices[0] = usize{y} *vert_dimensions.x() + x;
 				indices[1] = indices[0] + vert_dimensions.x();
 
 				for (auto i : indices)
@@ -105,7 +105,7 @@ namespace
 				std::memcpy(v, &vertex_normals[indices[1]], sizeof(float) * 3);
 				v += sizeof(float) * 3;
 
-				indices[0] = (y + 1) * vert_dimensions.x();
+				indices[0] = (usize{y} + 1) * vert_dimensions.x();
 
 				position = normalized_int16(vertex_positions[indices[0]]);
 				std::memcpy(v, &position[0], sizeof(i16) * 3);
@@ -164,7 +164,7 @@ entity::id generate_terrain(entity::registry& registry, std::shared_ptr<gl::imag
 	// Generate terrain grid
 	terrain_grid_component grid;
 	grid.dimensions = subdivisions + 1u;
-	grid.cells.resize(grid.dimensions.x() * grid.dimensions.y());
+	grid.cells.resize(usize{grid.dimensions.x()} *grid.dimensions.y());
 	auto grid_eid = registry.create();
 	for (auto y = 0u; y < grid.dimensions.y(); ++y)
 	{
@@ -172,7 +172,7 @@ entity::id generate_terrain(entity::registry& registry, std::shared_ptr<gl::imag
 		{
 			auto cell_eid = registry.create();
 			registry.emplace<terrain_cell_component>(cell_eid, grid_eid, math::uvec2{x, y});
-			grid.cells[y * grid.dimensions.x() + x] = cell_eid;
+			grid.cells[usize{y} * grid.dimensions.x() + x] = cell_eid;
 		}
 	}
 
@@ -189,7 +189,7 @@ entity::id generate_terrain(entity::registry& registry, std::shared_ptr<gl::imag
 	std::vector<float> heightmap_data(heightmap_dimensions[0] * heightmap_dimensions[1]);
 	std::function<float(const math::uvec2&)> sample = [&](const math::uvec2& p)
 		{
-			return heightmap_data[p.y() * heightmap_dimensions[0] + p.x()];
+			return heightmap_data[usize{p.y()} *heightmap_dimensions[0] + p.x()];
 		};
 
 	// Read heightmap pixel data into buffer
@@ -219,7 +219,7 @@ entity::id generate_terrain(entity::registry& registry, std::shared_ptr<gl::imag
 		auto cell_pixel_bounds_max = cell_pixel_bounds_min + cell_quad_dimensions;
 
 		// Build cell vertices
-		math::uvec2 pixel_position;
+		math::uvec2 pixel_position{};
 		for (pixel_position.y() = cell_pixel_bounds_min.y(); pixel_position.y() <= cell_pixel_bounds_max.y(); ++pixel_position.y())
 		{
 			for (pixel_position.x() = cell_pixel_bounds_min.x(); pixel_position.x() <= cell_pixel_bounds_max.x(); ++pixel_position.x())
@@ -243,7 +243,7 @@ entity::id generate_terrain(entity::registry& registry, std::shared_ptr<gl::imag
 		{
 			for (auto x = 0u; x < cell_quad_dimensions.x(); ++x)
 			{
-				auto a = mesh->vertices()[y * cell_vert_dimensions.x() + x];
+				auto a = mesh->vertices()[usize{y} *cell_vert_dimensions.x() + x];
 				auto b = mesh->vertices()[a->index() + cell_vert_dimensions.x()];
 				auto c = mesh->vertices()[a->index() + 1];
 				auto d = mesh->vertices()[b->index() + 1];

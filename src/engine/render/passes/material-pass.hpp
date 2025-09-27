@@ -72,49 +72,49 @@ namespace engine::render
 		void build_material_command_buffer(std::vector<std::function<void()>>& command_buffer, const gl::shader_program& shader_program, const material& material) const;
 	
 		// Camera
-		const math::fmat4* view;
-		const math::fmat4* inv_view;
-		const math::fmat4* projection;
-		const math::fmat4* view_projection;
-		math::fvec4 view_translation;
-		math::fmat4 view_rotation;
-		math::fmat4 model_view;
-		const math::fvec3* camera_position;
-		float camera_exposure;
+		const math::fmat4* view{};
+		const math::fmat4* inv_view{};
+		const math::fmat4* projection{};
+		const math::fmat4* view_projection{};
+		math::fvec4 view_translation{};
+		math::fmat4 view_rotation{};
+		math::fmat4 model_view{};
+		const math::fvec3* camera_position{};
+		float camera_exposure{};
 	
 		// Light probes
 		const gl::texture_cube* light_probe_luminance_texture{};
 		const gl::texture_1d* light_probe_illuminance_texture{};
-		usize light_probe_count;
+		usize light_probe_count{};
 	
 		// Point lights
 		std::vector<math::fvec3> point_light_colors;
 		std::vector<math::fvec3> point_light_positions;
-		usize point_light_count;
+		usize point_light_count{};
 	
 		// Directional lights
 		std::vector<math::fvec3> directional_light_colors;
 		std::vector<math::fvec3> directional_light_directions;
-		usize directional_light_count;
+		usize directional_light_count{};
 	
 		// Directional shadows
 		std::vector<const gl::texture_2d*> directional_shadow_maps;
 		std::vector<math::fvec4> directional_shadow_splits;
 		std::vector<float> directional_shadow_fade_ranges;
 		std::vector<std::span<const math::fmat4>> directional_shadow_matrices;
-		usize directional_shadow_count;
+		usize directional_shadow_count{};
 	
 		// Spot lights
 		std::vector<math::fvec3> spot_light_colors;
 		std::vector<math::fvec3> spot_light_positions;
 		std::vector<math::fvec3> spot_light_directions;
 		std::vector<math::fvec2> spot_light_cutoffs;
-		usize spot_light_count;
+		usize spot_light_count{};
 	
 		// Rectangle lights
 		std::vector<math::fvec3> rectangle_light_colors;
 		std::vector<math::fvec3> rectangle_light_corners;
-		usize rectangle_light_count;
+		usize rectangle_light_count{};
 	
 		// LTC
 		std::shared_ptr<gl::texture_2d> ltc_lut_1;
@@ -124,19 +124,19 @@ namespace engine::render
 		std::shared_ptr<gl::texture_2d> brdf_lut;
 	
 		// Misc
-		float time;
-		float timestep;
+		float time{};
+		float timestep{};
 		unsigned int frame{0};
-		float subframe;
-		math::fvec2 resolution;
-		math::fvec2 mouse_position;
+		float subframe{};
+		math::fvec2 resolution{};
+		math::fvec2 mouse_position{};
 	
 		// Geometry
-		const math::fmat4* model;
+		const math::fmat4* model{};
 		std::span<const math::fmat4> skinning_matrices;
 	
 		/// Hash of the lighting state.
-		usize lighting_state_hash;
+		usize lighting_state_hash{};
 	
 		std::shared_ptr<render::material> fallback_material;
 	};

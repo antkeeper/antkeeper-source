@@ -24,7 +24,7 @@ namespace engine::animation
 		*this = other;
 	}
 
-	skeleton::skeleton(skeleton&& other)
+	skeleton::skeleton(skeleton&& other) noexcept
 	{
 		*this = other;
 	}
@@ -46,7 +46,7 @@ namespace engine::animation
 		return *this;
 	}
 
-	skeleton& skeleton::operator=(skeleton&& other)
+	skeleton& skeleton::operator=(skeleton&& other) noexcept
 	{
 		m_name = std::move(other.m_name);
 		m_bones = std::move(other.m_bones);
@@ -109,7 +109,7 @@ namespace engine::resources
 			bone.rename(bone_element.at("name").get_ref<const std::string&>());
 			bone.length() = bone_element.at("length").get<float>();
 
-			math::transform<float> bone_pose;
+			math::transform<float> bone_pose{};
 
 			const auto& translation_element = bone_element.at("translation");
 			bone_pose.translation.x() = translation_element.at(0).get<float>();
