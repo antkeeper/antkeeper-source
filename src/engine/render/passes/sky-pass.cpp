@@ -370,7 +370,7 @@ namespace engine::render
 		(
 			gl::stencil_face_front_and_back,
 			gl::stencil_op::keep,
-			gl::stencil_op::replace,
+			gl::stencil_op::keep,
 			gl::stencil_op::keep,
 			gl::compare_op::not_equal
 		);
