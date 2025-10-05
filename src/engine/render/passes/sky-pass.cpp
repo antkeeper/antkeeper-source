@@ -365,7 +365,7 @@ namespace engine::render
 		}
 	
 		// Prevent stars from being drawn in front of the moon
-		m_pipeline->set_stencil_compare_mask(gl::stencil_face_front_and_back, 0x00);
+		m_pipeline->set_stencil_compare_mask(gl::stencil_face_front_and_back, 0xff);
 		m_pipeline->set_stencil_op
 		(
 			gl::stencil_face_front_and_back,

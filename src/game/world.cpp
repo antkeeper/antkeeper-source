@@ -44,9 +44,51 @@
 #include <algorithm>
 #include <fstream>
 #include <filesystem>
+#include <engine/resources/resource-loader.hpp>
 
 using namespace engine;
 using namespace engine::hash::literals;
+
+struct star_catalog_entry
+{
+	f32 ra;      // Right ascension
+	f32 dec;     // Declination
+	f32 vmag;    // Visual magnitude
+	f32 color;   // B-V color index
+};
+
+struct star_catalog
+{
+	std::vector<star_catalog_entry> entries;
+};
+
+namespace engine::resources
+{
+	template <>
+	std::unique_ptr<star_catalog> resource_loader<star_catalog>::load(resources::resource_manager&, std::shared_ptr<deserialize_context> ctx)
+	{
+		static_assert(sizeof(star_catalog_entry) == sizeof(f32) * 4);
+
+		std::unique_ptr<star_catalog> catalog = std::make_unique<star_catalog>();
+
+		usize entry_count = ctx->size() / sizeof(star_catalog_entry);
+		catalog->entries.resize(entry_count);
+		ctx->read8(reinterpret_cast<std::byte*>(catalog->entries.data()), entry_count * sizeof(star_catalog_entry));
+
+		if constexpr (std::endian::native != std::endian::little)
+		{
+			std::for_each(std::execution::par, catalog->entries.begin(), catalog->entries.end(), [](auto& entry)
+			{
+				entry.ra = std::bit_cast<f64>(std::byteswap(std::bit_cast<u64>(entry.ra)));
+				entry.dec = std::bit_cast<f64>(std::byteswap(std::bit_cast<u64>(entry.dec)));
+				entry.vmag = std::bit_cast<f32>(std::byteswap(std::bit_cast<u32>(entry.vmag)));
+				entry.color = std::bit_cast<f32>(std::byteswap(std::bit_cast<u32>(entry.color)));
+			});
+		}
+
+		return catalog;
+	}
+}
 
 namespace world
 {
@@ -189,60 +231,37 @@ namespace world
 		debug::log_trace("Generating fixed stars...");
 
 		// Load star catalog
-		auto star_catalog = ctx.resource_manager->load<i18n::string_table>("hipparcos-7.tsv");
+		auto star_catalog = ctx.resource_manager->load<::star_catalog>("hipparcos-7.cat");
 
 		// Allocate star catalog vertex data
-		usize star_count = 0;
-		if (star_catalog->rows.size() > 0)
-			star_count = star_catalog->rows.size() - 1;
 		constexpr usize star_vertex_stride = 7 * sizeof(float);
-		std::vector<float> star_vertex_data(star_count * star_vertex_stride / sizeof(float));
+		std::vector<float> star_vertex_data(star_catalog->entries.size() * star_vertex_stride / sizeof(float));
 		float* star_vertex = star_vertex_data.data();
 
 		// Init starlight illuminance
 		math::dvec3 starlight_illuminance = {0, 0, 0};
 
 		// Build star catalog vertex data
-		for (usize i = 1; i < star_catalog->rows.size(); ++i)
+		for (const auto& entry: star_catalog->entries)
 		{
-			const auto& row = star_catalog->rows[i];
-
-			// Parse star catalog item
-			float ra = 0.0;
-			float dec = 0.0;
-			float vmag = 0.0;
-			float bv = 0.0;
-			try
-			{
-				ra = std::stof(row[1]);
-				dec = std::stof(row[2]);
-				vmag = std::stof(row[3]);
-				bv = std::stof(row[4]);
-			}
-			catch (const std::exception&)
-			{
-				debug::log_warning("Invalid star catalog item on row {}", i);
-				continue;
-			}
-
 			// Convert right ascension and declination from degrees to radians
-			ra = math::wrap_radians(math::radians(ra));
-			dec = math::wrap_radians(math::radians(dec));
+			//entry.ra = math::wrap_radians(math::radians(entry.ra));
+			//entry.dec = math::wrap_radians(math::radians(entry.dec));
 
 			// Convert ICRF coordinates from spherical to Cartesian
-			math::fvec3 position = physics::orbit::frame::bci::cartesian(math::fvec3{1.0f, dec, ra});
-
-			// Convert color index to color temperature
-			float cct = color::bv_to_cct(bv);
-
-			// Calculate XYZ color from color temperature
-			math::fvec3 color_xyz = color::cct_to_xyz(cct);
-
-			// Transform XYZ color to RGB
-			math::fvec3 color_rgb = color::bt2020<float>.xyz_to_rgb(color_xyz);
+			const math::fvec3 position = physics::orbit::frame::bci::cartesian(math::fvec3{1.0f, entry.dec, entry.ra});
 
 			// Convert apparent magnitude to brightness factor relative to a 0th magnitude star
-			float brightness = physics::light::vmag_to_brightness(vmag);
+			const float brightness = physics::light::vmag_to_brightness(entry.vmag);
+
+			// Convert color index to color temperature
+			const float cct = color::bv_to_cct(entry.color);
+
+			// Calculate XYZ color from color temperature
+			const math::fvec3 color_xyz = color::cct_to_xyz(cct);
+
+			// Transform XYZ color to RGB
+			const math::fvec3 color_rgb = color::bt2020<float>.xyz_to_rgb(color_xyz);
 
 			// Build vertex
 			*(star_vertex++) = position.x();
@@ -254,7 +273,7 @@ namespace world
 			*(star_vertex++) = brightness;
 
 			// Calculate spectral illuminance
-			math::dvec3 illuminance = math::dvec3(color_rgb * physics::light::vmag_to_illuminance(vmag));
+			const math::dvec3 illuminance = math::dvec3(color_rgb * physics::light::vmag_to_illuminance(entry.vmag));
 
 			// Add spectral illuminance to total starlight illuminance
 			starlight_illuminance += illuminance;
@@ -297,7 +316,7 @@ namespace world
 		stars_model_group.id = "stars"_fnv1a32;
 		stars_model_group.primitive_topology = gl::primitive_topology::point_list;
 		stars_model_group.first_vertex = 0;
-		stars_model_group.vertex_count = static_cast<u32>(star_count);
+		stars_model_group.vertex_count = static_cast<u32>(star_catalog->entries.size());
 		stars_model_group.material_index = 0;
 
 		// Pass stars model to sky pass
