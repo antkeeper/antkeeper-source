@@ -276,9 +276,9 @@ namespace engine::math::inline functions
 	/// @param x Floating-point value.
 	/// @return Inverse of the square root of @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline T inversesqrt(T x)
+	[[nodiscard]] inline T rcp_sqrt(T x)
 	{
-		return T{1} / sqrt(x);
+		return rcp(sqrt(x));
 	}
 
 	/// Returns the cube root of a value.

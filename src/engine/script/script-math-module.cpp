@@ -183,7 +183,7 @@ namespace
 
 	auto lua_math_inversesqrt(lua_State* lua) -> int
 	{
-		const auto result = math::inversesqrt(luaL_checknumber(lua, 1));
+		const auto result = math::rcp_sqrt(luaL_checknumber(lua, 1));
 		lua_pop(lua, 1);
 		lua_pushnumber(lua, result);
 		debug::postcondition(lua_gettop(lua) == 1);
