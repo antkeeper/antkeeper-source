@@ -388,8 +388,8 @@ namespace engine::math::inline functions
 
 		if (cos_theta <= T{-1} + tolerance)
 		{
-			// Vectors are opposing, return max angle rotation about an arbitrary orthogonal axis
-			return angle_axis(max_angle, unit_orthogonal(from, tolerance));
+			// Vectors are opposing, return max angle (clamped to Pi) rotation about an arbitrary orthogonal axis
+			return angle_axis(min(pi<T>, max_angle), unit_orthogonal(from, tolerance));
 		}
 		else if (cos_theta >= T{1} - tolerance)
 		{
