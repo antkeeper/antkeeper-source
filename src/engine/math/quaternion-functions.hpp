@@ -363,10 +363,8 @@ namespace engine::math::inline functions
 
 		if (cos_theta <= T{-1} + tolerance)
 		{
-			// Vectors are opposing, return 180 degree rotation about an arbitrary perpendicular axis
-			const vec3<T> reference = (math::abs(from.x()) < T{1} - tolerance) ? vec3<T>{1, 0, 0} : vec3<T>{0, 1, 0};
-			const vec3<T> axis = normalize(cross(from, reference));
-			return angle_axis(math::pi<T>, axis);
+			// Vectors are opposing, return 180 degree rotation about an arbitrary orthogonal axis
+			return angle_axis(pi<T>, unit_orthogonal(from, tolerance));
 		}
 		else if (cos_theta >= T{1} - tolerance)
 		{
@@ -390,10 +388,8 @@ namespace engine::math::inline functions
 
 		if (cos_theta <= T{-1} + tolerance)
 		{
-			// Vectors are opposing, return max angle rotation about an arbitrary perpendicular axis
-			const vec3<T> reference = (math::abs(from.x()) < T{1} - tolerance) ? vec3<T>{1, 0, 0} : vec3<T>{0, 1, 0};
-			const vec3<T> axis = normalize(cross(from, reference));
-			return angle_axis(max_angle, axis);
+			// Vectors are opposing, return max angle rotation about an arbitrary orthogonal axis
+			return angle_axis(max_angle, unit_orthogonal(from, tolerance));
 		}
 		else if (cos_theta >= T{1} - tolerance)
 		{

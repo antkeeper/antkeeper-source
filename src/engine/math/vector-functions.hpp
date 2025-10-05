@@ -537,6 +537,17 @@ namespace engine::math::inline functions
 		return dot(x, cross(y, z));
 	}
 
+	/// Finds a direction vector orthogonal to a given direction vector.
+	/// @param v Input direction vector.
+	/// @param tolerance Floating-point tolerance.
+	/// @return Direction vector orthogonal to @p v.
+	template <class T>
+	[[nodiscard]] inline vec3<T> unit_orthogonal(const vec3<T>& v, T tolerance = T{1e-6})
+	{
+		const vec3<T> reference = (abs(v.x()) < T{1} - tolerance) ? vec3<T>{1, 0, 0} : vec3<T>{0, 1, 0};
+		return normalize(cross(v, reference));
+	}
+
 	/// Calculates the square length of a vector. The square length can be calculated faster than the length because a call to `sqrt` is saved.
 	/// @param v Vector of which to calculate the square length.
 	/// @return Square length of the vector.
