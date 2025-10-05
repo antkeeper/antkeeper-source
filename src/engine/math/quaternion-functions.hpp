@@ -160,10 +160,11 @@ namespace engine::math::inline functions
 	/// @param from Unit vector pointing in the source direction.
 	/// @param to Unit vector pointing in the target direction.
 	/// @param max_angle Maximum angle of rotation, in radians.
+	/// @param tolerance Floating-point tolerance.
 	/// @return Unit quaternion representing a rotation from direction @p from towards direction @p to.
 	/// @warning @p from and @p to must be unit vectors.
 	template <class T>
-	[[nodiscard]] quat<T> rotate_towards(const vec3<T>& from, const vec3<T>& to, T max_angle);
+	[[nodiscard]] quat<T> rotate_towards(const vec3<T>& from, const vec3<T>& to, T max_angle, T tolerance = T{1e-6});
 
 	/// Performs spherical linear interpolation between two quaternions.
 	/// @param a First quaternion.
@@ -362,30 +363,49 @@ namespace engine::math::inline functions
 
 		if (cos_theta <= T{-1} + tolerance)
 		{
-			// Direction vectors are opposing, return 180 degree rotation about arbitrary axis
-			return quat<T>{T{0}, {T{1}, T{0}, T{0}}};
+			// Vectors are opposing, return 180 degree rotation about an arbitrary perpendicular axis
+			const vec3<T> reference = (math::abs(from.x()) < T{1} - tolerance) ? vec3<T>{1, 0, 0} : vec3<T>{0, 1, 0};
+			const vec3<T> axis = normalize(cross(from, reference));
+			return angle_axis(math::pi<T>, axis);
 		}
 		else if (cos_theta >= T{1} - tolerance)
 		{
-			// Direction vectors are parallel, return identity quaternion
+			// Vectors are codirectional, return identity quaternion
 			return identity<quat<T>>;
 		}
 		else
 		{
 			const auto r = cos_theta + T{1};
 			const auto i = cross(from, to);
-			const auto inv_length = T{1.0} / sqrt(r + r);
+			const auto inv_length = rcp_sqrt(r + r);
 
 			return quat<T>{r * inv_length, i * inv_length};
 		}
 	}
 
 	template <class T>
-	quat<T> rotate_towards(const vec3<T>& from, const vec3<T>& to, T max_angle)
+	quat<T> rotate_towards(const vec3<T>& from, const vec3<T>& to, T max_angle, T tolerance)
 	{
-		const auto angle = acos(dot(from, to));
-		const auto axis = cross(from, to);
-		return angle_axis(min(max_angle, angle), axis);
+		const auto cos_theta = dot(from, to);
+
+		if (cos_theta <= T{-1} + tolerance)
+		{
+			// Vectors are opposing, return max angle rotation about an arbitrary perpendicular axis
+			const vec3<T> reference = (math::abs(from.x()) < T{1} - tolerance) ? vec3<T>{1, 0, 0} : vec3<T>{0, 1, 0};
+			const vec3<T> axis = normalize(cross(from, reference));
+			return angle_axis(max_angle, axis);
+		}
+		else if (cos_theta >= T{1} - tolerance)
+		{
+			// Vectors are codirectional, return identity quaternion
+			return identity<quat<T>>;
+		}
+		else
+		{
+			const auto angle = acos(cos_theta);
+			const auto axis = normalize(cross(from, to));
+			return angle_axis(min(max_angle, angle), axis);
+		}
 	}
 
 	template <class T>
@@ -455,7 +475,7 @@ namespace engine::math::inline functions
 			else
 			{
 				const auto cos_swing_angle = clamp(dot(twist_axis, rotated_twist_axis), T{-1}, T{1});
-				swing = angle_axis(acos(cos_swing_angle), swing_axis * inversesqrt(swing_axis_sqr_length));
+				swing = angle_axis(acos(cos_swing_angle), swing_axis * rcp_sqrt(swing_axis_sqr_length));
 			}
 		}
 		else

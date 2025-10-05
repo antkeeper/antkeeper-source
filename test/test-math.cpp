@@ -705,5 +705,36 @@ int main(int, char*[])
 		ASSERT_EQ(str, "{-9999.9600, {0.0000, 0.6667, inf}}");
 	});
 
+	suite.tests.emplace_back("quaternion rotation", []()
+	{
+		const float tolerance = 1e-6f;
+
+		const fvec3 axes[][2] =
+		{
+			{{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // Two perpendicular vectors
+			{{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}}, // Two identical vectors
+			{normalize(fvec3{1, 2, 3}), normalize(fvec3{5, -3, 2})}, // Two arbitrary vectors
+			{normalize(fvec3{10, 11, 1000}), normalize(fvec3{-50, -51, -52})}, // Two arbitrary vectors
+			{normalize(fvec3{1, 1, 0}), normalize(fvec3{0, 1, 1})}, // Two arbitrary vectors
+			{{1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}}, // Two opposing vectors (x-axis)
+			{{0.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // Two opposing vectors (y-axis)
+			{{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}}, // Two opposing vectors (z-axis)
+			{normalize(fvec3{-0.025f, 0.5f, -0.372f}), normalize(fvec3{0.025f, -0.5f, 0.372f})} // Two opposing vectors (arbitrary axis)
+		};
+
+		for (const auto& [a, b]: axes)
+		{
+			fvec3 c = rotation(a, b, tolerance) * a;
+			ASSERT_NEAR(c.x(), b.x(), tolerance);
+			ASSERT_NEAR(c.y(), b.y(), tolerance);
+			ASSERT_NEAR(c.z(), b.z(), tolerance);
+
+			c = rotate_towards(a, b, pi<float>, tolerance) * a;
+			ASSERT_NEAR(c.x(), b.x(), tolerance);
+			ASSERT_NEAR(c.y(), b.y(), tolerance);
+			ASSERT_NEAR(c.z(), b.z(), tolerance);
+		}
+	});
+
 	return suite.run();
 }
