@@ -26,7 +26,7 @@ namespace engine::physics::light
 	template <class T>
 	[[nodiscard]] T vmag_to_illuminance(T mv)
 	{
-		return math::pow(T{10}, (T{-14.18} - mv) * T { 0.4 });
+		return math::pow(T{10}, (T{-14.18} - mv) * T{0.4});
 	}
 
 	/// Converts illuminance to apparent magnitude.

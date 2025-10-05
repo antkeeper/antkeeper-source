@@ -655,7 +655,7 @@ void game::setup_rendering()
 		sky_pass = std::make_unique<render::sky_pass>(&window->get_graphics_pipeline(), scene_framebuffer.get(), resource_manager.get());
 		// sky_pass->set_clear_mask(gl::color_clear_bit | gl::depth_clear_bit | gl::stencil_clear_bit);
 		// sky_pass->set_clear_value({{0.0f, 0.0f, 0.0f, 0.0f}, 0.0f, 0});
-		// sky_pass->set_magnification(3.0f);
+		sky_pass->set_magnification(3.0f);
 		
 		// Construct material pass
 		scene_material_pass = std::make_unique<render::material_pass>(&window->get_graphics_pipeline(), scene_framebuffer.get(), resource_manager.get());

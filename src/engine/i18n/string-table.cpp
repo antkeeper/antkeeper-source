@@ -14,13 +14,15 @@ namespace engine::resources
 	template <>
 	void deserializer<i18n::string_table>::deserialize(i18n::string_table& value, deserialize_context& ctx)
 	{
+		std::vector<char> data(ctx.size());
+		ctx.read8(reinterpret_cast<std::byte*>(data.data()), ctx.size());
+
 		value.rows.clear();
 
 		std::vector<std::string> row;
 		std::string entry;
 
-		char c;
-		while (ctx.read8(reinterpret_cast<std::byte*>(&c), 1) == 1)
+		for (char c: data)
 		{
 			if (c == '\t')
 			{
