@@ -4,6 +4,8 @@
 name: build
 
 on:
+  push:
+    branches: ["main"]
   merge_group:
 
 jobs:
