@@ -127,35 +127,27 @@ namespace engine::resources
 
 		ephemeris.trajectories.clear();
 
-		// Init file reading function pointers
-		usize(deserialize_context:: * read32)(std::byte*, usize) = &deserialize_context::read32<std::endian::native>;
-		usize(deserialize_context:: * read64)(std::byte*, usize) = &deserialize_context::read64<std::endian::native>;
+		// Read file into buffer
+		std::vector<std::byte> file_buffer(ctx.size());
+		ctx.read8(file_buffer.data(), file_buffer.size());
 
 		// Read DE version number
-		i32 denum;
-		ctx.seek(jpl_de_offset_denum);
-		ctx.read8(reinterpret_cast<std::byte*>(&denum), sizeof(i32));
+		i32 denum = 0;
+		std::memcpy(&denum, &file_buffer.at(jpl_de_offset_denum), sizeof(i32));
 
-		// If file endianness does not match host endianness
-		if (denum & jpl_de_denum_endian_mask)
-		{
-			// Use endian-swapping read functions
-			if constexpr (std::endian::native == std::endian::little)
-			{
-				read32 = &deserialize_context::read32<std::endian::big>;
-				read64 = &deserialize_context::read64<std::endian::big>;
-			}
-			else
-			{
-				read32 = &deserialize_context::read32<std::endian::little>;
-				read64 = &deserialize_context::read64<std::endian::little>;
-			}
-		}
+		// Check if file endianness does not match host endianness
+		const bool swap_endian = (denum & jpl_de_denum_endian_mask);
 
 		// Read ephemeris time
-		double ephemeris_time[3];
-		ctx.seek(jpl_de_offset_time);
-		std::invoke(read64, ctx, reinterpret_cast<std::byte*>(ephemeris_time), 3);
+		f64 ephemeris_time[3]{};
+		std::memcpy(&ephemeris_time, &file_buffer.at(jpl_de_offset_time), 3 * sizeof(f64));
+		if (swap_endian)
+		{
+			for (f64& t: ephemeris_time)
+			{
+				t = std::bit_cast<f64>(std::byteswap(std::bit_cast<u64>(t)));
+			}
+		}
 
 		// Make time relative to J2000 epoch
 		const double epoch = 2451545.0;
@@ -163,26 +155,35 @@ namespace engine::resources
 		ephemeris_time[1] -= epoch;
 
 		// Read number of constants
-		i32 constant_count;
-		std::invoke(read32, ctx, reinterpret_cast<std::byte*>(&constant_count), 1);
-
-		// Read first coefficient table
-		i32 coeff_table[jpl_de_max_item_count][3];
-		ctx.seek(jpl_de_offset_table1);
-		std::invoke(read32, ctx, reinterpret_cast<std::byte*>(coeff_table), jpl_de_table1_count * 3);
-
-		// Read second coefficient table
-		ctx.seek(jpl_de_offset_table2);
-		std::invoke(read32, ctx, reinterpret_cast<std::byte*>(&coeff_table[jpl_de_table1_count][0]), jpl_de_table2_count * 3);
-
-		// Seek past extra constant names
-		if (constant_count > jpl_de_constant_limit)
+		i32 constant_count = 0;
+		std::memcpy(&constant_count, &file_buffer.at(jpl_de_offset_time + sizeof(f64) * 3), sizeof(i32));
+		if (swap_endian)
 		{
-			ctx.seek(jpl_de_offset_table3 + (constant_count - jpl_de_constant_limit) * jpl_de_constant_length);
+			constant_count = std::byteswap(constant_count);
 		}
 
-		// Read third coefficient table
-		std::invoke(read32, ctx, reinterpret_cast<std::byte*>(&coeff_table[jpl_de_table1_count + jpl_de_table2_count][0]), jpl_de_table3_count * 3);
+		// Read first coefficient table
+		i32 coeff_table[jpl_de_max_item_count][3]{};
+		std::memcpy(&coeff_table, &file_buffer.at(jpl_de_offset_table1), sizeof(i32) * 3 * jpl_de_table1_count);
+
+		// Read second coefficient table
+		std::memcpy(&coeff_table[jpl_de_table1_count][0], &file_buffer.at(jpl_de_offset_table2), sizeof(i32) * 3 * jpl_de_table2_count);
+
+		// Read third coefficient table, skipping any extra constant names
+		const usize coeff_table3_offset = jpl_de_offset_table3 + (constant_count > jpl_de_constant_limit ? (constant_count - jpl_de_constant_limit) * jpl_de_constant_length : 0);
+		std::memcpy(&coeff_table[jpl_de_table1_count + jpl_de_table2_count][0], &file_buffer.at(coeff_table3_offset), sizeof(i32) * 3 * jpl_de_table3_count);
+
+		// Swap coefficient table endianness, if necessary
+		if (swap_endian)
+		{
+			for (usize i = 0; i < jpl_de_max_item_count; ++i)
+			{
+				for (usize j = 0; j < 3; ++j)
+				{
+					coeff_table[i][j] = std::byteswap(coeff_table[i][j]);
+				}
+			}
+		}
 
 		// Calculate number of coefficients per record
 		i32 record_coeff_count = 0;
@@ -198,7 +199,7 @@ namespace engine::resources
 
 		// Calculate coefficient strides
 		usize strides[11];
-		for (int i = 0; i < 11; ++i)
+		for (usize i = 0; i < 11; ++i)
 		{
 			strides[i] = coeff_table[i][2] * coeff_table[i][1] * 3;
 		}
@@ -207,7 +208,7 @@ namespace engine::resources
 		ephemeris.trajectories.resize(11);
 
 		// Init trajectories
-		for (int i = 0; i < 11; ++i)
+		for (usize i = 0; i < 11; ++i)
 		{
 			auto& trajectory = ephemeris.trajectories[i];
 			trajectory.t0 = ephemeris_time[0];
@@ -220,12 +221,24 @@ namespace engine::resources
 		// Read coefficients
 		for (usize i = 0; i < record_count; ++i)
 		{
-			// Seek to coefficient record
-			ctx.seek((i + 2) * record_size + 2 * sizeof(double));
-
-			for (int j = 0; j < 11; ++j)
+			usize pos = (i + 2) * record_size + 2 * sizeof(f64);
+			for (usize j = 0; j < 11; ++j)
 			{
-				std::invoke(read64, ctx, reinterpret_cast<std::byte*>(&ephemeris.trajectories[j].a[i * strides[j]]), strides[j]);
+				std::memcpy(&ephemeris.trajectories[j].a[i * strides[j]], &file_buffer.at(pos), sizeof(f64) * strides[j]);
+				pos += sizeof(f64) * strides[j];
+			}
+		}
+
+		// Swap coefficient endianness, if necessary
+		if (swap_endian)
+		{
+			for (usize i = 0; i < 11; ++i)
+			{
+				auto& trajectory = ephemeris.trajectories[i];
+				for (f64& a: trajectory.a)
+				{
+					a = std::bit_cast<f64>(std::byteswap(std::bit_cast<u64>(a)));
+				}
 			}
 		}
 	}
