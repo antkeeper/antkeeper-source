@@ -55,12 +55,12 @@ set(FETCHCONTENT_QUIET TRUE)
 
 FetchContent_Declare(cxxopts
 	GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
-	GIT_TAG eb787304d67ec22f7c3a184ee8b4c481d04357fd # v3.1.1
+	GIT_TAG 44380e5a44706ab7347f400698c703eb2a196202 # v3.3.1
 	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(dr_libs
 	GIT_REPOSITORY https://github.com/mackron/dr_libs.git
-	GIT_TAG 9eed1be421749ba68a87e5b4c3b10858f8580689 # v0.13.13
+	GIT_TAG 3141b54b6b0067d15c4a3ec0877f2141a2a11347 # v0.14.1
 	GIT_PROGRESS TRUE
 	GIT_SUBMODULES ""
 )
@@ -71,12 +71,12 @@ FetchContent_Declare(entt
 )
 FetchContent_Declare(freetype
 	GIT_REPOSITORY https://github.com/freetype/freetype.git
-	GIT_TAG 920c5502cc3ddda88f6c7d85ee834ac611bb11cc # v2.13.2
+	GIT_TAG 526ec5c47b9ebccc4754c85ac0c0cdf7c85a5e9b # v2.14.1
 	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(glad
 	GIT_REPOSITORY https://github.com/Dav1dde/glad.git
-	GIT_TAG d08b1aa01f8fe57498f04d47b5fa8c48725be877 # v2.0.4
+	GIT_TAG 73db193f853e2ee079bf3ca8a64aa2eaf6459043 # v2.0.8
 	GIT_PROGRESS TRUE
 	SOURCE_SUBDIR cmake
 )
@@ -87,7 +87,7 @@ FetchContent_Declare(nlohmann-json
 )
 FetchContent_Declare(openal-soft
 	GIT_REPOSITORY https://github.com/kcat/openal-soft.git
-	GIT_TAG b621b5fce739525418f36e0474a46f9e1cab5e64 # v1.24.2
+	GIT_TAG dc7d7054a5b4f3bec1dc23a42fd616a0847af948 # v1.24.3
 	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(physfs
@@ -97,7 +97,7 @@ FetchContent_Declare(physfs
 )
 FetchContent_Declare(SDL3
 	GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-	GIT_TAG b5c3eab6b447111d3c7879bb547b80fb4abd9063 # v3.2.4
+	GIT_TAG a8589a84226a6202831a3d49ff4edda4acab9acd # v3.2.24
 	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(stb
@@ -107,12 +107,12 @@ FetchContent_Declare(stb
 )
 FetchContent_Declare(tinyexr
 	GIT_REPOSITORY https://github.com/syoyo/tinyexr.git
-	GIT_TAG 6e8cac308cdf4d717078f3f37c4aa39bf3b356b4 # v1.0.7
+	GIT_TAG 735ff73ce5959cf005eb99ce517c9bcecab89dfb # v1.0.12
 	GIT_PROGRESS TRUE
 )
 FetchContent_Declare(ogg
 	GIT_REPOSITORY https://github.com/xiph/ogg.git
-	GIT_TAG e1774cd77f471443541596e09078e78fdc342e4f # v1.3.5
+	GIT_TAG be05b13e98b048f0b5a0f5fa8ce514d56db5f822 # v1.3.6
 	GIT_PROGRESS TRUE
 	OVERRIDE_FIND_PACKAGE
 )
@@ -123,7 +123,7 @@ FetchContent_Declare(vorbis
 )
 FetchContent_Declare(lua
 	GIT_REPOSITORY https://github.com/lua/lua.git
-	GIT_TAG 1ab3208a1fceb12fca8f24ba57d6e13c5bff15e3 # v5.4.7
+	GIT_TAG 6e22fedb74cf0c9b6656e9fce8b7331db847c605 # v5.4.8
 	GIT_PROGRESS TRUE
 )
 
@@ -208,6 +208,9 @@ add_compile_definitions(
 
 # Configure Ogg
 set(BUILD_TESTING OFF)
+
+# Force CMake 3.5 minimum version
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 # Make dependencies available
 FetchContent_MakeAvailable(
@@ -299,6 +302,32 @@ glad_add_library(glad STATIC
 
 # Make tinyexr.h available
 file(COPY ${tinyexr_SOURCE_DIR}/tinyexr.h DESTINATION ${tinyexr_BINARY_DIR}/include)
+
+# Group external dependency projects in IDE
+set(EXTERNAL_DEPENDENCIES
+	alsoft.build_version
+	alsoft.common
+	alsoft.excommon
+	alsoft.fmt
+	clang-tidy-check
+	dr_wav
+	freetype
+	glad
+	OpenAL
+	physfs-static
+	SDL3-static
+	SDL_uclibc
+	stb
+	tinyexr
+	ogg
+	vorbis
+	vorbisenc
+	vorbisfile
+	lua
+)
+foreach(dep IN ITEMS ${EXTERNAL_DEPENDENCIES})
+    set_target_properties(${dep} PROPERTIES FOLDER "External")
+endforeach()
 
 # Generate engine configuration header files
 configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.hpp.in ${PROJECT_BINARY_DIR}/engine-config.hpp.in @ONLY)
@@ -629,6 +658,7 @@ if(ANTKEEPER_TEST)
 				CXX_STANDARD_REQUIRED ON
 				CXX_EXTENSIONS OFF
 				MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+				FOLDER "Tests"
 		)
 		target_compile_definitions(${TEST_NAME} PRIVATE ${ANTKEEPER_COMPILE_DEFINITIONS})
 		target_compile_options(${TEST_NAME} PRIVATE ${ANTKEEPER_COMPILE_OPTIONS})
