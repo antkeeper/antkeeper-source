@@ -7,343 +7,347 @@
 #include <engine/math/functions.hpp>
 #include <engine/utility/sized-types.hpp>
 #include <concepts>
+#include <utility>
 
-/// @name Vector operators
-/// @{
-
-/// Adds two vectors.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Vector on the right-hand side.
-/// @return @p lhs + @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-[[nodiscard]] inline constexpr engine::math::vec<T, N> operator+(const engine::math::vec<T, N>& lhs, const engine::math::vec<T, N>& rhs) noexcept
+namespace engine::math::inline types
 {
-	engine::math::vec<T, N> result;
-	for (engine::usize i = 0; i < N; ++i)
+	/// @name Vector operators
+	/// @{
+
+	/// Adds two vectors.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Vector on the right-hand side.
+	/// @return @p lhs + @p rhs.
+	/// @relates engine::math::vector
+	template <class T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> operator+(const vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
 	{
-		result[i] = lhs[i] + rhs[i];
+		vec<T, N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = lhs[i] + rhs[i];
+		}
+		return result;
 	}
-	return result;
-}
 
-/// Adds a vector and a scalar.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Scalar on the right-hand side.
-/// @return @p lhs + @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-[[nodiscard]] inline constexpr engine::math::vec<T, N> operator+(const engine::math::vec<T, N>& lhs, const T& rhs) noexcept
-{
-	engine::math::vec<T, N> result;
-	for (engine::usize i = 0; i < N; ++i)
+	/// Adds a vector and a scalar.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Scalar on the right-hand side.
+	/// @return @p lhs + @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> operator+(const vec<T, N>& lhs, const T& rhs) noexcept
 	{
-		result[i] = lhs[i] + rhs;
+		vec<T, N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = lhs[i] + rhs;
+		}
+		return result;
 	}
-	return result;
-}
 
-/// Adds a scalar and a vector.
-/// @param lhs Scalar on the left-hand side.
-/// @param rhs Vector on the right-hand side.
-/// @return @p lhs + @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-[[nodiscard]] inline constexpr engine::math::vec<T, N> operator+(const T& lhs, const engine::math::vec<T, N>& rhs) noexcept
-{
-	return rhs + lhs;
-}
-
-/// Negates a vector.
-/// @param v Vector to negate.
-/// @return `-v`.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-[[nodiscard]] inline constexpr engine::math::vec<T, N> operator-(const engine::math::vec<T, N>& v) noexcept
-{
-	engine::math::vec<T, N> result;
-	for (engine::usize i = 0; i < N; ++i)
+	/// Adds a scalar and a vector.
+	/// @param lhs Scalar on the left-hand side.
+	/// @param rhs Vector on the right-hand side.
+	/// @return @p lhs + @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> operator+(const T& lhs, const vec<T, N>& rhs) noexcept
 	{
-		result[i] = -v[i];
+		return rhs + lhs;
 	}
-	return result;
-}
 
-/// Subtracts two vectors.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Vector on the right-hand side.
-/// @return @p lhs - @p rhs.
-/// @relates vector
-template <class T, engine::usize N>
-[[nodiscard]] inline constexpr engine::math::vec<T, N> operator-(const engine::math::vec<T, N>& lhs, const engine::math::vec<T, N>& rhs) noexcept
-{
-	engine::math::vec<T, N> result;
-	for (engine::usize i = 0; i < N; ++i)
+	/// Negates a vector.
+	/// @param v Vector to negate.
+	/// @return `-v`.
+	/// @relates vector
+	template <class T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> operator-(const vec<T, N>& v) noexcept
 	{
-		result[i] = lhs[i] - rhs[i];
+		vec<T, N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = -v[i];
+		}
+		return result;
 	}
-	return result;
-}
 
-/// Subtracts a scalar from a vector.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Scalar on the right-hand side.
-/// @return @p lhs - @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-[[nodiscard]] inline constexpr engine::math::vec<T, N> operator-(const engine::math::vec<T, N>& lhs, const T& rhs) noexcept
-{
-	engine::math::vec<T, N> result;
-	for (engine::usize i = 0; i < N; ++i)
+	/// Subtracts two vectors.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Vector on the right-hand side.
+	/// @return @p lhs - @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> operator-(const vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
 	{
-		result[i] = lhs[i] - rhs;
+		vec<T, N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = lhs[i] - rhs[i];
+		}
+		return result;
 	}
-	return result;
-}
 
-/// Subtracts a vector from a scalar.
-/// @param lhs Scalar on the left-hand side.
-/// @param rhs Vector on the right-hand side.
-/// @return @p lhs - @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-[[nodiscard]] inline constexpr engine::math::vec<T, N> operator-(const T& lhs, const engine::math::vec<T, N>& rhs) noexcept
-{
-	engine::math::vec<T, N> result;
-	for (engine::usize i = 0; i < N; ++i)
+	/// Subtracts a scalar from a vector.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Scalar on the right-hand side.
+	/// @return @p lhs - @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> operator-(const vec<T, N>& lhs, const T& rhs) noexcept
 	{
-		result[i] = lhs - rhs[i];
+		vec<T, N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = lhs[i] - rhs;
+		}
+		return result;
 	}
-	return result;
-}
 
-/// Multiplies the elements of two vectors.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Vector on the right-hand side.
-/// @return @p lhs * @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-[[nodiscard]] inline constexpr engine::math::vec<T, N> operator*(const engine::math::vec<T, N>& lhs, const engine::math::vec<T, N>& rhs) noexcept
-{
-	engine::math::vec<T, N> result;
-	for (engine::usize i = 0; i < N; ++i)
+	/// Subtracts a vector from a scalar.
+	/// @param lhs Scalar on the left-hand side.
+	/// @param rhs Vector on the right-hand side.
+	/// @return @p lhs - @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> operator-(const T& lhs, const vec<T, N>& rhs) noexcept
 	{
-		result[i] = lhs[i] * rhs[i];
+		vec<T, N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = lhs - rhs[i];
+		}
+		return result;
 	}
-	return result;
-}
 
-/// Multiplies a vector by a scalar.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Scalar on the right-hand side.
-/// @return @p lhs * @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-[[nodiscard]] inline constexpr engine::math::vec<T, N> operator*(const engine::math::vec<T, N>& lhs, const T& rhs) noexcept
-{
-	engine::math::vec<T, N> result;
-	for (engine::usize i = 0; i < N; ++i)
+	/// Multiplies the elements of two vectors.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Vector on the right-hand side.
+	/// @return @p lhs * @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> operator*(const vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
 	{
-		result[i] = lhs[i] * rhs;
+		vec<T, N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = lhs[i] * rhs[i];
+		}
+		return result;
 	}
-	return result;
-}
 
-/// Multiplies a scalar by a vector.
-/// @param lhs Scalar on the left-hand side.
-/// @param rhs Vector on the right-hand side.
-/// @return @p lhs * @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-[[nodiscard]] inline constexpr engine::math::vec<T, N> operator*(const T& lhs, const engine::math::vec<T, N>& rhs) noexcept
-{
-	return rhs * lhs;
-}
-
-/// Divides the elements of a vector by the elements of another vector.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Vector on the right-hand side.
-/// @return @p lhs / @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-[[nodiscard]] inline constexpr engine::math::vec<T, N> operator/(const engine::math::vec<T, N>& lhs, const engine::math::vec<T, N>& rhs) noexcept
-{
-	engine::math::vec<T, N> result;
-	for (engine::usize i = 0; i < N; ++i)
+	/// Multiplies a vector by a scalar.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Scalar on the right-hand side.
+	/// @return @p lhs * @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> operator*(const vec<T, N>& lhs, const T& rhs) noexcept
 	{
-		result[i] = lhs[i] / rhs[i];
+		vec<T, N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = lhs[i] * rhs;
+		}
+		return result;
 	}
-	return result;
-}
 
-/// Divides the elements of a vector by a scalar.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Scalar on the right-hand side.
-/// @return @p lhs / @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-[[nodiscard]] inline constexpr engine::math::vec<T, N> operator/(const engine::math::vec<T, N>& lhs, const T& rhs) noexcept
-{
-	engine::math::vec<T, N> result;
-	for (engine::usize i = 0; i < N; ++i)
+	/// Multiplies a scalar by a vector.
+	/// @param lhs Scalar on the left-hand side.
+	/// @param rhs Vector on the right-hand side.
+	/// @return @p lhs * @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> operator*(const T& lhs, const vec<T, N>& rhs) noexcept
 	{
-		result[i] = lhs[i] / rhs;
+		return rhs * lhs;
 	}
-	return result;
-}
 
-/// Divides a scalar by the elements of a vector.
-/// @param lhs Scalar on the left-hand side.
-/// @param rhs Vector on the right-hand side.
-/// @return @p lhs / @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-[[nodiscard]] inline constexpr engine::math::vec<T, N> operator/(const T& lhs, const engine::math::vec<T, N>& rhs) noexcept
-{
-	engine::math::vec<T, N> result;
-	for (engine::usize i = 0; i < N; ++i)
+	/// Divides the elements of a vector by the elements of another vector.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Vector on the right-hand side.
+	/// @return @p lhs / @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> operator/(const vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
 	{
-		result[i] = lhs / rhs[i];
+		vec<T, N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = lhs[i] / rhs[i];
+		}
+		return result;
 	}
-	return result;
-}
 
-/// Adds two vectors, storing the result in the first vector.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Vector on the right-hand side.
-/// @return @p lhs + @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-inline constexpr engine::math::vec<T, N>& operator+=(engine::math::vec<T, N>& lhs, const engine::math::vec<T, N>& rhs) noexcept
-{
-	for (engine::usize i = 0; i < N; ++i)
+	/// Divides the elements of a vector by a scalar.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Scalar on the right-hand side.
+	/// @return @p lhs / @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> operator/(const vec<T, N>& lhs, const T& rhs) noexcept
 	{
-		lhs[i] += rhs[i];
+		vec<T, N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = lhs[i] / rhs;
+		}
+		return result;
 	}
-	return lhs;
-}
 
-/// Adds a vector and a scalar, storing the result in the vector.
-/// @param lhs Scalar on the left-hand side.
-/// @param rhs Vector on the right-hand side.
-/// @return @p lhs + @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-inline constexpr engine::math::vec<T, N>& operator+=(engine::math::vec<T, N>& lhs, const T& rhs) noexcept
-{
-	for (engine::usize i = 0; i < N; ++i)
+	/// Divides a scalar by the elements of a vector.
+	/// @param lhs Scalar on the left-hand side.
+	/// @param rhs Vector on the right-hand side.
+	/// @return @p lhs / @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	[[nodiscard]] inline constexpr vec<T, N> operator/(const T& lhs, const vec<T, N>& rhs) noexcept
 	{
-		lhs[i] += rhs;
+		vec<T, N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = lhs / rhs[i];
+		}
+		return result;
 	}
-	return lhs;
-}
 
-/// Subtracts two vectors, storing the result in the first vector.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Vector on the right-hand side.
-/// @return @p lhs - @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-inline constexpr engine::math::vec<T, N>& operator-=(engine::math::vec<T, N>& lhs, const engine::math::vec<T, N>& rhs) noexcept
-{
-	for (engine::usize i = 0; i < N; ++i)
+	/// Adds two vectors, storing the result in the first vector.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Vector on the right-hand side.
+	/// @return @p lhs + @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	inline constexpr vec<T, N>& operator+=(vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
 	{
-		lhs[i] -= rhs[i];
+		for (usize i = 0; i < N; ++i)
+		{
+			lhs[i] += rhs[i];
+		}
+		return lhs;
 	}
-	return lhs;
-}
 
-/// Subtracts a scalar from a vector, storing the result in the vector.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Scalar on the right-hand side.
-/// @return @p lhs - @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-inline constexpr engine::math::vec<T, N>& operator-=(engine::math::vec<T, N>& lhs, const T& rhs) noexcept
-{
-	for (engine::usize i = 0; i < N; ++i)
+	/// Adds a vector and a scalar, storing the result in the vector.
+	/// @param lhs Scalar on the left-hand side.
+	/// @param rhs Vector on the right-hand side.
+	/// @return @p lhs + @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	inline constexpr vec<T, N>& operator+=(vec<T, N>& lhs, const T& rhs) noexcept
 	{
-		lhs[i] -= rhs;
+		for (usize i = 0; i < N; ++i)
+		{
+			lhs[i] += rhs;
+		}
+		return lhs;
 	}
-	return lhs;
-}
 
-/// Multiplies two vectors, storing the result in the first vector.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Vector on the right-hand side.
-/// @return @p lhs * @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-inline constexpr engine::math::vec<T, N>& operator*=(engine::math::vec<T, N>& lhs, const engine::math::vec<T, N>& rhs) noexcept
-{
-	for (engine::usize i = 0; i < N; ++i)
+	/// Subtracts two vectors, storing the result in the first vector.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Vector on the right-hand side.
+	/// @return @p lhs - @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	inline constexpr vec<T, N>& operator-=(vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
 	{
-		lhs[i] *= rhs[i];
+		for (usize i = 0; i < N; ++i)
+		{
+			lhs[i] -= rhs[i];
+		}
+		return lhs;
 	}
-	return lhs;
-}
 
-/// Multiplies a vector by a scalar, storing the result in the vector.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Scalar on the right-hand side.
-/// @return @p lhs * @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-inline constexpr engine::math::vec<T, N>& operator*=(engine::math::vec<T, N>& lhs, const T& rhs) noexcept
-{
-	for (engine::usize i = 0; i < N; ++i)
+	/// Subtracts a scalar from a vector, storing the result in the vector.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Scalar on the right-hand side.
+	/// @return @p lhs - @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	inline constexpr vec<T, N>& operator-=(vec<T, N>& lhs, const T& rhs) noexcept
 	{
-		lhs[i] *= rhs;
+		for (usize i = 0; i < N; ++i)
+		{
+			lhs[i] -= rhs;
+		}
+		return lhs;
 	}
-	return lhs;
-}
 
-/// Divides two vectors, storing the result in the first vector.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Vector on the right-hand side.
-/// @return @p lhs / @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-inline constexpr engine::math::vec<T, N>& operator/=(engine::math::vec<T, N>& lhs, const engine::math::vec<T, N>& rhs) noexcept
-{
-	for (engine::usize i = 0; i < N; ++i)
+	/// Multiplies two vectors, storing the result in the first vector.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Vector on the right-hand side.
+	/// @return @p lhs * @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	inline constexpr vec<T, N>& operator*=(vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
 	{
-		lhs[i] /= rhs[i];
+		for (usize i = 0; i < N; ++i)
+		{
+			lhs[i] *= rhs[i];
+		}
+		return lhs;
 	}
-	return lhs;
-}
 
-/// Divides a vector by a scalar, storing the result in the vector.
-/// @param lhs Vector on the left-hand side.
-/// @param rhs Scalar on the right-hand side.
-/// @return @p lhs / @p rhs.
-/// @relates engine::math::vector
-template <class T, engine::usize N>
-inline constexpr engine::math::vec<T, N>& operator/=(engine::math::vec<T, N>& lhs, const T& rhs) noexcept
-{
-	for (engine::usize i = 0; i < N; ++i)
+	/// Multiplies a vector by a scalar, storing the result in the vector.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Scalar on the right-hand side.
+	/// @return @p lhs * @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	inline constexpr vec<T, N>& operator*=(vec<T, N>& lhs, const T& rhs) noexcept
 	{
-		lhs[i] /= rhs;
+		for (usize i = 0; i < N; ++i)
+		{
+			lhs[i] *= rhs;
+		}
+		return lhs;
 	}
-	return lhs;
-}
 
-/// Logically inverts a Boolean vector.
-/// @param v Vector to invert.
-/// @return `!v`.
-/// @relates engine::math::vector
-template <engine::usize N>
-[[nodiscard]] inline constexpr engine::math::bvec<N> operator!(const engine::math::bvec<N>& v) noexcept
-{
-	engine::math::bvec<N> result;
-	for (engine::usize i = 0; i < N; ++i)
+	/// Divides two vectors, storing the result in the first vector.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Vector on the right-hand side.
+	/// @return @p lhs / @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	inline constexpr vec<T, N>& operator/=(vec<T, N>& lhs, const vec<T, N>& rhs) noexcept
 	{
-		result[i] = !v[i];
+		for (usize i = 0; i < N; ++i)
+		{
+			lhs[i] /= rhs[i];
+		}
+		return lhs;
 	}
-	return result;
-}
 
-/// @}
+	/// Divides a vector by a scalar, storing the result in the vector.
+	/// @param lhs Vector on the left-hand side.
+	/// @param rhs Scalar on the right-hand side.
+	/// @return @p lhs / @p rhs.
+	/// @relates vector
+	template <class T, usize N>
+	inline constexpr vec<T, N>& operator/=(vec<T, N>& lhs, const T& rhs) noexcept
+	{
+		for (usize i = 0; i < N; ++i)
+		{
+			lhs[i] /= rhs;
+		}
+		return lhs;
+	}
+
+	/// Logically inverts a Boolean vector.
+	/// @param v Vector to invert.
+	/// @return `!v`.
+	/// @relates vector
+	template <usize N>
+	[[nodiscard]] inline constexpr bvec<N> operator!(const bvec<N>& v) noexcept
+	{
+		bvec<N> result;
+		for (usize i = 0; i < N; ++i)
+		{
+			result[i] = !v[i];
+		}
+		return result;
+	}
+
+	/// @}
+}
 
 namespace engine::math::inline functions
 {
@@ -537,17 +541,6 @@ namespace engine::math::inline functions
 		return dot(x, cross(y, z));
 	}
 
-	/// Finds a direction vector orthogonal to a given direction vector.
-	/// @param v Input direction vector.
-	/// @param tolerance Floating-point tolerance.
-	/// @return Direction vector orthogonal to @p v.
-	template <class T>
-	[[nodiscard]] inline vec3<T> unit_orthogonal(const vec3<T>& v, T tolerance = T{1e-6})
-	{
-		const vec3<T> reference = (abs(v.x()) < T{1} - tolerance) ? vec3<T>{1, 0, 0} : vec3<T>{0, 1, 0};
-		return normalize(cross(v, reference));
-	}
-
 	/// Calculates the square length of a vector. The square length can be calculated faster than the length because a call to `sqrt` is saved.
 	/// @param v Vector of which to calculate the square length.
 	/// @return Square length of the vector.
@@ -566,11 +559,11 @@ namespace engine::math::inline functions
 		return sqrt(sqr_length(v));
 	}
 
-	/// Calculates the inverse length of a vector.
+	/// Calculates the reciprocal length of a vector.
 	/// @param v Vector of which to calculate the inverse length.
 	/// @return Inverse length of the vector.
 	template <std::floating_point T, usize N>
-	[[nodiscard]] inline T inv_length(const vec<T, N>& v)
+	[[nodiscard]] inline T rcp_length(const vec<T, N>& v)
 	{
 		return T{1} / length(v);
 	}
@@ -581,7 +574,7 @@ namespace engine::math::inline functions
 	template <std::floating_point T, usize N>
 	[[nodiscard]] inline vec<T, N> normalize(const vec<T, N>& v)
 	{
-		return v * inv_length(v);
+		return v * rcp_length(v);
 	}
 
 	/// Calculates the square distance between two points. The square distance can be calculated faster than the distance because a call to `sqrt` is saved.
@@ -602,6 +595,17 @@ namespace engine::math::inline functions
 	[[nodiscard]] inline T distance(const vec<T, N>& p0, const vec<T, N>& p1)
 	{
 		return length(p0 - p1);
+	}
+
+	/// Projects one vector onto another.
+	/// @param a Vector to be projected.
+	/// @param b Vector onto which to project.
+	/// @return Projection of @p a onto @p b.
+	template <class T, usize N>
+	[[nodiscard]] inline vec<T, N> project(const vec<T, N>& a, const vec<T, N>& b) noexcept
+	{
+		const T sqr_len_b = sqr_length(b);
+		return (sqr_len_b > T{0}) ? b * (dot(a, b) / sqr_len_b) : vec<T, N>{};
 	}
 
 	/// Returns the absolute values of each element.

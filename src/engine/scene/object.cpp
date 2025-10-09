@@ -3,6 +3,7 @@
 
 #include <engine/scene/object.hpp>
 #include <engine/utility/sized-types.hpp>
+#include <engine/math/basis.hpp>
 
 namespace engine::scene
 {
@@ -15,7 +16,7 @@ namespace engine::scene
 	void object_base::look_at(const vector_type& position, const vector_type& target, const vector_type& up)
 	{
 		m_transform.translation = position;
-		m_transform.rotation = math::look_rotation(math::normalize(target - position), up);
+		m_transform.rotation = math::basis_rh_to_quat(up, math::normalize(target - position));
 		transformed();
 	}
 }

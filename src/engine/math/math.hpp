@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <engine/math/axis-angle.hpp>
+#include <engine/math/basis.hpp>
 #include <engine/math/constants.hpp>
 #include <engine/math/compile.hpp>
 #include <engine/math/euler-angles.hpp>

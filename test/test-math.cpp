@@ -580,7 +580,7 @@ int main(int, char*[])
 
 		// Matrix conversion (identity)
 		q = {1.0f, 0.0f, 0.0f, 0.0f};
-		fmat3 m = fmat3(q);
+		fmat3 m = basis_from_quat(q);
 		ASSERT_NEAR(m[0][0], 1.0f, 1e-6);
 		ASSERT_NEAR(m[0][1], 0.0f, 1e-6);
 		ASSERT_NEAR(m[0][2], 0.0f, 1e-6);
@@ -593,7 +593,7 @@ int main(int, char*[])
 
 		// Matrix conversion (X-axis, 90 degrees)
 		q = {cos(pi<float> / 4.0f), sin(pi<float> / 4.0f), 0.0f, 0.0f};
-		m = fmat3(q);
+		m = basis_from_quat(q);
 		ASSERT_NEAR(m[0][0], 1.0f, 1e-6);
 		ASSERT_NEAR(m[0][1], 0.0f, 1e-6);
 		ASSERT_NEAR(m[0][2], 0.0f, 1e-6);
@@ -606,7 +606,7 @@ int main(int, char*[])
 
 		// Matrix conversion (Y-axis, 90 degrees)
 		q = {cos(pi<float> / 4.0f), 0.0f, sin(pi<float> / 4.0f), 0.0f};
-		m = fmat3(q);
+		m = basis_from_quat(q);
 		ASSERT_NEAR(m[0][0], 0.0f, 1e-6);
 		ASSERT_NEAR(m[0][1], 0.0f, 1e-6);
 		ASSERT_NEAR(m[0][2], -1.0f, 1e-6);
@@ -619,7 +619,7 @@ int main(int, char*[])
 
 		// Matrix conversion (Z-axis, 90 degrees)
 		q = {cos(pi<float> / 4.0f), 0.0f, 0.0f, sin(pi<float> / 4.0f)};
-		m = fmat3(q);
+		m = basis_from_quat(q);
 		ASSERT_NEAR(m[0][0], 0.0f, 1e-6);
 		ASSERT_NEAR(m[0][1], 1.0f, 1e-6);
 		ASSERT_NEAR(m[0][2], 0.0f, 1e-6);
@@ -631,7 +631,7 @@ int main(int, char*[])
 		ASSERT_NEAR(m[2][2], 1.0f, 1e-6);
 	});
 
-	suite.tests.emplace_back("quaternion operations", []()
+	suite.tests.emplace_back("quaternion swap", []()
 	{
 		fquat a{1.0f, 2.0f, 3.0f, 4.0f};
 		fquat b{5.0f, 6.0f, 7.0f, 8.0f};
@@ -705,6 +705,227 @@ int main(int, char*[])
 		ASSERT_EQ(str, "{-9999.9600, {0.0000, 0.6667, inf}}");
 	});
 
+	suite.tests.emplace_back("quaternion operators", []()
+	{
+		const float tolerance = 1e-6f;
+
+		fquat a{1.0f, 2.0f, 3.0f, 4.0f};
+		fquat b{-3.0f, 23.0f, 0.0f, 0.1f};
+		fquat c;
+		
+		c = a + b;
+		ASSERT_NEAR(c.w(), -2.0f, tolerance);
+		ASSERT_NEAR(c.x(), 25.0f, tolerance);
+		ASSERT_NEAR(c.y(), 3.0f, tolerance);
+		ASSERT_NEAR(c.z(), 4.1f, tolerance);
+
+		c = a;
+		c += b;
+		ASSERT_NEAR(c.w(), -2.0f, tolerance);
+		ASSERT_NEAR(c.x(), 25.0f, tolerance);
+		ASSERT_NEAR(c.y(), 3.0f, tolerance);
+		ASSERT_NEAR(c.z(), 4.1f, tolerance);
+
+		c = a + 5.0f;
+		ASSERT_NEAR(c.w(), 6.0f, tolerance);
+		ASSERT_NEAR(c.x(), 7.0f, tolerance);
+		ASSERT_NEAR(c.y(), 8.0f, tolerance);
+		ASSERT_NEAR(c.z(), 9.0f, tolerance);
+
+		c = a;
+		c += 5.0f;
+		ASSERT_NEAR(c.w(), 6.0f, tolerance);
+		ASSERT_NEAR(c.x(), 7.0f, tolerance);
+		ASSERT_NEAR(c.y(), 8.0f, tolerance);
+		ASSERT_NEAR(c.z(), 9.0f, tolerance);
+
+		c = 3.0f + a;
+		ASSERT_NEAR(c.w(), 4.0f, tolerance);
+		ASSERT_NEAR(c.x(), 5.0f, tolerance);
+		ASSERT_NEAR(c.y(), 6.0f, tolerance);
+		ASSERT_NEAR(c.z(), 7.0f, tolerance);
+
+		c = -a;
+		ASSERT_NEAR(c.w(), -1.0f, tolerance);
+		ASSERT_NEAR(c.x(), -2.0f, tolerance);
+		ASSERT_NEAR(c.y(), -3.0f, tolerance);
+		ASSERT_NEAR(c.z(), -4.0f, tolerance);
+
+		c = a - b;
+		ASSERT_NEAR(c.w(), 4.0f, tolerance);
+		ASSERT_NEAR(c.x(), -21.0f, tolerance);
+		ASSERT_NEAR(c.y(), 3.0f, tolerance);
+		ASSERT_NEAR(c.z(), 3.9f, tolerance);
+
+		c = a;
+		c -= b;
+		ASSERT_NEAR(c.w(), 4.0f, tolerance);
+		ASSERT_NEAR(c.x(), -21.0f, tolerance);
+		ASSERT_NEAR(c.y(), 3.0f, tolerance);
+		ASSERT_NEAR(c.z(), 3.9f, tolerance);
+
+		c = a - 2.0f;
+		ASSERT_NEAR(c.w(), -1.0f, tolerance);
+		ASSERT_NEAR(c.x(), 0.0f, tolerance);
+		ASSERT_NEAR(c.y(), 1.0f, tolerance);
+		ASSERT_NEAR(c.z(), 2.0f, tolerance);
+
+		c = a;
+		c -= 2.0f;
+		ASSERT_NEAR(c.w(), -1.0f, tolerance);
+		ASSERT_NEAR(c.x(), 0.0f, tolerance);
+		ASSERT_NEAR(c.y(), 1.0f, tolerance);
+		ASSERT_NEAR(c.z(), 2.0f, tolerance);
+
+		c = 10.0f - a;
+		ASSERT_NEAR(c.w(), 9.0f, tolerance);
+		ASSERT_NEAR(c.x(), 8.0f, tolerance);
+		ASSERT_NEAR(c.y(), 7.0f, tolerance);
+		ASSERT_NEAR(c.z(), 6.0f, tolerance);
+
+		c = b / a;
+		ASSERT_NEAR(c.w(), -3.0f, tolerance);
+		ASSERT_NEAR(c.x(), 23.0f / 2.0f, tolerance);
+		ASSERT_NEAR(c.y(), 0.0f, tolerance);
+		ASSERT_NEAR(c.z(), 0.1f / 4.0f, tolerance);
+
+		c = b;
+		c /= a;
+		ASSERT_NEAR(c.w(), -3.0f, tolerance);
+		ASSERT_NEAR(c.x(), 23.0f / 2.0f, tolerance);
+		ASSERT_NEAR(c.y(), 0.0f, tolerance);
+		ASSERT_NEAR(c.z(), 0.1f / 4.0f, tolerance);
+
+		c = a / 2.0f;
+		ASSERT_NEAR(c.w(), 0.5f, tolerance);
+		ASSERT_NEAR(c.x(), 1.0f, tolerance);
+		ASSERT_NEAR(c.y(), 1.5f, tolerance);
+		ASSERT_NEAR(c.z(), 2.0f, tolerance);
+
+		c = a;
+		c /= 2.0f;
+		ASSERT_NEAR(c.w(), 0.5f, tolerance);
+		ASSERT_NEAR(c.x(), 1.0f, tolerance);
+		ASSERT_NEAR(c.y(), 1.5f, tolerance);
+		ASSERT_NEAR(c.z(), 2.0f, tolerance);
+
+		c = 3.0f / a;
+		ASSERT_NEAR(c.w(), 3.0f, tolerance);
+		ASSERT_NEAR(c.x(), 3.0f / 2.0f, tolerance);
+		ASSERT_NEAR(c.y(), 1.0f, tolerance);
+		ASSERT_NEAR(c.z(), 0.75f, tolerance);
+
+		c = a * 2.0f;
+		ASSERT_NEAR(c.w(), 2.0f, tolerance);
+		ASSERT_NEAR(c.x(), 4.0f, tolerance);
+		ASSERT_NEAR(c.y(), 6.0f, tolerance);
+		ASSERT_NEAR(c.z(), 8.0f, tolerance);
+
+		c = a;
+		c *= 2.0f;
+		ASSERT_NEAR(c.w(), 2.0f, tolerance);
+		ASSERT_NEAR(c.x(), 4.0f, tolerance);
+		ASSERT_NEAR(c.y(), 6.0f, tolerance);
+		ASSERT_NEAR(c.z(), 8.0f, tolerance);
+
+		c = 0.5f * a;
+		ASSERT_NEAR(c.w(), 0.5f, tolerance);
+		ASSERT_NEAR(c.x(), 1.0f, tolerance);
+		ASSERT_NEAR(c.y(), 1.5f, tolerance);
+		ASSERT_NEAR(c.z(), 2.0f, tolerance);
+
+		a = {0.0f, 1.0f, 0.0f, 0.0f};
+		b = {0.0f, 0.0f, 1.0f, 0.0f};
+
+		c = a * b;
+		ASSERT_NEAR(c.w(), 0.0f, tolerance);
+		ASSERT_NEAR(c.x(), 0.0f, tolerance);
+		ASSERT_NEAR(c.y(), 0.0f, tolerance);
+		ASSERT_NEAR(c.z(), 1.0f, tolerance);
+
+		c = a;
+		c *= b;
+		ASSERT_NEAR(c.w(), 0.0f, tolerance);
+		ASSERT_NEAR(c.x(), 0.0f, tolerance);
+		ASSERT_NEAR(c.y(), 0.0f, tolerance);
+		ASSERT_NEAR(c.z(), 1.0f, tolerance);
+
+		c = b * a;
+		ASSERT_NEAR(c.w(), 0.0f, tolerance);
+		ASSERT_NEAR(c.x(), 0.0f, tolerance);
+		ASSERT_NEAR(c.y(), 0.0f, tolerance);
+		ASSERT_NEAR(c.z(), -1.0f, tolerance);
+
+		c = b;
+		c *= a;
+		ASSERT_NEAR(c.w(), 0.0f, tolerance);
+		ASSERT_NEAR(c.x(), 0.0f, tolerance);
+		ASSERT_NEAR(c.y(), 0.0f, tolerance);
+		ASSERT_NEAR(c.z(), -1.0f, tolerance);
+
+		a = {sqrt_half<float>, sqrt_half<float>, 0.0f, 0.0f}; // 90 degree rotation about X-axis
+		fvec3 v0{1.0f, 0.0f, 0.0f};
+
+		fvec3 v1 = a * v0;
+		ASSERT_NEAR(v1.x(), 1.0f, tolerance);
+		ASSERT_NEAR(v1.y(), 0.0f, tolerance);
+		ASSERT_NEAR(v1.z(), 0.0f, tolerance);
+		ASSERT_NEAR(length(v1), 1.0f, tolerance);
+
+		v0 = {0.0f, 1.0f, 0.0f};
+		v1 = a * v0;
+		ASSERT_NEAR(v1.x(), 0.0f, tolerance);
+		ASSERT_NEAR(v1.y(), 0.0f, tolerance);
+		ASSERT_NEAR(v1.z(), 1.0f, tolerance);
+		ASSERT_NEAR(length(v1), 1.0f, tolerance);
+
+		v0 = {0.0f, 0.0f, 2.0f};
+		v1 = a * v0;
+		ASSERT_NEAR(v1.x(), 0.0f, tolerance);
+		ASSERT_NEAR(v1.y(), -2.0f, tolerance);
+		ASSERT_NEAR(v1.z(), 0.0f, tolerance);
+		ASSERT_NEAR(length(v1), 2.0f, tolerance);
+
+		v1 = v0 * a;
+		ASSERT_NEAR(v1.x(), 0.0f, tolerance);
+		ASSERT_NEAR(v1.y(), 2.0f, tolerance);
+		ASSERT_NEAR(v1.z(), 0.0f, tolerance);
+		ASSERT_NEAR(length(v1), 2.0f, tolerance);
+	});
+
+	suite.tests.emplace_back("quaternion common functions", []()
+	{
+		const float tolerance = 1e-6f;
+
+		fquat a{1.0f, 2.0f, 3.0f, 4.0f};
+		fquat b{-7.0f, 39.0f, 0.0f, 0.1f};
+
+		fquat c = conjugate(a);
+		ASSERT_EQ(c.w(), 1.0f);
+		ASSERT_EQ(c.x(), -2.0f);
+		ASSERT_EQ(c.y(), -3.0f);
+		ASSERT_EQ(c.z(), -4.0f);
+
+		float s = dot(a, b);
+		ASSERT_NEAR(s, 71.4f, tolerance);
+
+		s = sqr_length(a);
+		ASSERT_NEAR(s, 30.0f, tolerance);
+
+		s = length(a);
+		ASSERT_NEAR(s, sqrt(30.0f), tolerance);
+
+		s = rcp_length(a);
+		ASSERT_NEAR(s, 1.0f / sqrt(30.0f), tolerance);
+
+		c = normalize(a);
+		ASSERT_NEAR(c.w(), 1.0f / sqrt(30.0f), tolerance);
+		ASSERT_NEAR(c.x(), 2.0f / sqrt(30.0f), tolerance);
+		ASSERT_NEAR(c.y(), 3.0f / sqrt(30.0f), tolerance);
+		ASSERT_NEAR(c.z(), 4.0f / sqrt(30.0f), tolerance);
+		ASSERT_NEAR(length(c), 1.0f, tolerance);
+	});
+
 	suite.tests.emplace_back("quaternion rotation", []()
 	{
 		const float tolerance = 1e-6f;
@@ -716,12 +937,13 @@ int main(int, char*[])
 			{normalize(fvec3{1, 2, 3}), normalize(fvec3{5, -3, 2})}, // Two arbitrary vectors
 			{normalize(fvec3{10, 11, 1000}), normalize(fvec3{-50, -51, -52})}, // Two arbitrary vectors
 			{normalize(fvec3{1, 1, 0}), normalize(fvec3{0, 1, 1})}, // Two arbitrary vectors
-			{{1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}}, // Two opposing vectors (x-axis)
-			{{0.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // Two opposing vectors (y-axis)
-			{{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}}, // Two opposing vectors (z-axis)
+			{{1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}}, // Two opposing vectors (X-axis)
+			{{0.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // Two opposing vectors (Y-axis)
+			{{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}}, // Two opposing vectors (Z-axis)
 			{normalize(fvec3{-0.025f, 0.5f, -0.372f}), normalize(fvec3{0.025f, -0.5f, 0.372f})} // Two opposing vectors (arbitrary axis)
 		};
 
+		// Unlimited rotation (a to b)
 		for (const auto& [a, b]: axes)
 		{
 			fvec3 c = rotation(a, b, tolerance) * a;
@@ -733,6 +955,188 @@ int main(int, char*[])
 			ASSERT_NEAR(c.x(), b.x(), tolerance);
 			ASSERT_NEAR(c.y(), b.y(), tolerance);
 			ASSERT_NEAR(c.z(), b.z(), tolerance);
+		}
+
+		// Angle-limited rotation (X-axis to Y-axis, 45 degree limit)
+		fvec3 a = {1.0f, 0.0f, 0.0f};
+		fvec3 b = {0.0f, 1.0f, 0.0f};
+		fvec3 c = rotate_towards(a, b, pi<float> / 4.0f, tolerance) * a;
+		ASSERT_NEAR(c.x(), sqrt_half<float>, tolerance);
+		ASSERT_NEAR(c.y(), sqrt_half<float>, tolerance);
+		ASSERT_NEAR(c.z(), 0.0f, tolerance);
+	});
+
+	suite.tests.emplace_back("quaternion interpolation", []()
+	{
+		const float tolerance = 1e-6f;
+
+		struct test_data
+		{
+			fquat a;
+			fquat b;
+			float t;
+			fquat c;
+		};
+
+		const test_data lerp_data[] =
+		{
+			{{0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f}, 0.0f, {0.0f, 0.0f, 0.0f, 0.0f}},
+			{{0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f}, 0.0f, {0.0f, 0.0f, 0.0f, 0.0f}},
+			{{1.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f}, 0.0f, {1.0f, 0.0f, 0.0f, 0.0f}},
+			{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, 0.0f, {1.0f, 0.0f, 0.0f, 0.0f}},
+			{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, 0.0f, {1.0f, 0.0f, 0.0f, 0.0f}},
+			{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}, 0.0f, {1.0f, 0.0f, 0.0f, 0.0f}},
+			{{0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f}, 0.5f, {0.0f, 0.0f, 0.0f, 0.0f}},
+			{{0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f}, 0.5f, {0.5f, 0.0f, 0.0f, 0.0f}},
+			{{1.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f}, 0.5f, {1.0f, 0.0f, 0.0f, 0.0f}},
+			{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, 0.5f, {0.5f, 0.5f, 0.0f, 0.0f}},
+			{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, 0.5f, {0.5f, 0.0f, 0.5f, 0.0f}},
+			{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}, 0.5f, {0.5f, 0.0f, 0.0f, 0.5f}},
+			{{0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f}, 1.0f, {0.0f, 0.0f, 0.0f, 0.0f}},
+			{{0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f}, 1.0f, {1.0f, 0.0f, 0.0f, 0.0f}},
+			{{1.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f}, 1.0f, {1.0f, 0.0f, 0.0f, 0.0f}},
+			{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, 1.0f, {0.0f, 1.0f, 0.0f, 0.0f}},
+			{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, 1.0f, {0.0f, 0.0f, 1.0f, 0.0f}},
+			{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}, 1.0f, {0.0f, 0.0f, 0.0f, 1.0f}}
+		};
+
+		const test_data nlerp_slerp_data[] =
+		{
+			{identity<fquat>, identity<fquat>, 0.0f, identity<fquat>},
+			{identity<fquat>, identity<fquat>, 0.5f, identity<fquat>},
+			{identity<fquat>, identity<fquat>, 1.0f, identity<fquat>},
+			{identity<fquat>, -identity<fquat>, 0.0f, identity<fquat>},
+			{identity<fquat>, -identity<fquat>, 0.5f, identity<fquat>},
+			{identity<fquat>, -identity<fquat>, 1.0f, identity<fquat>},
+			{identity<fquat>, {0.0f, 1.0f, 0.0f, 0.0f}, 0.0f, identity<fquat>},
+			{identity<fquat>, {0.0f, 1.0f, 0.0f, 0.0f}, 0.5f, {sqrt_half<float>, sqrt_half<float>, 0.0f, 0.0f}},
+			{identity<fquat>, {0.0f, 1.0f, 0.0f, 0.0f}, 1.0f, {0.0f, 1.0f, 0.0f, 0.0f}},
+			{identity<fquat>, {sqrt_half<float>, sqrt_half<float>, 0.0f, 0.0f}, 0.0f, identity<fquat>},
+			{identity<fquat>, {sqrt_half<float>, sqrt_half<float>, 0.0f, 0.0f}, 0.5f, {cos(radians(22.5f)), sin(radians(22.5f)), 0.0f, 0.0f}},
+			{identity<fquat>, {sqrt_half<float>, sqrt_half<float>, 0.0f, 0.0f}, 1.0f, {sqrt_half<float>, sqrt_half<float>, 0.0f, 0.0f}},
+		};
+
+		for (const auto& [a, b, t, c_expected]: lerp_data)
+		{
+			const fquat c = lerp(a, b, t);
+			ASSERT_NEAR(c.w(), c_expected.w(), tolerance);
+			ASSERT_NEAR(c.x(), c_expected.x(), tolerance);
+			ASSERT_NEAR(c.y(), c_expected.y(), tolerance);
+			ASSERT_NEAR(c.z(), c_expected.z(), tolerance);
+		}
+
+		for (const auto& [a, b, t, c_expected] : nlerp_slerp_data)
+		{
+			fquat c = nlerp(a, b, t);
+			ASSERT_NEAR(c.w(), c_expected.w(), tolerance);
+			ASSERT_NEAR(c.x(), c_expected.x(), tolerance);
+			ASSERT_NEAR(c.y(), c_expected.y(), tolerance);
+			ASSERT_NEAR(c.z(), c_expected.z(), tolerance);
+			ASSERT_NEAR(length(c), 1.0f, tolerance);
+		}
+
+		for (const auto& [a, b, t, c_expected] : nlerp_slerp_data)
+		{
+			const fquat c = slerp(a, b, t);
+			ASSERT_NEAR(c.w(), c_expected.w(), tolerance);
+			ASSERT_NEAR(c.x(), c_expected.x(), tolerance);
+			ASSERT_NEAR(c.y(), c_expected.y(), tolerance);
+			ASSERT_NEAR(c.z(), c_expected.z(), tolerance);
+			ASSERT_NEAR(length(c), 1.0f, tolerance);
+		}
+	});
+
+	suite.tests.emplace_back("quaternion swing twist decomposition", []()
+	{
+		const float tolerance = 1e-6f;
+
+		// Identity quaternion: no rotation
+		{
+			const fquat q = identity<fquat>;
+			const fvec3 axis{1.0f, 0.0f, 0.0f};
+			const auto [swing, twist] = swing_twist(q, axis, tolerance);
+
+			ASSERT_NEAR(swing.w(), 1.0f, tolerance);
+			ASSERT_NEAR(swing.x(), 0.0f, tolerance);
+			ASSERT_NEAR(swing.y(), 0.0f, tolerance);
+			ASSERT_NEAR(swing.z(), 0.0f, tolerance);
+
+			ASSERT_NEAR(twist.w(), 1.0f, tolerance);
+			ASSERT_NEAR(twist.x(), 0.0f, tolerance);
+			ASSERT_NEAR(twist.y(), 0.0f, tolerance);
+			ASSERT_NEAR(twist.z(), 0.0f, tolerance);
+		}
+
+		// Pure twist: 90 degree rotation about X-axis
+		{
+			const fquat q{cos(pi<float> / 4.0f), sin(pi<float> / 4.0f), 0.0f, 0.0f};
+			const fvec3 axis{1.0f, 0.0f, 0.0f};
+			const auto [swing, twist] = swing_twist(q, axis, tolerance);
+
+			ASSERT_NEAR(swing.w(), 1.0f, tolerance);
+			ASSERT_NEAR(swing.x(), 0.0f, tolerance);
+			ASSERT_NEAR(swing.y(), 0.0f, tolerance);
+			ASSERT_NEAR(swing.z(), 0.0f, tolerance);
+
+			ASSERT_NEAR(twist.w(), q.w(), tolerance);
+			ASSERT_NEAR(twist.x(), q.x(), tolerance);
+			ASSERT_NEAR(twist.y(), q.y(), tolerance);
+			ASSERT_NEAR(twist.z(), q.z(), tolerance);
+		}
+
+		// Pure swing: 90 degree rotation about Y-axis, twist axis X
+		{
+			const fquat q{cos(pi<float> / 4.0f), 0.0f, sin(pi<float> / 4.0f), 0.0f};
+			const fvec3 axis{1.0f, 0.0f, 0.0f};
+			const auto [swing, twist] = swing_twist(q, axis, tolerance);
+
+			ASSERT_NEAR(twist.w(), 1.0f, tolerance);
+			ASSERT_NEAR(twist.x(), 0.0f, tolerance);
+			ASSERT_NEAR(twist.y(), 0.0f, tolerance);
+			ASSERT_NEAR(twist.z(), 0.0f, tolerance);
+
+			ASSERT_NEAR(swing.w(), q.w(), tolerance);
+			ASSERT_NEAR(swing.x(), q.x(), tolerance);
+			ASSERT_NEAR(swing.y(), q.y(), tolerance);
+			ASSERT_NEAR(swing.z(), q.z(), tolerance);
+		}
+
+		// Combined swing and twist: 45 deg X, 45 deg Y
+		{
+			const fquat q = normalize(fquat{cos(pi<float> / 4.0f), sin(pi<float> / 4.0f), sin(pi<float> / 4.0f), 0.0f});
+			const fvec3 axis{1.0f, 0.0f, 0.0f};
+			const auto [swing, twist] = swing_twist(q, axis, tolerance);
+
+			// Twist should be a rotation about X only
+			ASSERT_NEAR(twist.y(), 0.0f, tolerance);
+			ASSERT_NEAR(twist.z(), 0.0f, tolerance);
+
+			// Swing should have no X component in the vector part
+			ASSERT_NEAR(swing.x(), 0.0f, tolerance);
+
+			// Recompose: swing * twist = q
+			const fquat recomposed = swing * twist;
+			ASSERT_NEAR(recomposed.w(), q.w(), tolerance);
+			ASSERT_NEAR(recomposed.x(), q.x(), tolerance);
+			ASSERT_NEAR(recomposed.y(), q.y(), tolerance);
+			ASSERT_NEAR(recomposed.z(), q.z(), tolerance);
+		}
+
+		// Arbitrary axis
+		{
+			const fquat q = {sqrt_2<float> / 2.0f, 0.0f, sqrt_2<float> / 2.0f, 0.0f};
+			const fvec3 axis = {sqrt_2<float> / 2.0f, sqrt_2<float> / 2.0f, 0.0f};
+			const auto [swing, twist] = swing_twist(q, axis, tolerance);
+
+			// Twist axis should be parallel to axis
+			ASSERT_NEAR(sqr_length(cross(twist.i, axis)), 0.0f, tolerance);
+
+			// Recompose: swing * twist = q
+			const fquat recomposed = swing * twist;
+			ASSERT_NEAR(recomposed.w(), q.w(), tolerance);
+			ASSERT_NEAR(recomposed.x(), q.x(), tolerance);
+			ASSERT_NEAR(recomposed.y(), q.y(), tolerance);
+			ASSERT_NEAR(recomposed.z(), q.z(), tolerance);
 		}
 	});
 

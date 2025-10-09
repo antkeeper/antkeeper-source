@@ -523,7 +523,7 @@ namespace engine::physics::gas::ozone
 	constexpr T cross_section_293k(T wavelength)
 	{
 		int i = static_cast<int>(wavelength);
-		int j = static_cast<int>(wavelength + T(1));
+		int j = static_cast<int>(wavelength + T{1});
 
 		if (i < 280 || j > 780)
 			return T{0};

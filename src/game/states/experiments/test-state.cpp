@@ -124,7 +124,7 @@ test_state::test_state(::game& ctx):
 		nest_exterior_rigid_body->set_mass(0.0f);
 		nest_exterior_rigid_body->set_collider(std::make_shared<physics::mesh_collider>(std::move(nest_exterior_mesh)));
 		nest_exterior_rigid_body->set_position({10, -20, -5});
-		nest_exterior_rigid_body->set_orientation(math::angle_axis(math::radians(30.0f), math::fvec3{1, 0, 0}));
+		nest_exterior_rigid_body->set_orientation(math::axis_angle_to_quat(math::fvec3{1, 0, 0}, math::radians(30.0f)));
 		nest_exterior_rigid_body->set_scale({0.5f, 1.0f, 0.75f});
 		
 		auto nest_exterior_eid = ctx.entity_registry->create();

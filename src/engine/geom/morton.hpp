@@ -20,19 +20,19 @@ namespace engine::geom
 
 				if constexpr (sizeof(T) >= 8)
 				{
-					x = (x ^ (x << 16)) & T(0x0000ffff0000ffff);
+					x = (x ^ (x << 16)) & T{0x0000ffff0000ffff};
 				}
 				if constexpr (sizeof(T) >= 4)
 				{
-					x = (x ^ (x << 8)) & T(0x00ff00ff00ff00ff);
+					x = (x ^ (x << 8)) & T{0x00ff00ff00ff00ff};
 				}
 				if constexpr (sizeof(T) >= 2)
 				{
-					x = (x ^ (x << 4)) & T(0x0f0f0f0f0f0f0f0f);
+					x = (x ^ (x << 4)) & T{0x0f0f0f0f0f0f0f0f};
 				}
 
-				x = (x ^ (x << 2)) & T(0x3333333333333333);
-				x = (x ^ (x << 1)) & T(0x5555555555555555);
+				x = (x ^ (x << 2)) & T{0x3333333333333333};
+				x = (x ^ (x << 1)) & T{0x5555555555555555};
 
 				return x;
 			};
@@ -52,32 +52,32 @@ namespace engine::geom
 			{
 				if constexpr (sizeof(T) == 1)
 				{
-					x &= T(0x3);
-					x = (x | x << 2) & T(0x9);
+					x &= T{0x3};
+					x = (x | x << 2) & T{0x9};
 				}
 				else if constexpr (sizeof(T) == 2)
 				{
-					x &= T(0x001f);
-					x = (x | x << 8) & T(0x100f);
-					x = (x | x << 4) & T(0x10c3);
-					x = (x | x << 2) & T(0x1249);
+					x &= T{0x001f};
+					x = (x | x << 8) & T{0x100f};
+					x = (x | x << 4) & T{0x10c3};
+					x = (x | x << 2) & T{0x1249};
 				}
 				else if constexpr (sizeof(T) == 4)
 				{
-					x &= T(0x00003ff);
-					x = (x | x << 16) & T(0x30000ff);
-					x = (x | x << 8) & T(0x300f00f);
-					x = (x | x << 4) & T(0x30c30c3);
-					x = (x | x << 2) & T(0x9249249);
+					x &= T{0x00003ff};
+					x = (x | x << 16) & T{0x30000ff};
+					x = (x | x << 8) & T{0x300f00f};
+					x = (x | x << 4) & T{0x30c30c3};
+					x = (x | x << 2) & T{0x9249249};
 				}
 				else if constexpr (sizeof(T) == 8)
 				{
-					x &= T(0x00000000001fffff);
-					x = (x | x << 32) & T(0x001f00000000ffff);
-					x = (x | x << 16) & T(0x001f0000ff0000ff);
-					x = (x | x << 8) & T(0x100f00f00f00f00f);
-					x = (x | x << 4) & T(0x10c30c30c30c30c3);
-					x = (x | x << 2) & T(0x1249249249249249);
+					x &= T{0x00000000001fffff};
+					x = (x | x << 32) & T{0x001f00000000ffff};
+					x = (x | x << 16) & T{0x001f0000ff0000ff};
+					x = (x | x << 8) & T{0x100f00f00f00f00f};
+					x = (x | x << 4) & T{0x10c30c30c30c30c3};
+					x = (x | x << 2) & T{0x1249249249249249};
 				}
 
 				return x;
@@ -95,21 +95,21 @@ namespace engine::geom
 	{
 		auto compress = [](T x) -> T
 			{
-				x &= T(0x5555555555555555);
-				x = (x ^ (x >> 1)) & T(0x3333333333333333);
-				x = (x ^ (x >> 2)) & T(0x0f0f0f0f0f0f0f0f);
+				x &= T{0x5555555555555555};
+				x = (x ^ (x >> 1)) & T{0x3333333333333333};
+				x = (x ^ (x >> 2)) & T{0x0f0f0f0f0f0f0f0f};
 
 				if constexpr (sizeof(T) >= 2)
 				{
-					x = (x ^ (x >> 4)) & T(0x00ff00ff00ff00ff);
+					x = (x ^ (x >> 4)) & T{0x00ff00ff00ff00ff};
 				}
 				if constexpr (sizeof(T) >= 4)
 				{
-					x = (x ^ (x >> 8)) & T(0x0000ffff0000ffff);
+					x = (x ^ (x >> 8)) & T{0x0000ffff0000ffff};
 				}
 				if constexpr (sizeof(T) >= 8)
 				{
-					x = (x ^ (x >> 16)) & T(0x00000000ffffffff);
+					x = (x ^ (x >> 16)) & T{0x00000000ffffffff};
 				}
 
 				return x;
@@ -131,32 +131,32 @@ namespace engine::geom
 			{
 				if constexpr (sizeof(T) == 1)
 				{
-					x &= T(0x9);
-					x = (x ^ x >> 2) & T(0x3);
+					x &= T{0x9};
+					x = (x ^ x >> 2) & T{0x3};
 				}
 				else if constexpr (sizeof(T) == 2)
 				{
-					x &= T(0x1249);
-					x = (x ^ x >> 2) & T(0x10c3);
-					x = (x ^ x >> 4) & T(0x100f);
-					x = (x ^ x >> 8) & T(0x001f);
+					x &= T{0x1249};
+					x = (x ^ x >> 2) & T{0x10c3};
+					x = (x ^ x >> 4) & T{0x100f};
+					x = (x ^ x >> 8) & T{0x001f};
 				}
 				else if constexpr (sizeof(T) == 4)
 				{
-					x &= T(0x9249249);
-					x = (x ^ x >> 2) & T(0x30c30c3);
-					x = (x ^ x >> 4) & T(0x300f00f);
-					x = (x ^ x >> 8) & T(0x30000ff);
-					x = (x ^ x >> 16) & T(0x00003ff);
+					x &= T{0x9249249};
+					x = (x ^ x >> 2) & T{0x30c30c3};
+					x = (x ^ x >> 4) & T{0x300f00f};
+					x = (x ^ x >> 8) & T{0x30000ff};
+					x = (x ^ x >> 16) & T{0x00003ff};
 				}
 				else if constexpr (sizeof(T) == 8)
 				{
-					x &= T(0x1249249249249249);
-					x = (x ^ x >> 2) & T(0x10c30c30c30c30c3);
-					x = (x ^ x >> 4) & T(0x100f00f00f00f00f);
-					x = (x ^ x >> 8) & T(0x001f0000ff0000ff);
-					x = (x ^ x >> 16) & T(0x001f00000000ffff);
-					x = (x ^ x >> 32) & T(0x00000000001fffff);
+					x &= T{0x1249249249249249};
+					x = (x ^ x >> 2) & T{0x10c30c30c30c30c3};
+					x = (x ^ x >> 4) & T{0x100f00f00f00f00f};
+					x = (x ^ x >> 8) & T{0x001f0000ff0000ff};
+					x = (x ^ x >> 16) & T{0x001f00000000ffff};
+					x = (x ^ x >> 32) & T{0x00000000001fffff};
 				}
 
 				return x;

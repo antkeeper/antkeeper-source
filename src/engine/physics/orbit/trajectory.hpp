@@ -42,7 +42,7 @@ namespace engine::physics::orbit
 			const T* ay = ax + n;
 			const T* az = ay + n;
 
-			t = (t / dt - i) * T(2) - T(1);
+			t = (t / dt - i) * T{2} - T{1};
 
 			math::vec3<T> r;
 			r.x() = math::chebyshev(ax, ay, t);

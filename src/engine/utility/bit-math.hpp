@@ -130,17 +130,17 @@ namespace engine::bit
 	template <class T>
 	constexpr T compress(T x) noexcept
 	{
-		x &= T(0x5555555555555555);
+		x &= T{0x5555555555555555};
 
-		x = (x ^ (x >> 1)) & T(0x3333333333333333);
-		x = (x ^ (x >> 2)) & T(0x0f0f0f0f0f0f0f0f);
+		x = (x ^ (x >> 1)) & T{0x3333333333333333};
+		x = (x ^ (x >> 2)) & T{0x0f0f0f0f0f0f0f0f};
 
 		if constexpr (sizeof(T) >= 2)
-			x = (x ^ (x >> 4)) & T(0x00ff00ff00ff00ff);
+			x = (x ^ (x >> 4)) & T{0x00ff00ff00ff00ff};
 		if constexpr (sizeof(T) >= 4)
-			x = (x ^ (x >> 8)) & T(0x0000ffff0000ffff);
+			x = (x ^ (x >> 8)) & T{0x0000ffff0000ffff};
 		if constexpr (sizeof(T) >= 8)
-			x = (x ^ (x >> 16)) & T(0x00000000ffffffff);
+			x = (x ^ (x >> 16)) & T{0x00000000ffffffff};
 
 		return x;
 	}
@@ -157,14 +157,14 @@ namespace engine::bit
 	template <class T>
 	inline constexpr T crossover(T a, T b, int i) noexcept
 	{
-		T mask = (T(1) << i) - 1;
+		T mask = (T{1} << i) - 1;
 		return merge(b, a, mask);
 	}
 
 	template <class T>
 	constexpr T crossover_n(T a, T b, T mask) noexcept
 	{
-		T merge = ~T(0) * parity(mask);
+		T merge = ~T{0} * parity(mask);
 
 		while (mask)
 		{
@@ -187,14 +187,14 @@ namespace engine::bit
 		x &= (1 << (sizeof(T) << 2)) - 1;
 
 		if constexpr (sizeof(T) >= 8)
-			x = (x ^ (x << 16)) & T(0x0000ffff0000ffff);
+			x = (x ^ (x << 16)) & T{0x0000ffff0000ffff};
 		if constexpr (sizeof(T) >= 4)
-			x = (x ^ (x << 8)) & T(0x00ff00ff00ff00ff);
+			x = (x ^ (x << 8)) & T{0x00ff00ff00ff00ff};
 		if constexpr (sizeof(T) >= 2)
-			x = (x ^ (x << 4)) & T(0x0f0f0f0f0f0f0f0f);
+			x = (x ^ (x << 4)) & T{0x0f0f0f0f0f0f0f0f};
 
-		x = (x ^ (x << 2)) & T(0x3333333333333333);
-		x = (x ^ (x << 1)) & T(0x5555555555555555);
+		x = (x ^ (x << 2)) & T{0x3333333333333333};
+		x = (x ^ (x << 1)) & T{0x5555555555555555};
 
 		return x;
 	}
@@ -238,7 +238,7 @@ namespace engine::bit
 	template <class T>
 	inline constexpr T flip(T x, int i) noexcept
 	{
-		return x ^ (T(1) << i);
+		return x ^ (T{1} << i);
 	}
 
 	template <class T, class U>
@@ -280,7 +280,7 @@ namespace engine::bit
 	template <class T>
 	constexpr T swap_adjacent(T x) noexcept
 	{
-		return ((x & T(0xaaaaaaaaaaaaaaaa)) >> 1) | ((x & T(0x5555555555555555)) << 1);
+		return ((x & T{0xaaaaaaaaaaaaaaaa}) >> 1) | ((x & T{0x5555555555555555}) << 1);
 	}
 
 	u16 swap16(u16 x) noexcept

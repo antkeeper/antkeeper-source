@@ -25,6 +25,7 @@
 #include <engine/math/quaternion.hpp>
 #include <engine/math/transform.hpp>
 #include <engine/math/polynomial.hpp>
+#include <engine/math/basis.hpp>
 #include <engine/utility/sized-types.hpp>
 
 using namespace engine;
@@ -36,7 +37,7 @@ astronomy_system::astronomy_system(entity::registry& registry):
 	m_enu_to_eus = math::se3<double>
 	{
 		{0, 0, 0},
-		math::dquat::rotate_x(-math::half_pi<double>)
+		math::axis_angle_to_quat<double>({1, 0, 0}, -math::half_pi<double>)
 	};
 	
 	m_registry.on_construct<::observer_component>().connect<&astronomy_system::on_observer_modified>(this);
@@ -181,10 +182,10 @@ void astronomy_system::fixed_update(entity::registry& registry, float, float dt)
 			const math::dvec3 blackbody_up_eus = m_icrf_to_eus.r * math::dvec3{0, 0, 1};
 			m_sun_light->set_rotation
 			(
-				math::look_rotation
+				math::basis_rh_to_quat
 				(
-					math::fvec3(-observer_blackbody_direction_eus),
-					math::fvec3(blackbody_up_eus)
+					math::fvec3(blackbody_up_eus),
+					math::fvec3(-observer_blackbody_direction_eus)
 				)
 			);
 			
@@ -297,10 +298,10 @@ void astronomy_system::fixed_update(entity::registry& registry, float, float dt)
 				
 				m_moon_light->set_rotation
 				(
-					math::look_rotation
+					math::basis_rh_to_quat
 					(
-						math::fvec3(-observer_reflector_direction_eus),
-						reflector_up_eus
+						reflector_up_eus,
+						math::fvec3(-observer_reflector_direction_eus)
 					)
 				);
 			}

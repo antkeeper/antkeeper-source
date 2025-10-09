@@ -140,9 +140,9 @@ namespace engine::geom::inline primitives
 				}
 
 				// Normalize plane coefficients
-				const T inv_length = math::inv_length(plane.normal);
-				plane.normal *= inv_length;
-				plane.constant *= inv_length;
+				const T rcp_length = math::rcp_length(plane.normal);
+				plane.normal *= rcp_length;
+				plane.constant *= rcp_length;
 			}
 		}
 

@@ -3,9 +3,7 @@
 
 #pragma once
 
-#include <engine/math/constants.hpp>
 #include <engine/math/vector.hpp>
-#include <engine/math/matrix.hpp>
 #include <engine/utility/sized-types.hpp>
 #include <format>
 #include <type_traits>
@@ -30,9 +28,6 @@ namespace engine::math::inline types
 
 		/// Imaginary vector part type.
 		using vector_type = vec3<T>;
-
-		/// Rotation matrix type.
-		using matrix_type = mat3<T>;
 
 		/// @}
 
@@ -112,34 +107,6 @@ namespace engine::math::inline types
 			return {static_cast<U>(r), vec3<U>(i)};
 		}
 
-		/// Constructs a matrix representing the rotation described by the quaternion.
-		/// @return Rotation matrix.
-		[[nodiscard]] inline constexpr matrix_type matrix() const noexcept
-		{
-			const T xx = x() * x();
-			const T xy = x() * y();
-			const T xz = x() * z();
-			const T xw = x() * w();
-			const T yy = y() * y();
-			const T yz = y() * z();
-			const T yw = y() * w();
-			const T zz = z() * z();
-			const T zw = z() * w();
-
-			return
-			{{
-				{T{1} - (yy + zz) * T { 2 }, (xy + zw) * T { 2 }, (xz - yw) * T { 2 }},
-				{(xy - zw) * T { 2 }, T{1} - (xx + zz) * T { 2 }, (yz + xw) * T { 2 }},
-				{(xz + yw) * T { 2 }, (yz - xw) * T { 2 }, T{1} - (xx + yy) * T { 2 }}
-			}};
-		}
-
-		/// @copydoc matrix()
-		[[nodiscard]] constexpr explicit operator matrix_type() const noexcept
-		{
-			return matrix();
-		}
-
 		/// @}
 
 		/// @name Operations
@@ -167,30 +134,6 @@ namespace engine::math::inline types
 		[[nodiscard]] inline constexpr friend auto operator<=>(const quaternion&, const quaternion&) noexcept = default;
 
 		/// @}
-
-		/// Returns a quaternion representing a rotation about the x-axis.
-		/// @param angle Angle of rotation, in radians.
-		/// @return Quaternion representing an x-axis rotation.
-		[[nodiscard]] static quaternion rotate_x(scalar_type angle)
-		{
-			return {cos(angle * T{0.5}), sin(angle * T{0.5}), T{0}, T{0}};
-		}
-
-		/// Returns a quaternion representing a rotation about the y-axis.
-		/// @param angle Angle of rotation, in radians.
-		/// @return Quaternion representing an y-axis rotation.
-		[[nodiscard]] static quaternion rotate_y(scalar_type angle)
-		{
-			return {cos(angle * T{0.5}), T{0}, sin(angle * T{0.5}), T{0}};
-		}
-
-		/// Returns a quaternion representing a rotation about the z-axis.
-		/// @param angle Angle of rotation, in radians.
-		/// @return Quaternion representing an z-axis rotation.
-		[[nodiscard]] static quaternion rotate_z(scalar_type angle)
-		{
-			return {cos(angle * T{0.5}), T{0}, T{0}, sin(angle * T{0.5})};
-		}
 	};
 
 	/// @copybrief quaternion

@@ -8,6 +8,7 @@
 #include <engine/math/vector.hpp>
 #include <engine/math/constants.hpp>
 #include <engine/math/functions.hpp>
+#include <engine/math/euler-angles.hpp>
 
 /// Orbital reference frames.
 namespace engine::physics::orbit::frame
@@ -45,7 +46,7 @@ namespace engine::physics::orbit::frame
 			const T d = math::sqrt(x * x + y * y);
 			const T ta = math::atan(y, x);
 		
-			return math::vec3<T>{d, T(0), ta};
+			return math::vec3<T>{d, T{0}, ta};
 		}
 	
 		/// Constructs spherical PQW coordinates from Keplerian orbital elements.
@@ -56,7 +57,7 @@ namespace engine::physics::orbit::frame
 		template <class T>
 		[[nodiscard]] math::vec3<T> spherical(T ec, T a, T ea)
 		{
-			const T b = a * math::sqrt(T(1) - ec * ec);
+			const T b = a * math::sqrt(T{1} - ec * ec);
 			return spherical<T>(ec, a, ea, b);
 		}
 	
@@ -107,15 +108,7 @@ namespace engine::physics::orbit::frame
 		template <typename T>
 		[[nodiscard]] math::se3<T> to_bci(T om, T in, T w)
 		{
-			/// @todo Use engine::math::euler_angles
-			const math::quat<T> r = normalize
-			(
-				math::quat<T>::rotate_z(om) *
-				math::quat<T>::rotate_x(in) *
-				math::quat<T>::rotate_z(w)
-			);
-		
-			return math::se3<T>{{T(0), T(0), T(0)}, r};
+			return math::se3<T>{{}, math::euler_zxz_to_quat<T>({w, in, om})};
 		}
 	}
 
@@ -163,13 +156,7 @@ namespace engine::physics::orbit::frame
 		template <typename T>
 		[[nodiscard]] math::se3<T> to_bcbf(T ra, T dec, T w)
 		{
-			/// @todo Use engine::math::euler_angles
-			const math::quat<T> r = math::normalize
-			(
-				math::mul(math::mul(math::quat<T>::rotate_z(-math::half_pi<T> - ra), math::quat<T>::rotate_x(dec - math::half_pi<T>)), math::quat<T>::rotate_z(-w))
-			);
-		
-			return math::se3<T>{{T(0), T(0), T(0)}, r};
+			return math::se3<T>{{}, math::euler_zxz_to_quat<T>({-w, dec - math::half_pi<T>, -math::half_pi<T> - ra})};
 		}
 	
 		/// Constructs an SE(3) transformation from a BCI frame to a PQW frame.
@@ -180,15 +167,7 @@ namespace engine::physics::orbit::frame
 		template <typename T>
 		[[nodiscard]] math::se3<T> to_pqw(T om, T in, T w)
 		{
-			/// @todo Use engine::math::euler_angles
-			const math::quat<T> r = math::normalize
-			(
-				math::quat<T>::rotate_z(-w) *
-					math::quat<T>::rotate_x(-in) *
-					math::quat<T>::rotate_z(-om)
-			);
-		
-			return math::se3<T>{{T(0), T(0), T(0)}, r};
+			return math::se3<T>{{}, math::euler_zxz_to_quat<T>({-om, -in, -w})};
 		}
 	}
 
@@ -236,13 +215,7 @@ namespace engine::physics::orbit::frame
 		template <class T>
 		[[nodiscard]] math::se3<T> to_bci(T ra, T dec, T w)
 		{
-			/// @todo Use engine::math::euler_angles
-			const math::quat<T> r =math:: normalize
-			(
-				math::mul(math::mul(math::quat<T>::rotate_z(w), math::quat<T>::rotate_x(math::half_pi<T> - dec)), math::quat<T>::rotate_z(ra + math::half_pi<T>))
-			);
-		
-			return math::se3<T>{{T(0), T(0), T(0)}, r};
+			return math::se3<T>{{}, math::euler_zxz_to_quat<T>({ra + math::half_pi<T>, math::half_pi<T> - dec, w})};
 		}
 	
 		/// Constructs an SE(3) transformation from a BCBF frame to an ENU frame.
@@ -253,13 +226,8 @@ namespace engine::physics::orbit::frame
 		template <class T>
 		[[nodiscard]] math::se3<T> to_enu(T distance, T latitude, T longitude)
 		{
-			/// @todo Use engine::math::euler_angles
-			const math::vec3<T> t = {T(0), T(0), -distance};
-			const math::quat<T> r = math::normalize
-			(
-				math::mul(math::quat<T>::rotate_x(-math::half_pi<T> + latitude), math::quat<T>::rotate_z(-longitude - math::half_pi<T>))
-			);
-		
+			const math::vec3<T> t = {T{0}, T{0}, -distance};
+			const math::quat<T> r = math::euler_zxz_to_quat<T>({-longitude - math::half_pi<T>, -math::half_pi<T> + latitude, T{0}});
 			return math::se3<T>{t, r};
 		}
 	}
@@ -308,15 +276,8 @@ namespace engine::physics::orbit::frame
 		template <typename T>
 		[[nodiscard]] math::se3<T> to_bcbf(T distance, T latitude, T longitude)
 		{
-			const math::vec3<T> t = {T(0), T(0), distance};
-
-			/// @todo Use engine::math::euler_angles
-			const math::quat<T> r = math::normalize
-			(
-				math::quat<T>::rotate_z(longitude + math::half_pi<T>) *
-					math::quat<T>::rotate_x(math::half_pi<T> - latitude)
-			);
-		
+			const math::vec3<T> t = {T{0}, T{0}, distance};
+			const math::quat<T> r = math::euler_zxz_to_quat<T>({T{0}, math::half_pi<T> - latitude, longitude + math::half_pi<T>});
 			return math::se3<T>{r * t, r};
 		}
 	}
