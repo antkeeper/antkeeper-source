@@ -5,6 +5,7 @@
 #include <engine/scene/camera.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/math/quaternion.hpp>
+#include <engine/math/basis.hpp>
 #include <engine/geom/projection.hpp>
 #include <engine/render/vertex-attribute-location.hpp>
 #include <engine/render/context.hpp>
@@ -77,7 +78,7 @@ namespace engine::scene
 			{
 				auto transform = get_transform();
 			
-				transform.rotation = math::normalize(math::look_rotation(ctx.camera->get_forward(), ctx.camera->get_up()) * transform.rotation);
+				transform.rotation = math::normalize(math::basis_rh_to_quat(ctx.camera->get_up(), ctx.camera->get_forward()) * transform.rotation);
 			
 				m_render_op.transform = transform.matrix();
 			
@@ -92,7 +93,7 @@ namespace engine::scene
 				const auto right = math::normalize(math::cross(m_alignment_axis, look));
 				look = math::cross(right, m_alignment_axis);
 				const auto up = math::cross(look, right);
-				transform.rotation = math::normalize(math::look_rotation(look, up) * transform.rotation);
+				transform.rotation = math::normalize(math::basis_rh_to_quat(up, look) * transform.rotation);
 			
 				m_render_op.transform = transform.matrix();
 			

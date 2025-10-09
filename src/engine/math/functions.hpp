@@ -51,7 +51,7 @@ namespace engine::math::inline functions
 	/// @return Absolute value of @p x.
 	template <class T>
 		requires (std::is_floating_point_v<T> || (std::is_integral_v<T> && std::is_signed_v<T>))
-	[[nodiscard]] inline constexpr T abs(T x)
+	[[nodiscard]] inline constexpr T abs(T x) noexcept
 	{
 		return std::abs(x);
 	}
@@ -60,7 +60,7 @@ namespace engine::math::inline functions
 	/// @param x Floating-point value.
 	/// @return Nearest integer not less than @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline constexpr T ceil(T x)
+	[[nodiscard]] inline constexpr T ceil(T x) noexcept
 	{
 		return std::ceil(x);
 	}
@@ -69,7 +69,7 @@ namespace engine::math::inline functions
 	/// @param x Floating-point value.
 	/// @return Nearest integer not greater than @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline constexpr T floor(T x)
+	[[nodiscard]] inline constexpr T floor(T x) noexcept
 	{
 		return std::floor(x);
 	}
@@ -78,7 +78,7 @@ namespace engine::math::inline functions
 	/// @param x Floating-point value.
 	/// @return Nearest integer value.
 	template <std::floating_point T>
-	[[nodiscard]] inline constexpr T round(T x)
+	[[nodiscard]] inline constexpr T round(T x) noexcept
 	{
 		return std::round(x);
 	}
@@ -87,7 +87,7 @@ namespace engine::math::inline functions
 	/// @param x Floating-point value.
 	/// @return Nearest integer value.
 	template <std::floating_point T>
-	[[nodiscard]] inline constexpr T roundeven(T x)
+	[[nodiscard]] inline constexpr T roundeven(T x) noexcept
 	{
 		T i;
 		T f = std::modf(x, &i);
@@ -148,7 +148,7 @@ namespace engine::math::inline functions
 	/// @param angle Angle, in degrees.
 	/// @return Angle on [-180, 180].
 	template <class T>
-	[[nodiscard]] inline constexpr T wrap_degrees(T angle)
+	[[nodiscard]] inline constexpr T wrap_degrees(T angle) noexcept
 	{
 		return std::remainder(angle, T{360});
 	}
@@ -157,7 +157,7 @@ namespace engine::math::inline functions
 	/// @param angle Angle, in radians.
 	/// @return Angle on [-Pi, Pi].
 	template <class T>
-	[[nodiscard]] inline constexpr T wrap_radians(T angle)
+	[[nodiscard]] inline constexpr T wrap_radians(T angle) noexcept
 	{
 		return std::remainder(angle, two_pi<T>);
 	}
@@ -171,7 +171,7 @@ namespace engine::math::inline functions
 	/// @param x Exponent value.
 	/// @return *e* raised to the power of @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline T exp(T x)
+	[[nodiscard]] inline T exp(T x) noexcept
 	{
 		return std::exp(x);
 	}
@@ -180,7 +180,7 @@ namespace engine::math::inline functions
 	/// @param x Exponent value.
 	/// @return *e* raised to the power of @p x, minus `1`.
 	template <std::floating_point T>
-	[[nodiscard]] inline T expm1(T x)
+	[[nodiscard]] inline T expm1(T x) noexcept
 	{
 		return std::expm1(x);
 	}
@@ -189,7 +189,7 @@ namespace engine::math::inline functions
 	/// @param x Exponent value.
 	/// @return 2 raised to the power of @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline T exp2(T x)
+	[[nodiscard]] inline T exp2(T x) noexcept
 	{
 		return std::exp2(x);
 	}
@@ -198,7 +198,7 @@ namespace engine::math::inline functions
 	/// @param x Exponent value.
 	/// @return 10 raised to the power of @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline T exp10(T x)
+	[[nodiscard]] inline T exp10(T x) noexcept
 	{
 		return std::pow(T{10}, x);
 	}
@@ -207,7 +207,7 @@ namespace engine::math::inline functions
 	/// @param x Floating-point value.
 	/// @return Natural (base *e*) logarithm of @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline T log(T x)
+	[[nodiscard]] inline T log(T x) noexcept
 	{
 		return std::log(x);
 	}
@@ -216,7 +216,7 @@ namespace engine::math::inline functions
 	/// @param x Floating-point value.
 	/// @return Base 2 logarithm of @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline T log2(T x)
+	[[nodiscard]] inline T log2(T x) noexcept
 	{
 		return std::log2(x);
 	}
@@ -225,7 +225,7 @@ namespace engine::math::inline functions
 	/// @param x Floating-point value.
 	/// @return Base 10 logarithm of @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline T log10(T x)
+	[[nodiscard]] inline T log10(T x) noexcept
 	{
 		return std::log10(x);
 	}
@@ -240,7 +240,7 @@ namespace engine::math::inline functions
 	/// @param exp Exponent value.
 	/// @return @p base raised to the power of @p exp.
 	template <std::floating_point T>
-	[[nodiscard]] inline T pow(T base, T exp)
+	[[nodiscard]] inline T pow(T base, T exp) noexcept
 	{
 		return std::pow(base, exp);
 	}
@@ -267,7 +267,7 @@ namespace engine::math::inline functions
 	/// @param x Floating-point value.
 	/// @return Square root of @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline T sqrt(T x)
+	[[nodiscard]] inline T sqrt(T x) noexcept
 	{
 		return std::sqrt(x);
 	}
@@ -276,7 +276,7 @@ namespace engine::math::inline functions
 	/// @param x Floating-point value.
 	/// @return Inverse of the square root of @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline T rcp_sqrt(T x)
+	[[nodiscard]] inline T rcp_sqrt(T x) noexcept
 	{
 		return rcp(sqrt(x));
 	}
@@ -285,7 +285,7 @@ namespace engine::math::inline functions
 	/// @param x Floating-point value.
 	/// @return Cube root of @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline T cbrt(T x)
+	[[nodiscard]] inline T cbrt(T x) noexcept
 	{
 		return std::cbrt(x);
 	}
@@ -299,7 +299,7 @@ namespace engine::math::inline functions
 	/// @param angle Angle, in radians.
 	/// @return Sine of @p angle.
 	template <std::floating_point T>
-	[[nodiscard]] inline T sin(T angle)
+	[[nodiscard]] inline T sin(T angle) noexcept
 	{
 		return std::sin(angle);
 	}
@@ -308,7 +308,7 @@ namespace engine::math::inline functions
 	/// @param angle Angle, in radians.
 	/// @return Cosine of @p angle.
 	template <std::floating_point T>
-	[[nodiscard]] inline T cos(T angle)
+	[[nodiscard]] inline T cos(T angle) noexcept
 	{
 		return std::cos(angle);
 	}
@@ -317,7 +317,7 @@ namespace engine::math::inline functions
 	/// @param angle Angle, in radians.
 	/// @return Tangent of @p angle.
 	template <std::floating_point T>
-	[[nodiscard]] inline T tan(T angle)
+	[[nodiscard]] inline T tan(T angle) noexcept
 	{
 		return std::tan(angle);
 	}
@@ -326,7 +326,7 @@ namespace engine::math::inline functions
 	/// @param angle Angle, in radians.
 	/// @return Arcsine of @p angle.
 	template <std::floating_point T>
-	[[nodiscard]] inline T asin(T angle)
+	[[nodiscard]] inline T asin(T angle) noexcept
 	{
 		return std::asin(angle);
 	}
@@ -335,7 +335,7 @@ namespace engine::math::inline functions
 	/// @param angle Angle, in radians.
 	/// @return Arccosine of @p angle.
 	template <std::floating_point T>
-	[[nodiscard]] inline T acos(T angle)
+	[[nodiscard]] inline T acos(T angle) noexcept
 	{
 		return std::acos(angle);
 	}
@@ -345,7 +345,7 @@ namespace engine::math::inline functions
 	/// @param x Denominator.
 	/// @return Arctangent of @p y / @p x, in radians.
 	template <std::floating_point T>
-	[[nodiscard]] inline T atan(T y, T x)
+	[[nodiscard]] inline T atan(T y, T x) noexcept
 	{
 		return std::atan2(y, x);
 	}
@@ -354,7 +354,7 @@ namespace engine::math::inline functions
 	/// @param y_over_x y / x.
 	/// @return Arctangent of y / x, in radians.
 	template <std::floating_point T>
-	[[nodiscard]] inline T atan(T y_over_x)
+	[[nodiscard]] inline T atan(T y_over_x) noexcept
 	{
 		return std::atan(y_over_x);
 	}
@@ -368,7 +368,7 @@ namespace engine::math::inline functions
 	/// @param angle Angle, in radians.
 	/// @return Hyperbolic sine of @p angle.
 	template <std::floating_point T>
-	[[nodiscard]] inline T sinh(T angle)
+	[[nodiscard]] inline T sinh(T angle) noexcept
 	{
 		return std::sinh(angle);
 	}
@@ -377,7 +377,7 @@ namespace engine::math::inline functions
 	/// @param angle Angle, in radians.
 	/// @return Hyperbolic cosine of @p angle.
 	template <std::floating_point T>
-	[[nodiscard]] inline T cosh(T angle)
+	[[nodiscard]] inline T cosh(T angle) noexcept
 	{
 		return std::cosh(angle);
 	}
@@ -386,7 +386,7 @@ namespace engine::math::inline functions
 	/// @param angle Angle, in radians.
 	/// @return Hyperbolic tangent of @p angle.
 	template <std::floating_point T>
-	[[nodiscard]] inline T tanh(T angle)
+	[[nodiscard]] inline T tanh(T angle) noexcept
 	{
 		return std::tanh(angle);
 	}
@@ -395,7 +395,7 @@ namespace engine::math::inline functions
 	/// @param angle Angle, in radians.
 	/// @return Inverse hyperbolic sine of @p angle.
 	template <std::floating_point T>
-	[[nodiscard]] inline T asinh(T angle)
+	[[nodiscard]] inline T asinh(T angle) noexcept
 	{
 		return std::asinh(angle);
 	}
@@ -404,7 +404,7 @@ namespace engine::math::inline functions
 	/// @param angle Angle, in radians.
 	/// @return Inverse hyperbolic cosine of @p angle.
 	template <std::floating_point T>
-	[[nodiscard]] inline T acosh(T angle)
+	[[nodiscard]] inline T acosh(T angle) noexcept
 	{
 		return std::acosh(angle);
 	}
@@ -413,7 +413,7 @@ namespace engine::math::inline functions
 	/// @param angle Angle, in radians.
 	/// @return Inverse hyperbolic tangent of @p angle.
 	template <std::floating_point T>
-	[[nodiscard]] inline T atanh(T angle)
+	[[nodiscard]] inline T atanh(T angle) noexcept
 	{
 		return std::atanh(angle);
 	}
@@ -429,7 +429,7 @@ namespace engine::math::inline functions
 	/// @return Sign of @p x with the given magnitude.
 	template <class T>
 		requires (std::is_arithmetic_v<T>)
-	[[nodiscard]] inline constexpr T copysign(T magnitude, T x)
+	[[nodiscard]] inline constexpr T copysign(T magnitude, T x) noexcept
 	{
 		return std::copysign(magnitude, x);
 	}
@@ -439,7 +439,7 @@ namespace engine::math::inline functions
 	/// @return Sign of @p x with a magnitude of 1.
 	template <class T>
 		requires (std::is_arithmetic_v<T>)
-	[[nodiscard]] inline constexpr T sign(T x)
+	[[nodiscard]] inline constexpr T sign(T x) noexcept
 	{
 		return copysign(T{1}, x);
 	}
@@ -449,7 +449,7 @@ namespace engine::math::inline functions
 	/// @return `true` if the @p x is negative, `false` otherwise.
 	template <class T>
 		requires (std::is_floating_point_v<T> || (std::is_integral_v<T> && std::is_signed_v<T>))
-	[[nodiscard]] inline constexpr bool signbit(T x)
+	[[nodiscard]] inline constexpr bool signbit(T x) noexcept
 	{
 		return std::signbit(x);
 	}
@@ -463,7 +463,7 @@ namespace engine::math::inline functions
 	/// @param x Floating-point value.
 	/// @return Fractional part of @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline constexpr T fract(T x)
+	[[nodiscard]] inline constexpr T fract(T x) noexcept
 	{
 		return x - floor(x);
 	}
@@ -472,7 +472,7 @@ namespace engine::math::inline functions
 	/// @param x Floating-point value.
 	/// @return Integer part of @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline constexpr T trunc(T x)
+	[[nodiscard]] inline constexpr T trunc(T x) noexcept
 	{
 		return std::trunc(x);
 	}
@@ -482,7 +482,7 @@ namespace engine::math::inline functions
 	/// @param y Second value.
 	/// @return @p x modulo @p y.
 	template <std::floating_point T>
-	[[nodiscard]] inline constexpr T mod(T x, T y)
+	[[nodiscard]] inline constexpr T mod(T x, T y) noexcept
 	{
 		return x - y * trunc(x / y);
 	}
@@ -491,7 +491,7 @@ namespace engine::math::inline functions
 	/// @param x Value to split.
 	/// @return Tuple containing the fractional part of @p x, followed by the integer part of @p x.
 	template <std::floating_point T>
-	[[nodiscard]] inline std::tuple<T, T> modf(T x)
+	[[nodiscard]] inline std::tuple<T, T> modf(T x) noexcept
 	{
 		std::tuple<T, T> result;
 		std::get<0>(result) = std::modf(x, &std::get<1>(result));
@@ -524,7 +524,7 @@ namespace engine::math::inline functions
 	/// @param a Interpolation ratio.
 	/// @return Interpolated angle, in radians.
 	template <std::floating_point T>
-	[[nodiscard]] constexpr T lerp_angle(T x, T y, T a)
+	[[nodiscard]] constexpr T lerp_angle(T x, T y, T a) noexcept
 	{
 		return wrap_radians(x + wrap_radians(y - x) * a);
 	}
@@ -535,7 +535,7 @@ namespace engine::math::inline functions
 	/// @param t Interpolation factor.
 	/// @warning Undefined behavior when @p a is zero.
 	template <std::floating_point T>
-	[[nodiscard]] T log_lerp(T a, T b, T t)
+	[[nodiscard]] T log_lerp(T a, T b, T t) noexcept
 	{
 		//return exp(lerp(log(x), log(y), a));
 		return a * pow(b / a, t);

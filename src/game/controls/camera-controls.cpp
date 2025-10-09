@@ -379,7 +379,7 @@ void setup_camera_controls(::game& ctx)
 
 				
 				// Determine camera forward direction
-				const auto camera_yaw_rotation = math::angle_axis(target_angles.y(), {0.0, 1.0, 0.0});
+				const auto camera_yaw_rotation = math::axis_angle_to_quat({0.0, 1.0, 0.0}, target_angles.y());
 				const auto camera_pitchless_orientation = math::normalize(spring_arm.up_rotation * camera_yaw_rotation);
 				const auto camera_forward = math::fvec3(camera_pitchless_orientation * math::dvec3{0, 0, -1});
 				

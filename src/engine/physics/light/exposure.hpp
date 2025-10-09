@@ -37,7 +37,7 @@ namespace engine::physics::light
 	template <class T>
 	[[nodiscard]] T settings_to_ev(T n, T t, T s)
 	{
-		return math::log2((n * n) / t * T(100) / s);
+		return math::log2((n * n) / t * T{100} / s);
 	}
 
 	/// Exposure value to luminance.

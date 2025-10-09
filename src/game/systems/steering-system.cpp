@@ -12,6 +12,7 @@
 #include <engine/ai/steering/behavior/wander.hpp>
 #include <engine/math/functions.hpp>
 #include <engine/math/quaternion.hpp>
+#include <engine/math/basis.hpp>
 
 void steering_system::fixed_update(entity::registry& registry, float, float dt)
 {
@@ -59,7 +60,7 @@ void steering_system::fixed_update(entity::registry& registry, float, float dt)
 			const float speed_squared = math::sqr_length(agent.velocity);
 			if (speed_squared)
 			{
-				agent.orientation = math::look_rotation(agent.velocity / math::sqrt(speed_squared), agent.up);
+				agent.orientation = math::basis_rh_to_quat(agent.up, agent.velocity / math::sqrt(speed_squared));
 				agent.forward = agent.orientation * global_forward;
 				agent.up = agent.orientation * global_up;
 			}

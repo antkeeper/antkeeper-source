@@ -21,6 +21,7 @@
 #include <engine/math/vector.hpp>
 #include <engine/math/transform.hpp>
 #include <engine/math/functions.hpp>
+#include <engine/math/basis.hpp>
 
 namespace engine::render
 {
@@ -379,7 +380,7 @@ namespace engine::render
 		{
 			float star_distance = camera.get_clip_near() * 2.0f;
 		
-			model = math::fmat4(math::fmat3(m_icrf_to_eus.r)) * math::scale(math::fvec3{star_distance, star_distance, star_distance});
+			model = math::fmat4(math::basis_from_quat(m_icrf_to_eus.r)) * math::scale(math::fvec3{star_distance, star_distance, star_distance});
 		
 			model_view_projection = view_projection * model;
 		

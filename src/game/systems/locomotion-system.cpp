@@ -44,7 +44,7 @@ void locomotion_system::update_legged(entity::registry& registry, float, float d
 			cos_target_direction = math::dot(current_direction, locomotion.target_direction);
 			if (cos_target_direction < -0.999f)
 			{
-				steering_rotation = math::angle_axis(max_steering_angle, rigid_body.get_orientation() * math::fvec3{0, 1, 0});
+				steering_rotation = math::axis_angle_to_quat(rigid_body.get_orientation() * math::fvec3{0, 1, 0}, max_steering_angle);
 			}
 			else
 			{

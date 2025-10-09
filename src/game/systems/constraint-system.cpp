@@ -5,6 +5,7 @@
 #include "game/systems/constraint-system.hpp"
 #include "game/components/constraint-stack-component.hpp"
 #include <engine/math/quaternion.hpp>
+#include <engine/math/basis.hpp>
 
 constraint_system::constraint_system(entity::registry& registry):
 	m_registry(registry)
@@ -260,9 +261,9 @@ void constraint_system::handle_spring_rotation_constraint(transform_component& t
 	constraint.spring.solve(dt);
 	
 	// Build yaw, pitch, and roll quaternions
-	const math::fquat yaw = math::angle_axis(constraint.spring.get_value()[0], {0.0f, 1.0f, 0.0f});
-	const math::fquat pitch = math::angle_axis(constraint.spring.get_value()[1], {-1.0f, 0.0f, 0.0f});
-	const math::fquat roll = math::angle_axis(constraint.spring.get_value()[2], {0.0f, 0.0f, -1.0f});
+	const math::fquat yaw = math::axis_angle_to_quat({0.0f, 1.0f, 0.0f}, constraint.spring.get_value()[0]);
+	const math::fquat pitch = math::axis_angle_to_quat({-1.0f, 0.0f, 0.0f}, constraint.spring.get_value()[1]);
+	const math::fquat roll = math::axis_angle_to_quat({0.0f, 0.0f, -1.0f}, constraint.spring.get_value()[2]);
 	
 	// Update transform rotation
 	transform.world.rotation = math::normalize(yaw * pitch * roll);
@@ -316,9 +317,9 @@ void constraint_system::handle_spring_translation_constraint(transform_component
 
 void constraint_system::handle_three_dof_constraint(transform_component& transform, const three_dof_constraint& constraint)
 {
-	const math::fquat yaw = math::angle_axis(constraint.yaw, {0.0f, 1.0f, 0.0f});
-	const math::fquat pitch = math::angle_axis(constraint.pitch, {-1.0f, 0.0f, 0.0f});
-	const math::fquat roll = math::angle_axis(constraint.roll, {0.0f, 0.0f, -1.0f});
+	const math::fquat yaw = math::axis_angle_to_quat({0.0f, 1.0f, 0.0f}, constraint.yaw);
+	const math::fquat pitch = math::axis_angle_to_quat({-1.0f, 0.0f, 0.0f}, constraint.pitch);
+	const math::fquat roll = math::axis_angle_to_quat({0.0f, 0.0f, -1.0f}, constraint.roll);
 	transform.world.rotation = math::normalize(yaw * pitch * roll);
 }
 
@@ -329,7 +330,7 @@ void constraint_system::handle_track_to_constraint(transform_component& transfor
 		const transform_component* target_transform = m_registry.try_get<transform_component>(constraint.target);
 		if (target_transform)
 		{
-			transform.world.rotation = math::look_rotation(math::normalize(target_transform->world.translation - transform.world.translation), constraint.up);
+			transform.world.rotation = math::basis_rh_to_quat(constraint.up, math::normalize(target_transform->world.translation - transform.world.translation));
 		}
 	}
 }

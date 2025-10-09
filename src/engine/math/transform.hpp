@@ -6,6 +6,7 @@
 #include <engine/math/vector.hpp>
 #include <engine/math/matrix.hpp>
 #include <engine/math/quaternion.hpp>
+#include <engine/math/basis.hpp>
 
 namespace engine::math
 {
@@ -41,7 +42,7 @@ namespace engine::math
 			/// @return Transformation matrix.
 			[[nodiscard]] constexpr matrix_type matrix() const noexcept
 			{
-				auto matrix = mat4<T>(mat3<T>(rotation));
+				auto matrix = mat4<T>(basis_from_quat(rotation));
 
 				matrix[0][0] *= scale[0];
 				matrix[0][1] *= scale[0];

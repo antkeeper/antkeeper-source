@@ -21,10 +21,10 @@ namespace engine::physics::gas::atmosphere
 	template <class T>
 	[[nodiscard]] T polarization(T ior, T density) noexcept
 	{
-		constexpr T k = T(2) * math::pi<T> *math::pi<T>;
-		const T ior2m1 = ior * ior - T(1);
+		constexpr T k = T{2} * math::pi<T> *math::pi<T>;
+		const T ior2m1 = ior * ior - T{1};
 		const T num = k * ior2m1 * ior2m1;
-		const T den = T(3) * density * density;
+		const T den = T{3} * density * density;
 		return num / den;
 	}
 
@@ -64,7 +64,7 @@ namespace engine::physics::gas::atmosphere
 	template <class T>
 	[[nodiscard]] T absorption(T scattering, T albedo) noexcept
 	{
-		return scattering * (T(1) / albedo - T(1));
+		return scattering * (T{1} / albedo - T{1});
 	}
 
 	/// Calculates an extinction coefficient.
@@ -88,11 +88,11 @@ namespace engine::physics::gas::atmosphere
 	template <class T>
 	[[nodiscard]] T optical_depth_exp(const math::vec3<T>& a, const math::vec3<T>& b, T r, T sh, usize n)
 	{
-		sh = T(-1) / sh;
+		sh = T{-1} / sh;
 
-		const T h = math::length(b - a) / T(n);
+		const T h = math::length(b - a) / T{n};
 
-		math::vec3<T> dy = (b - a) / T(n);
+		math::vec3<T> dy = (b - a) / T{n};
 		math::vec3<T> y = a + dy;
 
 		T f_x = math::exp((math::length(a) - r) * sh);
@@ -107,7 +107,7 @@ namespace engine::physics::gas::atmosphere
 			sum += (f_x + f_y);
 		}
 
-		return sum / T(2) * h;
+		return sum / T{2} * h;
 	}
 
 	/// Approximates the optical depth of triangularly-distributed atmospheric particles between two points using the trapezoidal rule.
@@ -122,19 +122,19 @@ namespace engine::physics::gas::atmosphere
 	template <class T>
 	[[nodiscard]] T optical_depth_tri(const math::vec3<T>& p0, const math::vec3<T>& p1, T r, T a, T b, T c, usize n)
 	{
-		a = T(1) / (a - c);
-		b = T(1) / (b - c);
+		a = T{1} / (a - c);
+		b = T{1} / (b - c);
 
-		const T h = math::length(p1 - p0) / T(n);
+		const T h = math::length(p1 - p0) / T{n};
 
-		math::vec3<T> dy = (p1 - p0) / T(n);
+		math::vec3<T> dy = (p1 - p0) / T{n};
 		math::vec3<T> y = p0 + dy;
 
 		T z = math::length(p0) - r;
-		T f_x = math::max(T(0), math::max(T(0), c - z) * a - math::max(T(0), z - c) * b + T(1));
+		T f_x = math::max(T{0}, math::max(T{0}, c - z) * a - math::max(T{0}, z - c) * b + T{1});
 
 		z = math::length(y) - r;
-		T f_y = math::max(T(0), math::max(T(0), c - z) * a - math::max(T(0), z - c) * b + T(1));
+		T f_y = math::max(T{0}, math::max(T{0}, c - z) * a - math::max(T{0}, z - c) * b + T{1});
 		T sum = (f_x + f_y);
 
 		for (usize i = 1; i < n; ++i)
@@ -143,12 +143,12 @@ namespace engine::physics::gas::atmosphere
 			y += dy;
 
 			z = math::length(y) - r;
-			f_y = math::max(T(0), math::max(T(0), c - z) * a - math::max(T(0), z - c) * b + T(1));
+			f_y = math::max(T{0}, math::max(T{0}, c - z) * a - math::max(T{0}, z - c) * b + T{1});
 
 			sum += (f_x + f_y);
 		}
 
-		return sum / T(2) * h;
+		return sum / T{2} * h;
 	}
 
 	/// Atmospheric density functions.
@@ -178,7 +178,7 @@ namespace engine::physics::gas::atmosphere
 		template <class T>
 		[[nodiscard]] T triangular(T d0, T z, T a, T b, T c) noexcept
 		{
-			return d0 * math::max(T(0), math::max(T(0), c - z) / (a - c) - math::max(T(0), z - c) / (b - c) + T(1));
+			return d0 * math::max(T{0}, math::max(T{0}, c - z) / (a - c) - math::max(T{0}, z - c) / (b - c) + T{1});
 		}
 
 	}

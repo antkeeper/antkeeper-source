@@ -21,7 +21,7 @@ namespace engine::ai::steering::behavior
 		auto [swing, twist] = math::swing_twist(agent.orientation, agent.up);
 
 		// Calculate offset to point on wander circle
-		const math::fvec3 offset = (math::angle_axis(angle, agent.up) * agent.forward * radius) * twist;
+		const math::fvec3 offset = (math::axis_angle_to_quat(agent.up, angle) * agent.forward * radius) * twist;
 
 		// Seek toward point on wander circle
 		return seek(agent, center + offset);

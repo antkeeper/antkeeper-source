@@ -13,7 +13,7 @@ namespace engine::math::compile
 	template <std::unsigned_integral T>
 	[[nodiscard]] consteval T ceil_log2(T x)
 	{
-		return (x <= T(1)) ? T(0) : ceil_log2((x + T(1)) / T(2)) + T(1);
+		return (x <= T{1}) ? T{0} : ceil_log2((x + T{1}) / T{2}) + T{1};
 	}
 
 	/// Compile-time `exp2` for unsigned integrals.
@@ -22,7 +22,7 @@ namespace engine::math::compile
 	template <std::unsigned_integral T>
 	[[nodiscard]] consteval T exp2(T x)
 	{
-		return (x) ? T(2) << (x - 1) : T(1);
+		return (x) ? T{2} << (x - 1) : T{1};
 	}
 
 	/// Compile-time `pow` for unsigned integrals.
@@ -32,6 +32,6 @@ namespace engine::math::compile
 	template <std::unsigned_integral T>
 	[[nodiscard]] consteval T pow(T x, T e)
 	{
-		return (e == 0) ? T(1) : (x * pow<T>(x, e - 1));
+		return (e == 0) ? T{1} : (x * pow<T>(x, e - 1));
 	}
 }

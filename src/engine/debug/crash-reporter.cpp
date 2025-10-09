@@ -108,7 +108,7 @@ namespace
 				
 				engine::log_info("Generated crash dump \"{}\"", minidump_path.string());
 
-				const int msgboxID = MessageBox(NULL, _T("An error has occurred and the application quit unexpectedly. A crash dump has been generated. Would you like to view it?"), _T("Crash Reporter"), MB_ICONERROR | MB_YESNO | MB_SYSTEMMODAL);
+				const int msgboxID = MessageBoxW(nullptr, L"An error has occurred and the application quit unexpectedly. A crash dump has been generated. Would you like to view it?", L"Crash Reporter", MB_ICONERROR | MB_YESNO | MB_SYSTEMMODAL);
 				if (msgboxID == IDYES)
 				{
 					ShellExecuteW(nullptr, L"open", minidump_path.c_str(), nullptr, nullptr, SW_SHOWNORMAL);

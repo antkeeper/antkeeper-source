@@ -38,7 +38,7 @@ namespace command
 					eid,
 					[angle, &axis](auto& transform)
 					{
-						transform.local.rotation = math::normalize(math::angle_axis(angle, axis) * transform.local.rotation);
+						transform.local.rotation = math::normalize(math::axis_angle_to_quat(axis, angle) * transform.local.rotation);
 					}
 				);
 		}

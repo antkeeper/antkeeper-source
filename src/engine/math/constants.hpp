@@ -47,11 +47,11 @@ namespace engine::math::inline constants
 
 	/// Pi * 2.
 	template <std::floating_point T>
-	inline constexpr T two_pi = pi<T> *T{2};
+	inline constexpr T two_pi = pi<T> * T{2};
 
 	/// Pi * 4.
 	template <std::floating_point T>
-	inline constexpr T four_pi = pi<T> *T{4};
+	inline constexpr T four_pi = pi<T> * T{4};
 
 	/// Pi / 2.
 	template <std::floating_point T>

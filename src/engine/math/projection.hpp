@@ -18,7 +18,7 @@ namespace engine::math
 	template <class T>
 	[[nodiscard]] T horizontal_fov(T v, T r)
 	{
-		return T{2} *atan(tan(v * T{0.5}) * r);
+		return T{2} * atan(tan(v * T{0.5}) * r);
 	}
 
 	/// Calculates a vertical FoV given a horizontal FoV and aspect ratio.
@@ -29,7 +29,7 @@ namespace engine::math
 	template <class T>
 	[[nodiscard]] T vertical_fov(T h, T r)
 	{
-		return T{2} *atan(tan(h * T{0.5}) / r);
+		return T{2} * atan(tan(h * T{0.5}) / r);
 	}
 
 	/// Constructs an orthographic projection matrix which will transform the near and far clipping planes to `[-1, 1]`, respectively.

@@ -109,7 +109,7 @@ namespace engine::physics::orbit::anomaly
 		const T t33 = math::cos(ma);
 		const T t34 = math::sqr(ec);
 		const T t35 = t34 * ec;
-		T ea0 = ma + (T(-0.5) * t35 + ec + (t34 + T{1.5} * t33 * t35) * t33) * math::sin(ma);
+		T ea0 = ma + (T{-0.5} * t35 + ec + (t34 + T{1.5} * t33 * t35) * t33) * math::sin(ma);
 
 		// Iteratively converge E0 and E1
 		for (usize i = 0; i < iterations; ++i)

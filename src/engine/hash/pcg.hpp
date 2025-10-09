@@ -60,18 +60,6 @@ namespace engine::hash
 
 	/// @private
 	template <class T>
-	[[nodiscard]] inline constexpr math::vector<T, 1> pcg_uvec1(math::vector<T, 1> x) noexcept
-	{
-		static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value);
-		static_assert(sizeof(T) <= 8);
-
-		x[0] = T(x[0]);
-	
-		return x;
-	}
-
-	/// @private
-	template <class T>
 	[[nodiscard]] constexpr math::vector<T, 2> pcg_uvec2(math::vector<T, 2> x) noexcept
 	{
 		static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value);
@@ -219,11 +207,7 @@ namespace engine::hash
 	{
 		static_assert(N > 0 && N < 5, "PCG hash only supports vectors with 1-4 elements.");
 
-		if constexpr (N == 1)
-		{
-			return pcg_uvec1<make_uint_t<T>>(math::vector<make_uint_t<T>, N>(x));
-		}
-		else if constexpr (N == 2)
+		if constexpr (N == 2)
 		{
 			return pcg_uvec2<make_uint_t<T>>(math::vector<make_uint_t<T>, N>(x));
 		}

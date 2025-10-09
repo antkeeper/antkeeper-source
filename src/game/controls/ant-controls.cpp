@@ -97,7 +97,7 @@ namespace {
 		const auto& spring_arm = ctx.entity_registry->get<spring_arm_component>(ctx.active_camera_eid);
 		
 		// Calculate steering direction
-		const auto spring_arm_yaw_rotation = math::angle_axis(spring_arm.angles_spring.get_value().y(), {0.0, 1.0, 0.0});
+		const auto spring_arm_yaw_rotation = math::axis_angle_to_quat({0.0, 1.0, 0.0}, spring_arm.angles_spring.get_value().y());
 		locomotion.target_direction = math::fquat(math::normalize(spring_arm.up_rotation * spring_arm_yaw_rotation)) * math::fvec3{control_direction.x(), 0.0f, (spring_arm.angles_spring.get_value().x() > 0.0) ? -control_direction.y() : control_direction.y()};
 	}
 	
