@@ -33,10 +33,10 @@ struct test_suite
 	do { if (!(condition)) throw std::runtime_error("Assertion failed: " #condition); } while (false)
 
 #define ASSERT_EQ(a, b) \
-	do { if ((a) != (b)) throw std::runtime_error("Assertion failed: " #a " == " #b); } while (false)
+	do { if (!((a) == (b))) throw std::runtime_error("Assertion failed: " #a " == " #b); } while (false)
 
 #define ASSERT_NE(a, b) \
-	do { if ((a) == (b)) throw std::runtime_error("Assertion failed: " #a " != " #b); } while (false)
+	do { if (!((a) != (b))) throw std::runtime_error("Assertion failed: " #a " != " #b); } while (false)
 
 #define ASSERT_LT(a, b) \
 	do { if (!((a) < (b))) throw std::runtime_error("Assertion failed: " #a " < " #b); } while (false)
@@ -53,10 +53,10 @@ struct test_suite
 #define ASSERT_NEAR(a, b, tolerance) \
 	do \
 	{ \
-		const auto difference = std::fabs((a) - (b)); \
-		if (std::isnan(difference) || difference > (tolerance)) \
-			throw std::runtime_error("Assertion failed: |" #a " - " #b "| <= " #tolerance); \
-	} while (false)
+		if (std::isnan((a)) != std::isnan((b)) || std::fabs((a) - (b)) > (tolerance)) \
+			throw std::runtime_error("Assertion failed: |" #a " ~= " #b); \
+	} \
+	while (false)
 
 #define STATIC_ASSERT(condition) static_assert(condition, "Static assertion failed: " #condition)
 

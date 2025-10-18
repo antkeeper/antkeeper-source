@@ -7,6 +7,7 @@
 #include <span>
 #include <concepts>
 #include <utility>
+#include <nmmintrin.h>
 
 namespace engine::math::simd
 {
@@ -34,7 +35,7 @@ namespace engine::math::simd::inline types
 	/// @tparam T Element type.
 	/// @tparam N Number of elements.
 	template <class T, usize N>
-		requires (std::same_as<T, float> && N == 4)
+		requires (std::same_as<T, float> && (N == 3 || N == 4))
 	struct vector
 	{
 		using element_type = T;
@@ -48,18 +49,24 @@ namespace engine::math::simd::inline types
 		/// Byte boundary on which load/store operations are aligned.
 		static inline constexpr usize alignment = vector_alignment_v<T, N>;
 
+		/// Mask with the lowest `N` bits set to 1 for use with masked intrinsics.
+		static inline constexpr __mmask8 zero_mask = (1u << N) - 1;
+
+		/// Dot product mask for use with `_mm_dp_ps`.
+		static inline constexpr int dot_mask = (zero_mask << 4) | 1;
+
 		/// @private
-		register_type m_data{};
+		register_type m_data;
 
 		/// @name Constructors
 		/// @{
 		
 		/// Default constructor.
-		constexpr vector() noexcept = default;
+		inline constexpr vector() noexcept = default;
 
 		/// Constructs a vector from a SIMD register.
 		/// @param data SIMD register.
-		inline explicit vector(register_type&& data) noexcept
+		inline constexpr explicit vector(register_type&& data) noexcept
 			: m_data{std::move(data)}
 		{
 		}
@@ -67,7 +74,7 @@ namespace engine::math::simd::inline types
 		/// Constructs a vector from an array of elements.
 		/// @param elements Array of elements to load.
 		/// @warning Element array must be aligned on a `vector::alignment`-byte boundary with `alignas(vector::alignment)`.
-		inline explicit vector(const_span elements)
+		inline explicit vector(const_span elements) noexcept
 		{
 			load(std::move(elements));
 		}
@@ -75,12 +82,22 @@ namespace engine::math::simd::inline types
 		/// Constructs a vector from individual element values.
 		/// @tparam Args Parameter pack of element types.
 		/// @param args Parameter pack of element values.
+		/// @todo Find a way to separate declaration and definition for fvec3 and fvec4 specializations.
 		template <std::convertible_to<element_type>... Args>
 			requires (sizeof...(Args) == N)
-		inline vector(Args&&... args)
+		inline vector(Args&&... args) noexcept
 		{
-			alignas(alignment) const element_type elements[N]{std::forward<Args>(args)...};
-			load(elements);
+			if constexpr (std::is_same_v<element_type, float>)
+			{
+				if constexpr (N == 4)
+				{
+					m_data = _mm_setr_ps(static_cast<element_type>(std::forward<Args>(args))...);
+				}
+				else if constexpr (N == 3)
+				{
+					m_data = _mm_setr_ps(static_cast<element_type>(std::forward<Args>(args))..., {});
+				}
+			}
 		}
 
 		/// Constructs a vector by broadcasting a single value to all elements.
@@ -95,7 +112,7 @@ namespace engine::math::simd::inline types
 		/// Loads vector elements from an array.
 		/// @param elements Array of elements to load.
 		/// @warning Element array must be aligned on a `vector::alignment`-byte boundary with `alignas(vector::alignment)`.
-		void load(const_span elements);
+		void load(const_span elements) noexcept;
 
 		/// Loads vector elements from an array.
 		/// @param elements Array of elements to load.
@@ -104,11 +121,11 @@ namespace engine::math::simd::inline types
 		/// Stores the vector elements into an array.
 		/// @param[out] elements Array into which elements will be stored.
 		/// @warning Element array must be aligned on a `vector::alignment`-byte boundary with `alignas(vector::alignment)`.
-		void store(span elements);
+		void store(span elements) const noexcept;
 
 		/// Stores the vector elements into an array.
 		/// @param[out] elements Array into which elements will be stored.
-		void store_unaligned(span elements) noexcept;
+		void store_unaligned(span elements) const noexcept;
 
 		/// @}
 
@@ -121,171 +138,30 @@ namespace engine::math::simd::inline types
 		[[nodiscard]] const element_type operator[](usize i) const noexcept;
 
 		/// @}
-
-		/// @name Unary operators
-		/// @{
-
-		/// Increments each element of the vector by 1.
-		/// @return Reference to the incremented vector.
-		vector& operator++() noexcept;
-
-		/// Increments each element of the vector by 1.
-		/// @return Copy of the vector before it was incremented.
-		[[nodiscard]] vector operator++(int) noexcept;
-
-		/// Decrements each element of the vector by 1.
-		/// @return Reference to the decremented vector.
-		vector& operator--() noexcept;
-
-		/// Decrements each element of the vector by 1.
-		/// @return Copy of the vector before it was decremented.
-		[[nodiscard]] vector operator--(int) noexcept;
-
-		/// Returns a copy of the vector with negated elements.
-		/// @return Copy of the vector with negated elements.
-		[[nodiscard]] vector operator-() const noexcept;
-
-		/// @}
-
-		/// @name Binary operators
-		/// @{
-
-		/// Adds two vectors.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Vector on the right-hand side.
-		/// @return Result of the addition.
-		friend vector operator+(const vector& lhs, const vector& rhs) noexcept;
-
-		/// Adds a scalar to all elements of a vector.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Scalar on the right-hand side.
-		/// @return Result of the addition.
-		friend vector operator+(const vector& lhs, element_type rhs) noexcept;
-
-		/// Adds a scalar to all elements of a vector.
-		/// @param lhs Scalar on the left-hand side.
-		/// @param rhs Vector on the right-hand side.
-		/// @return Result of the addition.
-		friend vector operator+(element_type lhs, const vector& rhs) noexcept;
-
-		/// Subtracts two vectors.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Vector on the right-hand side.
-		/// @return Result of the subtraction.
-		friend vector operator-(const vector& lhs, const vector& rhs) noexcept;
-
-		/// Subtracts a scalar from all elements of a vector.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Scalar on the right-hand side.
-		/// @return Result of the subtraction.
-		friend vector operator-(const vector& lhs, element_type rhs) noexcept;
-
-		/// Subtracts each element of a vector from a scalar.
-		/// @param lhs Scalar on the left-hand side.
-		/// @param rhs Vector on the right-hand side.
-		/// @return Result of the subtraction.
-		friend vector operator-(element_type lhs, const vector& rhs) noexcept;
-
-		/// Multiplies the elements of two vectors.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Vector on the right-hand side.
-		/// @return Result of the multiplication.
-		friend vector operator*(const vector& lhs, const vector& rhs) noexcept;
-
-		/// Multiplies each element of a vector by a scalar.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Scalar on the right-hand side.
-		/// @return Result of the multiplication.
-		friend vector operator*(const vector& lhs, element_type rhs) noexcept;
-
-		/// Multiplies each element of a vector by a scalar.
-		/// @param lhs Scalar on the left-hand side.
-		/// @param rhs Vector on the right-hand side.
-		/// @return Result of the multiplication.
-		friend vector operator*(element_type lhs, const vector& rhs) noexcept;
-
-		/// Divides the elements of one vector by the elements of another vector.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Vector on the right-hand side.
-		/// @return Result of the division.
-		friend vector operator/(const vector& lhs, const vector& rhs) noexcept;
-
-		/// Divides each element of a vector by a scalar.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Scalar on the right-hand side.
-		/// @return Result of the division.
-		friend vector operator/(const vector& lhs, element_type rhs) noexcept;
-
-		/// Divides a scalar by each element of a vector.
-		/// @param lhs Scalar on the left-hand side.
-		/// @param rhs Vector on the right-hand side.
-		/// @return Result of the division.
-		friend vector operator/(element_type lhs, const vector& rhs) noexcept;
-
-		/// @}
-
-		/// @name Compound assignment operators
-		/// @{
-
-		/// Adds the elements of two vectors and stores the result in the first vector.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Vector on the right-hand side.
-		/// @return Reference to the vector on the left-hand side.
-		friend vector& operator+=(vector& lhs, const vector& rhs) noexcept;
-
-		/// Adds a scalar to each element of a vector and stores the result in the vector.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Scalar on the right-hand side.
-		/// @return Reference to the vector on the left-hand side.
-		friend vector& operator+=(vector& lhs, element_type rhs) noexcept;
-
-		/// Subtracts the elements of two vectors and stores the result in the first vector.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Vector on the right-hand side.
-		/// @return Reference to the vector on the left-hand side.
-		friend vector& operator-=(vector& lhs, const vector& rhs) noexcept;
-
-		/// Subtracts a scalar from each element of a vector and stores the result in the vector.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Scalar on the right-hand side.
-		/// @return Reference to the vector on the left-hand side.
-		friend vector& operator-=(vector& lhs, element_type rhs) noexcept;
-
-		/// Multiplies the elements of two vectors and stores the result in the first vector.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Vector on the right-hand side.
-		/// @return Reference to the vector on the left-hand side.
-		friend vector& operator*=(vector& lhs, const vector& rhs) noexcept;
-
-		/// Multiplies each element of a vector by a scalar and stores the result in the vector.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Scalar on the right-hand side.
-		/// @return Reference to the vector on the left-hand side.
-		friend vector& operator*=(vector& lhs, element_type rhs) noexcept;
-
-		/// Divides the elements of one vector by the elements of another vector and stores the result in the first vector.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Vector on the right-hand side.
-		/// @return Reference to the vector on the left-hand side.
-		friend vector& operator/=(vector& lhs, const vector& rhs) noexcept;
-
-		/// Divides each element of a vector by a scalar and stores the result in the vector.
-		/// @param lhs Vector on the left-hand side.
-		/// @param rhs Scalar on the right-hand side.
-		/// @return Reference to the vector on the left-hand side.
-		friend vector& operator/=(vector& lhs, element_type rhs) noexcept;
-
-		/// @}
 	};
 
+	/// @copybrief vector
 	template <class T, usize N>
 	using vec = vector<T, N>;
 
+	/// 3-dimensional SIMD vector.
+	/// @tparam T Element type.
+	template <class T>
+	using vec3 = vec<T, 3>;
+
+	/// 4-dimensional SIMD vector.
+	/// @tparam T Element type.
 	template <class T>
 	using vec4 = vec<T, 4>;
 
+	/// *n*-dimensional SIMD vector of single-precision floating-point values.
+	/// @tparam N Number of elements.
 	template <usize N>
 	using fvec = vec<float, N>;
 
+	/// 3-dimensional SIMD vector of single-precision floating-point values.
+	using fvec3 = fvec<3>;
+
+	/// 4-dimensional SIMD vector of single-precision floating-point values.
 	using fvec4 = fvec<4>;
 }

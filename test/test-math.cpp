@@ -241,7 +241,7 @@ int main(int, char*[])
 	suite.tests.emplace_back("vector formatter", []()
 	{
 		ivec3 a{152, 333, -4000};
-		fvec4 b{-0.32f, 0.0f, 2.0f / 3.0f, std::numeric_limits<float>::infinity()};
+		fvec4 b{-0.32f, 0.0f, 2.0f / 3.0f, inf<float>};
 
 		auto str = std::format("{}", a);
 		ASSERT_EQ(str, "{152, 333, -4000}");
@@ -511,7 +511,7 @@ int main(int, char*[])
 	suite.tests.emplace_back("matrix formatter", []()
 	{
 		imat3x2 a{-1, 2000, 3, 27, 999, -40};
-		fmat2x3 b{-0.47f, 0.0f, 2.0f / 3.0f, std::numeric_limits<float>::infinity(), 1000.345678f, -0.0f};
+		fmat2x3 b{-0.47f, 0.0f, 2.0f / 3.0f, inf<float>, 1000.345678f, -0.0f};
 
 		auto str = std::format("{}", a);
 		ASSERT_EQ(str, "{{-1, 2000}, {3, 27}, {999, -40}}");
@@ -699,7 +699,7 @@ int main(int, char*[])
 
 	suite.tests.emplace_back("quaternion formatter", []()
 	{
-		fquat q{-9999.96f, 0.0f, 2.0f / 3.0f, std::numeric_limits<float>::infinity()};
+		fquat q{-9999.96f, 0.0f, 2.0f / 3.0f, inf<float>};
 
 		auto str = std::format("{:.4f}", q);
 		ASSERT_EQ(str, "{-9999.9600, {0.0000, 0.6667, inf}}");

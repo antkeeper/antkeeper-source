@@ -4,4 +4,7 @@
 #pragma once
 
 #include <engine/math/simd/vector-type.hpp>
+#include <engine/math/simd/fvec3.hpp>
 #include <engine/math/simd/fvec4.hpp>
+#include <engine/math/simd/vector-constants.hpp>
+#include <engine/math/simd/vector-functions.hpp>
