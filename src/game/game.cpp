@@ -83,6 +83,7 @@
 #include <engine/animation/ease.hpp>
 #include <engine/animation/animation-sequence.hpp>
 #include <engine/math/functions.hpp>
+#include <engine/utility/cpu.hpp>
 #include <filesystem>
 #include <functional>
 #include <string>
@@ -96,6 +97,8 @@ game::game(int argc, const char* const* argv)
 {
 	// Boot process
 	debug::log_debug("Booting up...");
+
+	debug::log_info("CPU flags: {}", cpu_flags_to_string(query_cpu_flags()));
 	
 	parse_options(argc, argv);
 	setup_resources();

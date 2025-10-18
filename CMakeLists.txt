@@ -643,6 +643,8 @@ if(ANTKEEPER_TEST)
 	include(CTest)
 	enable_testing()
 
+	set(CMAKE_CTEST_ARGUMENTS "--verbose")
+
 	# Collect test files
 	file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/test/test-*.cpp)
 
