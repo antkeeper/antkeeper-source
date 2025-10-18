@@ -29,7 +29,7 @@ int test_suite::run()
 		}
 	}
 
-	std::println("passed: {}/{}", passed, tests.size());
+	std::println("Passed: {}/{}", passed, tests.size());
 
 	return failed;
 }

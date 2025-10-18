@@ -3,7 +3,8 @@
 
 #include "test.hpp"
 #include <engine/math/math.hpp>
-#include <engine/math/simd/vector.hpp>
+#include <engine/math/simd/simd.hpp>
+#include <print>
 
 using namespace engine::math::simd::types;
 using namespace engine::math::constants;
@@ -53,6 +54,12 @@ void assert_vec_near(const vector<T, N>& a, const vector<T, N>& b, T tolerance =
 
 int main(int, char*[])
 {
+	if (!engine::math::simd::has_sse42())
+	{
+		std::println("SSE4.2 not supported. Skipping SIMD test.");
+		return 0;
+	}
+
 	test_suite suite;
 
 	suite.tests.emplace_back("simd::fvec4 load/store", [ ]()
