@@ -8,6 +8,7 @@
 #include <engine/utility/sized-types.hpp>
 #include <engine/utility/alignment.hpp>
 #include <engine/debug/contract.hpp>
+#include <cstring>
 #include <type_traits>
 #include <nmmintrin.h>
 
@@ -44,26 +45,42 @@ namespace engine::math::simd::inline types
 	inline void fvec3::load(const_span elements) noexcept
 	{
 		debug::precondition(is_aligned<alignment>(elements.data()));
-		m_data = _mm_maskz_load_ps(zero_mask, elements.data());
+
+		load_unaligned(std::move(elements));
+
+		// AVX-512F:
+		//m_data = _mm_maskz_load_ps(zero_mask, elements.data());
 	}
 
 	template <>
 	inline void fvec3::load_unaligned(const_span elements) noexcept
 	{
-		m_data = _mm_maskz_loadu_ps(zero_mask, elements.data());
+		m_data = _mm_setr_ps(elements[0], elements[1], elements[2], 0.0f);
+
+		// AVX-512F:
+		//m_data = _mm_maskz_loadu_ps(zero_mask, elements.data());
 	}
 
 	template <>
 	inline void fvec3::store(span elements) const noexcept
 	{
 		debug::precondition(is_aligned<alignment>(elements.data()));
-		_mm_mask_store_ps(elements.data(), zero_mask, m_data);
+
+		store_unaligned(std::move(elements));
+
+		// AVX-512F:
+		//_mm_mask_store_ps(elements.data(), zero_mask, m_data);
 	}
 
 	template <>
 	inline void fvec3::store_unaligned(span elements) const noexcept
 	{
-		_mm_mask_storeu_ps(elements.data(), zero_mask, m_data);
+		alignas(alignment) float temp[4];
+		_mm_store_ps(temp, m_data);
+		std::memcpy(elements.data(), temp, size * sizeof(element_type));
+
+		// AVX-512F:
+		//_mm_mask_storeu_ps(elements.data(), zero_mask, m_data);
 	}
 
 	template <>

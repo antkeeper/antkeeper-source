@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "test.hpp"
+#include <iostream>
 #include <print>
 
 int test_suite::run()
@@ -15,16 +16,19 @@ int test_suite::run()
 		{
 			test.function();
 			std::println("[PASSED] {}", test.name);
+			std::flush(std::cout);
 			++passed;
 		}
 		catch (const std::exception& e)
 		{
 			std::println("[FAILED] {}: {}", test.name, e.what());
+			std::flush(std::cout);
 			++failed;
 		}
 		catch (...)
 		{
 			std::println("[FAILED] {}: Unknown exception.", test.name);
+			std::flush(std::cout);
 			++failed;
 		}
 	}

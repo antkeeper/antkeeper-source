@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "test.hpp"
-#include <engine/math/math.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/math/simd/simd.hpp>
+#include <engine/utility/cpu.hpp>
 #include <print>
+#include <iostream>
 
 using namespace engine::math::simd::types;
 using namespace engine::math::constants;
@@ -54,16 +56,12 @@ void assert_vec_near(const vector<T, N>& a, const vector<T, N>& b, T tolerance =
 
 int main(int, char*[])
 {
-	std::println("SSE supported:      {}", engine::math::simd::has_sse());
-	std::println("SSE2 supported:     {}", engine::math::simd::has_sse2());
-	std::println("SSE3 supported:     {}", engine::math::simd::has_sse3());
-	std::println("SSE4.1 supported:   {}", engine::math::simd::has_sse41());
-	std::println("SSE4.2 supported:   {}", engine::math::simd::has_sse42());
-	std::println("AVX supported:      {}", engine::math::simd::has_avx());
-	std::println("AVX2 supported:     {}", engine::math::simd::has_avx2());
-	std::println("AVX-512F supported: {}", engine::math::simd::has_avx512f());
+	const auto cpu_flags = engine::query_cpu_flags();
 
-	if (!engine::math::simd::has_sse42())
+	std::println("CPU flags: {}", engine::cpu_flags_to_string(cpu_flags));
+	std::flush(std::cout);
+
+	if (!cpu_flags.sse42)
 	{
 		std::println("SSE4.2 not supported. Skipping SIMD test.");
 		return 0;
@@ -98,7 +96,7 @@ int main(int, char*[])
 		assert_near(unaligned_out[3], 8.0f);
 	});
 
-	suite.tests.emplace_back("simd::fvec3 load/store", []()
+	suite.tests.emplace_back("simd::fvec3 load/store", [ ]()
 	{
 		fvec3 a{};
 
@@ -136,7 +134,7 @@ int main(int, char*[])
 		assert_vec_near(d, {8.0f, 8.0f, 8.0f, 8.0f});
 	});
 
-	suite.tests.emplace_back("simd::fvec3 initialization", []()
+	suite.tests.emplace_back("simd::fvec3 initialization", [ ]()
 	{
 		const fvec3 a{};
 		const fvec3 b = {7.0f, -3.0f, 200.0f};
@@ -242,13 +240,13 @@ int main(int, char*[])
 		assert_vec_near(-a, {-1.0f, -2.0f, -3.0f, -4.0f});
 		assert_vec_near(a - b, {-3.0f, -1.0f, 1.0f, 3.0f});
 		assert_vec_near(a - 3.5f, {-2.5f, -1.5f, -0.5f, 0.5f});
-		assert_vec_near(a* b, {4.0f, 6.0f, 6.0f, 4.0f});
+		assert_vec_near(a * b, {4.0f, 6.0f, 6.0f, 4.0f});
 		assert_vec_near(a * 2.0f, {2.0f, 4.0f, 6.0f, 8.0f});
 		assert_vec_near(a / b, {0.25f, 2.0f / 3.0f, 1.5f, 4.0f});
 		assert_vec_near(a / 2.0f, {0.5f, 1.0f, 1.5f, 2.0f});
 	});
 
-	suite.tests.emplace_back("simd::fvec3 arithmetic operators", []()
+	suite.tests.emplace_back("simd::fvec3 arithmetic operators", [ ]()
 	{
 		const fvec3 a{1.0f, 2.0f, 3.0f};
 		const fvec3 b{4.0f, 3.0f, 2.0f};
@@ -340,7 +338,7 @@ int main(int, char*[])
 		assert_vec_near(c, {0.5f, 1.0f, 1.5f});
 	});
 
-	suite.tests.emplace_back("simd::fvec3 cross product", []()
+	suite.tests.emplace_back("simd::fvec3 cross product", [ ]()
 	{
 		const fvec3 a{1.0f, 0.0f, 0.0f};
 		const fvec3 b{0.0f, 1.0f, 0.0f};
@@ -351,7 +349,7 @@ int main(int, char*[])
 		assert_vec_near(cross(a, zero<fvec3>), {0.0f, 0.0f, 0.0f});
 	});
 
-	suite.tests.emplace_back("simd::fvec3 triple product", []()
+	suite.tests.emplace_back("simd::fvec3 triple product", [ ]()
 	{
 		const fvec3 a{1.0f, 2.0f, 3.0f};
 		const fvec3 b{4.0f, 5.0f, 6.0f};
@@ -383,7 +381,7 @@ int main(int, char*[])
 		assert_near(distance(a, b), length(a - b));
 	});
 
-	suite.tests.emplace_back("simd::fvec3 dot/length/normalize/distance", []()
+	suite.tests.emplace_back("simd::fvec3 dot/length/normalize/distance", [ ]()
 	{
 		const fvec3 a{2.0f, 3.0f, 4.0f};
 		const fvec3 b{3.0f, 2.0f, 1.0f};
@@ -408,7 +406,7 @@ int main(int, char*[])
 		assert_vec_near(sign(a), {-1.0f, 1.0f, -1.0f, 1.0f});
 	});
 
-	suite.tests.emplace_back("simd::fvec3 sign functions", []()
+	suite.tests.emplace_back("simd::fvec3 sign functions", [ ]()
 	{
 		const fvec3 a{-1.0f, 2.0f, -3.0f};
 		const fvec3 b{4.1f, 5.2f, 6.3f};
@@ -432,7 +430,7 @@ int main(int, char*[])
 		assert_vec_near(clamp_length(a, 3.0f) * (length(a) / 3.0f), a);
 	});
 
-	suite.tests.emplace_back("simd::fvec3 min/max/clamp", []()
+	suite.tests.emplace_back("simd::fvec3 min/max/clamp", [ ]()
 	{
 		const fvec3 a{1.0f, 5.0f, 3.0f};
 		const fvec3 b{2.0f, 4.0f, 6.0f};
@@ -442,7 +440,7 @@ int main(int, char*[])
 		assert_vec_near(clamp(a, b, fvec3(6.0f)), {2.0f, 5.0f, 6.0f});
 		assert_vec_near(clamp(a, 2.0f, 6.0f), {2.0f, 5.0f, 3.0f});
 		assert_near(length(clamp_length(a, 3.0f)), 3.0f);
-		assert_vec_near(clamp_length(a, 3.0f)* (length(a) / 3.0f), a);
+		assert_vec_near(clamp_length(a, 3.0f) * (length(a) / 3.0f), a);
 	});
 
 	suite.tests.emplace_back("simd::fvec4 sum/min_element/max_element", [ ]()
@@ -463,7 +461,7 @@ int main(int, char*[])
 		assert_near(max_element(d), 4.0f);
 	});
 
-	suite.tests.emplace_back("simd::fvec3 sum/min_element/max_element", []()
+	suite.tests.emplace_back("simd::fvec3 sum/min_element/max_element", [ ]()
 	{
 		const fvec3 a{1.0f, 2.0f, 3.0f};
 		const fvec3 b{3.0f, 1.0f, 2.0f};
@@ -493,7 +491,7 @@ int main(int, char*[])
 		assert_vec_near(trunc(a), {1.0f, 2.0f, 3.0f, -4.0f});
 	});
 
-	suite.tests.emplace_back("simd::fvec3 rounding functions", []()
+	suite.tests.emplace_back("simd::fvec3 rounding functions", [ ]()
 	{
 		const fvec3 a{1.1f, 2.5f, -3.5f};
 
@@ -518,7 +516,7 @@ int main(int, char*[])
 		assert_vec_near(fnms(a, b, c), {-2.5f, -9.0f, -25.5f, -66.0f});
 	});
 
-	suite.tests.emplace_back("simd::fvec3 rcp/fma/fms/fnma/fnms", []()
+	suite.tests.emplace_back("simd::fvec3 rcp/fma/fms/fnma/fnms", [ ]()
 	{
 		const fvec3 a{2.0f, 4.0f, 8.0f};
 		const fvec3 b{1.0f, 2.0f, 3.0f};
@@ -543,7 +541,7 @@ int main(int, char*[])
 		assert_vec_near(rcp_cbrt(a), {rcp(cbrt(2.0f)), rcp(cbrt(4.0f)), 0.5f, rcp(cbrt(16.0f))});
 	});
 
-	suite.tests.emplace_back("simd::fvec3 sqr/cube/sqrt/rcp_sqrt/cbrt/rcp_cbrt", []()
+	suite.tests.emplace_back("simd::fvec3 sqr/cube/sqrt/rcp_sqrt/cbrt/rcp_cbrt", [ ]()
 	{
 		const fvec3 a{2.0f, 4.0f, 8.0f};
 
@@ -582,7 +580,7 @@ int main(int, char*[])
 		assert_vec_near(mod(6.0f, b + 1.0f), {fmod(6.0f, 2.0f), fmod(6.0f, 3.0f), fmod(6.0f, 4.0f), fmod(6.0f, 1.0f)});
 	});
 
-	suite.tests.emplace_back("simd::fvec3 trig/exp/log/pow/mod", []()
+	suite.tests.emplace_back("simd::fvec3 trig/exp/log/pow/mod", [ ]()
 	{
 		const fvec3 a{0.0f, 0.5f, 1.0f};
 		const fvec3 b{1.0f, 2.0f, 3.0f};
@@ -617,7 +615,7 @@ int main(int, char*[])
 		assert_near(angle(a, b), half_pi<float>);
 	});
 
-	suite.tests.emplace_back("simd::fvec3 angle", []()
+	suite.tests.emplace_back("simd::fvec3 angle", [ ]()
 	{
 		const fvec3 a{1.0f, 0.0f, 0.0f};
 		const fvec3 b{0.0f, 1.0f, 0.0f};
@@ -625,7 +623,7 @@ int main(int, char*[])
 		assert_near(angle(a, b), half_pi<float>);
 	});
 
-	suite.tests.emplace_back("simd::fvec4 lerp", []()
+	suite.tests.emplace_back("simd::fvec4 lerp", [ ]()
 	{
 		const fvec4 a{0.0f, 1.0f, 2.0f, 3.0f};
 		const fvec4 b{10.0f, 11.0f, 12.0f, 13.0f};
@@ -635,7 +633,7 @@ int main(int, char*[])
 		assert_vec_near(lerp(a, b, 0.25f), {2.5f, 3.5f, 4.5f, 5.5f});
 	});
 
-	suite.tests.emplace_back("simd::fvec3 lerp", []()
+	suite.tests.emplace_back("simd::fvec3 lerp", [ ]()
 	{
 		const fvec3 a{0.0f, 1.0f, 2.0f};
 		const fvec3 b{10.0f, 11.0f, 12.0f};

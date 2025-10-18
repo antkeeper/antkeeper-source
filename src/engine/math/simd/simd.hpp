@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <engine/math/simd/extensions.hpp>
 #include <engine/math/simd/vector.hpp>
 
 /// SIMD math.

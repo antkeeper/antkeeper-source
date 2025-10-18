@@ -5,6 +5,7 @@
 
 #include <engine/math/simd/fvec3.hpp>
 #include <engine/math/simd/fvec4.hpp>
+#include <engine/math/functions.hpp>
 #include <engine/utility/sized-types.hpp>
 #include <engine/utility/alignment.hpp>
 #include <engine/debug/contract.hpp>
@@ -15,17 +16,20 @@ namespace engine::math::simd
 	/// @name Vector construction
 	/// @{
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 		[[nodiscard]] inline fvec<N> make_vector(float value) noexcept
 	{
 		return fvec<N>{_mm_set_ps1(value)};
 	}
 
+	/// @note CPUID flags: SSE
 	[[nodiscard]] inline fvec3 make_vector(float a, float b, float c) noexcept
 	{
 		return fvec3{_mm_setr_ps(a, b, c, 0.0f)};
 	}
 
+	/// @note CPUID flags: SSE
 	[[nodiscard]] inline fvec4 make_vector(float a, float b, float c, float d) noexcept
 	{
 		return fvec4{_mm_setr_ps(a, b, c, d)};
@@ -39,6 +43,7 @@ namespace engine::math::simd::inline types
 	/// @name Vector comparison operators
 	/// @{
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline bool operator==(const fvec<N>& lhs, const fvec<N>& rhs) noexcept
 	{
@@ -53,6 +58,7 @@ namespace engine::math::simd::inline types
 	/// Increments all elements of a vector.
 	/// @param[in,out] v Vector to increment.
 	/// @return Reference to the incremented vector.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	inline fvec<N>& operator++(fvec<N>& v) noexcept
 	{
@@ -63,6 +69,7 @@ namespace engine::math::simd::inline types
 	/// Increments all elements of a vector.
 	/// @param[in,out] v Vector to increment.
 	/// @return Copy of @p v before it was incremented.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline fvec<N> operator++(fvec<N>& v, int) noexcept
 	{
@@ -74,8 +81,9 @@ namespace engine::math::simd::inline types
 	/// Decrements all elements of a vector.
 	/// @param[in,out] v Vector to decrement.
 	/// @return Reference to the decremented vector.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
-		inline fvec<N>& operator--(fvec<N>& v) noexcept
+	inline fvec<N>& operator--(fvec<N>& v) noexcept
 	{
 		v.m_data = _mm_sub_ps(v.m_data, _mm_set_ps1(1.0f));
 		return v;
@@ -84,8 +92,9 @@ namespace engine::math::simd::inline types
 	/// Decrements all elements of a vector.
 	/// @param[in,out] v Vector to decrement.
 	/// @return Copy of @p v before it was decremented.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
-		[[nodiscard]] inline fvec<N> operator--(fvec<N>& v, int) noexcept
+	[[nodiscard]] inline fvec<N> operator--(fvec<N>& v, int) noexcept
 	{
 		auto temp = v;
 		v.m_data = _mm_sub_ps(v.m_data, _mm_set_ps1(1.0f));
@@ -101,6 +110,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Vector on the right-hand side.
 	/// @return Result of the addition.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline fvec<N> operator+(const fvec<N>& lhs, const fvec<N>& rhs) noexcept
 	{
@@ -111,6 +121,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Scalar on the right-hand side.
 	/// @return Result of the addition.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline fvec<N> operator+(const fvec<N>& lhs, float rhs) noexcept
 	{
@@ -121,6 +132,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Scalar on the left-hand side.
 	/// @param rhs Vector on the right-hand side.
 	/// @return Result of the addition.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline fvec<N> operator+(float lhs, const fvec<N>& rhs) noexcept
 	{
@@ -130,6 +142,7 @@ namespace engine::math::simd::inline types
 	/// Negates a vector.
 	/// @param[in] v Vector to negate.
 	/// @return Negated copy of the vector.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 		[[nodiscard]] inline fvec<N> operator-(const fvec<N>& v) noexcept
 	{
@@ -141,6 +154,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Vector on the right-hand side.
 	/// @return Result of the subtraction.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline fvec<N> operator-(const fvec<N>& lhs, const fvec<N>& rhs) noexcept
 	{
@@ -151,6 +165,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Scalar on the right-hand side.
 	/// @return Result of the subtraction.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline fvec<N> operator-(const fvec<N>& lhs, float rhs) noexcept
 	{
@@ -161,6 +176,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Scalar on the left-hand side.
 	/// @param rhs Vector on the right-hand side.
 	/// @return Result of the subtraction.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline fvec<N> operator-(float lhs, const fvec<N>& rhs) noexcept
 	{
@@ -171,6 +187,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Vector on the right-hand side.
 	/// @return Result of the multiplication.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline fvec<N> operator*(const fvec<N>& lhs, const fvec<N>& rhs) noexcept
 	{
@@ -181,6 +198,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Scalar on the right-hand side.
 	/// @return Result of the multiplication.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline fvec<N> operator*(const fvec<N>& lhs, float rhs) noexcept
 	{
@@ -191,6 +209,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Scalar on the left-hand side.
 	/// @param rhs Vector on the right-hand side.
 	/// @return Result of the multiplication.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline fvec<N> operator*(float lhs, const fvec<N>& rhs) noexcept
 	{
@@ -201,6 +220,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Vector on the right-hand side.
 	/// @return Result of the division.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline fvec<N> operator/(const fvec<N>& lhs, const fvec<N>& rhs) noexcept
 	{
@@ -211,6 +231,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Scalar on the right-hand side.
 	/// @return Result of the division.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline fvec<N> operator/(const fvec<N>& lhs, float rhs) noexcept
 	{
@@ -221,6 +242,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Scalar on the left-hand side.
 	/// @param rhs Vector on the right-hand side.
 	/// @return Result of the division.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline fvec<N> operator/(float lhs, const fvec<N>& rhs) noexcept
 	{
@@ -236,6 +258,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Vector on the right-hand side.
 	/// @return Reference to the vector on the left-hand side.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	inline fvec<N>& operator+=(fvec<N>& lhs, const fvec<N>& rhs) noexcept
 	{
@@ -247,6 +270,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Scalar on the right-hand side.
 	/// @return Reference to the vector on the left-hand side.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	inline fvec<N>& operator+=(fvec<N>& lhs, float rhs) noexcept
 	{
@@ -258,6 +282,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Vector on the right-hand side.
 	/// @return Reference to the vector on the left-hand side.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	inline fvec<N>& operator-=(fvec<N>& lhs, const fvec<N>& rhs) noexcept
 	{
@@ -269,6 +294,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Scalar on the right-hand side.
 	/// @return Reference to the vector on the left-hand side.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	inline fvec<N>& operator-=(fvec<N>& lhs, float rhs) noexcept
 	{
@@ -280,6 +306,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Vector on the right-hand side.
 	/// @return Reference to the vector on the left-hand side.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	inline fvec<N>& operator*=(fvec<N>& lhs, const fvec<N>& rhs) noexcept
 	{
@@ -291,6 +318,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Scalar on the right-hand side.
 	/// @return Reference to the vector on the left-hand side.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	inline fvec<N>& operator*=(fvec<N>& lhs, float rhs) noexcept
 	{
@@ -302,6 +330,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Vector on the right-hand side.
 	/// @return Reference to the vector on the left-hand side.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	inline fvec<N>& operator/=(fvec<N>& lhs, const fvec<N>& rhs) noexcept
 	{
@@ -313,6 +342,7 @@ namespace engine::math::simd::inline types
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Scalar on the right-hand side.
 	/// @return Reference to the vector on the left-hand side.
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	inline fvec<N>& operator/=(fvec<N>& lhs, float rhs) noexcept
 	{
@@ -320,7 +350,7 @@ namespace engine::math::simd::inline types
 		return lhs;
 	}
 
-	/// @ 
+	/// @}
 }
 
 namespace engine::math::inline functions
@@ -332,6 +362,7 @@ namespace engine::math::inline functions
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Vector on the right-hand side.
 	/// @return Dot product of the two vectors.
+	/// @note CPUID flags: SSE4.1
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline float dot(const simd::fvec<N>& lhs, const simd::fvec<N>& rhs) noexcept
 	{
@@ -342,6 +373,7 @@ namespace engine::math::inline functions
 	/// @param lhs Vector on the left-hand side.
 	/// @param rhs Vector on the right-hand side.
 	/// @return Cross product of the two vectors.
+	/// @note CPUID flags: SSE
 	[[nodiscard]] inline simd::fvec3 cross(const simd::fvec3& lhs, const simd::fvec3& rhs) noexcept
 	{
 		const auto lhs_yzx = _mm_shuffle_ps(lhs.m_data, lhs.m_data, _MM_SHUFFLE(3, 0, 2, 1));
@@ -356,6 +388,7 @@ namespace engine::math::inline functions
 	/// @param y Second vector.
 	/// @param z Third vector.
 	/// @return Scalar triple product of the three vectors.
+	/// @note CPUID flags: SSE
 	template <class T>
 	[[nodiscard]] inline T triple(const simd::vec3<T>& x, const simd::vec3<T>& y, const simd::vec3<T>& z) noexcept
 	{
@@ -365,6 +398,7 @@ namespace engine::math::inline functions
 	/// Calculates the squared length of a vector.
 	/// @param v Vector whose squared length is to be calculated.
 	/// @return Squared length of the vector.
+	/// @note CPUID flags: SSE4.1
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline float sqr_length(const simd::fvec<N>& v) noexcept
 	{
@@ -374,6 +408,7 @@ namespace engine::math::inline functions
 	/// Calculates the length of a vector.
 	/// @param v Vector whose length is to be calculated.
 	/// @return Length of the vector.
+	/// @note CPUID flags: SSE4.1
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline float length(const simd::fvec<N>& v) noexcept
 	{
@@ -383,6 +418,7 @@ namespace engine::math::inline functions
 	/// Normalizes a vector.
 	/// @param v Vector to normalize.
 	/// @return Normalized copy of the vector.
+	/// @note CPUID flags: SSE4.1
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> normalize(const simd::fvec<N>& v) noexcept
 	{
@@ -394,6 +430,7 @@ namespace engine::math::inline functions
 	/// @param a First point.
 	/// @param b Second point.
 	/// @return Squared Cartesian distance between the two points.
+	/// @note CPUID flags: SSE
 	template <class T, usize N>
 	[[nodiscard]] inline T sqr_distance(const simd::vec<T, N>& a, const simd::vec<T, N>& b) noexcept
 	{
@@ -404,6 +441,7 @@ namespace engine::math::inline functions
 	/// @param a First point.
 	/// @param b Second point.
 	/// @return Cartesian distance between the two points.
+	/// @note CPUID flags: SSE
 	template <class T, usize N>
 	[[nodiscard]] inline T distance(const simd::vec<T, N>& a, const simd::vec<T, N>& b) noexcept
 	{
@@ -419,11 +457,12 @@ namespace engine::math::inline functions
 	/// @param a Vector to be projected.
 	/// @param b Vector onto which to project.
 	/// @return Projection of @p a onto @p b.
+	/// @note CPUID flags: SSE
 	template <class T, usize N>
-	[[nodiscard]] inline vec<T, N> project(const simd::vec<T, N>& a, const simd::vec<T, N>& b) noexcept
+	[[nodiscard]] inline simd::vec<T, N> project(const simd::vec<T, N>& a, const simd::vec<T, N>& b) noexcept
 	{
 		const T sqr_len_b = sqr_length(b);
-		return (sqr_len_b > T{0}) ? b * (dot(a, b) / sqr_len_b) : vec<T, N>{};
+		return (sqr_len_b > T{0}) ? b * (dot(a, b) / sqr_len_b) : simd::vec<T, N>{};
 	}
 
 	/// @}
@@ -431,6 +470,7 @@ namespace engine::math::inline functions
 	/// @name Vector sign functions
 	/// @{
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> abs(const simd::fvec<N>& v) noexcept
 	{
@@ -438,6 +478,7 @@ namespace engine::math::inline functions
 		return simd::fvec<N>{_mm_and_ps(v.m_data, mask)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> copysign(float magnitude, const simd::fvec<N>& v) noexcept
 	{
@@ -446,6 +487,7 @@ namespace engine::math::inline functions
 		return simd::fvec<N>{_mm_or_ps(abs_magnitude, sign_bits)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> copysign(const simd::fvec<N>& magnitude, const simd::fvec<N>& v) noexcept
 	{
@@ -454,6 +496,7 @@ namespace engine::math::inline functions
 		return simd::fvec<N>{_mm_or_ps(abs_magnitude, sign_bits)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> sign(const simd::fvec<N>& v) noexcept
 	{
@@ -465,18 +508,21 @@ namespace engine::math::inline functions
 	/// @name Vector min/max functions
 	/// @{
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> min(const simd::fvec<N>& lhs, const simd::fvec<N>& rhs) noexcept
 	{
 		return simd::fvec<N>{_mm_min_ps(lhs.m_data, rhs.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> max(const simd::fvec<N>& lhs, const simd::fvec<N>& rhs) noexcept
 	{
 		return simd::fvec<N>{_mm_max_ps(lhs.m_data, rhs.m_data)};
 	}
 
+	/// @note CPUID flags: SSE3
 	[[nodiscard]] inline float min_element(const simd::fvec3& v) noexcept
 	{
 		const auto min1 = _mm_min_ps(v.m_data, _mm_shuffle_ps(v.m_data, v.m_data, _MM_SHUFFLE(3, 0, 2, 1)));
@@ -484,6 +530,7 @@ namespace engine::math::inline functions
 		return _mm_cvtss_f32(min2);
 	}
 
+	/// @note CPUID flags: SSE3
 	[[nodiscard]] inline float min_element(const simd::fvec4& v) noexcept
 	{
 		const auto shuffle = _mm_movehdup_ps(v.m_data);
@@ -491,6 +538,7 @@ namespace engine::math::inline functions
 		return _mm_cvtss_f32(_mm_min_ss(min, _mm_movehl_ps(shuffle, min)));
 	}
 
+	/// @note CPUID flags: SSE3
 	[[nodiscard]] inline float max_element(const simd::fvec3& v) noexcept
 	{
 		const auto min1 = _mm_max_ps(v.m_data, _mm_shuffle_ps(v.m_data, v.m_data, _MM_SHUFFLE(3, 0, 2, 1)));
@@ -498,6 +546,7 @@ namespace engine::math::inline functions
 		return _mm_cvtss_f32(min2);
 	}
 
+	/// @note CPUID flags: SSE3
 	[[nodiscard]] inline float max_element(const simd::fvec4& v) noexcept
 	{
 		const auto shuffle = _mm_movehdup_ps(v.m_data);
@@ -505,18 +554,21 @@ namespace engine::math::inline functions
 		return _mm_cvtss_f32(_mm_max_ss(max, _mm_movehl_ps(shuffle, max)));
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N>
 	[[nodiscard]] inline simd::fvec<N> clamp(const simd::fvec<N>& v, const simd::fvec<N>& min, const simd::fvec<N>& max) noexcept
 	{
 		return math::min(math::max(v, min), max);
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
-		[[nodiscard]] inline simd::fvec<N> clamp(const simd::fvec<N>& v, float min, float max) noexcept
+	[[nodiscard]] inline simd::fvec<N> clamp(const simd::fvec<N>& v, float min, float max) noexcept
 	{
 		return simd::fvec<N>{_mm_min_ps(_mm_max_ps(v.m_data, _mm_set_ps1(min)), _mm_set_ps1(max))};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N>
 	[[nodiscard]] inline simd::fvec<N> clamp_length(const simd::fvec<N>& v, float max_length) noexcept
 	{
@@ -529,6 +581,7 @@ namespace engine::math::inline functions
 	/// @name Vector summation functions
 	/// @{
 
+	/// @note CPUID flags: SSE3
 	[[nodiscard]] inline float sum(const simd::fvec3& v) noexcept
 	{
 		const auto xyz = _mm_blend_ps(v.m_data, _mm_setzero_ps(), 0b1000);
@@ -537,6 +590,7 @@ namespace engine::math::inline functions
 		return _mm_cvtss_f32(_mm_add_ss(sums, _mm_movehl_ps(shuffle, sums)));
 	}
 
+	/// @note CPUID flags: SSE3
 	[[nodiscard]] inline float sum(const simd::fvec4& v) noexcept
 	{
 		const auto shuffle = _mm_movehdup_ps(v.m_data);
@@ -549,20 +603,23 @@ namespace engine::math::inline functions
 	/// @name Vector rounding functions
 	/// @{
 
+	/// @note CPUID flags: SSE4.1
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> floor(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_floor_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE4.1
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> ceil(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_ceil_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE4.1
 	template <usize N> requires (N == 3 || N == 4)
-	[[nodiscard]] simd::fvec<N> round(const simd::fvec<N>& v) noexcept
+	[[nodiscard]] inline simd::fvec<N> round(const simd::fvec<N>& v) noexcept
 	{
 		const auto sign_bits = _mm_and_ps(v.m_data, _mm_set_ps1(-0.0f));
 		const auto sign = _mm_or_ps(sign_bits, _mm_set_ps1(1.0f));
@@ -572,18 +629,21 @@ namespace engine::math::inline functions
 		return simd::fvec<N>{_mm_add_ps(i, _mm_or_ps(_mm_and_ps(ge_half, sign), sign_bits))};
 	}
 
+	/// @note CPUID flags: SSE4.1
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> roundeven(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_round_ps(v.m_data, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC)};
 	}
 
+	/// @note CPUID flags: SSE4.1
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> fract(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_sub_ps(v.m_data, _mm_floor_ps(v.m_data))};
 	}
 
+	/// @note CPUID flags: SSE4.1
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> trunc(const simd::fvec<N>& v) noexcept
 	{
@@ -600,6 +660,7 @@ namespace engine::math::inline functions
 	/// @param b Second multiplicand.
 	/// @param c Addend.
 	/// @return Result of the operation `a * b + c`.
+	/// @note CPUID flags: FMA
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> fma(const simd::fvec<N>& a, const simd::fvec<N>& b, const simd::fvec<N>& c) noexcept
 	{
@@ -611,6 +672,7 @@ namespace engine::math::inline functions
 	/// @param b Second multiplicand scalar.
 	/// @param c Addend scalar.
 	/// @return Result of the operation `a * b + c`.
+	/// @note CPUID flags: SSE, FMA
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> fma(const simd::fvec<N>& a, float b, float c) noexcept
 	{
@@ -622,6 +684,7 @@ namespace engine::math::inline functions
 	/// @param b Second multiplicand.
 	/// @param c Subtrahend.
 	/// @return Result of the operation `a * b - c`.
+	/// @note CPUID flags: FMA
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> fms(const simd::fvec<N>& a, const simd::fvec<N>& b, const simd::fvec<N>& c) noexcept
 	{
@@ -633,6 +696,7 @@ namespace engine::math::inline functions
 	/// @param b Second multiplicand scalar.
 	/// @param c Subtrahend scalar.
 	/// @return Result of the operation `a * b - c`.
+	/// @note CPUID flags: SSE, FMA
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> fms(const simd::fvec<N>& a, float b, float c) noexcept
 	{
@@ -644,6 +708,7 @@ namespace engine::math::inline functions
 	/// @param b Second multiplicand.
 	/// @param c Addend.
 	/// @return Result of the operation `-(a * b) + c`.
+	/// @note CPUID flags: FMA
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> fnma(const simd::fvec<N>& a, const simd::fvec<N>& b, const simd::fvec<N>& c) noexcept
 	{
@@ -655,6 +720,7 @@ namespace engine::math::inline functions
 	/// @param b Second multiplicand scalar.
 	/// @param c Addend scalar.
 	/// @return Result of the operation `-(a * b) + c`.
+	/// @note CPUID flags: SSE, FMA
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> fnma(const simd::fvec<N>& a, float b, float c) noexcept
 	{
@@ -666,6 +732,7 @@ namespace engine::math::inline functions
 	/// @param b Second multiplicand.
 	/// @param c Subtrahend.
 	/// @return Result of the operation `-(a * b) - c`.
+	/// @note CPUID flags: FMA
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> fnms(const simd::fvec<N>& a, const simd::fvec<N>& b, const simd::fvec<N>& c) noexcept
 	{
@@ -677,6 +744,7 @@ namespace engine::math::inline functions
 	/// @param b Second multiplicand scalar.
 	/// @param c Subtrahend scalar.
 	/// @return Result of the operation `-(a * b) - c`.
+	/// @note CPUID flags: SSE, FMA
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> fnms(const simd::fvec<N>& a, float b, float c) noexcept
 	{
@@ -688,24 +756,28 @@ namespace engine::math::inline functions
 	/// @name Vector reciprocal functions
 	/// @{
 
+	/// @note CPUID flags: SSE
 	template <usize N>
 	[[nodiscard]] inline simd::fvec<N> rcp(const simd::fvec<N>& v) noexcept
 	{
 		return 1.0f / v;
 	}
 
+	/// @note CPUID flags: SSE4.1
 	template <usize N>
 	[[nodiscard]] inline float rcp_length(const simd::fvec<N>& v) noexcept
 	{
 		return rcp(length(v));
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> rcp_sqrt(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_invsqrt_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> rcp_cbrt(const simd::fvec<N>& v) noexcept
 	{
@@ -717,42 +789,49 @@ namespace engine::math::inline functions
 	/// @name Vector power/root functions
 	/// @{
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> sqr(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_mul_ps(v.m_data, v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> cube(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_mul_ps(_mm_mul_ps(v.m_data, v.m_data), v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> sqrt(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_sqrt_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> cbrt(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_cbrt_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> pow(const simd::fvec<N>& base, const simd::fvec<N>& exponent) noexcept
 	{
 		return simd::fvec<N>{_mm_pow_ps(base.m_data, exponent.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> pow(const simd::fvec<N>& base, float exponent) noexcept
 	{
 		return simd::fvec<N>{_mm_pow_ps(base.m_data, _mm_set_ps1(exponent))};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> pow(float base, const simd::fvec<N>& exponent) noexcept
 	{
@@ -764,42 +843,49 @@ namespace engine::math::inline functions
 	/// @name Vector trigonometric functions
 	/// @{
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> sin(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_sin_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> cos(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_cos_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> tan(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_tan_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> asin(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_asin_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> acos(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_acos_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> atan(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_atan_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> atan(const simd::fvec<N>& y, const simd::fvec<N>& x) noexcept
 	{
@@ -810,6 +896,7 @@ namespace engine::math::inline functions
 	/// @param from First direction vector.
 	/// @param to Second direction vector.
 	/// @return Angle, in radians, between the two vectors.
+	/// @note CPUID flags: SSE
 	template <class T, usize N>
 	[[nodiscard]] inline float angle(const simd::vec<T, N>& from, const simd::vec<T, N>& to) noexcept
 	{
@@ -821,6 +908,7 @@ namespace engine::math::inline functions
 	/// @param to Second direction vector.
 	/// @param axis Axis about which to measure the angle.
 	/// @return Signed angle, in radians, between the two vectors about the given axis.
+	/// @note CPUID flags: SSE
 	template <class T>
 	[[nodiscard]] inline T signed_angle(const simd::vec3<T>& from, const simd::vec3<T>& to, const simd::vec3<T>& axis) noexcept
 	{
@@ -832,42 +920,49 @@ namespace engine::math::inline functions
 	/// @name Vector exponential/logarithmic functions
 	/// @{
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> exp(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_exp_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> expm1(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_expm1_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> exp2(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_exp2_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> exp10(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_exp10_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> log(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_log_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> log2(const simd::fvec<N>& v) noexcept
 	{
 		return simd::fvec<N>{_mm_log2_ps(v.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> log10(const simd::fvec<N>& v) noexcept
 	{
@@ -879,18 +974,21 @@ namespace engine::math::inline functions
 	/// @name Vector modulo functions
 	/// @{
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> mod(const simd::fvec<N>& lhs, const simd::fvec<N>& rhs) noexcept
 	{
 		return simd::fvec<N>{_mm_fmod_ps(lhs.m_data, rhs.m_data)};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> mod(const simd::fvec<N>& lhs, float rhs) noexcept
 	{
 		return simd::fvec<N>{_mm_fmod_ps(lhs.m_data, _mm_set_ps1(rhs))};
 	}
 
+	/// @note CPUID flags: SSE
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> mod(float lhs, const simd::fvec<N>& rhs) noexcept
 	{
@@ -902,6 +1000,7 @@ namespace engine::math::inline functions
 	/// @name Vector interpolation
 	/// @{
 
+	/// @note CPUID flags: SSE, FMA
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> lerp(const simd::fvec<N>& a, const simd::fvec<N>& b, const simd::fvec<N>& t) noexcept
 	{
@@ -912,6 +1011,7 @@ namespace engine::math::inline functions
 		return simd::fvec<N>{_mm_fmadd_ps(a.m_data, _mm_sub_ps(_mm_set_ps1(1.0f), t.m_data), _mm_mul_ps(b.m_data, t.m_data))};
 	}
 
+	/// @note CPUID flags: SSE, FMA
 	template <usize N> requires (N == 3 || N == 4)
 	[[nodiscard]] inline simd::fvec<N> lerp(const simd::fvec<N>& a, const simd::fvec<N>& b, float t) noexcept
 	{
