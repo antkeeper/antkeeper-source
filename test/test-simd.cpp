@@ -54,6 +54,15 @@ void assert_vec_near(const vector<T, N>& a, const vector<T, N>& b, T tolerance =
 
 int main(int, char*[])
 {
+	std::println("SSE supported:      {}", engine::math::simd::has_sse());
+	std::println("SSE2 supported:     {}", engine::math::simd::has_sse2());
+	std::println("SSE3 supported:     {}", engine::math::simd::has_sse3());
+	std::println("SSE4.1 supported:   {}", engine::math::simd::has_sse41());
+	std::println("SSE4.2 supported:   {}", engine::math::simd::has_sse42());
+	std::println("AVX supported:      {}", engine::math::simd::has_avx());
+	std::println("AVX2 supported:     {}", engine::math::simd::has_avx2());
+	std::println("AVX-512F supported: {}", engine::math::simd::has_avx512f());
+
 	if (!engine::math::simd::has_sse42())
 	{
 		std::println("SSE4.2 not supported. Skipping SIMD test.");
