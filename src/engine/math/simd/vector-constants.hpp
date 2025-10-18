@@ -13,16 +13,16 @@ namespace engine::math::inline constants
 	/// @{
 
 	/// Vector of zeros.
-	template <class T, usize N>
-	const simd::vec<T, N> zero<simd::vec<T, N>> = {};
+	//template <class T, usize N>
+	//const simd::vec<T, N> zero<simd::vec<T, N>> = {};
 
 	/// Vector of ones.
-	template <class T, usize N>
-	const simd::vec<T, N> one<simd::vec<T, N>> = simd::vec<T, N>(one<T>);
+	//template <class T, usize N>
+	//const simd::vec<T, N> one<simd::vec<T, N>> = simd::vec<T, N>(one<T>);
 
 	/// Vector of infinities.
-	template <class T, usize N>
-	const simd::vec<T, N> inf<simd::vec<T, N>> = simd::vec<T, N>(inf<T>);
+	//template <class T, usize N>
+	//const simd::vec<T, N> inf<simd::vec<T, N>> = simd::vec<T, N>(inf<T>);
 
 	/// @}
 }
